@@ -11,10 +11,10 @@ Source of truth:
 - Public rule docs: `README.md`
 
 Parity status:
-- Rule-folder parity: 39 / 49 rules ported, 10 remaining
+- Rule-folder parity: 42 / 49 rules ported, 7 remaining
 - Upstream `core` preset parity: 34 / 34 rules ported, 0 remaining
-- Upstream `full` preset parity: 39 / 47 rules ported, 8 remaining
-- Upstream `web` preset parity: 4 / 6 rules ported, 2 remaining
+- Upstream `full` preset parity: 40 / 47 rules ported, 7 remaining
+- Upstream `web` preset parity: 6 / 6 rules ported, 0 remaining
 - Upstream `ts-type` preset parity: 0 / 7 rules ported, 7 remaining
 
 Upstream preset note:
@@ -45,16 +45,17 @@ For each completed rule:
 
 ## Next Slice
 
-- [ ] `no-inline-runtime-provide`
-- [ ] `no-naked-object-state-update`
-- [ ] `no-effect-succeed-variable`
+- [ ] `no-effect-type-alias`
+- [ ] `no-model-overlay-cast`
+- [ ] `no-unknown-boolean-coercion-helper`
 
 Why next:
 - Upstream `core` parity is complete.
-- This finishes the remaining upstream `web` preset rules and picks up the only rule-folder parity item outside current presets.
+- Upstream `web` parity is complete.
+- These are the first three remaining upstream `ts-type` preset rules and share type/coercion boundary context.
 
 Expected upstream behavior:
-- Flag inline runtime provisioning, naked object state updates, and variable-wrapped Effect.succeed according to upstream Grit rules.
+- Flag hand-written Effect type aliases, model overlay casts, and unknown boolean coercion helpers according to upstream Grit rules.
 - Preserve existing valid Effect pipeline, generator, Match, and wrapper fixture behavior.
 
 ## Ported Rules
@@ -98,6 +99,9 @@ Expected upstream behavior:
 - [x] `no-render-side-effects`
 - [x] `no-atom-registry-effect-sync`
 - [x] `no-family-collection-read`
+- [x] `no-inline-runtime-provide`
+- [x] `no-naked-object-state-update`
+- [x] `no-effect-succeed-variable`
 
 ## Core Preset Remaining
 
@@ -105,8 +109,7 @@ Complete.
 
 ## Web Preset Remaining
 
-- [ ] `no-inline-runtime-provide`
-- [ ] `no-naked-object-state-update`
+Complete.
 
 ## TS-Type Preset Remaining
 
@@ -124,7 +127,7 @@ Complete.
 
 ## Rule-Folder Parity Remaining Outside Current Presets
 
-- [ ] `no-effect-succeed-variable`
+Complete.
 
 ## Suggested Slice Order
 
@@ -155,8 +158,8 @@ Complete.
    - [x] `no-render-side-effects`
    - [x] `no-atom-registry-effect-sync`
    - [x] `no-family-collection-read`
-   - [ ] `no-inline-runtime-provide`
-   - [ ] `no-naked-object-state-update`
+   - [x] `no-inline-runtime-provide`
+   - [x] `no-naked-object-state-update`
 
 5. TS-type and sentinel normalization rules:
    - [ ] `no-effect-type-alias`
@@ -169,4 +172,4 @@ Complete.
 
 6. Remaining parity rules:
    - [x] `no-wrapgraphql-catchall`
-   - [ ] `no-effect-succeed-variable`
+   - [x] `no-effect-succeed-variable`

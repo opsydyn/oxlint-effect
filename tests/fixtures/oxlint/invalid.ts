@@ -104,6 +104,15 @@ const atomRegistrySync = Effect.sync(() => Atom.set({} as any, count));
 
 const familyCollectionRead = Atom.family((id: string) => get(UsersCollectionAtom));
 
+const inlineRuntimeProvide = Effect.gen(function* () {
+  return yield* SomeRuntime.pipe(Effect.provide(SomeRuntimeLive));
+});
+
+const objectStatePatch = Ref.update({} as any, (state) => ({
+  ...state,
+  count,
+}));
+
 try {
   throw new Error("boom");
 } catch {

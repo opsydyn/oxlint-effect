@@ -75,3 +75,6 @@ export default defineConfig({
 - `linteffect/no-render-side-effects`
 - `linteffect/no-atom-registry-effect-sync`
 - `linteffect/no-family-collection-read`
+- `linteffect/no-inline-runtime-provide`
+- `linteffect/no-naked-object-state-update`
+- `linteffect/no-effect-succeed-variable`

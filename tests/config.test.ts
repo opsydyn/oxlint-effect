@@ -50,6 +50,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-render-side-effects": "error",
       "linteffect/no-atom-registry-effect-sync": "error",
       "linteffect/no-family-collection-read": "error",
+      "linteffect/no-inline-runtime-provide": "error",
+      "linteffect/no-naked-object-state-update": "error",
+      "linteffect/no-effect-succeed-variable": "error",
     });
   });
 

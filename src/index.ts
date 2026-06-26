@@ -888,6 +888,113 @@ function findFamilyCollectionRead(node: unknown, seen = new WeakSet<object>()): 
   return undefined;
 }
 
+function isEffectProvideWithSingleArgument(node: unknown): boolean {
+  return isEffectMemberCallNamed(node, "provide") && node.arguments.length === 1;
+}
+
+function findInlineRuntimeProvide(node: unknown): unknown | undefined {
+  if (!isPipeCall(node)) {
+    return undefined;
+  }
+
+  return pipeParts(node).find((part) => isEffectProvideWithSingleArgument(part));
+}
+
+function hasObjectSpread(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (typeof node === "object" && node !== null && (node as Node).type === "SpreadElement") {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => hasObjectSpread(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && hasObjectSpread(child, seen)
+  ));
+}
+
+function isRefStateUpdateWithSpread(node: unknown): boolean {
+  if (!isMemberCall(node, "Ref", "update") && !isMemberCall(node, "Ref", "modify")) {
+    return false;
+  }
+
+  const callback = (node as Node & { arguments: unknown[] }).arguments[1];
+  const body = callbackBody(callback);
+  return hasObjectSpread(body);
+}
+
+function isEmptyObjectExpression(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "ObjectExpression" &&
+    Array.isArray((node as Node).properties) &&
+    ((node as Node).properties as unknown[]).length === 0
+  );
+}
+
+function containsObjectEntriesCall(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (isMemberCall(node, "Object", "entries")) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsObjectEntriesCall(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsObjectEntriesCall(child, seen)
+  ));
+}
+
+function isNakedObjectStateUpdate(node: unknown): boolean {
+  if (isRefStateUpdateWithSpread(node)) {
+    return true;
+  }
+
+  if (isMemberCall(node, "Object", "assign")) {
+    const args = (node as Node & { arguments: unknown[] }).arguments;
+    return args.length >= 3 && isEmptyObjectExpression(args[0]);
+  }
+
+  if (isMemberCall(node, "Object", "fromEntries")) {
+    return containsObjectEntriesCall((node as Node & { arguments: unknown[] }).arguments[0]);
+  }
+
+  return isMemberCall(node, "JSON", "stringify") || isMemberCall(node, "JSON", "parse");
+}
+
+function isEffectSucceedVariableArgument(node: unknown): boolean {
+  if (isIdentifier(node)) {
+    return true;
+  }
+
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "MemberExpression"
+  );
+}
+
 function isBooleanLiteral(node: unknown, value: boolean): boolean {
   return (
     typeof node === "object" &&
@@ -1874,6 +1981,75 @@ const noFamilyCollectionRead = defineRule({
   },
 });
 
+const noInlineRuntimeProvide = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        const provide = hasEffectEcosystemImport ? findInlineRuntimeProvide(node) : undefined;
+        if (provide) {
+          report(
+            context,
+            provide,
+            "Rule: do not inline runtime provisioning inside local helper Effect code. Why: `yield* SomeRuntime.pipe(Effect.provide(SomeRuntimeLive))` and equivalent inline provide chains hide dependency assembly instead of owning it at an Effect.Service boundary or one exported Effect boundary. Fix: declare the live dependency on the owning service or provide it once at the exported boundary, then `yield*` the runtime or service directly inside the body.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noNakedObjectStateUpdate = defineRule({
+  create(context: OxlintContext) {
+    return {
+      CallExpression(node: any) {
+        if (isNakedObjectStateUpdate(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid naked JS state patching/rebuild and raw JSON shortcuts in Effect transitions. Why: spread/Object.assign/fromEntries and inline JSON parse/stringify hide state intent and bypass explicit model contracts. Fix: use `effect/Record` combinators (`Record.set` / `Record.modify` / `Record.remove`) inside `Struct.evolve`, rebuild with schema constructors (`Schema.make` or field `.make`), and keep serialization at boundaries with schema encode/decode flows. Use `linting.md` guidance when available.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEffectSucceedVariable = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          hasEffectEcosystemImport &&
+          isEffectMemberCallNamed(node, "succeed") &&
+          isEffectSucceedVariableArgument(firstArgument(node))
+        ) {
+          report(
+            context,
+            node,
+            "Rule: avoid Effect.succeed(variable) as a branch placeholder. Why: it hides a decision and turns data into pseudo-control flow. Fix: select a plain value (Option/Match) and then run one Effect pipeline after the decision; if you already read the state, return it as a value. Avoid Option.toArray/forEach hacks that just re-encode the branch.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noEffectAs = defineRule({
   create(context: OxlintContext) {
     return {
@@ -2092,6 +2268,9 @@ const rules = {
   "no-render-side-effects": noRenderSideEffects,
   "no-atom-registry-effect-sync": noAtomRegistryEffectSync,
   "no-family-collection-read": noFamilyCollectionRead,
+  "no-inline-runtime-provide": noInlineRuntimeProvide,
+  "no-naked-object-state-update": noNakedObjectStateUpdate,
+  "no-effect-succeed-variable": noEffectSucceedVariable,
   "no-effect-as": noEffectAs,
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,

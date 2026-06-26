@@ -228,6 +228,28 @@ const property = (key: string, value: unknown) => ({
   kind: "init",
 });
 
+const spreadElement = (argument: unknown) => ({
+  type: "SpreadElement",
+  argument,
+});
+
+const objectLiteral = (...properties: unknown[]) => ({
+  type: "ObjectExpression",
+  properties,
+});
+
+const arrayLiteral = (...elements: unknown[]) => ({
+  type: "ArrayExpression",
+  elements,
+});
+
+const conditionalExpr = (test: unknown, consequent: unknown, alternate: unknown) => ({
+  type: "ConditionalExpression",
+  test,
+  consequent,
+  alternate,
+});
+
 const arrayExpression = (...elements: unknown[]) => ({
   type: "ArrayExpression",
   elements,
@@ -1459,6 +1481,121 @@ describe("linteffect Oxlint plugin", () => {
       },
       arrowCallback(callExpression(identifier("get"), identifier("UserByKeyAtom"))),
     ));
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches inline runtime Effect.provide calls inside runtime pipe chains", () => {
+    const reports = runRuleSequence("no-inline-runtime-provide", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          identifier("SomeRuntime"),
+          effectCall("provide", identifier("SomeRuntimeLive")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("do not inline runtime provisioning");
+  });
+
+  it("allows Effect.provide pipe calls with explicit program arguments", () => {
+    const reports = runRuleSequence("no-inline-runtime-provide", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          identifier("SomeRuntime"),
+          effectCall("provide", identifier("SomeRuntimeLive"), identifier("program")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Ref.update object spread state patches", () => {
+    const reports = runRule("no-naked-object-state-update", "CallExpression", callExpression(
+      {
+        type: "MemberExpression",
+        object: identifier("Ref"),
+        property: identifier("update"),
+        computed: false,
+      },
+      identifier("stateRef"),
+      arrowCallback(objectLiteral(
+        spreadElement(identifier("state")),
+        property("count", identifier("count")),
+      )),
+    ));
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid naked JS state patching");
+  });
+
+  it("catches Object.assign state rebuild shortcuts", () => {
+    const reports = runRule("no-naked-object-state-update", "CallExpression", callExpression(
+      {
+        type: "MemberExpression",
+        object: identifier("Object"),
+        property: identifier("assign"),
+        computed: false,
+      },
+      objectLiteral(),
+      identifier("state"),
+      identifier("patch"),
+    ));
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid naked JS state patching");
+  });
+
+  it("allows Ref.update without object spread state patches", () => {
+    const reports = runRule("no-naked-object-state-update", "CallExpression", callExpression(
+      {
+        type: "MemberExpression",
+        object: identifier("Ref"),
+        property: identifier("update"),
+        computed: false,
+      },
+      identifier("stateRef"),
+      arrowCallback(objectLiteral(property("count", identifier("count")))),
+    ));
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.succeed around variables in Effect files", () => {
+    const reports = runRuleSequence("no-effect-succeed-variable", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("succeed", identifier("value")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.succeed(variable)");
+  });
+
+  it("allows Effect.succeed around literals, object values, arrays, calls, and conditionals", () => {
+    const visits = [
+      objectLiteral(property("value", identifier("value"))),
+      arrayLiteral(identifier("value")),
+      callExpression(identifier("makeValue")),
+      conditionalExpr(identifier("flag"), identifier("yes"), identifier("no")),
+      numericLiteral(1),
+    ].map((argument) => ({
+      visitorName: "CallExpression",
+      node: effectCall("succeed", argument),
+    }));
+
+    const reports = runRuleSequence("no-effect-succeed-variable", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      ...visits,
+    ]);
 
     expect(reports).toHaveLength(0);
   });

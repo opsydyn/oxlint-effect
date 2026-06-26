@@ -67,6 +67,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-render-side-effects)");
     expect(result.output).toContain("linteffect(no-atom-registry-effect-sync)");
     expect(result.output).toContain("linteffect(no-family-collection-read)");
+    expect(result.output).toContain("linteffect(no-inline-runtime-provide)");
+    expect(result.output).toContain("linteffect(no-naked-object-state-update)");
+    expect(result.output).toContain("linteffect(no-effect-succeed-variable)");
   });
 
   it("allows a clean Effect-style fixture", () => {
