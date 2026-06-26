@@ -97,6 +97,15 @@ const booleanCoercion = Match.value(typeof count === "boolean").pipe(
   Match.orElse(() => null),
 );
 
+const nullableOption = Option.fromNullable(count ?? null);
+
+const booleanNormalized = Option.match(Option.some(count), {
+  onSome: (value) => value === true,
+  onNone: () => false,
+});
+
+const statusToken = "loading";
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

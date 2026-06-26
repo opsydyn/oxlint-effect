@@ -11,11 +11,11 @@ Source of truth:
 - Public rule docs: `README.md`
 
 Parity status:
-- Rule-folder parity: 45 / 49 rules ported, 4 remaining
+- Rule-folder parity: 49 / 49 rules ported, 0 remaining
 - Upstream `core` preset parity: 34 / 34 rules ported, 0 remaining
-- Upstream `full` preset parity: 43 / 47 rules ported, 4 remaining
+- Upstream `full` preset parity: 47 / 47 rules ported, 0 remaining
 - Upstream `web` preset parity: 6 / 6 rules ported, 0 remaining
-- Upstream `ts-type` preset parity: 3 / 7 rules ported, 4 remaining
+- Upstream `ts-type` preset parity: 7 / 7 rules ported, 0 remaining
 
 Upstream preset note:
 - `full.jsonc` lists 47 rules, while `rules/*.grit` contains 49 rules.
@@ -45,19 +45,13 @@ For each completed rule:
 
 ## Next Slice
 
-- [ ] `no-fromnullable-nullish-coalesce`
-- [ ] `no-option-boolean-normalization`
-- [ ] `no-string-sentinel-return`
-- [ ] `no-string-sentinel-const`
+Parity complete.
 
-Why next:
+Why:
 - Upstream `core` parity is complete.
 - Upstream `web` parity is complete.
-- These are the final four upstream `ts-type` preset rules and share nullish/boolean/string sentinel normalization context.
-
-Expected upstream behavior:
-- Flag fromNullable nullish coalescing, Option boolean normalization, and string sentinel returns/consts according to upstream Grit rules.
-- Preserve existing valid Effect pipeline, generator, Match, and wrapper fixture behavior.
+- Upstream `ts-type` parity is complete.
+- Rule-folder and `full` preset parity are complete.
 
 ## Ported Rules
 
@@ -106,6 +100,10 @@ Expected upstream behavior:
 - [x] `no-effect-type-alias`
 - [x] `no-model-overlay-cast`
 - [x] `no-unknown-boolean-coercion-helper`
+- [x] `no-fromnullable-nullish-coalesce`
+- [x] `no-option-boolean-normalization`
+- [x] `no-string-sentinel-return`
+- [x] `no-string-sentinel-const`
 
 ## Core Preset Remaining
 
@@ -120,10 +118,10 @@ Complete.
 - [x] `no-effect-type-alias`
 - [x] `no-model-overlay-cast`
 - [x] `no-unknown-boolean-coercion-helper`
-- [ ] `no-fromnullable-nullish-coalesce`
-- [ ] `no-option-boolean-normalization`
-- [ ] `no-string-sentinel-return`
-- [ ] `no-string-sentinel-const`
+- [x] `no-fromnullable-nullish-coalesce`
+- [x] `no-option-boolean-normalization`
+- [x] `no-string-sentinel-return`
+- [x] `no-string-sentinel-const`
 
 ## Full-Only Remaining
 
@@ -169,10 +167,10 @@ Complete.
    - [x] `no-effect-type-alias`
    - [x] `no-model-overlay-cast`
    - [x] `no-unknown-boolean-coercion-helper`
-   - [ ] `no-fromnullable-nullish-coalesce`
-   - [ ] `no-option-boolean-normalization`
-   - [ ] `no-string-sentinel-return`
-   - [ ] `no-string-sentinel-const`
+   - [x] `no-fromnullable-nullish-coalesce`
+   - [x] `no-option-boolean-normalization`
+   - [x] `no-string-sentinel-return`
+   - [x] `no-string-sentinel-const`
 
 6. Remaining parity rules:
    - [x] `no-wrapgraphql-catchall`

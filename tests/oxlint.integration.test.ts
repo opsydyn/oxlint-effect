@@ -73,6 +73,10 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-effect-type-alias)");
     expect(result.output).toContain("linteffect(no-model-overlay-cast)");
     expect(result.output).toContain("linteffect(no-unknown-boolean-coercion-helper)");
+    expect(result.output).toContain("linteffect(no-fromnullable-nullish-coalesce)");
+    expect(result.output).toContain("linteffect(no-option-boolean-normalization)");
+    expect(result.output).toContain("linteffect(no-string-sentinel-return)");
+    expect(result.output).toContain("linteffect(no-string-sentinel-const)");
   });
 
   it("allows a clean Effect-style fixture", () => {

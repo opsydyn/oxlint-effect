@@ -81,3 +81,7 @@ export default defineConfig({
 - `linteffect/no-effect-type-alias`
 - `linteffect/no-model-overlay-cast`
 - `linteffect/no-unknown-boolean-coercion-helper`
+- `linteffect/no-fromnullable-nullish-coalesce`
+- `linteffect/no-option-boolean-normalization`
+- `linteffect/no-string-sentinel-return`
+- `linteffect/no-string-sentinel-const`

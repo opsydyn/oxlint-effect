@@ -308,6 +308,13 @@ const binaryExpression = (left: unknown, operator: string, right: unknown) => ({
   right,
 });
 
+const logicalExpression = (left: unknown, operator: string, right: unknown) => ({
+  type: "LogicalExpression",
+  left,
+  operator,
+  right,
+});
+
 const stringLiteral = (value: string) => ({
   type: "Literal",
   value,
@@ -1729,6 +1736,132 @@ describe("linteffect Oxlint plugin", () => {
         ),
       },
     ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches nullish coalesce inside Option.fromNullable", () => {
+    const reports = runRuleSequence("no-fromnullable-nullish-coalesce", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          {
+            type: "MemberExpression",
+            object: identifier("Option"),
+            property: identifier("fromNullable"),
+            computed: false,
+          },
+          logicalExpression(identifier("value"), "??", nullLiteral()),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid nullish re-wrap inside Option.fromNullable");
+  });
+
+  it("allows direct Option.fromNullable sources", () => {
+    const reports = runRuleSequence("no-fromnullable-nullish-coalesce", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          {
+            type: "MemberExpression",
+            object: identifier("Option"),
+            property: identifier("fromNullable"),
+            computed: false,
+          },
+          identifier("value"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches repeated Option boolean normalization", () => {
+    const reports = runRuleSequence("no-option-boolean-normalization", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          {
+            type: "MemberExpression",
+            object: identifier("Option"),
+            property: identifier("match"),
+            computed: false,
+          },
+          identifier("input"),
+          objectLiteral(
+            property("onSome", arrowCallback(binaryExpression(identifier("value"), "===", booleanLiteral(true)))),
+            property("onNone", arrowCallback(booleanLiteral(false))),
+          ),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid repeated Option boolean normalization");
+  });
+
+  it("allows Option.match branches that do not normalize booleans", () => {
+    const reports = runRuleSequence("no-option-boolean-normalization", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          {
+            type: "MemberExpression",
+            object: identifier("Option"),
+            property: identifier("match"),
+            computed: false,
+          },
+          identifier("input"),
+          objectLiteral(
+            property("onSome", arrowCallback(identifier("value"))),
+            property("onNone", arrowCallback(booleanLiteral(false))),
+          ),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.succeed string sentinel returns", () => {
+    const reports = runRule("no-string-sentinel-return", "CallExpression", effectCall(
+      "succeed",
+      stringLiteral("done"),
+    ));
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid returning string tokens");
+  });
+
+  it("allows Effect.succeed non-string values for string sentinel return rule", () => {
+    const reports = runRule("no-string-sentinel-return", "CallExpression", effectCall(
+      "succeed",
+      objectLiteral(property("status", stringLiteral("done"))),
+    ));
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches string status constants", () => {
+    const reports = runRule("no-string-sentinel-const", "VariableDeclaration", variableDeclarationWithInit(
+      stringLiteral("loading"),
+    ));
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid string status constants");
+  });
+
+  it("allows non-string constants for string sentinel const rule", () => {
+    const reports = runRule("no-string-sentinel-const", "VariableDeclaration", variableDeclarationWithInit(
+      objectLiteral(property("status", stringLiteral("loading"))),
+    ));
 
     expect(reports).toHaveLength(0);
   });

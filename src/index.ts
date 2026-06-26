@@ -1073,6 +1073,93 @@ function isMatchOrElseNullCall(node: unknown): boolean {
   return isMatchBranchCall(node, "orElse") && isNullLiteral(arrowCallbackBody(node.arguments[0]));
 }
 
+function isStringLiteral(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    ((node as Node).type === "Literal" || (node as Node).type === "StringLiteral") &&
+    typeof (node as Node).value === "string"
+  );
+}
+
+function isUndefinedIdentifier(node: unknown): boolean {
+  return isIdentifier(node, "undefined");
+}
+
+function isNullishRewrap(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "LogicalExpression" &&
+    (node as Node).operator === "??" &&
+    (isNullLiteral((node as Node).right) || isUndefinedIdentifier((node as Node).right))
+  );
+}
+
+function isOptionFromNullableNullishCoalesce(node: unknown): boolean {
+  return (
+    isMemberCall(node, "Option", "fromNullable") &&
+    isNullishRewrap((node as Node & { arguments: unknown[] }).arguments[0])
+  );
+}
+
+function objectPropertyValue(node: unknown, keyName: string): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "ObjectExpression") {
+    return undefined;
+  }
+
+  for (const property of ((node as Node).properties as unknown[] | undefined) ?? []) {
+    if (typeof property !== "object" || property === null) {
+      continue;
+    }
+
+    const key = (property as Node).key;
+    if (isIdentifier(key, keyName)) {
+      return (property as Node).value;
+    }
+  }
+
+  return undefined;
+}
+
+function isBooleanTrueComparison(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
+    return false;
+  }
+
+  const binary = node as Node;
+  return (
+    binary.operator === "===" &&
+    (isBooleanLiteral(binary.left, true) || isBooleanLiteral(binary.right, true))
+  );
+}
+
+function isOptionBooleanNormalization(node: unknown): boolean {
+  if (!isMemberCall(node, "Option", "match")) {
+    return false;
+  }
+
+  const config = (node as Node & { arguments: unknown[] }).arguments[1];
+  const onSome = objectPropertyValue(config, "onSome");
+  const onNone = objectPropertyValue(config, "onNone");
+  return (
+    isBooleanTrueComparison(arrowCallbackBody(onSome)) &&
+    isBooleanLiteral(arrowCallbackBody(onNone), false)
+  );
+}
+
+function isStringSentinelConst(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+    return false;
+  }
+
+  return ((node as Node).declarations as unknown[] | undefined)?.some((declaration) => (
+    typeof declaration === "object" &&
+    declaration !== null &&
+    isStringLiteral((declaration as Node).init)
+  )) ?? false;
+}
+
 function isBooleanLiteral(node: unknown, value: boolean): boolean {
   return (
     typeof node === "object" &&
@@ -2231,6 +2318,86 @@ const noUnknownBooleanCoercionHelper = defineRule({
   },
 });
 
+const noFromnullableNullishCoalesce = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isOptionFromNullableNullishCoalesce(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid nullish re-wrap inside Option.fromNullable. Why: `x ?? null` and `x ?? undefined` add noise and hide source shape. Fix: pass the source directly to Option.fromNullable.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noOptionBooleanNormalization = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isOptionBooleanNormalization(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid repeated Option boolean normalization (`onSome: value === true, onNone: false`). Why: it scatters coercion rules across services. Fix: normalize once at schema boundary and read booleans directly.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noStringSentinelReturn = defineRule({
+  create(context: OxlintContext) {
+    return {
+      CallExpression(node: any) {
+        if (isEffectMemberCallNamed(node, "succeed") && isStringLiteral(firstArgument(node))) {
+          report(
+            context,
+            node,
+            "Rule: avoid returning string tokens. Why: it encodes control flow and forces defensive branching. Fix: return domain values (Option/Either/tagged unions) or real Effect results instead.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noStringSentinelConst = defineRule({
+  create(context: OxlintContext) {
+    return {
+      VariableDeclaration(node: any) {
+        if (isStringSentinelConst(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid string status constants. Why: they encode control flow and force defensive branching. Fix: use tagged unions, Option/Either, or meaningful domain values instead of string tokens.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noEffectAs = defineRule({
   create(context: OxlintContext) {
     return {
@@ -2455,6 +2622,10 @@ const rules = {
   "no-effect-type-alias": noEffectTypeAlias,
   "no-model-overlay-cast": noModelOverlayCast,
   "no-unknown-boolean-coercion-helper": noUnknownBooleanCoercionHelper,
+  "no-fromnullable-nullish-coalesce": noFromnullableNullishCoalesce,
+  "no-option-boolean-normalization": noOptionBooleanNormalization,
+  "no-string-sentinel-return": noStringSentinelReturn,
+  "no-string-sentinel-const": noStringSentinelConst,
   "no-effect-as": noEffectAs,
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,

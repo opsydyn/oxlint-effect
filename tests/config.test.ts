@@ -56,6 +56,10 @@ describe("linteffect config exports", () => {
       "linteffect/no-effect-type-alias": "error",
       "linteffect/no-model-overlay-cast": "error",
       "linteffect/no-unknown-boolean-coercion-helper": "error",
+      "linteffect/no-fromnullable-nullish-coalesce": "error",
+      "linteffect/no-option-boolean-normalization": "error",
+      "linteffect/no-string-sentinel-return": "error",
+      "linteffect/no-string-sentinel-const": "error",
     });
   });
 
