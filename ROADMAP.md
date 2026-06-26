@@ -11,11 +11,11 @@ Source of truth:
 - Public rule docs: `README.md`
 
 Parity status:
-- Rule-folder parity: 42 / 49 rules ported, 7 remaining
+- Rule-folder parity: 45 / 49 rules ported, 4 remaining
 - Upstream `core` preset parity: 34 / 34 rules ported, 0 remaining
-- Upstream `full` preset parity: 40 / 47 rules ported, 7 remaining
+- Upstream `full` preset parity: 43 / 47 rules ported, 4 remaining
 - Upstream `web` preset parity: 6 / 6 rules ported, 0 remaining
-- Upstream `ts-type` preset parity: 0 / 7 rules ported, 7 remaining
+- Upstream `ts-type` preset parity: 3 / 7 rules ported, 4 remaining
 
 Upstream preset note:
 - `full.jsonc` lists 47 rules, while `rules/*.grit` contains 49 rules.
@@ -45,17 +45,18 @@ For each completed rule:
 
 ## Next Slice
 
-- [ ] `no-effect-type-alias`
-- [ ] `no-model-overlay-cast`
-- [ ] `no-unknown-boolean-coercion-helper`
+- [ ] `no-fromnullable-nullish-coalesce`
+- [ ] `no-option-boolean-normalization`
+- [ ] `no-string-sentinel-return`
+- [ ] `no-string-sentinel-const`
 
 Why next:
 - Upstream `core` parity is complete.
 - Upstream `web` parity is complete.
-- These are the first three remaining upstream `ts-type` preset rules and share type/coercion boundary context.
+- These are the final four upstream `ts-type` preset rules and share nullish/boolean/string sentinel normalization context.
 
 Expected upstream behavior:
-- Flag hand-written Effect type aliases, model overlay casts, and unknown boolean coercion helpers according to upstream Grit rules.
+- Flag fromNullable nullish coalescing, Option boolean normalization, and string sentinel returns/consts according to upstream Grit rules.
 - Preserve existing valid Effect pipeline, generator, Match, and wrapper fixture behavior.
 
 ## Ported Rules
@@ -102,6 +103,9 @@ Expected upstream behavior:
 - [x] `no-inline-runtime-provide`
 - [x] `no-naked-object-state-update`
 - [x] `no-effect-succeed-variable`
+- [x] `no-effect-type-alias`
+- [x] `no-model-overlay-cast`
+- [x] `no-unknown-boolean-coercion-helper`
 
 ## Core Preset Remaining
 
@@ -113,9 +117,9 @@ Complete.
 
 ## TS-Type Preset Remaining
 
-- [ ] `no-effect-type-alias`
-- [ ] `no-model-overlay-cast`
-- [ ] `no-unknown-boolean-coercion-helper`
+- [x] `no-effect-type-alias`
+- [x] `no-model-overlay-cast`
+- [x] `no-unknown-boolean-coercion-helper`
 - [ ] `no-fromnullable-nullish-coalesce`
 - [ ] `no-option-boolean-normalization`
 - [ ] `no-string-sentinel-return`
@@ -162,9 +166,9 @@ Complete.
    - [x] `no-naked-object-state-update`
 
 5. TS-type and sentinel normalization rules:
-   - [ ] `no-effect-type-alias`
-   - [ ] `no-model-overlay-cast`
-   - [ ] `no-unknown-boolean-coercion-helper`
+   - [x] `no-effect-type-alias`
+   - [x] `no-model-overlay-cast`
+   - [x] `no-unknown-boolean-coercion-helper`
    - [ ] `no-fromnullable-nullish-coalesce`
    - [ ] `no-option-boolean-normalization`
    - [ ] `no-string-sentinel-return`

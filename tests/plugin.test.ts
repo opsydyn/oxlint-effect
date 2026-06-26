@@ -273,6 +273,46 @@ const typeReference = (left: string, right: string) => ({
   typeName: qualifiedTypeName(left, right),
 });
 
+const typeAliasDeclaration = (typeAnnotation: unknown) => ({
+  type: "TSTypeAliasDeclaration",
+  id: identifier("ProgramEffect"),
+  typeAnnotation,
+});
+
+const tsAsExpression = (expression: unknown, typeAnnotation: unknown) => ({
+  type: "TSAsExpression",
+  expression,
+  typeAnnotation,
+});
+
+const tsTypeReference = (name: string) => ({
+  type: "TSTypeReference",
+  typeName: identifier(name),
+});
+
+const tsConstKeyword = () => ({
+  type: "TSConstKeyword",
+});
+
+const unaryExpression = (operator: string, argument: unknown) => ({
+  type: "UnaryExpression",
+  operator,
+  argument,
+  prefix: true,
+});
+
+const binaryExpression = (left: unknown, operator: string, right: unknown) => ({
+  type: "BinaryExpression",
+  left,
+  operator,
+  right,
+});
+
+const stringLiteral = (value: string) => ({
+  type: "Literal",
+  value,
+});
+
 const conditionalExpression = () => ({
   type: "ConditionalExpression",
   test: identifier("condition"),
@@ -1595,6 +1635,99 @@ describe("linteffect Oxlint plugin", () => {
     const reports = runRuleSequence("no-effect-succeed-variable", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       ...visits,
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.Effect references inside type aliases", () => {
+    const reports = runRuleSequence("no-effect-type-alias", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "TSTypeAliasDeclaration",
+        node: typeAliasDeclaration(typeReference("Effect", "Effect")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.Effect type aliases");
+  });
+
+  it("allows Effect.Effect type references outside type aliases for the alias rule", () => {
+    const reports = runRuleSequence("no-effect-type-alias", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "TSTypeReference",
+        node: typeReference("Effect", "Effect"),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches model overlay as assertions in Effect files", () => {
+    const reports = runRuleSequence("no-model-overlay-cast", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: variableDeclarationWithInit(tsAsExpression(
+          identifier("decoded"),
+          tsTypeReference("DecodedModel"),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid `as` assertions on decoded model flow");
+  });
+
+  it("allows as const assertions for model overlay cast rule", () => {
+    const reports = runRuleSequence("no-model-overlay-cast", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: variableDeclarationWithInit(tsAsExpression(
+          objectLiteral(property("tag", stringLiteral("ok"))),
+          tsConstKeyword(),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches unknown boolean coercion helpers paired with Match.orElse null", () => {
+    const reports = runRuleSequence("no-unknown-boolean-coercion-helper", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "BinaryExpression",
+        node: binaryExpression(
+          unaryExpression("typeof", identifier("value")),
+          "===",
+          stringLiteral("boolean"),
+        ),
+      },
+      {
+        visitorName: "CallExpression",
+        node: matchOrElseCall(nullLiteral()),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid local unknown-to-boolean coercion helpers");
+  });
+
+  it("allows typeof boolean checks without Match.orElse null", () => {
+    const reports = runRuleSequence("no-unknown-boolean-coercion-helper", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "BinaryExpression",
+        node: binaryExpression(
+          unaryExpression("typeof", identifier("value")),
+          "===",
+          stringLiteral("boolean"),
+        ),
+      },
     ]);
 
     expect(reports).toHaveLength(0);

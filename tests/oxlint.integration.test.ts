@@ -70,6 +70,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-inline-runtime-provide)");
     expect(result.output).toContain("linteffect(no-naked-object-state-update)");
     expect(result.output).toContain("linteffect(no-effect-succeed-variable)");
+    expect(result.output).toContain("linteffect(no-effect-type-alias)");
+    expect(result.output).toContain("linteffect(no-model-overlay-cast)");
+    expect(result.output).toContain("linteffect(no-unknown-boolean-coercion-helper)");
   });
 
   it("allows a clean Effect-style fixture", () => {

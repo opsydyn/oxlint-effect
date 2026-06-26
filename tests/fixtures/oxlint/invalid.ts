@@ -91,6 +91,12 @@ const wrapperAlias = () => Effect.succeed(count);
 
 type ManualEffect = Effect.Effect<number, Error, never>;
 
+const modelOverlay = count as unknown;
+
+const booleanCoercion = Match.value(typeof count === "boolean").pipe(
+  Match.orElse(() => null),
+);
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

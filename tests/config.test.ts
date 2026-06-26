@@ -53,6 +53,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-inline-runtime-provide": "error",
       "linteffect/no-naked-object-state-update": "error",
       "linteffect/no-effect-succeed-variable": "error",
+      "linteffect/no-effect-type-alias": "error",
+      "linteffect/no-model-overlay-cast": "error",
+      "linteffect/no-unknown-boolean-coercion-helper": "error",
     });
   });
 

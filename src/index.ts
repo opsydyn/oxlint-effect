@@ -624,6 +624,34 @@ function isQualifiedTypeReference(node: unknown, leftName: string, rightName: st
   );
 }
 
+function containsQualifiedTypeReference(
+  node: unknown,
+  leftName: string,
+  rightName: string,
+  seen = new WeakSet<object>(),
+): boolean {
+  if (isQualifiedTypeReference(node, leftName, rightName)) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsQualifiedTypeReference(child, leftName, rightName, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsQualifiedTypeReference(child, leftName, rightName, seen)
+  ));
+}
+
 function containsWrapGraphqlCall(node: unknown, seen = new WeakSet<object>()): boolean {
   if (isIdentifierCall(node, "wrapGraphqlCall")) {
     return true;
@@ -993,6 +1021,56 @@ function isEffectSucceedVariableArgument(node: unknown): boolean {
     node !== null &&
     (node as Node).type === "MemberExpression"
   );
+}
+
+function isVariableAsAssertion(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+    return false;
+  }
+
+  return ((node as Node).declarations as unknown[] | undefined)?.some((declaration) => {
+    if (typeof declaration !== "object" || declaration === null) {
+      return false;
+    }
+
+    const init = (declaration as Node).init;
+    return (
+      typeof init === "object" &&
+      init !== null &&
+      (init as Node).type === "TSAsExpression" &&
+      typeof (init as Node).typeAnnotation === "object" &&
+      (init as Node).typeAnnotation !== null &&
+      ((init as Node).typeAnnotation as Node).type !== "TSConstKeyword"
+    );
+  }) ?? false;
+}
+
+function isTypeofBooleanCheck(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
+    return false;
+  }
+
+  const binary = node as Node;
+  if (binary.operator !== "===") {
+    return false;
+  }
+
+  const left = binary.left;
+  const right = binary.right;
+  return (
+    typeof left === "object" &&
+    left !== null &&
+    (left as Node).type === "UnaryExpression" &&
+    (left as Node).operator === "typeof" &&
+    typeof right === "object" &&
+    right !== null &&
+    ((right as Node).type === "Literal" || (right as Node).type === "StringLiteral") &&
+    (right as Node).value === "boolean"
+  );
+}
+
+function isMatchOrElseNullCall(node: unknown): boolean {
+  return isMatchBranchCall(node, "orElse") && isNullLiteral(arrowCallbackBody(node.arguments[0]));
 }
 
 function isBooleanLiteral(node: unknown, value: boolean): boolean {
@@ -2050,6 +2128,109 @@ const noEffectSucceedVariable = defineRule({
   },
 });
 
+const noEffectTypeAlias = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      TSTypeAliasDeclaration(node: any) {
+        if (
+          hasEffectEcosystemImport &&
+          containsQualifiedTypeReference(node.typeAnnotation, "Effect", "Effect")
+        ) {
+          report(
+            context,
+            node.typeAnnotation,
+            "Rule: avoid Effect.Effect type aliases. Why: they hide the service surface and make types opaque. Fix: keep Effect types on service methods or inline at the call site.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noModelOverlayCast = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      VariableDeclaration(node: any) {
+        if (hasEffectEcosystemImport && isVariableAsAssertion(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid `as` assertions on decoded model flow. Why: assertions hide schema drift and allow untyped overlays. Fix: decode with the correct schema type and read fields directly.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noUnknownBooleanCoercionHelper = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    let hasMatchOrElseNull = false;
+    const booleanChecks: unknown[] = [];
+    const reported = new WeakSet<object>();
+
+    const reportBooleanCheck = (node: unknown) => {
+      if (typeof node !== "object" || node === null || reported.has(node)) {
+        return;
+      }
+
+      reported.add(node);
+      report(
+        context,
+        node,
+        "Rule: avoid local unknown-to-boolean coercion helpers in services. Why: runtime coercion belongs at schema boundary, not in service flow. Fix: decode boolean optionality in schema and read typed booleans in the Effect pipeline.",
+      );
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      BinaryExpression(node: any) {
+        if (!hasEffectEcosystemImport || !isTypeofBooleanCheck(node)) {
+          return;
+        }
+
+        if (hasMatchOrElseNull) {
+          reportBooleanCheck(node);
+        } else {
+          booleanChecks.push(node);
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport || !isMatchOrElseNullCall(node)) {
+          return;
+        }
+
+        hasMatchOrElseNull = true;
+        for (const check of booleanChecks) {
+          reportBooleanCheck(check);
+        }
+      },
+    };
+  },
+});
+
 const noEffectAs = defineRule({
   create(context: OxlintContext) {
     return {
@@ -2271,6 +2452,9 @@ const rules = {
   "no-inline-runtime-provide": noInlineRuntimeProvide,
   "no-naked-object-state-update": noNakedObjectStateUpdate,
   "no-effect-succeed-variable": noEffectSucceedVariable,
+  "no-effect-type-alias": noEffectTypeAlias,
+  "no-model-overlay-cast": noModelOverlayCast,
+  "no-unknown-boolean-coercion-helper": noUnknownBooleanCoercionHelper,
   "no-effect-as": noEffectAs,
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,

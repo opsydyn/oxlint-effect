@@ -78,3 +78,6 @@ export default defineConfig({
 - `linteffect/no-inline-runtime-provide`
 - `linteffect/no-naked-object-state-update`
 - `linteffect/no-effect-succeed-variable`
+- `linteffect/no-effect-type-alias`
+- `linteffect/no-model-overlay-cast`
+- `linteffect/no-unknown-boolean-coercion-helper`
