@@ -33,8 +33,17 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Lint
+        run: bun run lint
+
+      - name: API Docs Check
+        run: bun run docs:api:check
+
       - name: Run Tests
         run: bun run test
+
+      - name: Size Limit
+        run: bun run size
 
       - name: Pack Dry Run
         run: bun run pack:dry-run
