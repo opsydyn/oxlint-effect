@@ -2,9 +2,10 @@ import { Effect, Match, Option, Ref, Runtime, pipe } from "effect";
 
 declare const count: number;
 declare const applyResponse: (value: unknown) => unknown;
-declare const SomeRuntime: { pipe: (...args: Array<unknown>) => unknown };
-declare const SomeRuntimeLive: unknown;
-declare function wrapGraphqlCall(input: unknown): unknown;
+declare const runtime: Runtime.Runtime<never>;
+declare const SomeRuntime: any;
+declare const SomeRuntimeLive: any;
+declare function wrapGraphqlCall(input: unknown): any;
 declare function invalidate(key: string): void;
 declare function setState(value: unknown): void;
 
@@ -31,7 +32,7 @@ const boundProgram = Effect.bind("next", () => Effect.succeed(count));
 
 // EXPECT: linteffect/no-runtime-runfork
 // QA: Runtime.runFork should warn.
-Runtime.runFork(asWrapper);
+Runtime.runFork(runtime)(asWrapper);
 
 // EXPECT: linteffect/no-effect-async
 // QA: Manual Effect.async bridges should warn.
@@ -64,7 +65,7 @@ const flatMapLadder = Effect.flatMap(
 
 // EXPECT: linteffect/no-pipe-ladder
 // QA: Nested pipe calls should warn.
-const pipeLadder = pipe(count, pipe(count, (value) => value));
+const pipeLadder = pipe(count, pipe(count, (value) => value) as any);
 
 // EXPECT: linteffect/no-call-tower
 // QA: Nested Effect call towers should warn.
@@ -153,7 +154,7 @@ const syncWrapper = Effect.sync(() => String(count));
 
 // EXPECT: linteffect/no-effect-side-effect-wrapper
 // QA: Effect.as around side effects should warn.
-const sideEffectWrapper = Effect.as(console.log(count), "done");
+const sideEffectWrapper = Effect.as(console.log(count) as any, "done");
 
 // EXPECT: linteffect/no-effect-all-step-sequencing
 // QA: Effect.all with sequential side-effect steps should warn.
@@ -190,7 +191,7 @@ const inlineRuntimeProvide = Effect.gen(function* () {
 
 // EXPECT: linteffect/no-naked-object-state-update
 // QA: Raw object spread state patching should warn.
-const objectStatePatch = Ref.update({} as any, (state) => ({
+const objectStatePatch = Ref.update({} as any, (state: Record<string, unknown>) => ({
   ...state,
   count,
 }));

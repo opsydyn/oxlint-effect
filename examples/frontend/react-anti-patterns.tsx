@@ -1,12 +1,13 @@
 import { Effect, Match } from "effect";
 import { Atom } from "@effect-atom/atom-react";
 import { useState } from "react";
+import type { ReactElement } from "react";
 
 declare const UsersCollectionAtom: unknown;
-declare const ThemeAtom: unknown;
-declare function get(atom: unknown): unknown;
+declare const ThemeAtom: any;
+declare function get(atom: unknown): object;
 declare function setState(value: unknown): void;
-declare function renderMetric(value: unknown): JSX.Element;
+declare function renderMetric(value: unknown): ReactElement;
 
 export function DashboardPanel() {
   // EXPECT: linteffect/no-react-state

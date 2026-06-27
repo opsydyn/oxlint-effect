@@ -1,6 +1,6 @@
 import { Effect, Match, Option } from "effect";
 
-declare const count: number;
+declare const count: number | boolean;
 declare const decoded: unknown;
 declare const source: string | null | undefined;
 declare const unknownFlag: unknown;
