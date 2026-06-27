@@ -16,6 +16,7 @@
     "docs:api": "typedoc",
     "docs:api:check": "typedoc --emit none",
     "lint": "publint",
+    "lint:examples": "oxlint --config examples/oxlint.config.ts examples",
     "pack:dry-run": "npm pack --dry-run",
     "prepack": "bun run build",
     "prelint": "bun run build",
