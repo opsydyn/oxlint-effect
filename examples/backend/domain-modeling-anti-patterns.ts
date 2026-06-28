@@ -11,7 +11,6 @@ declare const order: {
   readonly shipped: boolean;
   readonly total: number;
   readonly customerTier: string;
-  readonly createdAt: Date;
 };
 
 // EXPECT: linteffect/no-raw-domain-id-alias

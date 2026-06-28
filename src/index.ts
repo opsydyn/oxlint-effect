@@ -1504,6 +1504,59 @@ function isBooleanTypeAnnotation(node: unknown): boolean {
   );
 }
 
+function unwrapTypeAnnotation(node: unknown): Node | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const annotation = node as Node;
+  if (
+    annotation.type === "TSTypeAnnotation" &&
+    typeof annotation.typeAnnotation === "object" &&
+    annotation.typeAnnotation !== null
+  ) {
+    return annotation.typeAnnotation as Node;
+  }
+
+  return annotation;
+}
+
+function isStringOrNumberTypeAnnotation(node: unknown): boolean {
+  const annotation = unwrapTypeAnnotation(node);
+  return annotation?.type === "TSStringKeyword" || annotation?.type === "TSNumberKeyword";
+}
+
+function isAnyOrObjectTypeAnnotation(node: unknown): boolean {
+  const annotation = unwrapTypeAnnotation(node);
+  return annotation?.type === "TSAnyKeyword" || annotation?.type === "TSObjectKeyword";
+}
+
+function isDateTypeAnnotation(node: unknown): boolean {
+  const annotation = unwrapTypeAnnotation(node);
+  return (
+    annotation?.type === "TSTypeReference" &&
+    isIdentifier((annotation as Node).typeName, "Date")
+  );
+}
+
+function primitiveDomainParameters(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+    return [];
+  }
+
+  const domainNamePattern =
+    /(?:id|amount|currency|account|user|order|customer|invoice|payment|price|total|quantity|transfer|fund|balance)/i;
+  return ((node as Node).params as unknown[]).filter((param) => (
+    isIdentifier(param) &&
+    isStringOrNumberTypeAnnotation((param as Node).typeAnnotation) &&
+    domainNamePattern.test(param.name)
+  ));
+}
+
+function hasPrimitiveHeavyDomainParameters(node: unknown): boolean {
+  return primitiveDomainParameters(node).length >= 3;
+}
+
 function isBooleanDomainFlagParameter(node: unknown): boolean {
   if (!isIdentifier(node)) {
     return false;
@@ -1521,6 +1574,82 @@ function functionBooleanDomainFlagParameters(node: unknown): unknown[] {
   }
 
   return ((node as Node).params as unknown[]).filter(isBooleanDomainFlagParameter);
+}
+
+function getPropertyName(node: unknown): string | undefined {
+  if (isIdentifier(node)) {
+    return node.name;
+  }
+
+  if (typeof node === "object" && node !== null && typeof (node as Node).value === "string") {
+    return (node as Node).value as string;
+  }
+
+  return undefined;
+}
+
+function isRawTimeFieldName(name: string): boolean {
+  return /(?:createdAt|updatedAt|expiresAt|expiredAt|renewedAt|startedAt|endedAt|deletedAt|timestamp|timeoutMs|durationMs|ttlMs|ttl)$/i.test(name);
+}
+
+function isRawTimeDomainField(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "TSPropertySignature") {
+    return false;
+  }
+
+  const property = node as Node;
+  const propertyName = getPropertyName(property.key);
+  const typeAnnotation = property.typeAnnotation;
+  return (
+    propertyName !== undefined &&
+    isRawTimeFieldName(propertyName) &&
+    (isStringOrNumberTypeAnnotation(typeAnnotation) || isDateTypeAnnotation(typeAnnotation))
+  );
+}
+
+function typeMembers(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  const object = node as Node;
+  if (
+    object.type === "TSInterfaceDeclaration" &&
+    typeof object.body === "object" &&
+    object.body !== null &&
+    Array.isArray((object.body as Node).body)
+  ) {
+    return (object.body as Node).body as unknown[];
+  }
+
+  if (object.type === "TSTypeLiteral" && Array.isArray(object.members)) {
+    return object.members as unknown[];
+  }
+
+  return [];
+}
+
+function rawTimeDomainFields(node: unknown): unknown[] {
+  return typeMembers(node).filter(isRawTimeDomainField);
+}
+
+function isOverloadedOptionsParameter(node: unknown): boolean {
+  if (!isIdentifier(node)) {
+    return false;
+  }
+
+  return (
+    /^(?:opts|options|config)$/i.test(node.name) &&
+    isAnyOrObjectTypeAnnotation((node as Node).typeAnnotation)
+  );
+}
+
+function overloadedOptionsParameters(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+    return [];
+  }
+
+  return ((node as Node).params as unknown[]).filter(isOverloadedOptionsParameter);
 }
 
 function isStringLiteralComparison(node: unknown): boolean {
@@ -2542,6 +2671,97 @@ const noMagicDomainString = defineRule({
   },
 });
 
+const noRawDomainPrimitiveParams = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    const checkFunction = (node: unknown) => {
+      if (hasEffectEcosystemImport && hasPrimitiveHeavyDomainParameters(node)) {
+        report(
+          context,
+          node,
+          "Rule: avoid primitive-heavy domain parameters. Why: clusters of raw string/number domain values are easy to swap and have no invariant boundary. Fix: introduce branded types or a command/schema object with named validated fields.",
+        );
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration: checkFunction,
+      FunctionExpression: checkFunction,
+      ArrowFunctionExpression: checkFunction,
+    };
+  },
+});
+
+const noRawTimeDomainField = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    const checkTypeMembers = (node: unknown) => {
+      if (!hasEffectEcosystemImport) {
+        return;
+      }
+
+      for (const field of rawTimeDomainFields(node)) {
+        report(
+          context,
+          field,
+          "Rule: avoid raw time fields in domain models. Why: number and Date fields hide units, clock ownership, and duration semantics. Fix: model durations with Effect Duration and keep raw timestamps at decode/encode boundaries.",
+        );
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      TSInterfaceDeclaration: checkTypeMembers,
+      TSTypeLiteral: checkTypeMembers,
+    };
+  },
+});
+
+const noOverloadedOptionsObject = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    const checkFunctionParameters = (node: unknown) => {
+      if (!hasEffectEcosystemImport) {
+        return;
+      }
+
+      for (const param of overloadedOptionsParameters(node)) {
+        report(
+          context,
+          param,
+          "Rule: avoid overloaded options objects. Why: `opts`, `options`, and `config` typed as any/object hide required fields and validation. Fix: accept unknown at the boundary and decode with Schema, or use a named typed command/config model.",
+        );
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration: checkFunctionParameters,
+      FunctionExpression: checkFunctionParameters,
+      ArrowFunctionExpression: checkFunctionParameters,
+    };
+  },
+});
+
 const noEffectAs = defineRule({
   create(context: OxlintContext) {
     return {
@@ -2773,6 +2993,9 @@ const rules = {
   "no-raw-domain-id-alias": noRawDomainIdAlias,
   "no-boolean-domain-flag": noBooleanDomainFlag,
   "no-magic-domain-string": noMagicDomainString,
+  "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
+  "no-raw-time-domain-field": noRawTimeDomainField,
+  "no-overloaded-options-object": noOverloadedOptionsObject,
   "no-effect-as": noEffectAs,
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,

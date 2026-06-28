@@ -306,6 +306,14 @@ const tsBooleanKeyword = () => ({
   type: "TSBooleanKeyword",
 });
 
+const tsAnyKeyword = () => ({
+  type: "TSAnyKeyword",
+});
+
+const tsUnknownKeyword = () => ({
+  type: "TSUnknownKeyword",
+});
+
 const tsTypeAnnotation = (typeAnnotation: unknown) => ({
   type: "TSTypeAnnotation",
   typeAnnotation,
@@ -321,6 +329,21 @@ const functionDeclarationWithParams = (...params: unknown[]) => ({
   id: identifier("domainOperation"),
   params,
   body: blockStatement(returnStatement(identifier("value"))),
+});
+
+const tsPropertySignature = (name: string, typeAnnotation: unknown) => ({
+  type: "TSPropertySignature",
+  key: identifier(name),
+  typeAnnotation: tsTypeAnnotation(typeAnnotation),
+});
+
+const tsInterfaceDeclaration = (...members: unknown[]) => ({
+  type: "TSInterfaceDeclaration",
+  id: identifier("SessionLease"),
+  body: {
+    type: "TSInterfaceBody",
+    body: members,
+  },
 });
 
 const unaryExpression = (operator: string, argument: unknown) => ({
@@ -1979,6 +2002,91 @@ describe("linteffect Oxlint plugin", () => {
           type: "Literal",
           value: 1,
         }),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches primitive-heavy domain function parameters", () => {
+    const reports = runRuleSequence("no-raw-domain-primitive-params", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationWithParams(
+          typedIdentifier("fromAccountId", tsStringKeyword()),
+          typedIdentifier("toAccountId", tsStringKeyword()),
+          typedIdentifier("transferAmount", tsNumberKeyword()),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid primitive-heavy domain parameters");
+  });
+
+  it("allows domain functions with fewer primitive parameters", () => {
+    const reports = runRuleSequence("no-raw-domain-primitive-params", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationWithParams(
+          typedIdentifier("accountId", tsStringKeyword()),
+          typedIdentifier("amount", tsNumberKeyword()),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches raw time fields in domain interfaces", () => {
+    const reports = runRuleSequence("no-raw-time-domain-field", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "TSInterfaceDeclaration",
+        node: tsInterfaceDeclaration(
+          tsPropertySignature("expiresAt", tsNumberKeyword()),
+          tsPropertySignature("renewedAt", tsTypeReference("Date")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(2);
+    expect(reports[0].message).toContain("avoid raw time fields");
+  });
+
+  it("allows non-time primitive fields for the raw time field rule", () => {
+    const reports = runRuleSequence("no-raw-time-domain-field", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "TSInterfaceDeclaration",
+        node: tsInterfaceDeclaration(tsPropertySignature("retryCount", tsNumberKeyword())),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches overloaded options parameters", () => {
+    const reports = runRuleSequence("no-overloaded-options-object", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationWithParams(typedIdentifier("opts", tsAnyKeyword())),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid overloaded options objects");
+  });
+
+  it("allows unknown config parameters for schema decoding", () => {
+    const reports = runRuleSequence("no-overloaded-options-object", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationWithParams(typedIdentifier("config", tsUnknownKeyword())),
       },
     ]);
 

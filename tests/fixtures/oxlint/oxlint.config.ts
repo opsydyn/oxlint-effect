@@ -61,5 +61,8 @@ export default defineConfig({
     "linteffect/no-raw-domain-id-alias": "error",
     "linteffect/no-boolean-domain-flag": "error",
     "linteffect/no-magic-domain-string": "error",
+    "linteffect/no-raw-domain-primitive-params": "error",
+    "linteffect/no-raw-time-domain-field": "error",
+    "linteffect/no-overloaded-options-object": "error",
   },
 });

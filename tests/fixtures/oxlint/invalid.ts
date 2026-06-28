@@ -116,6 +116,20 @@ function settleInvoice(invoiceId: string, shouldNotifyCustomer: boolean) {
 
 const approvedOrder = order.status === "approved";
 
+function transferFunds(fromAccountId: string, toAccountId: string, transferAmount: number) {
+  return { fromAccountId, toAccountId, transferAmount };
+}
+
+interface SessionLease {
+  readonly sessionId: string;
+  readonly expiresAt: number;
+  readonly renewedAt: Date;
+}
+
+function createPaymentIntent(opts: any) {
+  return opts;
+}
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

@@ -88,3 +88,6 @@ export default defineConfig({
 - `linteffect/no-raw-domain-id-alias`
 - `linteffect/no-boolean-domain-flag`
 - `linteffect/no-magic-domain-string`
+- `linteffect/no-raw-domain-primitive-params`
+- `linteffect/no-raw-time-domain-field`
+- `linteffect/no-overloaded-options-object`
