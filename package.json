@@ -1,6 +1,6 @@
 {
   "name": "@catenarycloud/linteffect-oxlint",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Oxlint plugin rules for Effect TypeScript code shape constraints.",
   "author": "Alan Currie",
   "license": "MIT",
