@@ -2648,7 +2648,7 @@ export const recommended = {
   jsPlugins: [
     {
       name: "linteffect",
-      specifier: "@catenarycloud/linteffect-oxlint",
+      specifier: "@opsydyn/oxlint-effect",
     },
   ],
   rules: allRules,

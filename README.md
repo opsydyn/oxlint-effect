@@ -5,14 +5,14 @@ Oxlint plugin rules for Effect TypeScript code-shape constraints.
 ## Install
 
 ```bash
-bun add -d oxlint @catenarycloud/linteffect-oxlint
+bun add -d oxlint @opsydyn/oxlint-effect
 ```
 
 ## Configure
 
 ```ts
 import { defineConfig } from "oxlint";
-import { recommended } from "@catenarycloud/linteffect-oxlint";
+import { recommended } from "@opsydyn/oxlint-effect";
 
 export default defineConfig({
   plugins: ["typescript"],
