@@ -4,6 +4,14 @@
   "description": "Oxlint plugin rules for Effect TypeScript code shape constraints.",
   "author": "Alan Currie",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opsydyn/oxlint-effect"
+  },
+  "bugs": {
+    "url": "https://github.com/opsydyn/oxlint-effect/issues"
+  },
+  "homepage": "https://github.com/opsydyn/oxlint-effect#readme",
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -23,7 +31,7 @@
     "prepublishOnly": "bun run build",
     "release": "bun run build && changeset publish",
     "size": "size-limit",
-    "test": "bun test ./tests/plugin.test.ts ./tests/config.test.ts ./tests/oxlint.integration.test.ts",
+    "test": "bun test ./tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "version": "changeset version"
   },
