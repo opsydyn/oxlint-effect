@@ -46,3 +46,13 @@ diagnostics can be treated as implementation gaps.
 
 - `backend/domain-modeling-anti-patterns.ts` mirrors the domain-modeling
   rules in `roadmap/05-domain-modeling/README.md`.
+- `backend/correctness-core-anti-patterns.ts` mirrors the correctness-core
+  rules in `roadmap/01-correctness-core/README.md`.
+- `backend/error-escapes-anti-patterns.ts` mirrors the correctness-core
+  error-escape slice in `roadmap/01-correctness-core/README.md`.
+- `backend/imperative-escape-hatches-anti-patterns.ts` mirrors the
+  correctness-core promise and imperative escape-hatch slice in
+  `roadmap/01-correctness-core/README.md`.
+- `backend/public-error-contract-anti-patterns.ts` mirrors the final
+  correctness-core public error contract rule in
+  `roadmap/01-correctness-core/README.md`.

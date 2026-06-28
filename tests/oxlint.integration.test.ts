@@ -87,6 +87,16 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-implicit-state-machine-object)");
     expect(result.output).toContain("linteffect(no-adhoc-domain-error)");
     expect(result.output).toContain("linteffect(no-domain-meaning-by-folder-only)");
+    expect(result.output).toContain("linteffect(no-yield-without-star-in-effect-gen)");
+    expect(result.output).toContain("linteffect(no-async-effect-combinator-callback)");
+    expect(result.output).toContain("linteffect(no-run-effect-outside-boundary)");
+    expect(result.output).toContain("linteffect(no-throw-in-effect-logic)");
+    expect(result.output).toContain("linteffect(no-or-die-outside-boundary)");
+    expect(result.output).toContain("linteffect(no-swallowed-catch-all)");
+    expect(result.output).toContain("linteffect(no-effect-ignore)");
+    expect(result.output).toContain("linteffect(no-try-catch-in-effect-logic)");
+    expect(result.output).toContain("linteffect(no-promise-api-in-effect-logic)");
+    expect(result.output).toContain("linteffect(no-public-generic-effect-error)");
   });
 
   it("allows a clean Effect-style fixture", () => {

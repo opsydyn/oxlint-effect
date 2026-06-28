@@ -148,6 +148,40 @@ function deleteUserFromAdminPanel(id: string) {
   return { deletedUserId: id };
 }
 
+const badYield = Effect.gen(function* () {
+  yield Effect.succeed(count);
+});
+
+const asyncCombinatorCallback = Effect.map(Effect.succeed(count), async (value) => value);
+
+Effect.runPromise(program);
+
+const throwingEffectLogic = Effect.gen(function* () {
+  throw new Error("unexpected");
+});
+
+const dyingEffectLogic = Effect.orDie(program);
+
+const swallowedCatchAll = Effect.catchAll(() => Effect.succeed({ fallback: true }));
+
+const ignoredEffect = Effect.ignore(program);
+
+const tryCatchEffectLogic = Effect.gen(function* () {
+  try {
+    yield* Effect.succeed(count);
+  } catch {
+    yield* Effect.fail({ _tag: "Unexpected" });
+  }
+});
+
+const promiseEffectLogic = Effect.gen(function* () {
+  Promise.all([Promise.resolve(count)]);
+});
+
+export function loadPublicUser(): Effect.Effect<{ readonly id: string }, Error, never> {
+  return program as any;
+}
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

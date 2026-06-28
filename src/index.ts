@@ -361,6 +361,383 @@ function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen"): boole
   return getEffectGeneratorArgument(node, propertyName) !== undefined;
 }
 
+function findYieldWithoutStar(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findYieldWithoutStar(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if ((node as Node).type === "YieldExpression" && (node as Node).delegate !== true) {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findYieldWithoutStar(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findYieldWithoutStarInEffectGen(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  return generator ? findYieldWithoutStar(generator.body) : undefined;
+}
+
+function isAsyncFunctionCallback(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    ((node as Node).type === "ArrowFunctionExpression" ||
+      (node as Node).type === "FunctionExpression") &&
+    (node as Node).async === true
+  );
+}
+
+const effectAsyncCallbackCombinators = new Set([
+  "andThen",
+  "catchAll",
+  "catchTag",
+  "filterOrFail",
+  "flatMap",
+  "forEach",
+  "map",
+  "orElse",
+  "tap",
+]);
+
+function findAsyncEffectCombinatorCallback(node: unknown): unknown | undefined {
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const callee = node.callee as Node;
+  const property = callee.property;
+  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
+    return undefined;
+  }
+
+  return node.arguments.find((argument) => isAsyncFunctionCallback(argument));
+}
+
+function findThrowStatement(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findThrowStatement(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if ((node as Node).type === "ThrowStatement") {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findThrowStatement(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findThrowInEffectLogic(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (generator) {
+    return findThrowStatement(generator.body);
+  }
+
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const callee = node.callee as Node;
+  const property = callee.property;
+  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
+    return undefined;
+  }
+
+  for (const argument of node.arguments) {
+    const body = callbackBody(argument);
+    const match = body ? findThrowStatement(body) : undefined;
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findTryStatement(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findTryStatement(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if ((node as Node).type === "TryStatement") {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findTryStatement(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findTryCatchInEffectLogic(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (generator) {
+    return findTryStatement(generator.body);
+  }
+
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const callee = node.callee as Node;
+  const property = callee.property;
+  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
+    return undefined;
+  }
+
+  for (const argument of node.arguments) {
+    const body = callbackBody(argument);
+    const match = body ? findTryStatement(body) : undefined;
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function isPromiseStaticApiCall(node: unknown): boolean {
+  return (
+    isMemberCall(node, "Promise", "all") ||
+    isMemberCall(node, "Promise", "allSettled") ||
+    isMemberCall(node, "Promise", "any") ||
+    isMemberCall(node, "Promise", "race") ||
+    isMemberCall(node, "Promise", "reject") ||
+    isMemberCall(node, "Promise", "resolve")
+  );
+}
+
+function isPromiseChainCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = (node as Node).callee;
+  return (
+    typeof callee === "object" &&
+    callee !== null &&
+    (callee as Node).type === "MemberExpression" &&
+    (callee as Node).computed !== true &&
+    (isIdentifier((callee as Node).property, "then") ||
+      isIdentifier((callee as Node).property, "catch") ||
+      isIdentifier((callee as Node).property, "finally"))
+  );
+}
+
+function findPromiseApiCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findPromiseApiCall(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if (isPromiseStaticApiCall(node) || isPromiseChainCall(node)) {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findPromiseApiCall(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findPromiseApiInEffectLogic(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (generator) {
+    return findPromiseApiCall(generator.body);
+  }
+
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const callee = node.callee as Node;
+  const property = callee.property;
+  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
+    return undefined;
+  }
+
+  for (const argument of node.arguments) {
+    const body = callbackBody(argument);
+    const match = body ? findPromiseApiCall(body) : undefined;
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+const effectRunMethods = new Set([
+  "runCallback",
+  "runFork",
+  "runPromise",
+  "runPromiseExit",
+  "runSync",
+  "runSyncExit",
+]);
+
+function isEffectRunCall(node: unknown): boolean {
+  if (!isEffectMemberCall(node)) {
+    return false;
+  }
+
+  const callee = node.callee as Node;
+  const property = callee.property;
+  return isIdentifier(property) && effectRunMethods.has(property.name);
+}
+
+function isEffectOrDieReference(node: unknown): boolean {
+  return (
+    isMemberExpression(node, "Effect", "orDie") ||
+    isMemberExpression(node, "Effect", "orDieWith") ||
+    isEffectMemberCallNamed(node, "orDie") ||
+    isEffectMemberCallNamed(node, "orDieWith")
+  );
+}
+
+function findEffectOrDieOutsideBoundary(node: unknown): unknown | undefined {
+  if (isEffectOrDieReference(node)) {
+    return node;
+  }
+
+  if (isPipeCall(node)) {
+    return pipeParts(node).find((part) => isEffectOrDieReference(part));
+  }
+
+  return undefined;
+}
+
+function isSwallowedCatchAllBody(node: unknown): boolean {
+  return (
+    isEffectMemberCallNamed(node, "succeed") ||
+    isEffectMemberCallNamed(node, "asVoid") ||
+    isEffectMemberCallNamed(node, "ignore") ||
+    isEffectVoidMember(node)
+  );
+}
+
+function getSwallowedCatchAllHandler(node: unknown): unknown | undefined {
+  if (!isEffectMemberCallNamed(node, "catchAll")) {
+    return undefined;
+  }
+
+  const handler = firstArgument(node);
+  const body = callbackBody(handler);
+  return isSwallowedCatchAllBody(body) ? body : undefined;
+}
+
+function isEffectIgnoreReference(node: unknown): boolean {
+  return isMemberExpression(node, "Effect", "ignore") || isEffectMemberCallNamed(node, "ignore");
+}
+
+function findEffectIgnore(node: unknown): unknown | undefined {
+  if (isEffectIgnoreReference(node)) {
+    return node;
+  }
+
+  if (isPipeCall(node)) {
+    return pipeParts(node).find((part) => isEffectIgnoreReference(part));
+  }
+
+  return undefined;
+}
+
 function isConsoleCall(node: unknown): boolean {
   if (typeof node !== "object" || node === null) {
     return false;
@@ -622,6 +999,104 @@ function isQualifiedTypeReference(node: unknown, leftName: string, rightName: st
     isIdentifier((typeName as Node).left, leftName) &&
     isIdentifier((typeName as Node).right, rightName)
   );
+}
+
+function isIdentifierTypeReference(node: unknown, name: string): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "TSTypeReference" &&
+    isIdentifier((node as Node).typeName, name)
+  );
+}
+
+function typeArguments(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  const container = (node as Node).typeParameters ?? (node as Node).typeArguments;
+  if (typeof container !== "object" || container === null) {
+    return [];
+  }
+
+  const params = (container as Node).params ?? (container as Node).arguments;
+  return Array.isArray(params) ? params : [];
+}
+
+function isGenericErrorType(node: unknown): boolean {
+  return isIdentifier(node, "Error") || isIdentifierTypeReference(node, "Error");
+}
+
+function returnTypeAnnotation(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const returnType = (node as Node).returnType;
+  if (typeof returnType !== "object" || returnType === null) {
+    return undefined;
+  }
+
+  return (returnType as Node).typeAnnotation ?? returnType;
+}
+
+function genericEffectErrorReturnType(node: unknown): unknown | undefined {
+  const annotation = returnTypeAnnotation(node);
+  if (!isQualifiedTypeReference(annotation, "Effect", "Effect")) {
+    return undefined;
+  }
+
+  const [, error] = typeArguments(annotation);
+  return isGenericErrorType(error) ? annotation : undefined;
+}
+
+function exportedGenericEffectErrorTarget(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const exportNode = node as Node;
+  if (
+    exportNode.type !== "ExportNamedDeclaration" &&
+    exportNode.type !== "ExportDefaultDeclaration"
+  ) {
+    return undefined;
+  }
+
+  const declaration = exportNode.declaration;
+  if (typeof declaration !== "object" || declaration === null) {
+    return undefined;
+  }
+
+  if ((declaration as Node).type === "FunctionDeclaration") {
+    return genericEffectErrorReturnType(declaration);
+  }
+
+  if ((declaration as Node).type !== "VariableDeclaration") {
+    return undefined;
+  }
+
+  for (const declarator of ((declaration as Node).declarations as unknown[] | undefined) ?? []) {
+    if (typeof declarator !== "object" || declarator === null) {
+      continue;
+    }
+
+    const init = (declarator as Node).init;
+    if (
+      typeof init === "object" &&
+      init !== null &&
+      ((init as Node).type === "ArrowFunctionExpression" ||
+        (init as Node).type === "FunctionExpression")
+    ) {
+      const target = genericEffectErrorReturnType(init);
+      if (target) {
+        return target;
+      }
+    }
+  }
+
+  return undefined;
 }
 
 function containsQualifiedTypeReference(
@@ -2189,6 +2664,35 @@ const noNestedEffectGen = defineRule({
   },
 });
 
+const noYieldWithoutStarInEffectGen = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const yieldNode = findYieldWithoutStarInEffectGen(node);
+        if (yieldNode) {
+          report(
+            context,
+            yieldNode,
+            "Rule: use yield* inside Effect.gen. Why: plain yield returns an Effect value without delegating to the Effect interpreter. Fix: replace `yield Effect.x` with `yield* Effect.x`.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -2321,6 +2825,209 @@ const noEffectAllStepSequencing = defineRule({
             context,
             node,
             "Rule: avoid Effect.all for sequential side-effect steps. Why: it hides imperative sequencing in an array. Fix: use one explicit linear pipeline with Effect.andThen/flatMap and reserve Effect.all for real value aggregation.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noAsyncEffectCombinatorCallback = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const callback = findAsyncEffectCombinatorCallback(node);
+        if (callback) {
+          report(
+            context,
+            callback,
+            "Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: return an Effect and compose with Effect.flatMap/fromPromise at the boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noThrowInEffectLogic = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const throwNode = findThrowInEffectLogic(node);
+        if (throwNode) {
+          report(
+            context,
+            throwNode,
+            "Rule: avoid throw inside Effect logic. Why: thrown exceptions bypass typed Effect error channels and interruption semantics. Fix: return Effect.fail with a structured tagged error.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noOrDieOutsideBoundary = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const target = findEffectOrDieOutsideBoundary(node);
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: avoid Effect.orDie outside runtime boundaries. Why: converting typed failures into defects hides recoverable domain errors. Fix: keep typed errors in domain logic and reserve orDie/orDieWith for explicit application boundaries.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noSwallowedCatchAll = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const handlerBody = getSwallowedCatchAllHandler(node);
+        if (handlerBody) {
+          report(
+            context,
+            handlerBody,
+            "Rule: avoid swallowing errors in catchAll. Why: succeed/void recovery can hide failures without telemetry or typed recovery. Fix: log, re-fail with a structured error, or recover through an explicit domain branch.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEffectIgnore = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const target = findEffectIgnore(node);
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: avoid Effect.ignore. Why: ignoring failable effects hides failure ownership. Fix: handle the error with typed recovery, log and re-fail, or isolate the ignore at an explicit boundary with a documented reason.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noTryCatchInEffectLogic = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const tryNode = findTryCatchInEffectLogic(node);
+        if (tryNode) {
+          report(
+            context,
+            tryNode,
+            "Rule: avoid try/catch inside Effect logic. Why: it bypasses typed error channels and can miss interruption/cause semantics. Fix: use Effect.try, Effect.catchAll, Effect.catchTag, or typed error combinators.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noPromiseApiInEffectLogic = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const promiseNode = findPromiseApiInEffectLogic(node);
+        if (promiseNode) {
+          report(
+            context,
+            promiseNode,
+            "Rule: avoid Promise APIs inside Effect logic. Why: Promise APIs bypass Effect scheduling, typed errors, cancellation, and tracing. Fix: use Effect.all, Effect.tryPromise, or move Promise interop to a boundary adapter.",
           );
         }
       },
@@ -2578,6 +3285,41 @@ const noEffectTypeAlias = defineRule({
             context,
             node.typeAnnotation,
             "Rule: avoid Effect.Effect type aliases. Why: they hide the service surface and make types opaque. Fix: keep Effect types on service methods or inline at the call site.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noPublicGenericEffectError = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ExportNamedDeclaration(node: any) {
+        const target = hasEffectEcosystemImport ? exportedGenericEffectErrorTarget(node) : undefined;
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: avoid public Effect APIs with generic Error. Why: public services need recoverable, typed error contracts. Fix: expose tagged domain errors instead of Error.",
+          );
+        }
+      },
+      ExportDefaultDeclaration(node: any) {
+        const target = hasEffectEcosystemImport ? exportedGenericEffectErrorTarget(node) : undefined;
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: avoid public Effect APIs with generic Error. Why: public services need recoverable, typed error contracts. Fix: expose tagged domain errors instead of Error.",
           );
         }
       },
@@ -3075,6 +3817,30 @@ const noRuntimeRunFork = createForbiddenMemberCallRule(
   "Rule: avoid Runtime.runFork. Why: detached fibers hide lifetime and interruption ownership. Fix: run effects through the application runtime boundary.",
 );
 
+const noRunEffectOutsideBoundary = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isEffectRunCall(node)) {
+          report(
+            context,
+            node.callee,
+            "Rule: avoid running Effects outside runtime boundaries. Why: direct Effect.run* calls scatter execution ownership. Fix: return Effects from domain logic and run them at the app, CLI, worker, route, or test boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noEffectAsync = createForbiddenMemberCallRule(
   "Effect",
   "async",
@@ -3223,11 +3989,19 @@ const rules = {
   "no-effect-fn-generator": noEffectFnGenerator,
   "no-effect-sync-console": noEffectSyncConsole,
   "no-nested-effect-gen": noNestedEffectGen,
+  "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
   "no-effect-side-effect-wrapper": noEffectSideEffectWrapper,
   "no-effect-all-step-sequencing": noEffectAllStepSequencing,
+  "no-async-effect-combinator-callback": noAsyncEffectCombinatorCallback,
+  "no-throw-in-effect-logic": noThrowInEffectLogic,
+  "no-or-die-outside-boundary": noOrDieOutsideBoundary,
+  "no-swallowed-catch-all": noSwallowedCatchAll,
+  "no-effect-ignore": noEffectIgnore,
+  "no-try-catch-in-effect-logic": noTryCatchInEffectLogic,
+  "no-promise-api-in-effect-logic": noPromiseApiInEffectLogic,
   "no-try-catch": noTryCatch,
   "no-effect-wrapper-alias": noEffectWrapperAlias,
   "no-manual-effect-channels": noManualEffectChannels,
@@ -3239,6 +4013,7 @@ const rules = {
   "no-naked-object-state-update": noNakedObjectStateUpdate,
   "no-effect-succeed-variable": noEffectSucceedVariable,
   "no-effect-type-alias": noEffectTypeAlias,
+  "no-public-generic-effect-error": noPublicGenericEffectError,
   "no-model-overlay-cast": noModelOverlayCast,
   "no-unknown-boolean-coercion-helper": noUnknownBooleanCoercionHelper,
   "no-fromnullable-nullish-coalesce": noFromnullableNullishCoalesce,
@@ -3259,6 +4034,7 @@ const rules = {
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,
   "no-runtime-runfork": noRuntimeRunFork,
+  "no-run-effect-outside-boundary": noRunEffectOutsideBoundary,
   "no-effect-async": noEffectAsync,
   "prevent-dynamic-imports": preventDynamicImports,
   "no-nested-effect-call": noNestedEffectCall,

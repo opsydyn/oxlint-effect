@@ -46,6 +46,8 @@ boundaries.
 | --- | --- | --- |
 | `linteffect/no-react-state` | React state hooks such as `useState`, `useReducer`, and `useEffect`. | Keeps React UI state in the atom/runtime model instead of bypassing it. |
 | `linteffect/no-runtime-runfork` | `Runtime.runFork(...)`. | Detached fibers hide ownership, interruption, and lifecycle boundaries. |
+| `linteffect/no-run-effect-outside-boundary` | Direct `Effect.runPromise`, `Effect.runSync`, `Effect.runFork`, and related `Effect.run*` calls. | Keeps Effect execution owned by app, CLI, worker, route, or test boundaries. |
+| `linteffect/no-or-die-outside-boundary` | `Effect.orDie(...)`, `Effect.orDieWith(...)`, and pipe arguments such as `Effect.orDie`. | Prevents recoverable typed failures from being converted to defects inside domain logic. |
 | `linteffect/prevent-dynamic-imports` | Dynamic `import(...)`. | Static imports keep dependency boundaries visible. |
 | `linteffect/no-render-side-effects` | `Match.value(...).pipe(...)` used as a render-time statement. | Prevents side effects from running during render. |
 | `linteffect/no-inline-runtime-provide` | Inline `Effect.provide(...)` inside local runtime/generator chains. | Keeps dependency assembly at service or application boundaries. |
@@ -58,11 +60,19 @@ boundaries.
 | `linteffect/no-effect-do` | `Effect.Do`. | Avoids builder-style hidden sequencing. |
 | `linteffect/no-effect-bind` | `Effect.bind(...)`. | Prefers direct `Effect.gen` or pipeline flow over builder state. |
 | `linteffect/no-effect-async` | `Effect.async(...)`. | Manual callback bridges are easy to leak or resume incorrectly. |
+| `linteffect/no-effect-ignore` | `Effect.ignore(...)` and pipe arguments such as `Effect.ignore`. | Makes ignored failures explicit at boundaries instead of burying failure ownership. |
 | `linteffect/no-effect-never` | `Effect.never`. | Infinite effects should have explicit lifecycle and teardown ownership. |
 | `linteffect/no-effect-fn-generator` | `Effect.fn(function* ...)`. | Avoids wrapper generators that obscure sequencing. |
 | `linteffect/no-nested-effect-gen` | `Effect.gen` nested inside another `Effect.gen`. | Keeps generator-based effects linear. |
+| `linteffect/no-yield-without-star-in-effect-gen` | Plain `yield` inside `Effect.gen`. | Requires `yield*` so generator steps delegate to the Effect interpreter. |
+| `linteffect/no-async-effect-combinator-callback` | `async` callbacks passed to common Effect combinators. | Prevents Promise-returning callbacks from bypassing Effect error, interruption, and tracing semantics. |
+| `linteffect/no-throw-in-effect-logic` | `throw` inside `Effect.gen` or common Effect combinator callbacks. | Keeps failures in typed Effect error channels. |
+| `linteffect/no-try-catch-in-effect-logic` | `try/catch` inside `Effect.gen` or common Effect combinator callbacks. | Uses Effect error combinators instead of local imperative recovery. |
+| `linteffect/no-promise-api-in-effect-logic` | `Promise.all`, `Promise.race`, `.then`, `.catch`, and related Promise APIs inside Effect logic. | Keeps scheduling, cancellation, tracing, and failures inside Effect. |
+| `linteffect/no-swallowed-catch-all` | `Effect.catchAll` handlers that recover with `Effect.succeed`, `Effect.void`, `Effect.asVoid`, or `Effect.ignore`. | Avoids hiding failures without telemetry, re-fail, or explicit typed recovery. |
 | `linteffect/no-manual-effect-channels` | Manual `Effect.Effect<...>` and `Layer.Layer<...>` channel types. | Lets Effect infer channels from real composition. |
 | `linteffect/no-effect-type-alias` | Type aliases around `Effect.Effect<...>`. | Keeps service surfaces concrete and discoverable. |
+| `linteffect/no-public-generic-effect-error` | Exported APIs returning `Effect.Effect<_, Error, _>`. | Public Effect APIs should expose tagged, recoverable domain errors instead of generic `Error`. |
 
 ### Pipeline Shape and Sequencing
 

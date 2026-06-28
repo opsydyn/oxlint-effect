@@ -148,6 +148,13 @@ const arrowCallback = (body: unknown) => ({
   body,
 });
 
+const asyncArrowCallback = (body: unknown) => ({
+  type: "ArrowFunctionExpression",
+  async: true,
+  params: [identifier("value")],
+  body,
+});
+
 const functionCallback = (body: unknown) => ({
   type: "FunctionExpression",
   id: identifier("callback"),
@@ -273,6 +280,26 @@ const typeReference = (left: string, right: string) => ({
   typeName: qualifiedTypeName(left, right),
 });
 
+const effectEffectTypeReference = (...params: unknown[]) => ({
+  type: "TSTypeReference",
+  typeName: qualifiedTypeName("Effect", "Effect"),
+  typeParameters: {
+    type: "TSTypeParameterInstantiation",
+    params,
+  },
+});
+
+const exportedFunctionDeclarationReturningType = (typeAnnotation: unknown) => ({
+  type: "ExportNamedDeclaration",
+  declaration: {
+    type: "FunctionDeclaration",
+    id: identifier("loadUser"),
+    params: [],
+    returnType: tsTypeAnnotation(typeAnnotation),
+    body: blockStatement(returnStatement(identifier("program"))),
+  },
+});
+
 const typeAliasDeclaration = (typeAnnotation: unknown, name = "ProgramEffect") => ({
   type: "TSTypeAliasDeclaration",
   id: identifier(name),
@@ -395,6 +422,22 @@ const newExpression = (callee: unknown, ...args: unknown[]) => ({
 const throwStatement = (argument: unknown) => ({
   type: "ThrowStatement",
   argument,
+});
+
+const tryStatement = (...body: unknown[]) => ({
+  type: "TryStatement",
+  block: blockStatement(...body),
+  handler: {
+    type: "CatchClause",
+    param: identifier("error"),
+    body: blockStatement(),
+  },
+});
+
+const yieldExpression = (argument: unknown, delegate = false) => ({
+  type: "YieldExpression",
+  argument,
+  delegate,
 });
 
 const conditionalExpression = () => ({
@@ -2247,6 +2290,288 @@ describe("linteffect Oxlint plugin", () => {
           "deleteUserFromAdminPanel",
           typedIdentifier("id", tsTypeReference("UserId")),
         ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches yield without star inside Effect.gen", () => {
+    const reports = runRuleSequence("no-yield-without-star-in-effect-gen", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(expressionStatement(yieldExpression(effectCall("succeed", identifier("value")))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("use yield* inside Effect.gen");
+  });
+
+  it("allows yield star inside Effect.gen", () => {
+    const reports = runRuleSequence("no-yield-without-star-in-effect-gen", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(expressionStatement(yieldExpression(effectCall("succeed", identifier("value")), true)))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches async callbacks passed to Effect combinators", () => {
+    const reports = runRuleSequence("no-async-effect-combinator-callback", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("map", effectCall("succeed", identifier("value")), asyncArrowCallback(identifier("value"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid async callbacks in Effect combinators");
+  });
+
+  it("allows synchronous callbacks passed to Effect combinators", () => {
+    const reports = runRuleSequence("no-async-effect-combinator-callback", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("map", effectCall("succeed", identifier("value")), arrowCallback(identifier("value"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.run calls outside runtime boundaries", () => {
+    const reports = runRuleSequence("no-run-effect-outside-boundary", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("runPromise", identifier("program")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid running Effects outside runtime boundaries");
+  });
+
+  it("allows non-run Effect calls for the boundary rule", () => {
+    const reports = runRuleSequence("no-run-effect-outside-boundary", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("succeed", identifier("program")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches throw statements inside Effect.gen", () => {
+    const reports = runRuleSequence("no-throw-in-effect-logic", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(throwStatement(newExpression(identifier("Error"), stringLiteral("boom"))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid throw inside Effect logic");
+  });
+
+  it("allows Effect.gen without throw statements", () => {
+    const reports = runRuleSequence("no-throw-in-effect-logic", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(returnStatement(yieldExpression(effectCall("succeed", numericLiteral(1)), true)))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.orDie outside boundaries", () => {
+    const reports = runRuleSequence("no-or-die-outside-boundary", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("orDie", identifier("program")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.orDie outside runtime boundaries");
+  });
+
+  it("allows non-orDie Effect calls for the orDie boundary rule", () => {
+    const reports = runRuleSequence("no-or-die-outside-boundary", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("catchAll", arrowCallback(effectCall("fail", objectLiteral(property("tag", stringLiteral("DomainError")))))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches swallowed catchAll handlers", () => {
+    const reports = runRuleSequence("no-swallowed-catch-all", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("catchAll", arrowCallback(effectCall("succeed", objectLiteral(property("fallback", booleanLiteral(true)))))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid swallowing errors in catchAll");
+  });
+
+  it("allows catchAll handlers that re-fail structured errors", () => {
+    const reports = runRuleSequence("no-swallowed-catch-all", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("catchAll", arrowCallback(effectCall("fail", objectLiteral(property("tag", stringLiteral("DomainError")))))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.ignore on failable effects", () => {
+    const reports = runRuleSequence("no-effect-ignore", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("ignore", identifier("program")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.ignore");
+  });
+
+  it("allows non-ignore Effect calls for the ignore rule", () => {
+    const reports = runRuleSequence("no-effect-ignore", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("catchAll", arrowCallback(effectCall("fail", objectLiteral(property("tag", stringLiteral("DomainError")))))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches try/catch inside Effect.gen", () => {
+    const reports = runRuleSequence("no-try-catch-in-effect-logic", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(tryStatement(expressionStatement(effectCall("succeed", numericLiteral(1)))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid try/catch inside Effect logic");
+  });
+
+  it("allows Effect.gen without try/catch statements", () => {
+    const reports = runRuleSequence("no-try-catch-in-effect-logic", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(returnStatement(yieldExpression(effectCall("succeed", numericLiteral(1)), true)))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Promise APIs inside Effect.gen", () => {
+    const reports = runRuleSequence("no-promise-api-in-effect-logic", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(expressionStatement(callExpression(memberExpression("Promise", "all"), arrayLiteral(identifier("tasks")))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Promise APIs inside Effect logic");
+  });
+
+  it("allows Effect APIs inside Effect.gen for the Promise rule", () => {
+    const reports = runRuleSequence("no-promise-api-in-effect-logic", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(expressionStatement(effectCall("all", arrayLiteral(identifier("effects")))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches public APIs returning Effect with generic Error", () => {
+    const reports = runRuleSequence("no-public-generic-effect-error", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExportNamedDeclaration",
+        node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+          tsTypeReference("User"),
+          tsTypeReference("Error"),
+          tsTypeReference("UserRepository"),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid public Effect APIs with generic Error");
+  });
+
+  it("allows public APIs returning Effect with tagged domain errors", () => {
+    const reports = runRuleSequence("no-public-generic-effect-error", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExportNamedDeclaration",
+        node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+          tsTypeReference("User"),
+          tsTypeReference("UserNotFound"),
+          tsTypeReference("UserRepository"),
+        )),
       },
     ]);
 
