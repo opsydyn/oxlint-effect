@@ -91,3 +91,7 @@ export default defineConfig({
 - `linteffect/no-raw-domain-primitive-params`
 - `linteffect/no-raw-time-domain-field`
 - `linteffect/no-overloaded-options-object`
+- `linteffect/no-domain-logic-in-conditional`
+- `linteffect/no-implicit-state-machine-object`
+- `linteffect/no-adhoc-domain-error`
+- `linteffect/no-domain-meaning-by-folder-only`

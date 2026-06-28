@@ -38,12 +38,11 @@ The final `comm` command should print no lines for implemented rules. Future
 rule examples intentionally remain in the missing set until the matching rule is
 shipped.
 
-## Future Rule Examples
+## Domain Modeling Examples
 
-Some files document planned beyond-parity rules before the rule implementation
-exists. These examples still use `EXPECT` annotations so the intended diagnostic
-shape is clear, but missing diagnostics are expected until the matching roadmap
-rule is shipped.
+Some files document beyond-parity rule families as QA fixtures. They use
+`EXPECT` annotations so the intended diagnostic shape is clear and missing
+diagnostics can be treated as implementation gaps.
 
 - `backend/domain-modeling-anti-patterns.ts` mirrors the domain-modeling
-  candidates in `roadmap/05-domain-modeling/README.md`.
+  rules in `roadmap/05-domain-modeling/README.md`.

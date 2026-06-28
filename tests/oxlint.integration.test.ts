@@ -83,6 +83,10 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-raw-domain-primitive-params)");
     expect(result.output).toContain("linteffect(no-raw-time-domain-field)");
     expect(result.output).toContain("linteffect(no-overloaded-options-object)");
+    expect(result.output).toContain("linteffect(no-domain-logic-in-conditional)");
+    expect(result.output).toContain("linteffect(no-implicit-state-machine-object)");
+    expect(result.output).toContain("linteffect(no-adhoc-domain-error)");
+    expect(result.output).toContain("linteffect(no-domain-meaning-by-folder-only)");
   });
 
   it("allows a clean Effect-style fixture", () => {

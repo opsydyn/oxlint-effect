@@ -1652,6 +1652,156 @@ function overloadedOptionsParameters(node: unknown): unknown[] {
   return ((node as Node).params as unknown[]).filter(isOverloadedOptionsParameter);
 }
 
+const comparisonOperators = new Set(["==", "===", "!=", "!==", ">", ">=", "<", "<="]);
+
+function comparisonCount(node: unknown, seen = new WeakSet<object>()): number {
+  if (Array.isArray(node)) {
+    return node.reduce((count, child) => count + comparisonCount(child, seen), 0);
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return 0;
+  }
+
+  if (seen.has(node)) {
+    return 0;
+  }
+  seen.add(node);
+
+  const expression = node as Node;
+  if (expression.type === "BinaryExpression" && comparisonOperators.has(String(expression.operator))) {
+    return 1;
+  }
+
+  if (expression.type !== "LogicalExpression") {
+    return 0;
+  }
+
+  return comparisonCount(expression.left, seen) + comparisonCount(expression.right, seen);
+}
+
+function isDomainLogicConditional(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "LogicalExpression" &&
+    comparisonCount(node) >= 3
+  );
+}
+
+function stateFlagMember(node: unknown): { objectName: string; propertyName: string } | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "MemberExpression") {
+    return undefined;
+  }
+
+  const member = node as Node;
+  if (member.computed === true || !isIdentifier(member.object) || !isIdentifier(member.property)) {
+    return undefined;
+  }
+
+  const propertyName = member.property.name;
+  if (!/(?:cancelled|canceled|shipped|approved|rejected|pending|active|inactive|enabled|disabled|locked|archived|deleted|submitted|processing|failed|complete|completed)$/i.test(propertyName)) {
+    return undefined;
+  }
+
+  return {
+    objectName: member.object.name,
+    propertyName,
+  };
+}
+
+function collectStateFlagMembers(
+  node: unknown,
+  members = new Map<string, Set<string>>(),
+  seen = new WeakSet<object>(),
+): Map<string, Set<string>> {
+  const member = stateFlagMember(node);
+  if (member) {
+    const properties = members.get(member.objectName) ?? new Set<string>();
+    properties.add(member.propertyName);
+    members.set(member.objectName, properties);
+    return members;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      collectStateFlagMembers(child, members, seen);
+    }
+    return members;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return members;
+  }
+
+  if (seen.has(node)) {
+    return members;
+  }
+  seen.add(node);
+
+  const expression = node as Node;
+  if (expression.type !== "LogicalExpression") {
+    return members;
+  }
+
+  collectStateFlagMembers(expression.left, members, seen);
+  collectStateFlagMembers(expression.right, members, seen);
+  return members;
+}
+
+function isImplicitStateMachineObject(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "LogicalExpression") {
+    return false;
+  }
+
+  return Array.from(collectStateFlagMembers(node).values()).some((properties) => properties.size >= 2);
+}
+
+function isAdhocEffectFail(node: unknown): boolean {
+  return isEffectMemberCallNamed(node, "fail") && isStringLiteral(firstArgument(node));
+}
+
+function isThrowNewStringError(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "ThrowStatement") {
+    return false;
+  }
+
+  const argument = (node as Node).argument;
+  return (
+    typeof argument === "object" &&
+    argument !== null &&
+    (argument as Node).type === "NewExpression" &&
+    isIdentifier((argument as Node).callee, "Error") &&
+    Array.isArray((argument as Node).arguments) &&
+    isStringLiteral(((argument as Node).arguments as unknown[])[0])
+  );
+}
+
+function hasRawDomainIdParameter(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+    return false;
+  }
+
+  return ((node as Node).params as unknown[]).some((param) => (
+    isIdentifier(param) &&
+    /(?:^id$|Id$|ID$)/.test(param.name) &&
+    isStringOrNumberTypeAnnotation((param as Node).typeAnnotation)
+  ));
+}
+
+function isContextEncodedDomainFunction(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "FunctionDeclaration") {
+    return false;
+  }
+
+  const id = (node as Node).id;
+  return (
+    isIdentifier(id) &&
+    /(?:Admin|Public|Internal|External|Private|Backoffice|Panel)/.test(id.name) &&
+    hasRawDomainIdParameter(node)
+  );
+}
+
 function isStringLiteralComparison(node: unknown): boolean {
   if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
     return false;
@@ -2762,6 +2912,111 @@ const noOverloadedOptionsObject = defineRule({
   },
 });
 
+const noDomainLogicInConditional = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      LogicalExpression(node: any) {
+        if (hasEffectEcosystemImport && isDomainLogicConditional(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid embedding domain logic in conditionals. Why: multi-clause business rules become hard to test, reuse, and audit. Fix: extract a named domain predicate or validation Effect and call that from the branch.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noImplicitStateMachineObject = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      LogicalExpression(node: any) {
+        if (hasEffectEcosystemImport && isImplicitStateMachineObject(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid implicit state machines made from boolean flags. Why: multiple flags on one domain object allow impossible states. Fix: model the lifecycle as a tagged union or Data.TaggedEnum.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noAdhocDomainError = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isAdhocEffectFail(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid ad hoc domain errors. Why: string failures hide recovery semantics and observability. Fix: use Data.TaggedError or a structured domain error union.",
+          );
+        }
+      },
+      ThrowStatement(node: any) {
+        if (hasEffectEcosystemImport && isThrowNewStringError(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid ad hoc domain errors. Why: thrown string Error values bypass typed Effect error channels. Fix: return Effect.fail with a structured tagged domain error.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noDomainMeaningByFolderOnly = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration(node: any) {
+        if (hasEffectEcosystemImport && isContextEncodedDomainFunction(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid domain meaning by folder or context naming alone. Why: admin/public/internal meaning should be represented in types or services, not inferred from helper names. Fix: encode context with branded IDs, commands, policies, or service boundaries.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noEffectAs = defineRule({
   create(context: OxlintContext) {
     return {
@@ -2996,6 +3251,10 @@ const rules = {
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
   "no-overloaded-options-object": noOverloadedOptionsObject,
+  "no-domain-logic-in-conditional": noDomainLogicInConditional,
+  "no-implicit-state-machine-object": noImplicitStateMachineObject,
+  "no-adhoc-domain-error": noAdhocDomainError,
+  "no-domain-meaning-by-folder-only": noDomainMeaningByFolderOnly,
   "no-effect-as": noEffectAs,
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,

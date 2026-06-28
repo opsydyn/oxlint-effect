@@ -331,6 +331,13 @@ const functionDeclarationWithParams = (...params: unknown[]) => ({
   body: blockStatement(returnStatement(identifier("value"))),
 });
 
+const namedFunctionDeclarationWithParams = (name: string, ...params: unknown[]) => ({
+  type: "FunctionDeclaration",
+  id: identifier(name),
+  params,
+  body: blockStatement(returnStatement(identifier("value"))),
+});
+
 const tsPropertySignature = (name: string, typeAnnotation: unknown) => ({
   type: "TSPropertySignature",
   key: identifier(name),
@@ -367,9 +374,27 @@ const logicalExpression = (left: unknown, operator: string, right: unknown) => (
   right,
 });
 
+const memberExpression = (object: string, property: string) => ({
+  type: "MemberExpression",
+  object: identifier(object),
+  property: identifier(property),
+  computed: false,
+});
+
 const stringLiteral = (value: string) => ({
   type: "Literal",
   value,
+});
+
+const newExpression = (callee: unknown, ...args: unknown[]) => ({
+  type: "NewExpression",
+  callee,
+  arguments: args,
+});
+
+const throwStatement = (argument: unknown) => ({
+  type: "ThrowStatement",
+  argument,
 });
 
 const conditionalExpression = () => ({
@@ -2087,6 +2112,141 @@ describe("linteffect Oxlint plugin", () => {
       {
         visitorName: "FunctionDeclaration",
         node: functionDeclarationWithParams(typedIdentifier("config", tsUnknownKeyword())),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches complex domain logic embedded in boolean expressions", () => {
+    const reports = runRuleSequence("no-domain-logic-in-conditional", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "LogicalExpression",
+        node: logicalExpression(
+          logicalExpression(
+            binaryExpression(memberExpression("order", "total"), ">", numericLiteral(100)),
+            "&&",
+            binaryExpression(memberExpression("order", "customerTier"), "===", stringLiteral("premium")),
+          ),
+          "&&",
+          binaryExpression(identifier("currency"), "!==", stringLiteral("test")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid embedding domain logic in conditionals");
+  });
+
+  it("allows simple boolean expressions for the domain conditional rule", () => {
+    const reports = runRuleSequence("no-domain-logic-in-conditional", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "LogicalExpression",
+        node: logicalExpression(
+          binaryExpression(identifier("count"), ">", numericLiteral(0)),
+          "&&",
+          identifier("enabled"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches implicit state machines made from boolean flags", () => {
+    const reports = runRuleSequence("no-implicit-state-machine-object", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "LogicalExpression",
+        node: logicalExpression(
+          memberExpression("order", "cancelled"),
+          "&&",
+          memberExpression("order", "shipped"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid implicit state machines");
+  });
+
+  it("allows unrelated logical expressions for the state machine rule", () => {
+    const reports = runRuleSequence("no-implicit-state-machine-object", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "LogicalExpression",
+        node: logicalExpression(identifier("left"), "&&", identifier("right")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches ad hoc string domain failures", () => {
+    const reports = runRuleSequence("no-adhoc-domain-error", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("fail", stringLiteral("not allowed")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid ad hoc domain errors");
+  });
+
+  it("catches thrown Error string domain failures", () => {
+    const reports = runRuleSequence("no-adhoc-domain-error", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ThrowStatement",
+        node: throwStatement(newExpression(identifier("Error"), stringLiteral("not allowed"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid ad hoc domain errors");
+  });
+
+  it("allows structured domain failures", () => {
+    const reports = runRuleSequence("no-adhoc-domain-error", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("fail", newExpression(identifier("TransferRejectedError"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches admin/public meaning encoded only in function names with raw IDs", () => {
+    const reports = runRuleSequence("no-domain-meaning-by-folder-only", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: namedFunctionDeclarationWithParams(
+          "deleteUserFromAdminPanel",
+          typedIdentifier("id", tsStringKeyword()),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid domain meaning by folder or context naming");
+  });
+
+  it("allows contextual function names when IDs are branded", () => {
+    const reports = runRuleSequence("no-domain-meaning-by-folder-only", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: namedFunctionDeclarationWithParams(
+          "deleteUserFromAdminPanel",
+          typedIdentifier("id", tsTypeReference("UserId")),
+        ),
       },
     ]);
 

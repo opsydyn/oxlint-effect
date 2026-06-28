@@ -107,6 +107,13 @@ const booleanNormalized = Option.match(Option.some(count), {
 const statusToken = "loading";
 
 declare const order: { readonly status: string };
+declare const domainOrder: {
+  readonly total: number;
+  readonly customerTier: string;
+  readonly cancelled: boolean;
+  readonly shipped: boolean;
+};
+declare const currency: string;
 
 type UserId = string;
 
@@ -128,6 +135,17 @@ interface SessionLease {
 
 function createPaymentIntent(opts: any) {
   return opts;
+}
+
+const canApplyPremiumDiscount =
+  domainOrder.total > 100 && domainOrder.customerTier === "premium" && currency !== "test";
+
+const impossibleOrderState = domainOrder.cancelled && domainOrder.shipped;
+
+const rejectedTransfer = Effect.fail("not allowed");
+
+function deleteUserFromAdminPanel(id: string) {
+  return { deletedUserId: id };
 }
 
 const graphqlCatchAll = pipe(

@@ -64,5 +64,9 @@ export default defineConfig({
     "linteffect/no-raw-domain-primitive-params": "error",
     "linteffect/no-raw-time-domain-field": "error",
     "linteffect/no-overloaded-options-object": "error",
+    "linteffect/no-domain-logic-in-conditional": "error",
+    "linteffect/no-implicit-state-machine-object": "error",
+    "linteffect/no-adhoc-domain-error": "error",
+    "linteffect/no-domain-meaning-by-folder-only": "error",
   },
 });
