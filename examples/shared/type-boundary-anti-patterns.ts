@@ -7,11 +7,11 @@ declare const unknownFlag: unknown;
 
 // EXPECT: linteffect/no-manual-effect-channels
 // QA: Manual Effect channel tuple types should warn.
-type ManualEffect = Effect.Effect<number, Error, never>;
+export type ManualEffect = Effect.Effect<number, Error, never>;
 
 // EXPECT: linteffect/no-effect-type-alias
 // QA: Effect.Effect type aliases should warn.
-type ProgramAlias = Effect.Effect<string, Error, never>;
+export type ProgramAlias = Effect.Effect<string, Error, never>;
 
 // EXPECT: linteffect/no-model-overlay-cast
 // QA: Asserting decoded model flow with `as` should warn.
