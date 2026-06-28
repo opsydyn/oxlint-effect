@@ -1472,6 +1472,70 @@ function objectPropertyValues(node: unknown): unknown[] {
     .filter((value) => value !== undefined);
 }
 
+function isRawDomainIdAlias(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "TSTypeAliasDeclaration") {
+    return false;
+  }
+
+  const aliasName = (node as Node).id;
+  const typeAnnotation = (node as Node).typeAnnotation as Node | undefined;
+  return (
+    isIdentifier(aliasName) &&
+    /(?:Id|ID)$/.test(aliasName.name) &&
+    (typeAnnotation?.type === "TSStringKeyword" || typeAnnotation?.type === "TSNumberKeyword")
+  );
+}
+
+function isBooleanTypeAnnotation(node: unknown): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const annotation = node as Node;
+  if (annotation.type === "TSBooleanKeyword") {
+    return true;
+  }
+
+  return (
+    annotation.type === "TSTypeAnnotation" &&
+    typeof annotation.typeAnnotation === "object" &&
+    annotation.typeAnnotation !== null &&
+    (annotation.typeAnnotation as Node).type === "TSBooleanKeyword"
+  );
+}
+
+function isBooleanDomainFlagParameter(node: unknown): boolean {
+  if (!isIdentifier(node)) {
+    return false;
+  }
+
+  return (
+    /^(?:is|has|should|with|allow|enable|can|use)[A-Z0-9_]/.test(node.name) &&
+    isBooleanTypeAnnotation((node as Node).typeAnnotation)
+  );
+}
+
+function functionBooleanDomainFlagParameters(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+    return [];
+  }
+
+  return ((node as Node).params as unknown[]).filter(isBooleanDomainFlagParameter);
+}
+
+function isStringLiteralComparison(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
+    return false;
+  }
+
+  const binary = node as Node;
+  return (
+    ["==", "===", "!=", "!=="].includes(String(binary.operator)) &&
+    (isStringLiteral(binary.left) || isStringLiteral(binary.right)) &&
+    !isTypeofBooleanCheck(binary)
+  );
+}
+
 function report(context: OxlintContext, node: unknown, message: string) {
   context.report({ message, node: node as ESTree.Node });
 }
@@ -2398,6 +2462,86 @@ const noStringSentinelConst = defineRule({
   },
 });
 
+const noRawDomainIdAlias = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      TSTypeAliasDeclaration(node: any) {
+        if (hasEffectEcosystemImport && isRawDomainIdAlias(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid raw primitive domain ID aliases. Why: `type UserId = string` does not protect boundaries from swapped IDs. Fix: use Schema branded IDs or a domain constructor that validates and brands the value.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noBooleanDomainFlag = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    const checkFunctionParameters = (node: unknown) => {
+      if (!hasEffectEcosystemImport) {
+        return;
+      }
+
+      for (const param of functionBooleanDomainFlagParameters(node)) {
+        report(
+          context,
+          param,
+          "Rule: avoid boolean behavior flags in domain operations. Why: flags like `shouldNotify` hide use cases and create implicit branching. Fix: model intent with a command/tagged union or split the operation into explicit functions.",
+        );
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration: checkFunctionParameters,
+      FunctionExpression: checkFunctionParameters,
+      ArrowFunctionExpression: checkFunctionParameters,
+    };
+  },
+});
+
+const noMagicDomainString = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      BinaryExpression(node: any) {
+        if (hasEffectEcosystemImport && isStringLiteralComparison(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid magic domain string comparisons. Why: comparing domain state to raw strings scatters status vocabulary and misses exhaustiveness. Fix: use a tagged union, Schema literal union, or Match over a named domain status.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noEffectAs = defineRule({
   create(context: OxlintContext) {
     return {
@@ -2626,6 +2770,9 @@ const rules = {
   "no-option-boolean-normalization": noOptionBooleanNormalization,
   "no-string-sentinel-return": noStringSentinelReturn,
   "no-string-sentinel-const": noStringSentinelConst,
+  "no-raw-domain-id-alias": noRawDomainIdAlias,
+  "no-boolean-domain-flag": noBooleanDomainFlag,
+  "no-magic-domain-string": noMagicDomainString,
   "no-effect-as": noEffectAs,
   "no-effect-do": noEffectDo,
   "no-effect-bind": noEffectBind,

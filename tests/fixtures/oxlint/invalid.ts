@@ -106,6 +106,16 @@ const booleanNormalized = Option.match(Option.some(count), {
 
 const statusToken = "loading";
 
+declare const order: { readonly status: string };
+
+type UserId = string;
+
+function settleInvoice(invoiceId: string, shouldNotifyCustomer: boolean) {
+  return { invoiceId, shouldNotifyCustomer };
+}
+
+const approvedOrder = order.status === "approved";
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

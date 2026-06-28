@@ -6,3 +6,4 @@ coverage/
 # Local reference copy of the original Biome/Grit rule pack.
 biome-effect-linting-rules-master/
 effect-smol-main 2/
+EffectPatterns-main/

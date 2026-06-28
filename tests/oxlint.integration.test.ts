@@ -77,6 +77,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-option-boolean-normalization)");
     expect(result.output).toContain("linteffect(no-string-sentinel-return)");
     expect(result.output).toContain("linteffect(no-string-sentinel-const)");
+    expect(result.output).toContain("linteffect(no-raw-domain-id-alias)");
+    expect(result.output).toContain("linteffect(no-boolean-domain-flag)");
+    expect(result.output).toContain("linteffect(no-magic-domain-string)");
   });
 
   it("allows a clean Effect-style fixture", () => {

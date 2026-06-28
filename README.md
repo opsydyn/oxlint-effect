@@ -85,3 +85,6 @@ export default defineConfig({
 - `linteffect/no-option-boolean-normalization`
 - `linteffect/no-string-sentinel-return`
 - `linteffect/no-string-sentinel-const`
+- `linteffect/no-raw-domain-id-alias`
+- `linteffect/no-boolean-domain-flag`
+- `linteffect/no-magic-domain-string`

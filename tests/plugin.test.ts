@@ -273,9 +273,9 @@ const typeReference = (left: string, right: string) => ({
   typeName: qualifiedTypeName(left, right),
 });
 
-const typeAliasDeclaration = (typeAnnotation: unknown) => ({
+const typeAliasDeclaration = (typeAnnotation: unknown, name = "ProgramEffect") => ({
   type: "TSTypeAliasDeclaration",
-  id: identifier("ProgramEffect"),
+  id: identifier(name),
   typeAnnotation,
 });
 
@@ -292,6 +292,35 @@ const tsTypeReference = (name: string) => ({
 
 const tsConstKeyword = () => ({
   type: "TSConstKeyword",
+});
+
+const tsStringKeyword = () => ({
+  type: "TSStringKeyword",
+});
+
+const tsNumberKeyword = () => ({
+  type: "TSNumberKeyword",
+});
+
+const tsBooleanKeyword = () => ({
+  type: "TSBooleanKeyword",
+});
+
+const tsTypeAnnotation = (typeAnnotation: unknown) => ({
+  type: "TSTypeAnnotation",
+  typeAnnotation,
+});
+
+const typedIdentifier = (name: string, typeAnnotation: unknown) => ({
+  ...identifier(name),
+  typeAnnotation: tsTypeAnnotation(typeAnnotation),
+});
+
+const functionDeclarationWithParams = (...params: unknown[]) => ({
+  type: "FunctionDeclaration",
+  id: identifier("domainOperation"),
+  params,
+  body: blockStatement(returnStatement(identifier("value"))),
 });
 
 const unaryExpression = (operator: string, argument: unknown) => ({
@@ -1862,6 +1891,96 @@ describe("linteffect Oxlint plugin", () => {
     const reports = runRule("no-string-sentinel-const", "VariableDeclaration", variableDeclarationWithInit(
       objectLiteral(property("status", stringLiteral("loading"))),
     ));
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches raw primitive aliases for domain IDs", () => {
+    const reports = runRuleSequence("no-raw-domain-id-alias", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "TSTypeAliasDeclaration",
+        node: typeAliasDeclaration(tsStringKeyword(), "UserId"),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid raw primitive domain ID aliases");
+  });
+
+  it("allows non-ID primitive aliases for the domain ID alias rule", () => {
+    const reports = runRuleSequence("no-raw-domain-id-alias", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "TSTypeAliasDeclaration",
+        node: typeAliasDeclaration(tsStringKeyword(), "StatusLabel"),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches boolean domain flags in function parameters", () => {
+    const reports = runRuleSequence("no-boolean-domain-flag", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationWithParams(
+          typedIdentifier("invoiceId", tsStringKeyword()),
+          typedIdentifier("shouldNotifyCustomer", tsBooleanKeyword()),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid boolean behavior flags");
+  });
+
+  it("allows neutral boolean parameters for the domain flag rule", () => {
+    const reports = runRuleSequence("no-boolean-domain-flag", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationWithParams(typedIdentifier("enabled", tsBooleanKeyword())),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches magic domain string comparisons", () => {
+    const reports = runRuleSequence("no-magic-domain-string", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "BinaryExpression",
+        node: binaryExpression(
+          {
+            type: "MemberExpression",
+            object: identifier("order"),
+            property: identifier("status"),
+            computed: false,
+          },
+          "===",
+          stringLiteral("approved"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid magic domain string comparisons");
+  });
+
+  it("allows non-string comparisons for the magic domain string rule", () => {
+    const reports = runRuleSequence("no-magic-domain-string", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "BinaryExpression",
+        node: binaryExpression(identifier("count"), "===", {
+          type: "Literal",
+          value: 1,
+        }),
+      },
+    ]);
 
     expect(reports).toHaveLength(0);
   });

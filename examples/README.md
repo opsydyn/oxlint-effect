@@ -34,4 +34,16 @@ rg -o "linteffect\\([^)]+\\)" /tmp/linteffect-observed.log \
 comm -23 /tmp/linteffect-expected.txt /tmp/linteffect-observed.txt
 ```
 
-The final `comm` command should print no lines.
+The final `comm` command should print no lines for implemented rules. Future
+rule examples intentionally remain in the missing set until the matching rule is
+shipped.
+
+## Future Rule Examples
+
+Some files document planned beyond-parity rules before the rule implementation
+exists. These examples still use `EXPECT` annotations so the intended diagnostic
+shape is clear, but missing diagnostics are expected until the matching roadmap
+rule is shipped.
+
+- `backend/domain-modeling-anti-patterns.ts` mirrors the domain-modeling
+  candidates in `roadmap/05-domain-modeling/README.md`.

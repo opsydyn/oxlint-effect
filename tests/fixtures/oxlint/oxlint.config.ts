@@ -58,5 +58,8 @@ export default defineConfig({
     "linteffect/no-option-boolean-normalization": "error",
     "linteffect/no-string-sentinel-return": "error",
     "linteffect/no-string-sentinel-const": "error",
+    "linteffect/no-raw-domain-id-alias": "error",
+    "linteffect/no-boolean-domain-flag": "error",
+    "linteffect/no-magic-domain-string": "error",
   },
 });
