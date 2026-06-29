@@ -1,5 +1,11 @@
 # @opsydyn/oxlint-effect
 
+## 0.2.0
+
+### Minor Changes
+
+- 36b89f2: Add correctness-core lint rules for Effect execution semantics, error escapes, Promise and imperative escape hatches, and public generic error contracts.
+
 ## 0.1.1
 
 ### Patch Changes
