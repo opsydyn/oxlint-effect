@@ -1,5 +1,16 @@
 # @opsydyn/oxlint-effect
 
+## 0.3.0
+
+### Minor Changes
+
+- beba76f: Add the remaining concurrency-safety rules.
+
+  This release adds diagnostics for blocking sync calls inside Effect logic,
+  Promise concurrency APIs inside Effect logic, shared mutable state across
+  forked or parallel work, and timeout boundaries around noninterruptible Promise
+  interop.
+
 ## 0.2.0
 
 ### Minor Changes
