@@ -38,7 +38,7 @@ The final `comm` command should print no lines for implemented rules. Future
 rule examples intentionally remain in the missing set until the matching rule is
 shipped.
 
-## Domain Modeling Examples
+## Beyond-Parity Examples
 
 Some files document beyond-parity rule families as QA fixtures. They use
 `EXPECT` annotations so the intended diagnostic shape is clear and missing
@@ -48,6 +48,8 @@ diagnostics can be treated as implementation gaps.
   rules in `roadmap/05-domain-modeling/README.md`.
 - `backend/correctness-core-anti-patterns.ts` mirrors the correctness-core
   rules in `roadmap/01-correctness-core/README.md`.
+- `backend/concurrency-safety-anti-patterns.ts` mirrors the concurrency-safety
+  rules in `roadmap/02-concurrency-safety/README.md`.
 - `backend/error-escapes-anti-patterns.ts` mirrors the correctness-core
   error-escape slice in `roadmap/01-correctness-core/README.md`.
 - `backend/imperative-escape-hatches-anti-patterns.ts` mirrors the

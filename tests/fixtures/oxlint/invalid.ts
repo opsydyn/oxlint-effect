@@ -182,6 +182,27 @@ export function loadPublicUser(): Effect.Effect<{ readonly id: string }, Error, 
   return program as any;
 }
 
+const unboundedParallelism = Effect.all(
+  [1, 2, 3].map((value) => Effect.succeed(value)),
+);
+
+Effect.fork(program);
+
+for (const value of [1, 2, 3]) {
+  Effect.fork(Effect.succeed(value));
+}
+
+const raceWithoutCleanup = Effect.race(
+  Effect.succeed("fast"),
+  Effect.succeed("slow"),
+);
+
+const unobservedFiber = Effect.fork(program);
+
+const retryStorm = Effect.all(
+  [1, 2, 3].map((value) => Effect.retry(Effect.succeed(value))),
+);
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

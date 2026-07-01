@@ -1,6 +1,6 @@
 # Beyond Parity Roadmap
 
-Last updated: 2026-06-28
+Last updated: 2026-07-01
 
 This roadmap starts after Biome rule parity. The existing top-level `ROADMAP.md`
 remains the parity record. This directory tracks new linting rules inspired by
@@ -95,4 +95,3 @@ For each completed rule:
 
 After those eight slices, decide whether to continue by group depth or by preset
 completion.
-

@@ -11,14 +11,14 @@ Primary reference:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/no-unbounded-effect-all` | `unbounded-parallelism-effect-all` | recommended | low | `Effect.all(items.map(...))` without options containing `concurrency` |
-| [ ] | `linteffect/no-fire-and-forget-fork` | `fire-and-forget-forks` | recommended | medium | `Effect.fork(...)` result unused or not joined/awaited/scoped |
-| [ ] | `linteffect/no-fork-in-loop` | `forking-inside-loops` | recommended | low | `Effect.fork` inside `for`, `for...of`, `while`, `do` |
-| [ ] | `linteffect/no-race-without-cleanup` | `racing-without-handling-losers` | strict | medium | `Effect.race` / `raceAll` operands without `Effect.ensuring` or scoped resource handling |
+| [x] | `linteffect/no-unbounded-effect-all` | `unbounded-parallelism-effect-all` | recommended | low | `Effect.all(items.map(...))` without options containing `concurrency` |
+| [x] | `linteffect/no-fire-and-forget-fork` | `fire-and-forget-forks` | recommended | medium | `Effect.fork(...)` result unused or not joined/awaited/scoped |
+| [x] | `linteffect/no-fork-in-loop` | `forking-inside-loops` | recommended | low | `Effect.fork` inside `for`, `for...of`, `while`, `do` |
+| [x] | `linteffect/no-race-without-cleanup` | `racing-without-handling-losers` | strict | medium | `Effect.race` / `raceAll` operands without `Effect.ensuring` or scoped resource handling |
 | [ ] | `linteffect/no-blocking-call-in-effect` | `blocking-calls-in-effect-logic` | runtime | medium | sync fs/crypto/compression calls inside `Effect.sync` or `Effect.gen` |
 | [ ] | `linteffect/no-promise-concurrency-in-effect` | `promise-concurrency-in-effect` | recommended | medium | `Promise.all`, `allSettled`, `race`, `any` inside Effect code |
-| [ ] | `linteffect/no-unobserved-fiber` | `ignoring-fiber-failures` | recommended | medium | forked fiber variable never passed to `Fiber.join`, `Fiber.await`, `Fiber.interrupt`, or scoped APIs |
-| [ ] | `linteffect/no-unbounded-concurrent-retry` | `retrying-concurrently-without-limits` | strict | medium | `Effect.retry` nested under unbounded `Effect.all` / `forEach` |
+| [x] | `linteffect/no-unobserved-fiber` | `ignoring-fiber-failures` | recommended | medium | forked fiber variable never passed to `Fiber.join`, `Fiber.await`, `Fiber.interrupt`, or scoped APIs |
+| [x] | `linteffect/no-unbounded-concurrent-retry` | `retrying-concurrently-without-limits` | strict | medium | `Effect.retry` nested under unbounded `Effect.all` / `forEach` |
 | [ ] | `linteffect/no-shared-mutable-state-across-fibers` | `shared-mutable-state-across-fibers` | strict | high | outer `let`/`var` mutated from fork/all callbacks |
 | [ ] | `linteffect/no-timeout-with-noninterruptible-promise` | `timeouts-without-cancellation-awareness` | strict | high | `Effect.timeout(Effect.promise(...))` or `tryPromise` with no signal parameter |
 
@@ -26,15 +26,15 @@ Primary reference:
 
 ### Slice 1: Controlled Parallelism
 
-- [ ] `no-unbounded-effect-all`
-- [ ] `no-fire-and-forget-fork`
-- [ ] `no-fork-in-loop`
+- [x] `no-unbounded-effect-all`
+- [x] `no-fire-and-forget-fork`
+- [x] `no-fork-in-loop`
 
 ### Slice 2: Fiber Observation
 
-- [ ] `no-race-without-cleanup`
-- [ ] `no-unobserved-fiber`
-- [ ] `no-unbounded-concurrent-retry`
+- [x] `no-race-without-cleanup`
+- [x] `no-unobserved-fiber`
+- [x] `no-unbounded-concurrent-retry`
 
 ### Slice 3: Blocking And Shared State
 
@@ -56,4 +56,3 @@ Do not flag:
 - `Effect.forkIn`
 - forked fibers followed by `Fiber.join`, `Fiber.await`, or `Fiber.interrupt`
 - `Effect.tryPromise({ try: (signal) => fetch(url, { signal }) })`
-

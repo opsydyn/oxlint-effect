@@ -97,6 +97,12 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-try-catch-in-effect-logic)");
     expect(result.output).toContain("linteffect(no-promise-api-in-effect-logic)");
     expect(result.output).toContain("linteffect(no-public-generic-effect-error)");
+    expect(result.output).toContain("linteffect(no-unbounded-effect-all)");
+    expect(result.output).toContain("linteffect(no-fire-and-forget-fork)");
+    expect(result.output).toContain("linteffect(no-fork-in-loop)");
+    expect(result.output).toContain("linteffect(no-race-without-cleanup)");
+    expect(result.output).toContain("linteffect(no-unobserved-fiber)");
+    expect(result.output).toContain("linteffect(no-unbounded-concurrent-retry)");
   });
 
   it("allows a clean Effect-style fixture", () => {

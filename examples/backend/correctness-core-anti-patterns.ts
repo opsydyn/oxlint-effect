@@ -5,7 +5,7 @@ declare const program: any;
 // EXPECT: linteffect/no-yield-without-star-in-effect-gen
 // QA: Effect.gen should delegate with yield* so Effect values are interpreted.
 export const badYield = Effect.gen(function* () {
-  yield Effect.succeed(1);
+  return yield Effect.succeed(1);
 });
 
 // EXPECT: linteffect/no-async-effect-combinator-callback

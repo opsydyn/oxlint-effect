@@ -74,6 +74,17 @@ boundaries.
 | `linteffect/no-effect-type-alias` | Type aliases around `Effect.Effect<...>`. | Keeps service surfaces concrete and discoverable. |
 | `linteffect/no-public-generic-effect-error` | Exported APIs returning `Effect.Effect<_, Error, _>`. | Public Effect APIs should expose tagged, recoverable domain errors instead of generic `Error`. |
 
+### Concurrency Safety
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-unbounded-effect-all` | `Effect.all(items.map(...))` without an explicit `concurrency` option. | Prevents load-dependent runaway parallelism and makes throughput ownership explicit. |
+| `linteffect/no-fire-and-forget-fork` | Bare `Effect.fork(...)` expression statements. | Detached fibers hide failure, interruption, and lifecycle ownership. |
+| `linteffect/no-fork-in-loop` | `Effect.fork(...)` inside `for`, `for...of`, `for...in`, `while`, or `do...while` loops. | Avoids loop-spawned unbounded fibers; use bounded `Effect.all` / `Effect.forEach` or scoped supervision. |
+| `linteffect/no-race-without-cleanup` | `Effect.race(...)` / `Effect.raceAll(...)` without `Effect.ensuring`, scoped, or acquire/release cleanup. | Racing effects need explicit loser cleanup so losing work and resources do not leak. |
+| `linteffect/no-unobserved-fiber` | `const fiber = Effect.fork(...)` when the fiber is never passed to `Fiber.join`, `Fiber.await`, or `Fiber.interrupt`. | Forked fibers should have observed failure and interruption ownership. |
+| `linteffect/no-unbounded-concurrent-retry` | `Effect.retry(...)` nested inside unbounded mapped `Effect.all(...)` or unbounded `Effect.forEach(...)`. | Prevents retry storms by requiring bounded concurrency or a queue/backoff policy. |
+
 ### Pipeline Shape and Sequencing
 
 | Rule | Catches | Why |

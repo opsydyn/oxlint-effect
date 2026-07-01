@@ -913,6 +913,192 @@ function hasConcurrencyOne(node: unknown): boolean {
   });
 }
 
+function hasConcurrencyOption(node: unknown): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const object = node as Node;
+  if (object.type !== "ObjectExpression" || !Array.isArray(object.properties)) {
+    return false;
+  }
+
+  return object.properties.some((entry) => {
+    if (typeof entry !== "object" || entry === null) {
+      return false;
+    }
+
+    const key = (entry as Node).key;
+    return (
+      isIdentifier(key, "concurrency") ||
+      (typeof key === "object" && key !== null && (key as Node).value === "concurrency")
+    );
+  });
+}
+
+function isCollectionMapCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const call = node as Node;
+  return (
+    call.type === "CallExpression" &&
+    typeof call.callee === "object" &&
+    call.callee !== null &&
+    (call.callee as Node).type === "MemberExpression" &&
+    (call.callee as Node).computed !== true &&
+    isIdentifier((call.callee as Node).property, "map")
+  );
+}
+
+function isUnboundedMappedEffectAll(node: unknown): boolean {
+  return (
+    isEffectMemberCallNamed(node, "all") &&
+    isCollectionMapCall(firstArgument(node)) &&
+    !hasConcurrencyOption((node as Node & { arguments: unknown[] }).arguments[1])
+  );
+}
+
+function containsEffectForkCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (isEffectMemberCallNamed(node, "fork")) {
+    return node;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = containsEffectForkCall(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = containsEffectForkCall(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function containsEffectMemberCallInSet(
+  node: unknown,
+  propertyNames: ReadonlySet<string>,
+  seen = new WeakSet<object>(),
+): boolean {
+  if (isEffectMemberCall(node)) {
+    const callee = node.callee as Node;
+    const property = callee.property;
+    if (isIdentifier(property) && propertyNames.has(property.name)) {
+      return true;
+    }
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsEffectMemberCallInSet(child, propertyNames, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsEffectMemberCallInSet(child, propertyNames, seen)
+  ));
+}
+
+const raceCleanupCalls = new Set([
+  "acquireRelease",
+  "acquireUseRelease",
+  "ensuring",
+  "forkIn",
+  "forkScoped",
+  "scoped",
+]);
+
+function isEffectRaceWithoutCleanup(node: unknown): boolean {
+  if (!isEffectMemberCallNamed(node, "race") && !isEffectMemberCallNamed(node, "raceAll")) {
+    return false;
+  }
+
+  return !containsEffectMemberCallInSet((node as Node & { arguments: unknown[] }).arguments, raceCleanupCalls);
+}
+
+function isUnboundedEffectForEach(node: unknown): boolean {
+  return (
+    isEffectMemberCallNamed(node, "forEach") &&
+    !hasConcurrencyOption((node as Node & { arguments: unknown[] }).arguments[2])
+  );
+}
+
+const retryCalls = new Set(["retry"]);
+
+function isUnboundedConcurrentRetry(node: unknown): boolean {
+  return (
+    (isUnboundedMappedEffectAll(node) || isUnboundedEffectForEach(node)) &&
+    containsEffectMemberCallInSet((node as Node & { arguments: unknown[] }).arguments, retryCalls)
+  );
+}
+
+function forkedFiberVariableName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclarator") {
+    return undefined;
+  }
+
+  const declarator = node as Node;
+  return isIdentifier(declarator.id) && isEffectMemberCallNamed(declarator.init, "fork")
+    ? declarator.id.name
+    : undefined;
+}
+
+const fiberObservationCalls = new Set(["await", "interrupt", "join"]);
+
+function observedFiberVariableName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const call = node as Node & { arguments?: unknown[] };
+  const callee = call.callee;
+  if (
+    typeof callee !== "object" ||
+    callee === null ||
+    (callee as Node).type !== "MemberExpression" ||
+    (callee as Node).computed === true ||
+    !isIdentifier((callee as Node).object, "Fiber") ||
+    !isIdentifier((callee as Node).property) ||
+    !fiberObservationCalls.has(((callee as Node).property as { name: string }).name) ||
+    !Array.isArray(call.arguments)
+  ) {
+    return undefined;
+  }
+
+  const [fiber] = call.arguments;
+  return isIdentifier(fiber) ? fiber.name : undefined;
+}
+
 function isEffectAsVoidPipeArgument(node: unknown): boolean {
   return isMemberExpression(node, "Effect", "asVoid") || isMemberCall(node, "Effect", "asVoid");
 }
@@ -3959,6 +4145,181 @@ const noEffectOrElseLadder = defineRule({
   },
 });
 
+const noUnboundedEffectAll = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isUnboundedMappedEffectAll(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid unbounded Effect.all over mapped collections. Why: it can launch work for every item at once and fail under load. Fix: pass an explicit `{ concurrency: n }` option or use a bounded batching strategy.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noFireAndForgetFork = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ExpressionStatement(node: any) {
+        if (hasEffectEcosystemImport && isEffectMemberCallNamed(node.expression, "fork")) {
+          report(
+            context,
+            node.expression,
+            "Rule: avoid fire-and-forget Effect.fork. Why: detached fibers hide failure, interruption, and ownership. Fix: bind the fiber and join/await/interrupt it, or use Effect.forkScoped / Effect.forkIn with an explicit scope.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noForkInLoop = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    const checkLoop = (node: unknown) => {
+      if (!hasEffectEcosystemImport) {
+        return;
+      }
+
+      const fork = containsEffectForkCall((node as Node).body);
+      if (fork) {
+        report(
+          context,
+          fork,
+          "Rule: avoid Effect.fork inside loops. Why: loop-spawned fibers create unbounded concurrency and unclear ownership. Fix: use Effect.forEach / Effect.all with an explicit concurrency limit or a scoped supervisor.",
+        );
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ForStatement: checkLoop,
+      ForInStatement: checkLoop,
+      ForOfStatement: checkLoop,
+      WhileStatement: checkLoop,
+      DoWhileStatement: checkLoop,
+    };
+  },
+});
+
+const noRaceWithoutCleanup = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isEffectRaceWithoutCleanup(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid Effect.race without loser cleanup. Why: racing effects without ensuring/scoped cleanup can leak losing work or resources. Fix: wrap raced effects with Effect.ensuring/acquireRelease or use a scoped race boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noUnobservedFiber = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const forkedFibers = new Map<string, unknown>();
+    const observedFibers = new Set<string>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      VariableDeclarator(node: any) {
+        const name = forkedFiberVariableName(node);
+        if (name) {
+          forkedFibers.set(name, node);
+        }
+      },
+      CallExpression(node: any) {
+        const name = observedFiberVariableName(node);
+        if (name) {
+          observedFibers.add(name);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const [name, node] of forkedFibers) {
+          if (!observedFibers.has(name)) {
+            report(
+              context,
+              node,
+              "Rule: avoid unobserved forked fibers. Why: forked fiber failures and interruption should be observed. Fix: pass the fiber to Fiber.join, Fiber.await, Fiber.interrupt, or use scoped fork APIs.",
+            );
+          }
+        }
+      },
+    };
+  },
+});
+
+const noUnboundedConcurrentRetry = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isUnboundedConcurrentRetry(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid unbounded concurrent retry. Why: retry inside unbounded parallel collection effects can amplify load and create retry storms. Fix: add an explicit concurrency limit or move retry behind a bounded queue/backoff policy.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const preventDynamicImports = defineRule({
   create(context: OxlintContext) {
     return {
@@ -4043,6 +4404,12 @@ const rules = {
   "no-pipe-ladder": noPipeLadder,
   "no-call-tower": noCallTower,
   "no-effect-orElse-ladder": noEffectOrElseLadder,
+  "no-unbounded-effect-all": noUnboundedEffectAll,
+  "no-fire-and-forget-fork": noFireAndForgetFork,
+  "no-fork-in-loop": noForkInLoop,
+  "no-race-without-cleanup": noRaceWithoutCleanup,
+  "no-unobserved-fiber": noUnobservedFiber,
+  "no-unbounded-concurrent-retry": noUnboundedConcurrentRetry,
 };
 
 export const allRules = Object.fromEntries(

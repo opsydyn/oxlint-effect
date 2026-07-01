@@ -205,6 +205,12 @@ const variableDeclarationWithInit = (init: unknown) => ({
   ],
 });
 
+const variableDeclaratorWithInit = (name: string, init: unknown) => ({
+  type: "VariableDeclarator",
+  id: identifier(name),
+  init,
+});
+
 const returnStatement = (argument: unknown) => ({
   type: "ReturnStatement",
   argument,
@@ -467,6 +473,13 @@ const matchOrElseCall = (branch: unknown) => ({
     computed: false,
   },
   arguments: [arrowCallback(branch)],
+});
+
+const forOfStatement = (body: unknown) => ({
+  type: "ForOfStatement",
+  left: identifier("item"),
+  right: identifier("items"),
+  body,
 });
 
 describe("linteffect Oxlint plugin", () => {
@@ -2572,6 +2585,186 @@ describe("linteffect Oxlint plugin", () => {
           tsTypeReference("UserNotFound"),
           tsTypeReference("UserRepository"),
         )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches unbounded Effect.all over mapped collections", () => {
+    const reports = runRuleSequence("no-unbounded-effect-all", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "all",
+          callExpression(memberExpression("items", "map"), arrowCallback(effectCall("succeed", identifier("value")))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid unbounded Effect.all");
+  });
+
+  it("allows Effect.all over mapped collections with an explicit concurrency limit", () => {
+    const reports = runRuleSequence("no-unbounded-effect-all", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "all",
+          callExpression(memberExpression("items", "map"), arrowCallback(effectCall("succeed", identifier("value")))),
+          objectLiteral(property("concurrency", numericLiteral(4))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches direct fire-and-forget Effect.fork statements", () => {
+    const reports = runRuleSequence("no-fire-and-forget-fork", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExpressionStatement",
+        node: expressionStatement(effectCall("fork", identifier("program"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid fire-and-forget Effect.fork");
+  });
+
+  it("allows scoped fork APIs for the fire-and-forget rule", () => {
+    const reports = runRuleSequence("no-fire-and-forget-fork", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExpressionStatement",
+        node: expressionStatement(effectCall("forkScoped", identifier("program"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.fork inside loops", () => {
+    const reports = runRuleSequence("no-fork-in-loop", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ForOfStatement",
+        node: forOfStatement(blockStatement(expressionStatement(effectCall("fork", identifier("program"))))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.fork inside loops");
+  });
+
+  it("allows Effect.fork outside loops for the loop rule", () => {
+    const reports = runRuleSequence("no-fork-in-loop", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExpressionStatement",
+        node: expressionStatement(effectCall("fork", identifier("program"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.race calls without loser cleanup", () => {
+    const reports = runRuleSequence("no-race-without-cleanup", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("race", identifier("fast"), identifier("slow")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.race without loser cleanup");
+  });
+
+  it("allows Effect.race calls with explicit ensuring cleanup", () => {
+    const reports = runRuleSequence("no-race-without-cleanup", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "race",
+          effectCall("ensuring", identifier("fast"), identifier("cleanup")),
+          identifier("slow"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches forked fiber variables that are never observed", () => {
+    const reports = runRuleSequence("no-unobserved-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclarator",
+        node: variableDeclaratorWithInit("fiber", effectCall("fork", identifier("program"))),
+      },
+      { visitorName: "Program:exit", node: { type: "Program" } },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid unobserved forked fibers");
+  });
+
+  it("allows forked fibers that are joined", () => {
+    const reports = runRuleSequence("no-unobserved-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclarator",
+        node: variableDeclaratorWithInit("fiber", effectCall("fork", identifier("program"))),
+      },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(memberExpression("Fiber", "join"), identifier("fiber")),
+      },
+      { visitorName: "Program:exit", node: { type: "Program" } },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches retry inside unbounded concurrent collection effects", () => {
+    const reports = runRuleSequence("no-unbounded-concurrent-retry", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "all",
+          callExpression(
+            memberExpression("items", "map"),
+            arrowCallback(effectCall("retry", effectCall("succeed", identifier("value")))),
+          ),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid unbounded concurrent retry");
+  });
+
+  it("allows retry inside bounded concurrent collection effects", () => {
+    const reports = runRuleSequence("no-unbounded-concurrent-retry", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "all",
+          callExpression(
+            memberExpression("items", "map"),
+            arrowCallback(effectCall("retry", effectCall("succeed", identifier("value")))),
+          ),
+          objectLiteral(property("concurrency", numericLiteral(4))),
+        ),
       },
     ]);
 

@@ -80,6 +80,12 @@ describe("linteffect config exports", () => {
       "linteffect/no-try-catch-in-effect-logic": "error",
       "linteffect/no-promise-api-in-effect-logic": "error",
       "linteffect/no-public-generic-effect-error": "error",
+      "linteffect/no-unbounded-effect-all": "error",
+      "linteffect/no-fire-and-forget-fork": "error",
+      "linteffect/no-fork-in-loop": "error",
+      "linteffect/no-race-without-cleanup": "error",
+      "linteffect/no-unobserved-fiber": "error",
+      "linteffect/no-unbounded-concurrent-retry": "error",
     });
   });
 
