@@ -203,6 +203,29 @@ const retryStorm = Effect.all(
   [1, 2, 3].map((value) => Effect.retry(Effect.succeed(value))),
 );
 
+declare const fs: { readonly readFileSync: (path: string) => string };
+
+const blockingRead = Effect.sync(() => fs.readFileSync("/tmp/session.json"));
+
+const promiseConcurrency = Effect.gen(function* () {
+  Promise.allSettled([Promise.resolve(count)]);
+});
+
+let completedWorkers = 0;
+
+const sharedMutableState = Effect.all(
+  [1, 2, 3].map((value) => Effect.sync(() => {
+    completedWorkers++;
+    return value;
+  })),
+  { concurrency: 2 },
+);
+
+const timedOutPromise = Effect.timeout(
+  Effect.promise(() => Promise.resolve(count)),
+  "1 second",
+);
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

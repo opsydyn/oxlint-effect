@@ -5,6 +5,8 @@ declare const sendNotification: (userId: string) => Effect.Effect<void, never, n
 declare const auditProgram: Effect.Effect<void, never, never>;
 declare const fastProgram: Effect.Effect<string, never, never>;
 declare const slowProgram: Effect.Effect<string, never, never>;
+declare const fs: { readonly readFileSync: (path: string) => string };
+declare const fetchProfile: () => Promise<string>;
 
 // EXPECT: linteffect/no-unbounded-effect-all
 // QA: Mapping a whole collection into Effect.all should declare a concurrency limit.
@@ -34,4 +36,33 @@ export const unobservedWorker = Effect.fork(auditProgram);
 // QA: Retry inside unbounded parallel collection work can amplify load.
 export const retryStorm = Effect.all(
   userIds.map((userId) => Effect.retry(sendNotification(userId))),
+);
+
+// EXPECT: linteffect/no-blocking-call-in-effect
+// QA: Blocking sync calls inside Effect logic should be moved to platform adapters or async boundaries.
+export const blockingSessionRead = Effect.sync(() => fs.readFileSync("/tmp/session.json"));
+
+// EXPECT: linteffect/no-promise-concurrency-in-effect
+// QA: Promise concurrency bypasses Effect scheduling, interruption, tracing, and error channels.
+export const promiseFanout = Effect.gen(function* () {
+  Promise.allSettled(userIds.map((userId) => Promise.resolve(userId)));
+});
+
+let completedNotifications = 0;
+
+// EXPECT: linteffect/no-shared-mutable-state-across-fibers
+// QA: Shared mutable state in parallel work should use Ref/SynchronizedRef/Queue or immutable aggregation.
+export const sharedCounterAcrossFibers = Effect.all(
+  userIds.map((userId) => Effect.sync(() => {
+    completedNotifications++;
+    return userId;
+  })),
+  { concurrency: 4 },
+);
+
+// EXPECT: linteffect/no-timeout-with-noninterruptible-promise
+// QA: Timeout around Promise interop should wire cancellation into the underlying async operation.
+export const timedOutNoninterruptiblePromise = Effect.timeout(
+  Effect.promise(() => fetchProfile()),
+  "1 second",
 );

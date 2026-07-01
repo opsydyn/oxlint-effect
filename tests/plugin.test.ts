@@ -155,6 +155,12 @@ const asyncArrowCallback = (body: unknown) => ({
   body,
 });
 
+const arrowCallbackWithParams = (params: unknown[], body: unknown) => ({
+  type: "ArrowFunctionExpression",
+  params,
+  body,
+});
+
 const functionCallback = (body: unknown) => ({
   type: "FunctionExpression",
   id: identifier("callback"),
@@ -480,6 +486,20 @@ const forOfStatement = (body: unknown) => ({
   left: identifier("item"),
   right: identifier("items"),
   body,
+});
+
+const assignmentExpression = (left: unknown, right: unknown) => ({
+  type: "AssignmentExpression",
+  operator: "=",
+  left,
+  right,
+});
+
+const updateExpression = (argument: unknown) => ({
+  type: "UpdateExpression",
+  operator: "++",
+  argument,
+  prefix: false,
 });
 
 describe("linteffect Oxlint plugin", () => {
@@ -2764,6 +2784,146 @@ describe("linteffect Oxlint plugin", () => {
             arrowCallback(effectCall("retry", effectCall("succeed", identifier("value")))),
           ),
           objectLiteral(property("concurrency", numericLiteral(4))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches blocking sync calls inside Effect.sync", () => {
+    const reports = runRuleSequence("no-blocking-call-in-effect", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "sync",
+          arrowCallback(callExpression(memberExpression("fs", "readFileSync"), identifier("path"))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid blocking sync calls inside Effect logic");
+  });
+
+  it("allows non-blocking calls inside Effect.sync", () => {
+    const reports = runRuleSequence("no-blocking-call-in-effect", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("sync", arrowCallback(callExpression(memberExpression("logger", "info"), identifier("path")))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Promise concurrency APIs inside Effect logic", () => {
+    const reports = runRuleSequence("no-promise-concurrency-in-effect", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            expressionStatement(callExpression(memberExpression("Promise", "allSettled"), arrayLiteral())),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Promise concurrency APIs inside Effect logic");
+  });
+
+  it("allows Effect concurrency APIs for the Promise concurrency rule", () => {
+    const reports = runRuleSequence("no-promise-concurrency-in-effect", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("all", arrayLiteral(effectCall("succeed", identifier("value")))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches shared mutable state mutations inside forked work", () => {
+    const reports = runRuleSequence("no-shared-mutable-state-across-fibers", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          kind: "let",
+          declarations: [{ type: "VariableDeclarator", id: identifier("completed"), init: numericLiteral(0) }],
+        },
+      },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "fork",
+          effectCall("sync", arrowCallback(blockStatement(expressionStatement(updateExpression(identifier("completed")))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid mutating shared state across fibers");
+  });
+
+  it("allows local mutable state inside non-concurrent Effect logic", () => {
+    const reports = runRuleSequence("no-shared-mutable-state-across-fibers", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          kind: "let",
+          declarations: [{ type: "VariableDeclarator", id: identifier("completed"), init: numericLiteral(0) }],
+        },
+      },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "sync",
+          arrowCallback(blockStatement(expressionStatement(assignmentExpression(identifier("completed"), numericLiteral(1))))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches timeout around noninterruptible Effect.promise", () => {
+    const reports = runRuleSequence("no-timeout-with-noninterruptible-promise", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "timeout",
+          effectCall("promise", arrowCallback(callExpression(identifier("loadUser")))),
+          stringLiteral("1 second"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid timeout around noninterruptible Promise effects");
+  });
+
+  it("allows timeout around Effect.tryPromise with an abort signal parameter", () => {
+    const reports = runRuleSequence("no-timeout-with-noninterruptible-promise", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "timeout",
+          effectCall("tryPromise", objectLiteral(
+            property("try", arrowCallbackWithParams([identifier("signal")], callExpression(identifier("fetchUser")))),
+          )),
+          stringLiteral("1 second"),
         ),
       },
     ]);

@@ -84,5 +84,9 @@ export default defineConfig({
     "linteffect/no-race-without-cleanup": "error",
     "linteffect/no-unobserved-fiber": "error",
     "linteffect/no-unbounded-concurrent-retry": "error",
+    "linteffect/no-blocking-call-in-effect": "error",
+    "linteffect/no-promise-concurrency-in-effect": "error",
+    "linteffect/no-shared-mutable-state-across-fibers": "error",
+    "linteffect/no-timeout-with-noninterruptible-promise": "error",
   },
 });

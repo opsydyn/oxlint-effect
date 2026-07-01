@@ -88,6 +88,10 @@ boundaries.
 | `linteffect/no-race-without-cleanup` | `Effect.race(...)` / `Effect.raceAll(...)` without `Effect.ensuring`, scoped, or acquire/release cleanup. | Racing effects need explicit loser cleanup so losing work and resources do not leak. |
 | `linteffect/no-unobserved-fiber` | `const fiber = Effect.fork(...)` when the fiber is never passed to `Fiber.join`, `Fiber.await`, or `Fiber.interrupt`. | Forked fibers should have observed failure and interruption ownership. |
 | `linteffect/no-unbounded-concurrent-retry` | `Effect.retry(...)` nested inside unbounded mapped `Effect.all(...)` or unbounded `Effect.forEach(...)`. | Prevents retry storms by requiring bounded concurrency or a queue/backoff policy. |
+| `linteffect/no-blocking-call-in-effect` | Sync `fs` / `crypto` / `zlib` calls inside `Effect.sync` or `Effect.gen`. | Blocking calls stall the runtime worker and should live behind async/platform boundaries. |
+| `linteffect/no-promise-concurrency-in-effect` | `Promise.all`, `Promise.allSettled`, `Promise.race`, or `Promise.any` inside Effect logic. | Keeps concurrency, interruption, tracing, and typed failures inside Effect. |
+| `linteffect/no-shared-mutable-state-across-fibers` | Outer `let` / `var` state mutated from `Effect.fork`, `Effect.all`, or `Effect.forEach` work. | Shared mutable state across fibers creates nondeterministic races; use Effect concurrency primitives. |
+| `linteffect/no-timeout-with-noninterruptible-promise` | `Effect.timeout(Effect.promise(...))` or `Effect.timeout(Effect.tryPromise(...))` without a signal-aware callback. | Timeout should interrupt the underlying async operation, not only the Effect wrapper. |
 
 ### Pipeline Shape and Sequencing
 

@@ -19,6 +19,7 @@ export const tryCatchEffectLogic = Effect.gen(function* () {
 });
 
 // EXPECT: linteffect/no-promise-api-in-effect-logic
+// EXPECT: linteffect/no-promise-concurrency-in-effect
 // QA: Promise APIs inside Effect logic bypass Effect scheduling, errors, and cancellation.
 export const promiseEffectLogic = Effect.gen(function* () {
   Promise.all(tasks);

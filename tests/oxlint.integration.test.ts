@@ -103,6 +103,10 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-race-without-cleanup)");
     expect(result.output).toContain("linteffect(no-unobserved-fiber)");
     expect(result.output).toContain("linteffect(no-unbounded-concurrent-retry)");
+    expect(result.output).toContain("linteffect(no-blocking-call-in-effect)");
+    expect(result.output).toContain("linteffect(no-promise-concurrency-in-effect)");
+    expect(result.output).toContain("linteffect(no-shared-mutable-state-across-fibers)");
+    expect(result.output).toContain("linteffect(no-timeout-with-noninterruptible-promise)");
   });
 
   it("allows a clean Effect-style fixture", () => {

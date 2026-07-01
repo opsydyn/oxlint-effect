@@ -663,6 +663,218 @@ function findPromiseApiInEffectLogic(node: unknown): unknown | undefined {
   return undefined;
 }
 
+const promiseConcurrencyMethods = new Set(["all", "allSettled", "any", "race"]);
+
+function isPromiseConcurrencyCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = (node as Node).callee;
+  return (
+    typeof callee === "object" &&
+    callee !== null &&
+    (callee as Node).type === "MemberExpression" &&
+    (callee as Node).computed !== true &&
+    isIdentifier((callee as Node).object, "Promise") &&
+    isIdentifier((callee as Node).property) &&
+    promiseConcurrencyMethods.has(((callee as Node).property as { name: string }).name)
+  );
+}
+
+function findPromiseConcurrencyCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findPromiseConcurrencyCall(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if (isPromiseConcurrencyCall(node)) {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findPromiseConcurrencyCall(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findPromiseConcurrencyInEffectLogic(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (generator) {
+    return findPromiseConcurrencyCall(generator.body);
+  }
+
+  if (isEffectMemberCallNamed(node, "sync")) {
+    const body = callbackBody(firstArgument(node));
+    return body ? findPromiseConcurrencyCall(body) : undefined;
+  }
+
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const callee = node.callee as Node;
+  const property = callee.property;
+  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
+    return undefined;
+  }
+
+  for (const argument of node.arguments) {
+    const body = callbackBody(argument);
+    const match = body ? findPromiseConcurrencyCall(body) : undefined;
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function callbackHasParameter(node: unknown): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const callback = node as Node;
+  return (
+    (callback.type === "ArrowFunctionExpression" || callback.type === "FunctionExpression") &&
+    Array.isArray(callback.params) &&
+    callback.params.length > 0
+  );
+}
+
+function isCancellationAwareTryPromise(node: unknown): boolean {
+  if (!isEffectMemberCallNamed(node, "tryPromise")) {
+    return false;
+  }
+
+  const argument = firstArgument(node);
+  if (callbackHasParameter(argument)) {
+    return true;
+  }
+
+  return callbackHasParameter(objectPropertyValue(argument, "try"));
+}
+
+function isNoninterruptiblePromiseEffect(node: unknown): boolean {
+  if (isEffectMemberCallNamed(node, "promise")) {
+    return true;
+  }
+
+  return isEffectMemberCallNamed(node, "tryPromise") && !isCancellationAwareTryPromise(node);
+}
+
+function noninterruptiblePromiseTimeoutNode(node: unknown): unknown | undefined {
+  if (!isEffectMemberCallNamed(node, "timeout")) {
+    return undefined;
+  }
+
+  const effect = firstArgument(node);
+  return isNoninterruptiblePromiseEffect(effect) ? effect : undefined;
+}
+
+const blockingSyncObjectNames = new Set(["crypto", "fs", "zlib"]);
+
+function isBlockingSyncCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const callee = (node as Node).callee;
+  if (isIdentifier(callee)) {
+    return callee.name.endsWith("Sync");
+  }
+
+  if (
+    typeof callee !== "object" ||
+    callee === null ||
+    (callee as Node).type !== "MemberExpression" ||
+    (callee as Node).computed === true ||
+    !isIdentifier((callee as Node).object) ||
+    !isIdentifier((callee as Node).property)
+  ) {
+    return false;
+  }
+
+  const objectName = ((callee as Node).object as { name: string }).name;
+  const propertyName = ((callee as Node).property as { name: string }).name;
+  return blockingSyncObjectNames.has(objectName) && propertyName.endsWith("Sync");
+}
+
+function findBlockingSyncCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findBlockingSyncCall(child, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if (isBlockingSyncCall(node)) {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findBlockingSyncCall(child, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function findBlockingSyncCallInEffectLogic(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (generator) {
+    return findBlockingSyncCall(generator.body);
+  }
+
+  if (isEffectMemberCallNamed(node, "sync")) {
+    const body = callbackBody(firstArgument(node));
+    return body ? findBlockingSyncCall(body) : undefined;
+  }
+
+  return undefined;
+}
+
 const effectRunMethods = new Set([
   "runCallback",
   "runFork",
@@ -1060,6 +1272,168 @@ function isUnboundedConcurrentRetry(node: unknown): boolean {
     (isUnboundedMappedEffectAll(node) || isUnboundedEffectForEach(node)) &&
     containsEffectMemberCallInSet((node as Node & { arguments: unknown[] }).arguments, retryCalls)
   );
+}
+
+function variableDeclarationIdentifierNames(node: unknown): string[] {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+    return [];
+  }
+
+  const declarations = (node as Node).declarations;
+  if (!Array.isArray(declarations)) {
+    return [];
+  }
+
+  return declarations.flatMap((declaration) => {
+    if (typeof declaration !== "object" || declaration === null) {
+      return [];
+    }
+
+    const id = (declaration as Node).id;
+    return isIdentifier(id) ? [id.name] : [];
+  });
+}
+
+function collectDeclaredIdentifierNames(
+  node: unknown,
+  names = new Set<string>(),
+  seen = new WeakSet<object>(),
+): Set<string> {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      collectDeclaredIdentifierNames(child, names, seen);
+    }
+    return names;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return names;
+  }
+
+  if (seen.has(node)) {
+    return names;
+  }
+  seen.add(node);
+
+  if ((node as Node).type === "VariableDeclaration") {
+    for (const name of variableDeclarationIdentifierNames(node)) {
+      names.add(name);
+    }
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key !== "parent") {
+      collectDeclaredIdentifierNames(child, names, seen);
+    }
+  }
+
+  return names;
+}
+
+const mutatingCollectionMethods = new Set([
+  "add",
+  "clear",
+  "delete",
+  "pop",
+  "push",
+  "reverse",
+  "set",
+  "shift",
+  "sort",
+  "splice",
+  "unshift",
+]);
+
+function mutatedIdentifierName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const candidate = node as Node;
+  if (
+    candidate.type === "AssignmentExpression" &&
+    isIdentifier(candidate.left)
+  ) {
+    return candidate.left.name;
+  }
+
+  if (
+    candidate.type === "UpdateExpression" &&
+    isIdentifier(candidate.argument)
+  ) {
+    return candidate.argument.name;
+  }
+
+  if (
+    candidate.type === "CallExpression" &&
+    typeof candidate.callee === "object" &&
+    candidate.callee !== null &&
+    (candidate.callee as Node).type === "MemberExpression" &&
+    (candidate.callee as Node).computed !== true &&
+    isIdentifier((candidate.callee as Node).object) &&
+    isIdentifier((candidate.callee as Node).property) &&
+    mutatingCollectionMethods.has(((candidate.callee as Node).property as { name: string }).name)
+  ) {
+    return ((candidate.callee as Node).object as { name: string }).name;
+  }
+
+  return undefined;
+}
+
+function findSharedMutableStateMutation(
+  node: unknown,
+  mutableNames: ReadonlySet<string>,
+  localNames = collectDeclaredIdentifierNames(node),
+  seen = new WeakSet<object>(),
+): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findSharedMutableStateMutation(child, mutableNames, localNames, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  const mutatedName = mutatedIdentifierName(node);
+  if (mutatedName && mutableNames.has(mutatedName) && !localNames.has(mutatedName)) {
+    return node;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findSharedMutableStateMutation(child, mutableNames, localNames, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function concurrentEffectWorkNode(node: unknown): unknown | undefined {
+  if (
+    isEffectMemberCallNamed(node, "fork") ||
+    isEffectMemberCallNamed(node, "all") ||
+    isEffectMemberCallNamed(node, "forEach")
+  ) {
+    return (node as Node & { arguments: unknown[] }).arguments;
+  }
+
+  return undefined;
 }
 
 function forkedFiberVariableName(node: unknown): string | undefined {
@@ -4320,6 +4694,137 @@ const noUnboundedConcurrentRetry = defineRule({
   },
 });
 
+const noBlockingCallInEffect = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const blockingNode = findBlockingSyncCallInEffectLogic(node);
+        if (blockingNode) {
+          report(
+            context,
+            blockingNode,
+            "Rule: avoid blocking sync calls inside Effect logic. Why: sync fs/crypto/zlib calls block the runtime worker and hide throughput costs. Fix: use Effect.async/tryPromise at a platform boundary, stream APIs, or a dedicated blocking executor.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noPromiseConcurrencyInEffect = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const promiseNode = findPromiseConcurrencyInEffectLogic(node);
+        if (promiseNode) {
+          report(
+            context,
+            promiseNode,
+            "Rule: avoid Promise concurrency APIs inside Effect logic. Why: Promise.all/allSettled/race/any bypass Effect concurrency, interruption, tracing, and error channels. Fix: use Effect.all, Effect.forEach, Effect.race, or a boundary adapter with explicit cancellation ownership.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noSharedMutableStateAcrossFibers = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const mutableNames = new Set<string>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      VariableDeclaration(node: any) {
+        if (node.kind !== "let" && node.kind !== "var") {
+          return;
+        }
+
+        for (const name of variableDeclarationIdentifierNames(node)) {
+          mutableNames.add(name);
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const workNode = concurrentEffectWorkNode(node);
+        if (!workNode) {
+          return;
+        }
+
+        const mutationNode = findSharedMutableStateMutation(workNode, mutableNames);
+        if (mutationNode) {
+          report(
+            context,
+            mutationNode,
+            "Rule: avoid mutating shared state across fibers. Why: outer let/var state mutated from forked or parallel work creates nondeterministic races. Fix: model shared state with Ref/SynchronizedRef/Queue or aggregate immutable results with bounded Effect.all/forEach.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noTimeoutWithNoninterruptiblePromise = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const promiseNode = noninterruptiblePromiseTimeoutNode(node);
+        if (promiseNode) {
+          report(
+            context,
+            promiseNode,
+            "Rule: avoid timeout around noninterruptible Promise effects. Why: timing out Effect.promise or tryPromise without a signal leaves the underlying Promise running after interruption. Fix: use Effect.tryPromise with an AbortSignal parameter and pass it to the async API.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const preventDynamicImports = defineRule({
   create(context: OxlintContext) {
     return {
@@ -4410,6 +4915,10 @@ const rules = {
   "no-race-without-cleanup": noRaceWithoutCleanup,
   "no-unobserved-fiber": noUnobservedFiber,
   "no-unbounded-concurrent-retry": noUnboundedConcurrentRetry,
+  "no-blocking-call-in-effect": noBlockingCallInEffect,
+  "no-promise-concurrency-in-effect": noPromiseConcurrencyInEffect,
+  "no-shared-mutable-state-across-fibers": noSharedMutableStateAcrossFibers,
+  "no-timeout-with-noninterruptible-promise": noTimeoutWithNoninterruptiblePromise,
 };
 
 export const allRules = Object.fromEntries(
