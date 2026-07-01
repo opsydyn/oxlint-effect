@@ -16,10 +16,14 @@ import { recommended } from "@opsydyn/oxlint-effect";
 
 export default defineConfig({
   plugins: ["typescript"],
-  jsPlugins: recommended.jsPlugins,
+  jsPlugins: [...recommended.jsPlugins],
   rules: recommended.rules,
 });
 ```
+
+`recommended.jsPlugins` is exported as a readonly tuple. Spreading it creates
+the mutable array shape expected by Oxlint's `ExternalPluginEntry[]` config
+type.
 
 For local development inside this repository, point `jsPlugins` at the TypeScript source:
 

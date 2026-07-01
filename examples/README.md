@@ -58,3 +58,10 @@ diagnostics can be treated as implementation gaps.
 - `backend/public-error-contract-anti-patterns.ts` mirrors the final
   correctness-core public error contract rule in
   `roadmap/01-correctness-core/README.md`.
+
+## npm Consumer Example
+
+`npm-consumer` is a tiny standalone consumer that installs
+`@opsydyn/oxlint-effect@0.2.0` from npm instead of using the local source plugin.
+It verifies the user-land `jsPlugins: [...recommended.jsPlugins]` workaround for
+Oxlint's mutable config type and gives us a production-package smoke test.
