@@ -25,6 +25,59 @@ export default defineConfig({
 the mutable array shape expected by Oxlint's `ExternalPluginEntry[]` config
 type.
 
+### Configure One Rule Group
+
+Every documented rule group is exported as a config-shaped preset with the same
+shape as `recommended`. For example, teams that only want the DDD/domain
+modeling rules can use `ddd`:
+
+```ts
+import { defineConfig } from "oxlint";
+import { ddd } from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  plugins: ["typescript"],
+  jsPlugins: [...ddd.jsPlugins],
+  rules: ddd.rules,
+});
+```
+
+Named group presets:
+
+| Preset | Rule Group |
+| --- | --- |
+| `reactAndRuntimeBoundaries` | React and Runtime Boundaries |
+| `effectComposition` | Effect Composition |
+| `concurrencySafety` | Concurrency Safety |
+| `pipelineShapeAndSequencing` | Pipeline Shape and Sequencing |
+| `branchingAndLocalControlFlow` | Branching and Local Control Flow |
+| `optionMatchAndDataNormalization` | Option, Match, and Data Normalization |
+| `atomStateAndPlatformBoundaries` | Atom, State, and Platform Boundaries |
+| `domainModeling` | Domain Modeling |
+| `ddd` | Alias for `domainModeling` |
+
+Each preset also has a rule-only export with a `Rules` suffix. Use those when
+you want to compose multiple groups:
+
+```ts
+import { defineConfig } from "oxlint";
+import {
+  concurrencySafety,
+  domainModelingRules,
+  effectCompositionRules,
+} from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  plugins: ["typescript"],
+  jsPlugins: [...concurrencySafety.jsPlugins],
+  rules: {
+    ...concurrencySafety.rules,
+    ...domainModelingRules,
+    ...effectCompositionRules,
+  },
+});
+```
+
 For local development inside this repository, point `jsPlugins` at the TypeScript source:
 
 ```ts

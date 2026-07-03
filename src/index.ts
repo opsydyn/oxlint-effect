@@ -4921,18 +4921,167 @@ const rules = {
   "no-timeout-with-noninterruptible-promise": noTimeoutWithNoninterruptiblePromise,
 };
 
-export const allRules = Object.fromEntries(
-  Object.keys(rules).map((ruleName) => [`linteffect/${ruleName}`, "error"]),
-) as Record<`linteffect/${string}`, "error">;
+type RuleName = keyof typeof rules;
 
-export const recommended = {
-  jsPlugins: [
-    {
-      name: "linteffect",
-      specifier: "@opsydyn/oxlint-effect",
-    },
-  ],
-  rules: allRules,
+function rulesFromNames<const T extends readonly RuleName[]>(ruleNames: T) {
+  return Object.fromEntries(
+    ruleNames.map((ruleName) => [`linteffect/${ruleName}`, "error"]),
+  ) as Record<`linteffect/${T[number]}`, "error">;
+}
+
+function presetFor<const T extends Record<`linteffect/${string}`, "error">>(groupRules: T) {
+  return {
+    jsPlugins,
+    rules: groupRules,
+  } as const;
+}
+
+export const jsPlugins = [
+  {
+    name: "linteffect",
+    specifier: "@opsydyn/oxlint-effect",
+  },
+] as const;
+
+export const reactAndRuntimeBoundariesRules = rulesFromNames([
+  "no-react-state",
+  "no-runtime-runfork",
+  "no-run-effect-outside-boundary",
+  "no-or-die-outside-boundary",
+  "prevent-dynamic-imports",
+  "no-render-side-effects",
+  "no-inline-runtime-provide",
+] as const);
+
+export const effectCompositionRules = rulesFromNames([
+  "no-effect-as",
+  "no-effect-do",
+  "no-effect-bind",
+  "no-effect-async",
+  "no-effect-ignore",
+  "no-effect-never",
+  "no-effect-fn-generator",
+  "no-nested-effect-gen",
+  "no-yield-without-star-in-effect-gen",
+  "no-async-effect-combinator-callback",
+  "no-throw-in-effect-logic",
+  "no-try-catch-in-effect-logic",
+  "no-promise-api-in-effect-logic",
+  "no-swallowed-catch-all",
+  "no-manual-effect-channels",
+  "no-effect-type-alias",
+  "no-public-generic-effect-error",
+] as const);
+
+export const concurrencySafetyRules = rulesFromNames([
+  "no-unbounded-effect-all",
+  "no-fire-and-forget-fork",
+  "no-fork-in-loop",
+  "no-race-without-cleanup",
+  "no-unobserved-fiber",
+  "no-unbounded-concurrent-retry",
+  "no-blocking-call-in-effect",
+  "no-promise-concurrency-in-effect",
+  "no-shared-mutable-state-across-fibers",
+  "no-timeout-with-noninterruptible-promise",
+] as const);
+
+export const pipelineShapeAndSequencingRules = rulesFromNames([
+  "no-nested-effect-call",
+  "no-effect-ladder",
+  "no-flatmap-ladder",
+  "no-pipe-ladder",
+  "no-call-tower",
+  "no-effect-orElse-ladder",
+  "no-effect-wrapper-alias",
+  "warn-effect-sync-wrapper",
+  "no-effect-side-effect-wrapper",
+  "no-effect-all-step-sequencing",
+  "no-effect-succeed-variable",
+] as const);
+
+export const branchingAndLocalControlFlowRules = rulesFromNames([
+  "no-if-statement",
+  "no-switch-statement",
+  "no-ternary",
+  "no-try-catch",
+  "no-arrow-ladder",
+  "no-iife-wrapper",
+  "no-return-in-arrow",
+  "no-return-in-callback",
+  "no-return-null",
+  "no-branch-in-object",
+] as const);
+
+export const optionMatchAndDataNormalizationRules = rulesFromNames([
+  "no-option-as",
+  "no-match-void-branch",
+  "no-match-effect-branch",
+  "no-model-overlay-cast",
+  "no-unknown-boolean-coercion-helper",
+  "no-fromnullable-nullish-coalesce",
+  "no-option-boolean-normalization",
+  "no-string-sentinel-return",
+  "no-string-sentinel-const",
+] as const);
+
+export const atomStateAndPlatformBoundariesRules = rulesFromNames([
+  "no-effect-sync-console",
+  "no-atom-registry-effect-sync",
+  "no-family-collection-read",
+  "no-naked-object-state-update",
+  "no-wrapgraphql-catchall",
+] as const);
+
+export const domainModelingRules = rulesFromNames([
+  "no-raw-domain-id-alias",
+  "no-boolean-domain-flag",
+  "no-magic-domain-string",
+  "no-raw-domain-primitive-params",
+  "no-raw-time-domain-field",
+  "no-overloaded-options-object",
+  "no-domain-logic-in-conditional",
+  "no-implicit-state-machine-object",
+  "no-adhoc-domain-error",
+  "no-domain-meaning-by-folder-only",
+] as const);
+
+export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
+
+export const ruleGroups = {
+  reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
+  effectComposition: effectCompositionRules,
+  concurrencySafety: concurrencySafetyRules,
+  pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
+  branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
+  optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
+  atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
+  domainModeling: domainModelingRules,
+  ddd: domainModelingRules,
+} as const;
+
+export const recommended = presetFor(allRules);
+export const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
+export const effectComposition = presetFor(effectCompositionRules);
+export const concurrencySafety = presetFor(concurrencySafetyRules);
+export const pipelineShapeAndSequencing = presetFor(pipelineShapeAndSequencingRules);
+export const branchingAndLocalControlFlow = presetFor(branchingAndLocalControlFlowRules);
+export const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNormalizationRules);
+export const atomStateAndPlatformBoundaries = presetFor(atomStateAndPlatformBoundariesRules);
+export const domainModeling = presetFor(domainModelingRules);
+export const ddd = domainModeling;
+
+export const presets = {
+  recommended,
+  reactAndRuntimeBoundaries,
+  effectComposition,
+  concurrencySafety,
+  pipelineShapeAndSequencing,
+  branchingAndLocalControlFlow,
+  optionMatchAndDataNormalization,
+  atomStateAndPlatformBoundaries,
+  domainModeling,
+  ddd,
 } as const;
 
 export default definePlugin({

@@ -1,14 +1,164 @@
 import { describe, expect, it } from "bun:test";
-import plugin, { allRules, recommended } from "../src/index";
+import plugin, {
+  allRules,
+  atomStateAndPlatformBoundaries,
+  atomStateAndPlatformBoundariesRules,
+  branchingAndLocalControlFlow,
+  branchingAndLocalControlFlowRules,
+  concurrencySafety,
+  concurrencySafetyRules,
+  ddd,
+  domainModeling,
+  domainModelingRules,
+  effectComposition,
+  effectCompositionRules,
+  optionMatchAndDataNormalization,
+  optionMatchAndDataNormalizationRules,
+  pipelineShapeAndSequencing,
+  pipelineShapeAndSequencingRules,
+  presets,
+  reactAndRuntimeBoundaries,
+  reactAndRuntimeBoundariesRules,
+  recommended,
+  ruleGroups,
+} from "../src/index";
+
+const expectedJsPlugins = [
+  {
+    name: "linteffect",
+    specifier: "@opsydyn/oxlint-effect",
+  },
+] as const;
+
+type ComparableRules = Record<string, "error">;
+
+const rulesFor = (ruleNames: string[]) => Object.fromEntries(
+  ruleNames.map((ruleName) => [`linteffect/${ruleName}`, "error"]),
+) as ComparableRules;
+
+const groupExpectations = {
+  reactAndRuntimeBoundaries: [
+    "no-react-state",
+    "no-runtime-runfork",
+    "no-run-effect-outside-boundary",
+    "no-or-die-outside-boundary",
+    "prevent-dynamic-imports",
+    "no-render-side-effects",
+    "no-inline-runtime-provide",
+  ],
+  effectComposition: [
+    "no-effect-as",
+    "no-effect-do",
+    "no-effect-bind",
+    "no-effect-async",
+    "no-effect-ignore",
+    "no-effect-never",
+    "no-effect-fn-generator",
+    "no-nested-effect-gen",
+    "no-yield-without-star-in-effect-gen",
+    "no-async-effect-combinator-callback",
+    "no-throw-in-effect-logic",
+    "no-try-catch-in-effect-logic",
+    "no-promise-api-in-effect-logic",
+    "no-swallowed-catch-all",
+    "no-manual-effect-channels",
+    "no-effect-type-alias",
+    "no-public-generic-effect-error",
+  ],
+  concurrencySafety: [
+    "no-unbounded-effect-all",
+    "no-fire-and-forget-fork",
+    "no-fork-in-loop",
+    "no-race-without-cleanup",
+    "no-unobserved-fiber",
+    "no-unbounded-concurrent-retry",
+    "no-blocking-call-in-effect",
+    "no-promise-concurrency-in-effect",
+    "no-shared-mutable-state-across-fibers",
+    "no-timeout-with-noninterruptible-promise",
+  ],
+  pipelineShapeAndSequencing: [
+    "no-nested-effect-call",
+    "no-effect-ladder",
+    "no-flatmap-ladder",
+    "no-pipe-ladder",
+    "no-call-tower",
+    "no-effect-orElse-ladder",
+    "no-effect-wrapper-alias",
+    "warn-effect-sync-wrapper",
+    "no-effect-side-effect-wrapper",
+    "no-effect-all-step-sequencing",
+    "no-effect-succeed-variable",
+  ],
+  branchingAndLocalControlFlow: [
+    "no-if-statement",
+    "no-switch-statement",
+    "no-ternary",
+    "no-try-catch",
+    "no-arrow-ladder",
+    "no-iife-wrapper",
+    "no-return-in-arrow",
+    "no-return-in-callback",
+    "no-return-null",
+    "no-branch-in-object",
+  ],
+  optionMatchAndDataNormalization: [
+    "no-option-as",
+    "no-match-void-branch",
+    "no-match-effect-branch",
+    "no-model-overlay-cast",
+    "no-unknown-boolean-coercion-helper",
+    "no-fromnullable-nullish-coalesce",
+    "no-option-boolean-normalization",
+    "no-string-sentinel-return",
+    "no-string-sentinel-const",
+  ],
+  atomStateAndPlatformBoundaries: [
+    "no-effect-sync-console",
+    "no-atom-registry-effect-sync",
+    "no-family-collection-read",
+    "no-naked-object-state-update",
+    "no-wrapgraphql-catchall",
+  ],
+  domainModeling: [
+    "no-raw-domain-id-alias",
+    "no-boolean-domain-flag",
+    "no-magic-domain-string",
+    "no-raw-domain-primitive-params",
+    "no-raw-time-domain-field",
+    "no-overloaded-options-object",
+    "no-domain-logic-in-conditional",
+    "no-implicit-state-machine-object",
+    "no-adhoc-domain-error",
+    "no-domain-meaning-by-folder-only",
+  ],
+} as const;
+
+const exportedRuleGroups = {
+  reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
+  effectComposition: effectCompositionRules,
+  concurrencySafety: concurrencySafetyRules,
+  pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
+  branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
+  optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
+  atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
+  domainModeling: domainModelingRules,
+} as const;
+
+const exportedPresets = {
+  reactAndRuntimeBoundaries,
+  effectComposition,
+  concurrencySafety,
+  pipelineShapeAndSequencing,
+  branchingAndLocalControlFlow,
+  optionMatchAndDataNormalization,
+  atomStateAndPlatformBoundaries,
+  domainModeling,
+} as const;
 
 describe("linteffect config exports", () => {
   it("exports a recommended config with plugin loading and enabled rules", () => {
-    expect(recommended.jsPlugins).toEqual([
-      {
-        name: "linteffect",
-        specifier: "@opsydyn/oxlint-effect",
-      },
-    ]);
+    expect(recommended.jsPlugins as unknown).toEqual(expectedJsPlugins);
 
     expect(recommended.rules).toEqual({
       "linteffect/no-react-state": "error",
@@ -100,5 +250,34 @@ describe("linteffect config exports", () => {
         .sort(),
     );
     expect(Object.values(allRules).every((severity) => severity === "error")).toBe(true);
+  });
+
+  it("exports named rule groups for every documented README group", () => {
+    for (const [groupName, ruleNames] of Object.entries(groupExpectations)) {
+      expect(exportedRuleGroups[groupName as keyof typeof exportedRuleGroups] as ComparableRules).toEqual(
+        rulesFor([...ruleNames]),
+      );
+    }
+
+    expect(ruleGroups).toEqual({
+      ...exportedRuleGroups,
+      ddd: domainModelingRules,
+    });
+  });
+
+  it("exports config-shaped presets for every rule group", () => {
+    for (const [groupName, groupPreset] of Object.entries(exportedPresets)) {
+      expect(groupPreset.jsPlugins as unknown).toEqual(expectedJsPlugins);
+      expect(groupPreset.rules as ComparableRules).toEqual(
+        exportedRuleGroups[groupName as keyof typeof exportedRuleGroups] as ComparableRules,
+      );
+    }
+
+    expect(ddd).toBe(domainModeling);
+    expect(presets).toEqual({
+      recommended,
+      ...exportedPresets,
+      ddd: domainModeling,
+    });
   });
 });

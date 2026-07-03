@@ -10,7 +10,7 @@ describe("package metadata", () => {
   it("declares the GitHub repository required by npm provenance", () => {
     expect(packageJson.repository).toEqual({
       type: "git",
-      url: "https://github.com/opsydyn/oxlint-effect",
+      url: "git+https://github.com/opsydyn/oxlint-effect.git",
     });
   });
 
