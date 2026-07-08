@@ -13,17 +13,17 @@ Primary reference:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/prefer-pipe-for-behavior` | styleguide-pipe-pillar | strict | medium | nested/static behavior calls such as `Effect.retry(program, policy)` where `program.pipe(Effect.retry(policy))` is clearer |
-| [ ] | `linteffect/no-workflow-in-behavior-pipe` | styleguide-smell-4 | strict | medium | behavior pipelines containing branching, service lookup, loops, or multiple `Effect.flatMap` workflow steps |
-| [ ] | `linteffect/prefer-decorated-effect-before-gen` | styleguide-smell-2 | recommended | medium | repeated retry/timeout/span/logging decorators inside generator yields instead of extracted decorated effects |
+| [x] | `linteffect/prefer-pipe-for-behavior` | styleguide-pipe-pillar | strict | medium | nested/static behavior calls such as `Effect.retry(program, policy)` where `program.pipe(Effect.retry(policy))` is clearer |
+| [x] | `linteffect/no-workflow-in-behavior-pipe` | styleguide-smell-4 | strict | medium | behavior pipelines containing branching, service lookup, loops, or multiple `Effect.flatMap` workflow steps |
+| [x] | `linteffect/prefer-decorated-effect-before-gen` | styleguide-smell-2 | recommended | medium | repeated retry/timeout/span/logging decorators inside generator yields instead of extracted decorated effects |
 
 ## Slice Plan
 
 ### Slice 1: Behavior Placement
 
-- [ ] `prefer-pipe-for-behavior`
-- [ ] `prefer-decorated-effect-before-gen`
-- [ ] `no-workflow-in-behavior-pipe`
+- [x] `prefer-pipe-for-behavior`
+- [x] `prefer-decorated-effect-before-gen`
+- [x] `no-workflow-in-behavior-pipe`
 
 ## Detection Notes
 

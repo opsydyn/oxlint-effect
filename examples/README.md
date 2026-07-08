@@ -62,6 +62,8 @@ diagnostics can be treated as implementation gaps.
   `roadmap/09-effect-flow/README.md`.
 - `backend/pure-transformation-anti-patterns.ts` mirrors the first Pure
   Transformation slice in `roadmap/10-pure-transformation/README.md`.
+- `backend/behavior-decoration-anti-patterns.ts` mirrors the Behavior
+  Decoration slice in `roadmap/11-behavior-decoration/README.md`.
 
 ## npm Consumer Example
 

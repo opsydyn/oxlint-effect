@@ -94,5 +94,8 @@ export default defineConfig({
     "linteffect/no-large-anonymous-flow": "error",
     "linteffect/no-effect-in-flow": "error",
     "linteffect/prefer-named-flow": "error",
+    "linteffect/prefer-pipe-for-behavior": "error",
+    "linteffect/prefer-decorated-effect-before-gen": "error",
+    "linteffect/no-workflow-in-behavior-pipe": "error",
   },
 });

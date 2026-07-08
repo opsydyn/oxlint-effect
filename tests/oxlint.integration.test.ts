@@ -113,6 +113,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-large-anonymous-flow)");
     expect(result.output).toContain("linteffect(no-effect-in-flow)");
     expect(result.output).toContain("linteffect(prefer-named-flow)");
+    expect(result.output).toContain("linteffect(prefer-pipe-for-behavior)");
+    expect(result.output).toContain("linteffect(prefer-decorated-effect-before-gen)");
+    expect(result.output).toContain("linteffect(no-workflow-in-behavior-pipe)");
   });
 
   it("allows a clean Effect-style fixture", () => {

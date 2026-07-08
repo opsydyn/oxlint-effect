@@ -252,6 +252,18 @@ const longSequencingPipeline = Effect.succeed(id).pipe(
   Effect.tap(auditUser),
 );
 
+const staticBehaviorDecorator = Effect.retry(
+  Effect.succeed(id),
+  policy,
+);
+
+const workflowInsideBehaviorPipe = Effect.succeed(id).pipe(
+  Effect.retry(policy),
+  Effect.flatMap(loadUser),
+  Effect.andThen(saveUser),
+  Effect.timeout("5 seconds"),
+);
+
 const largeAnonymousFlow = flow(
   User.toDto,
   (user) => ({ ...user, label: user.id }),

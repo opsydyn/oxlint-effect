@@ -693,6 +693,119 @@ function inlineNonTrivialFlowArgument(node: unknown): unknown | undefined {
   ));
 }
 
+const behaviorDecorationOperators = new Set([
+  "annotateLogs",
+  "as",
+  "catchAll",
+  "catchSome",
+  "catchTag",
+  "map",
+  "mapBoth",
+  "provide",
+  "retry",
+  "tap",
+  "tapError",
+  "timeout",
+  "timeoutFail",
+  "withSpan",
+]);
+
+function isBehaviorDecorationOperator(node: unknown): boolean {
+  if (!isEffectMemberCall(node)) {
+    return false;
+  }
+
+  const property = ((node.callee as Node).property as Node | undefined);
+  return isIdentifier(property) && behaviorDecorationOperators.has(property.name);
+}
+
+function isExistingEffectExpression(node: unknown): boolean {
+  return isEffectMemberCall(node) || isPipeCall(node);
+}
+
+function staticBehaviorCall(node: unknown): unknown | undefined {
+  if (!isBehaviorDecorationOperator(node)) {
+    return undefined;
+  }
+
+  const first = (node as Node & { arguments: unknown[] }).arguments[0];
+  return isExistingEffectExpression(first) ? node : undefined;
+}
+
+function isBehaviorDecoratedYield(node: unknown): boolean {
+  if (
+    typeof node !== "object" ||
+    node === null ||
+    (node as Node).type !== "YieldExpression" ||
+    (node as Node).delegate !== true ||
+    !isPipeCall((node as Node).argument)
+  ) {
+    return false;
+  }
+
+  return pipeOperatorArguments((node as Node).argument)
+    .some((argument) => isBehaviorDecorationOperator(argument));
+}
+
+function findBehaviorDecoratedYields(node: unknown, seen = new WeakSet<object>()): unknown[] {
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findBehaviorDecoratedYields(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  if (seen.has(node)) {
+    return [];
+  }
+  seen.add(node);
+
+  if (isBehaviorDecoratedYield(node)) {
+    return [node];
+  }
+
+  return Object.entries(node).flatMap(([key, child]) => (
+    key === "parent" ? [] : findBehaviorDecoratedYields(child, seen)
+  ));
+}
+
+function repeatedDecoratedYieldInEffectGen(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (!generator) {
+    return undefined;
+  }
+
+  const decoratedYields = findBehaviorDecoratedYields(generator.body);
+  return decoratedYields.length >= 2 ? decoratedYields[1] : undefined;
+}
+
+function workflowInBehaviorPipe(node: unknown): unknown | undefined {
+  if (!isPipeCall(node)) {
+    return undefined;
+  }
+
+  const parts = pipeOperatorArguments(node);
+  const hasBehaviorDecoration = parts.some((part) => isBehaviorDecorationOperator(part));
+  if (!hasBehaviorDecoration) {
+    return undefined;
+  }
+
+  const workflowCount = parts
+    .filter((part) => isWorkflowSequencingOperator(part))
+    .length;
+  const hasEmbeddedControlFlow = parts.some((part) => (
+    containsNodeType(part, "IfStatement") ||
+    containsNodeType(part, "SwitchStatement") ||
+    containsNodeType(part, "ForStatement") ||
+    containsNodeType(part, "ForInStatement") ||
+    containsNodeType(part, "ForOfStatement") ||
+    containsNodeType(part, "WhileStatement")
+  ));
+
+  return workflowCount >= 2 || hasEmbeddedControlFlow ? node : undefined;
+}
+
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -3711,6 +3824,93 @@ const preferNamedFlow = defineRule({
   },
 });
 
+const preferPipeForBehavior = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const behaviorCall = staticBehaviorCall(node);
+        if (behaviorCall) {
+          report(
+            context,
+            behaviorCall,
+            "Rule: prefer .pipe() for behavior decoration. Why: retry, timeout, spans, logging, recovery, DI, and value transforms decorate an existing effect. Fix: write `program.pipe(Effect.retry(policy))` instead of `Effect.retry(program, policy)`.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const preferDecoratedEffectBeforeGen = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const decoratedYield = repeatedDecoratedYieldInEffectGen(node);
+        if (decoratedYield) {
+          report(
+            context,
+            decoratedYield,
+            "Rule: extract decorated effects before Effect.gen. Why: repeated retry/timeout/span/logging decorators inside generator yields bury behavior policy in workflow steps. Fix: name the decorated effects first, then yield the workflow story.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noWorkflowInBehaviorPipe = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const workflowPipe = workflowInBehaviorPipe(node);
+        if (workflowPipe) {
+          report(
+            context,
+            workflowPipe,
+            "Rule: avoid workflow sequencing inside behavior pipes. Why: behavior pipes should answer how an effect behaves, not hide the workflow story. Fix: move multi-step sequencing into Effect.gen and keep retry/timeout/spans/logging as decorators around named effects.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -5320,6 +5520,9 @@ const rules = {
   "no-large-anonymous-flow": noLargeAnonymousFlow,
   "no-effect-in-flow": noEffectInFlow,
   "prefer-named-flow": preferNamedFlow,
+  "prefer-pipe-for-behavior": preferPipeForBehavior,
+  "prefer-decorated-effect-before-gen": preferDecoratedEffectBeforeGen,
+  "no-workflow-in-behavior-pipe": noWorkflowInBehaviorPipe,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -5522,6 +5725,12 @@ export const pureTransformationRules = rulesFromNames([
   "prefer-named-flow",
 ] as const);
 
+export const behaviorDecorationRules = rulesFromNames([
+  "prefer-pipe-for-behavior",
+  "prefer-decorated-effect-before-gen",
+  "no-workflow-in-behavior-pipe",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -5535,6 +5744,7 @@ export const ruleGroups = {
   domainModeling: domainModelingRules,
   effectFlow: effectFlowRules,
   pureTransformation: pureTransformationRules,
+  behaviorDecoration: behaviorDecorationRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -5550,6 +5760,7 @@ export const domainModeling = presetFor(domainModelingRules);
 export const ddd = domainModeling;
 export const effectFlow = presetFor(effectFlowRules);
 export const pureTransformation = presetFor(pureTransformationRules);
+export const behaviorDecoration = presetFor(behaviorDecorationRules);
 
 export const presets = {
   recommended,
@@ -5564,6 +5775,7 @@ export const presets = {
   ddd,
   effectFlow,
   pureTransformation,
+  behaviorDecoration,
 } as const;
 
 export default definePlugin({

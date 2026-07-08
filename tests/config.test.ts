@@ -3,6 +3,8 @@ import plugin, {
   allRules,
   atomStateAndPlatformBoundaries,
   atomStateAndPlatformBoundariesRules,
+  behaviorDecoration,
+  behaviorDecorationRules,
   branchingAndLocalControlFlow,
   branchingAndLocalControlFlowRules,
   concurrencySafety,
@@ -146,6 +148,11 @@ const groupExpectations = {
     "no-effect-in-flow",
     "prefer-named-flow",
   ],
+  behaviorDecoration: [
+    "prefer-pipe-for-behavior",
+    "prefer-decorated-effect-before-gen",
+    "no-workflow-in-behavior-pipe",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -159,6 +166,7 @@ const exportedRuleGroups = {
   domainModeling: domainModelingRules,
   effectFlow: effectFlowRules,
   pureTransformation: pureTransformationRules,
+  behaviorDecoration: behaviorDecorationRules,
 } as const;
 
 const exportedPresets = {
@@ -172,6 +180,7 @@ const exportedPresets = {
   domainModeling,
   effectFlow,
   pureTransformation,
+  behaviorDecoration,
 } as const;
 
 describe("linteffect config exports", () => {
@@ -264,6 +273,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-large-anonymous-flow": "error",
       "linteffect/no-effect-in-flow": "error",
       "linteffect/prefer-named-flow": "error",
+      "linteffect/prefer-pipe-for-behavior": "error",
+      "linteffect/prefer-decorated-effect-before-gen": "error",
+      "linteffect/no-workflow-in-behavior-pipe": "error",
     });
   });
 

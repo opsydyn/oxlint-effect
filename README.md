@@ -57,6 +57,7 @@ Named group presets:
 | `ddd` | Alias for `domainModeling` |
 | `effectFlow` | Effect Flow |
 | `pureTransformation` | Pure Transformation |
+| `behaviorDecoration` | Behavior Decoration |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -148,6 +149,14 @@ boundaries.
 | `linteffect/no-large-anonymous-flow` | `flow(...)` expressions with five or more transformation steps. | Large pure pipelines need a domain name so the transformation is reusable and reviewable. |
 | `linteffect/no-effect-in-flow` | `Effect.*`, `yield`, `await`, async callbacks, console calls, `Promise`, or runtime access inside `flow(...)`. | `flow()` should stay pure; effectful workflow, retries, logging, and dependency access belong in Effect code. |
 | `linteffect/prefer-named-flow` | Non-trivial `flow(...)` expressions passed inline as callback/combinator arguments. | Naming the transformation makes DTO mapping and business calculations explicit instead of anonymous callback logic. |
+
+### Behavior Decoration
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/prefer-pipe-for-behavior` | Static behavior decorators such as `Effect.retry(Effect.succeed(...), policy)`. | Retry, timeout, spans, logging, recovery, DI, and value transforms should read as behavior around an existing effect. |
+| `linteffect/prefer-decorated-effect-before-gen` | Two or more decorated `yield* service.pipe(Effect.retry(...))` / `yield* effect.pipe(Effect.withSpan(...))` steps inside one `Effect.gen`. | Generator bodies should tell the workflow story; behavior policy should be named before the workflow. |
+| `linteffect/no-workflow-in-behavior-pipe` | Pipes that mix behavior decorators with multiple workflow sequencing operators or embedded control flow. | `.pipe()` should answer how an effect behaves, not bury multi-step workflow that belongs in `Effect.gen`. |
 
 ### Concurrency Safety
 

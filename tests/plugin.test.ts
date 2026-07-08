@@ -2601,6 +2601,115 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches static behavior decorators around existing effects", () => {
+    const reports = runRuleSequence("prefer-pipe-for-behavior", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("retry", effectCall("succeed", identifier("value")), identifier("policy")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer .pipe() for behavior decoration");
+  });
+
+  it("allows already-piped behavior decorators", () => {
+    const reports = runRuleSequence("prefer-pipe-for-behavior", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          effectCall("succeed", identifier("value")),
+          effectCall("retry", identifier("policy")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches repeated decorated yields inside Effect.gen", () => {
+    const reports = runRuleSequence("prefer-decorated-effect-before-gen", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            expressionStatement(yieldExpression(
+              methodPipeCall(identifier("loadUser"), effectCall("retry", identifier("policy"))),
+              true,
+            )),
+            expressionStatement(yieldExpression(
+              methodPipeCall(identifier("saveUser"), effectCall("withSpan", stringLiteral("saveUser"))),
+              true,
+            )),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("extract decorated effects before Effect.gen");
+  });
+
+  it("allows a single decorated yield inside Effect.gen", () => {
+    const reports = runRuleSequence("prefer-decorated-effect-before-gen", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            expressionStatement(yieldExpression(
+              methodPipeCall(identifier("loadUser"), effectCall("retry", identifier("policy"))),
+              true,
+            )),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches workflow sequencing buried inside behavior pipes", () => {
+    const reports = runRuleSequence("no-workflow-in-behavior-pipe", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          effectCall("succeed", identifier("value")),
+          effectCall("retry", identifier("policy")),
+          effectCall("flatMap", identifier("loadUser")),
+          effectCall("andThen", identifier("saveUser")),
+          effectCall("timeout", stringLiteral("5 seconds")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid workflow sequencing inside behavior pipes");
+  });
+
+  it("allows behavior-only decoration pipes", () => {
+    const reports = runRuleSequence("no-workflow-in-behavior-pipe", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          effectCall("succeed", identifier("value")),
+          effectCall("retry", identifier("policy")),
+          effectCall("timeout", stringLiteral("5 seconds")),
+          effectCall("withSpan", stringLiteral("loadUser")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches async callbacks passed to Effect combinators", () => {
     const reports = runRuleSequence("no-async-effect-combinator-callback", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
