@@ -107,6 +107,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-promise-concurrency-in-effect)");
     expect(result.output).toContain("linteffect(no-shared-mutable-state-across-fibers)");
     expect(result.output).toContain("linteffect(no-timeout-with-noninterruptible-promise)");
+    expect(result.output).toContain("linteffect(no-piped-yield-in-gen)");
+    expect(result.output).toContain("linteffect(no-gen-for-mapping)");
+    expect(result.output).toContain("linteffect(prefer-gen-for-workflow)");
   });
 
   it("allows a clean Effect-style fixture", () => {

@@ -10,6 +10,8 @@ import plugin, {
   ddd,
   domainModeling,
   domainModelingRules,
+  effectFlow,
+  effectFlowRules,
   effectComposition,
   effectCompositionRules,
   optionMatchAndDataNormalization,
@@ -132,6 +134,11 @@ const groupExpectations = {
     "no-adhoc-domain-error",
     "no-domain-meaning-by-folder-only",
   ],
+  effectFlow: [
+    "no-piped-yield-in-gen",
+    "no-gen-for-mapping",
+    "prefer-gen-for-workflow",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -143,6 +150,7 @@ const exportedRuleGroups = {
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
   atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
   domainModeling: domainModelingRules,
+  effectFlow: effectFlowRules,
 } as const;
 
 const exportedPresets = {
@@ -154,6 +162,7 @@ const exportedPresets = {
   optionMatchAndDataNormalization,
   atomStateAndPlatformBoundaries,
   domainModeling,
+  effectFlow,
 } as const;
 
 describe("linteffect config exports", () => {
@@ -240,6 +249,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-promise-concurrency-in-effect": "error",
       "linteffect/no-shared-mutable-state-across-fibers": "error",
       "linteffect/no-timeout-with-noninterruptible-promise": "error",
+      "linteffect/no-piped-yield-in-gen": "error",
+      "linteffect/no-gen-for-mapping": "error",
+      "linteffect/prefer-gen-for-workflow": "error",
     });
   });
 

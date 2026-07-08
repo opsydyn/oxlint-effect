@@ -88,5 +88,8 @@ export default defineConfig({
     "linteffect/no-promise-concurrency-in-effect": "error",
     "linteffect/no-shared-mutable-state-across-fibers": "error",
     "linteffect/no-timeout-with-noninterruptible-promise": "error",
+    "linteffect/no-piped-yield-in-gen": "error",
+    "linteffect/no-gen-for-mapping": "error",
+    "linteffect/prefer-gen-for-workflow": "error",
   },
 });

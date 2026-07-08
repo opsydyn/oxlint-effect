@@ -1,12 +1,14 @@
 # 06 Service And Layer Architecture
 
 Service and layer rules teach modern Effect architecture: `Effect.Service`,
-explicit dependencies, accessor generation, and composable layers.
+explicit dependencies, accessor generation, composable layers, and visible
+dependency graph construction.
 
 Primary references:
 
 - `EffectPatterns-main/docs/SERVICE_PATTERNS.md`
 - `EffectPatterns-main/packages/analysis-core/ALL_ANTI_PATTERNS_REFERENCE.md`
+- `styleguide.md`
 
 ## Rule Checklist
 
@@ -20,6 +22,10 @@ Primary references:
 | [ ] | `linteffect/no-manual-service-object-export` | service pattern | ddd | medium | exported service-shaped object instead of `Effect.Service` |
 | [ ] | `linteffect/no-layer-merge-in-request-handler` | layer composition | runtime | medium | `Layer.merge*` / `Layer.provide` inside route handlers |
 | [ ] | `linteffect/no-service-method-returning-promise` | service pattern | recommended | medium | service object method returns `Promise` instead of `Effect` |
+| [ ] | `linteffect/prefer-layer-pipe` | styleguide layer pillar | strict | low | nested `Layer.provide(Layer.provide(...))` or static Layer call towers that can be expressed as `Layer.pipe()` |
+| [ ] | `linteffect/no-inline-layer-provide-in-program` | styleguide layer pillar | runtime | medium | `Layer.provide` / `Effect.provide` buried inside workflows instead of app/service composition boundaries |
+| [ ] | `linteffect/prefer-layer-mergeall-for-infrastructure` | styleguide layer grouping | strict | medium | long `Layer.merge` chains where `Layer.mergeAll(...)` would group dependencies by concern |
+| [ ] | `linteffect/no-service-layer-scatter` | styleguide layer grouping | strict | high | many individual `provide` calls in one module instead of grouped Infrastructure/Application/Domain layer constants |
 
 ## Slice Plan
 
@@ -40,6 +46,16 @@ Primary references:
 - [ ] `no-namespace-effect-import`
 - [ ] `no-manual-service-object-export`
 
+### Slice 4: Layer Pillar Style
+
+- [ ] `prefer-layer-pipe`
+- [ ] `no-inline-layer-provide-in-program`
+- [ ] `prefer-layer-mergeall-for-infrastructure`
+
+### Slice 5: Layer Grouping
+
+- [ ] `no-service-layer-scatter`
+
 ## Detection Notes
 
 `Effect.Service` calls have a distinctive nested call shape:
@@ -51,3 +67,6 @@ Primary references:
 Start with exported classes and exported service constants. Avoid flagging
 library adapters or tests until path options exist.
 
+Layer style-guide rules should detect shape first, not infer architecture. Keep
+`no-service-layer-scatter` strict-only until path configuration and examples
+prove it can distinguish application composition files from local adapters.

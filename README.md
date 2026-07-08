@@ -55,6 +55,7 @@ Named group presets:
 | `atomStateAndPlatformBoundaries` | Atom, State, and Platform Boundaries |
 | `domainModeling` | Domain Modeling |
 | `ddd` | Alias for `domainModeling` |
+| `effectFlow` | Effect Flow |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -130,6 +131,14 @@ boundaries.
 | `linteffect/no-manual-effect-channels` | Manual `Effect.Effect<...>` and `Layer.Layer<...>` channel types. | Lets Effect infer channels from real composition. |
 | `linteffect/no-effect-type-alias` | Type aliases around `Effect.Effect<...>`. | Keeps service surfaces concrete and discoverable. |
 | `linteffect/no-public-generic-effect-error` | Exported APIs returning `Effect.Effect<_, Error, _>`. | Public Effect APIs should expose tagged, recoverable domain errors instead of generic `Error`. |
+
+### Effect Flow
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-piped-yield-in-gen` | Two or more `yield* effect.pipe(...)` steps inside one `Effect.gen`. | Keeps decorated effects named before the workflow so generator bodies read as a clear story. |
+| `linteffect/no-gen-for-mapping` | Tiny `Effect.gen` blocks that yield once and return a pure transform. | Simple value mapping belongs in `Effect.map` or a named pure transformation, not workflow syntax. |
+| `linteffect/prefer-gen-for-workflow` | Pipelines with three or more sequencing combinators such as `Effect.flatMap`, `Effect.andThen`, `Effect.tap`, or `Effect.zipRight`. | Long sequencing pipelines read like imperative workflow; `Effect.gen` makes the happy path explicit. |
 
 ### Concurrency Safety
 

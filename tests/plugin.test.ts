@@ -2360,6 +2360,138 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches repeated piped yields inside Effect.gen", () => {
+    const reports = runRuleSequence("no-piped-yield-in-gen", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            expressionStatement(yieldExpression(
+              methodPipeCall(identifier("loadUser"), effectCall("retry", identifier("policy"))),
+              true,
+            )),
+            expressionStatement(yieldExpression(
+              methodPipeCall(identifier("saveUser"), effectCall("timeout", stringLiteral("5 seconds"))),
+              true,
+            )),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid repeated piped yields inside Effect.gen");
+  });
+
+  it("allows a single piped yield inside Effect.gen", () => {
+    const reports = runRuleSequence("no-piped-yield-in-gen", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            expressionStatement(yieldExpression(
+              methodPipeCall(identifier("loadUser"), effectCall("retry", identifier("policy"))),
+              true,
+            )),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.gen used only to map a yielded value", () => {
+    const reports = runRuleSequence("no-gen-for-mapping", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            {
+              type: "VariableDeclaration",
+              kind: "const",
+              declarations: [
+                {
+                  type: "VariableDeclarator",
+                  id: identifier("user"),
+                  init: yieldExpression(callExpression(identifier("getUser"), identifier("id")), true),
+                },
+              ],
+            },
+            returnStatement(callExpression(memberExpression("User", "toDto"), identifier("user"))),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect.gen for simple mapping");
+  });
+
+  it("allows Effect.gen with workflow branching", () => {
+    const reports = runRuleSequence("no-gen-for-mapping", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(
+            {
+              type: "IfStatement",
+              test: identifier("enabled"),
+              consequent: blockStatement(returnStatement(yieldExpression(effectCall("succeed", identifier("value")), true))),
+              alternate: null,
+            },
+            returnStatement(yieldExpression(effectCall("succeed", identifier("fallback")), true)),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches long sequencing pipelines that should become Effect.gen", () => {
+    const reports = runRuleSequence("prefer-gen-for-workflow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          effectCall("succeed", identifier("value")),
+          effectCall("flatMap", identifier("loadUser")),
+          effectCall("andThen", identifier("saveUser")),
+          effectCall("tap", identifier("auditUser")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer Effect.gen for workflow sequencing");
+  });
+
+  it("allows behavior-only pipelines for the workflow preference rule", () => {
+    const reports = runRuleSequence("prefer-gen-for-workflow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(
+          effectCall("succeed", identifier("value")),
+          effectCall("retry", identifier("policy")),
+          effectCall("timeout", stringLiteral("5 seconds")),
+          effectCall("withSpan", stringLiteral("loadUser")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches async callbacks passed to Effect combinators", () => {
     const reports = runRuleSequence("no-async-effect-combinator-callback", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

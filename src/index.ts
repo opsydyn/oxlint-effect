@@ -404,6 +404,221 @@ function findYieldWithoutStarInEffectGen(node: unknown): unknown | undefined {
   return generator ? findYieldWithoutStar(generator.body) : undefined;
 }
 
+function findPipedYields(node: unknown, seen = new WeakSet<object>()): unknown[] {
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findPipedYields(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  if (seen.has(node)) {
+    return [];
+  }
+  seen.add(node);
+
+  if (
+    (node as Node).type === "YieldExpression" &&
+    (node as Node).delegate === true &&
+    isPipeCall((node as Node).argument)
+  ) {
+    return [node];
+  }
+
+  return Object.entries(node).flatMap(([key, child]) => (
+    key === "parent" ? [] : findPipedYields(child, seen)
+  ));
+}
+
+function repeatedPipedYieldInEffectGen(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (!generator) {
+    return undefined;
+  }
+
+  const pipedYields = findPipedYields(generator.body);
+  return pipedYields.length >= 2 ? pipedYields[1] : undefined;
+}
+
+function containsNodeType(node: unknown, type: string, seen = new WeakSet<object>()): boolean {
+  if (Array.isArray(node)) {
+    return node.some((child) => containsNodeType(child, type, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  if ((node as Node).type === type) {
+    return true;
+  }
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsNodeType(child, type, seen)
+  ));
+}
+
+function containsIdentifierNamed(node: unknown, name: string, seen = new WeakSet<object>()): boolean {
+  if (isIdentifier(node, name)) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsIdentifierNamed(child, name, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsIdentifierNamed(child, name, seen)
+  ));
+}
+
+function containsEffectMemberCall(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (isEffectMemberCall(node)) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsEffectMemberCall(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsEffectMemberCall(child, seen)
+  ));
+}
+
+function singleYieldVariableName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+    return undefined;
+  }
+
+  const declarations = (node as Node).declarations;
+  if (!Array.isArray(declarations) || declarations.length !== 1) {
+    return undefined;
+  }
+
+  const declaration = declarations[0];
+  if (
+    typeof declaration !== "object" ||
+    declaration === null ||
+    (declaration as Node).type !== "VariableDeclarator" ||
+    !isIdentifier((declaration as Node).id) ||
+    typeof (declaration as Node).init !== "object" ||
+    (declaration as Node).init === null ||
+    ((declaration as Node).init as Node).type !== "YieldExpression" ||
+    ((declaration as Node).init as Node).delegate !== true
+  ) {
+    return undefined;
+  }
+
+  return ((declaration as Node).id as Node & { name: string }).name;
+}
+
+function isPureMappingReturn(node: unknown, yieldedName: string): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "ReturnStatement") {
+    return false;
+  }
+
+  const argument = (node as Node).argument;
+  return (
+    argument !== undefined &&
+    !isIdentifier(argument, yieldedName) &&
+    !containsNodeType(argument, "YieldExpression") &&
+    !containsNodeType(argument, "AwaitExpression") &&
+    !containsEffectMemberCall(argument) &&
+    !containsIdentifierNamed(argument, "Promise")
+  );
+}
+
+function genForMappingNode(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (!generator || typeof generator.body !== "object" || generator.body === null) {
+    return undefined;
+  }
+
+  const body = generator.body as Node;
+  const statements = Array.isArray(body.body) ? body.body : [];
+  if (statements.length !== 2) {
+    return undefined;
+  }
+
+  const yieldedName = singleYieldVariableName(statements[0]);
+  return yieldedName && isPureMappingReturn(statements[1], yieldedName)
+    ? node
+    : undefined;
+}
+
+const workflowSequencingCombinators = new Set(["andThen", "flatMap", "tap", "zipRight"]);
+
+function pipeOperatorArguments(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return [];
+  }
+
+  const call = node as Node;
+  const args = Array.isArray(call.arguments) ? call.arguments : [];
+  if (isIdentifier(call.callee, "pipe")) {
+    return args.slice(1);
+  }
+
+  const callee = call.callee;
+  if (
+    typeof callee === "object" &&
+    callee !== null &&
+    (callee as Node).type === "MemberExpression" &&
+    (callee as Node).computed !== true &&
+    isIdentifier((callee as Node).property, "pipe")
+  ) {
+    return args;
+  }
+
+  return [];
+}
+
+function isWorkflowSequencingOperator(node: unknown): boolean {
+  if (!isEffectMemberCall(node)) {
+    return false;
+  }
+
+  const property = ((node.callee as Node).property as Node | undefined);
+  return isIdentifier(property) && workflowSequencingCombinators.has(property.name);
+}
+
+function workflowSequencingPipeline(node: unknown): unknown | undefined {
+  if (!isPipeCall(node)) {
+    return undefined;
+  }
+
+  const sequencingCount = pipeOperatorArguments(node)
+    .filter((argument) => isWorkflowSequencingOperator(argument))
+    .length;
+
+  return sequencingCount >= 3 ? node : undefined;
+}
+
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -3253,6 +3468,93 @@ const noYieldWithoutStarInEffectGen = defineRule({
   },
 });
 
+const noPipedYieldInGen = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const pipedYield = repeatedPipedYieldInEffectGen(node);
+        if (pipedYield) {
+          report(
+            context,
+            pipedYield,
+            "Rule: avoid repeated piped yields inside Effect.gen. Why: decorated effects hidden inside generator steps obscure the workflow. Fix: extract decorated effects first, then yield the named workflow steps.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noGenForMapping = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const mappingGen = genForMappingNode(node);
+        if (mappingGen) {
+          report(
+            context,
+            mappingGen,
+            "Rule: avoid Effect.gen for simple mapping. Why: tiny generators hide pure transformations behind workflow syntax. Fix: map the yielded effect with Effect.map or a named pure transformation.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const preferGenForWorkflow = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const workflow = workflowSequencingPipeline(node);
+        if (workflow) {
+          report(
+            context,
+            workflow,
+            "Rule: prefer Effect.gen for workflow sequencing. Why: long flatMap/andThen/tap pipelines read like imperative workflow. Fix: move the sequential story into one Effect.gen and keep pipe for behavior decoration.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -4856,6 +5158,9 @@ const rules = {
   "no-effect-sync-console": noEffectSyncConsole,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
+  "no-piped-yield-in-gen": noPipedYieldInGen,
+  "no-gen-for-mapping": noGenForMapping,
+  "prefer-gen-for-workflow": preferGenForWorkflow,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -5046,6 +5351,12 @@ export const domainModelingRules = rulesFromNames([
   "no-domain-meaning-by-folder-only",
 ] as const);
 
+export const effectFlowRules = rulesFromNames([
+  "no-piped-yield-in-gen",
+  "no-gen-for-mapping",
+  "prefer-gen-for-workflow",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -5057,6 +5368,7 @@ export const ruleGroups = {
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
   atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
   domainModeling: domainModelingRules,
+  effectFlow: effectFlowRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -5070,6 +5382,7 @@ export const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNorma
 export const atomStateAndPlatformBoundaries = presetFor(atomStateAndPlatformBoundariesRules);
 export const domainModeling = presetFor(domainModelingRules);
 export const ddd = domainModeling;
+export const effectFlow = presetFor(effectFlowRules);
 
 export const presets = {
   recommended,
@@ -5082,6 +5395,7 @@ export const presets = {
   atomStateAndPlatformBoundaries,
   domainModeling,
   ddd,
+  effectFlow,
 } as const;
 
 export default definePlugin({

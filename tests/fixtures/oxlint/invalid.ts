@@ -226,6 +226,32 @@ const timedOutPromise = Effect.timeout(
   "1 second",
 );
 
+declare const policy: any;
+declare const loadUser: any;
+declare const saveUser: any;
+declare const auditUser: any;
+declare const getUser: (id: string) => Effect.Effect<{ readonly id: string }, never, never>;
+declare const id: string;
+declare const User: {
+  readonly toDto: (user: { readonly id: string }) => { readonly id: string };
+};
+
+const pipedYieldFlow = Effect.gen(function* () {
+  yield* loadUser.pipe(Effect.retry(policy));
+  yield* saveUser.pipe(Effect.timeout("5 seconds"));
+});
+
+const genForMapping = Effect.gen(function* () {
+  const user = yield* getUser(id);
+  return User.toDto(user);
+});
+
+const longSequencingPipeline = Effect.succeed(id).pipe(
+  Effect.flatMap(loadUser),
+  Effect.andThen(saveUser),
+  Effect.tap(auditUser),
+);
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

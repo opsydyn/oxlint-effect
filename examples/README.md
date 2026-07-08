@@ -58,6 +58,8 @@ diagnostics can be treated as implementation gaps.
 - `backend/public-error-contract-anti-patterns.ts` mirrors the final
   correctness-core public error contract rule in
   `roadmap/01-correctness-core/README.md`.
+- `backend/effect-flow-anti-patterns.ts` mirrors the first Effect Flow slice in
+  `roadmap/09-effect-flow/README.md`.
 
 ## npm Consumer Example
 

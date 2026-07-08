@@ -1,10 +1,11 @@
 # Beyond Parity Roadmap
 
-Last updated: 2026-07-01
+Last updated: 2026-07-07
 
 This roadmap starts after Biome rule parity. The existing top-level `ROADMAP.md`
 remains the parity record. This directory tracks new linting rules inspired by
-`EffectPatterns-main`, grouped by the engineering outcome each group protects.
+`EffectPatterns-main`, `styleguide.md`, and Rust-inspired concurrency discipline,
+grouped by the engineering outcome each group protects.
 
 ## Goals
 
@@ -25,6 +26,9 @@ remains the parity record. This directory tracks new linting rules inspired by
 - Domain modeling: `EffectPatterns-main/packages/analysis-core/DOMAIN_MODELING_ANTI_PATTERNS.md`
 - Service architecture: `EffectPatterns-main/docs/SERVICE_PATTERNS.md`
 - Testing clock guidance: `EffectPatterns-main/content/published/patterns/testing/accessing-current-time-with-clock.mdx`
+- Effect flow style: `styleguide.md`
+- Rust-inspired concurrency: lock-across-suspension, shared-state ownership,
+  cancellation, backpressure, and scoped resource lifetime discipline.
 
 ## Preset Strategy
 
@@ -36,21 +40,34 @@ remains the parity record. This directory tracks new linting rules inspired by
   domain boundaries.
 - `runtime`: concurrency, scope, resource, platform, and boundary rules.
 - `observability`: logging, tracing, and deterministic-testability rules.
+- `concurrencySafety`: every concurrency rule in this roadmap, including the
+  Rust-inspired expansion, for teams that want one focused concurrency preset.
+- `effectFlow`: workflow, behavior, and generator/pipe separation rules from
+  `styleguide.md`.
+- `pureTransformation`: `flow()` and pure data transformation rules.
+- `behaviorDecoration`: retry, timeout, spans, logging, recovery, and DI
+  placement rules.
+- `styleSeparation`: strict readability rules for teams that want one obvious
+  style per function.
 
 ## Roadmap Groups
 
 | Group | Focus | Rule Count | First Slice |
 | --- | --- | ---: | --- |
 | [01 Correctness Core](./01-correctness-core/README.md) | Effect execution semantics and Promise/error escape hatches | 10 | yield-star, async callbacks, run boundaries |
-| [02 Concurrency Safety](./02-concurrency-safety/README.md) | Fibers, parallelism, races, retry storms, mutable state | 10 | unbounded all, fire-and-forget fork, fork in loop |
+| [02 Concurrency Safety](./02-concurrency-safety/README.md) | Fibers, parallelism, races, retry storms, mutable state, Rust-inspired ownership discipline | 18 | unbounded all, fire-and-forget fork, fork in loop |
 | [03 Resource Lifetime](./03-resource-lifetime/README.md) | Scope, acquire/release, resource cleanup, app-level layers | 10 | manual close, unbound scope, Scope.global |
 | [04 Error Modeling](./04-error-modeling/README.md) | Tagged errors, preserving causes, typed error channels | 10 | generic error channel, string fail, generic rethrow |
 | [05 Domain Modeling](./05-domain-modeling/README.md) | Brands, state machines, domain primitives, predicates | 10 | raw IDs, boolean flags, magic strings |
-| [06 Service And Layer Architecture](./06-service-and-layer-architecture/README.md) | Effect.Service, Context.Tag migration, layer composition | 8 | Context.Tag, Layer.provide in service, missing accessors |
+| [06 Service And Layer Architecture](./06-service-and-layer-architecture/README.md) | Effect.Service, Context.Tag migration, layer composition, dependency graph style | 12 | Context.Tag, Layer.provide in service, missing accessors |
 | [07 Platform And Boundary Hygiene](./07-platform-and-boundary-hygiene/README.md) | Node/platform imports, JSON parsing, Date.now, app boundaries | 8 | node:fs, JSON.parse, Date.now |
 | [08 Testing Observability And QA](./08-testing-observability-and-qa/README.md) | Tests, logging, spans, examples, release readiness | 8 | console in Effect, missing span, test layer shape |
+| [09 Effect Flow](./09-effect-flow/README.md) | `Effect.gen` for workflow and `.pipe()` for behavior boundaries | 4 | piped yields, gen-for-mapping, workflow in pipe |
+| [10 Pure Transformation](./10-pure-transformation/README.md) | `flow()` for named pure transformations and DTO/data pipelines | 4 | anonymous flow, effects in flow, nested pure call towers |
+| [11 Behavior Decoration](./11-behavior-decoration/README.md) | Retry, timeout, spans, logging, recovery, and DI as decorators | 3 | static behavior calls, workflow in behavior pipes |
+| [12 Style Separation](./12-style-separation/README.md) | One obvious style per function, strict readability heuristics | 3 | mixed pillars, clever expression towers |
 
-Total candidate rules: 74.
+Total candidate rules: 100.
 
 Some candidates intentionally overlap with EffectPatterns aliases. When
 implementing, prefer one public `linteffect/*` rule name and document any
@@ -92,6 +109,11 @@ For each completed rule:
 6. Service And Layer Architecture slice 1
 7. Platform And Boundary Hygiene slice 1
 8. Testing Observability And QA slice 1
+9. Effect Flow slice 1
+10. Pure Transformation slice 1
+11. Behavior Decoration slice 1
+12. Concurrency Safety expansion slice 1
+13. Style Separation slice 1
 
-After those eight slices, decide whether to continue by group depth or by preset
-completion.
+After those slices, decide whether to continue by group depth or by preset
+completion. Bias toward high-confidence AST checks before semantic strict rules.
