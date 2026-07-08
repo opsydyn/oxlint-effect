@@ -34,9 +34,9 @@ individual default preset remains `strict` or `runtime`.
 
 | Status | Proposed Rule | Inspiration | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/no-uninterruptible-concurrent-region` | cancellation discipline | runtime | medium | `Effect.uninterruptible(...)` or pipe argument around `Effect.fork`, `Effect.race`, `Effect.all`, `Effect.forEach`, or `Queue.take` work |
-| [ ] | `linteffect/no-unbounded-queue-or-pubsub` | backpressure discipline | runtime | medium | `Queue.unbounded()`, `PubSub.unbounded()`, or unbounded constructors outside tests or explicit boundary files |
-| [ ] | `linteffect/no-global-mutable-concurrency-state` | `static mut` / shared-state discipline | strict | high | module-scope `let`, `Map`, `Set`, or object mutation from concurrent Effect callbacks |
+| [x] | `linteffect/no-uninterruptible-concurrent-region` | cancellation discipline | runtime | medium | `Effect.uninterruptible(...)` or pipe argument around `Effect.fork`, `Effect.race`, `Effect.all`, `Effect.forEach`, or `Queue.take` work |
+| [x] | `linteffect/no-unbounded-queue-or-pubsub` | backpressure discipline | runtime | medium | `Queue.unbounded()`, `PubSub.unbounded()`, or unbounded constructors outside tests or explicit boundary files |
+| [x] | `linteffect/no-global-mutable-concurrency-state` | `static mut` / shared-state discipline | strict | high | module-scope `let`, `Map`, `Set`, or object mutation from concurrent Effect callbacks |
 | [ ] | `linteffect/no-yield-with-held-semaphore-permit` | lock-across-suspension discipline | strict | high | `yield* Semaphore.withPermits(...)` / acquire-permit style code whose callback contains unrelated `yield*` or forked work |
 | [ ] | `linteffect/no-yield-with-held-mutable-ref` | mutable-reference-across-suspension discipline | strict | high | mutable state handles captured before a later `yield*` in the same `Effect.gen` block |
 | [ ] | `linteffect/no-unscoped-background-fiber` | structured ownership / RAII | strict | medium | forked effects stored, returned, or discarded without scoped lifetime, supervisor, join, await, or interrupt evidence |
@@ -69,9 +69,9 @@ individual default preset remains `strict` or `runtime`.
 
 ### Slice 5: Ownership And Backpressure
 
-- [ ] `no-uninterruptible-concurrent-region`
-- [ ] `no-unbounded-queue-or-pubsub`
-- [ ] `no-global-mutable-concurrency-state`
+- [x] `no-uninterruptible-concurrent-region`
+- [x] `no-unbounded-queue-or-pubsub`
+- [x] `no-global-mutable-concurrency-state`
 
 ### Slice 6: Held State Across Suspension
 

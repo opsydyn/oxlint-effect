@@ -1,4 +1,4 @@
-import { Effect, Match, Option, Ref, Runtime, pipe } from "effect";
+import { Effect, Match, Option, Queue, Ref, Runtime, pipe } from "effect";
 import { Atom } from "@effect-atom/atom-react";
 import { useState } from "react";
 
@@ -224,6 +224,19 @@ const sharedMutableState = Effect.all(
 const timedOutPromise = Effect.timeout(
   Effect.promise(() => Promise.resolve(count)),
   "1 second",
+);
+
+const uninterruptibleConcurrentWork = Effect.uninterruptible(
+  Effect.all([program]),
+);
+
+const unboundedQueue = Queue.unbounded<number>();
+
+let globalConcurrentCache = new Map<string, number>();
+
+const globalMutableConcurrentState = Effect.all(
+  [1, 2, 3].map((value) => Effect.sync(() => globalConcurrentCache.set(String(value), value))),
+  { concurrency: 2 },
 );
 
 declare const policy: any;

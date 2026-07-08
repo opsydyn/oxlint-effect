@@ -172,6 +172,9 @@ boundaries.
 | `linteffect/no-promise-concurrency-in-effect` | `Promise.all`, `Promise.allSettled`, `Promise.race`, or `Promise.any` inside Effect logic. | Keeps concurrency, interruption, tracing, and typed failures inside Effect. |
 | `linteffect/no-shared-mutable-state-across-fibers` | Outer `let` / `var` state mutated from `Effect.fork`, `Effect.all`, or `Effect.forEach` work. | Shared mutable state across fibers creates nondeterministic races; use Effect concurrency primitives. |
 | `linteffect/no-timeout-with-noninterruptible-promise` | `Effect.timeout(Effect.promise(...))` or `Effect.timeout(Effect.tryPromise(...))` without a signal-aware callback. | Timeout should interrupt the underlying async operation, not only the Effect wrapper. |
+| `linteffect/no-uninterruptible-concurrent-region` | `Effect.uninterruptible(...)` wrapping `fork`, `race`, `all`, `forEach`, or queue-taking work. | Broad uninterruptible concurrent regions block cancellation and can strand work during shutdown. |
+| `linteffect/no-unbounded-queue-or-pubsub` | `Queue.unbounded()` and `PubSub.unbounded()`. | Unbounded buffers hide backpressure and can fail under load; capacity should be owned explicitly. |
+| `linteffect/no-global-mutable-concurrency-state` | Module-level mutable state or mutable containers touched from concurrent Effect work. | Global mutable state under concurrency behaves like shared memory; move ownership into Effect primitives or layers. |
 
 ### Pipeline Shape and Sequencing
 

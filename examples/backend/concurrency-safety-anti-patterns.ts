@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Queue } from "effect";
 
 declare const userIds: ReadonlyArray<string>;
 declare const sendNotification: (userId: string) => Effect.Effect<void, never, never>;
@@ -65,4 +65,23 @@ export const sharedCounterAcrossFibers = Effect.all(
 export const timedOutNoninterruptiblePromise = Effect.timeout(
   Effect.promise(() => fetchProfile()),
   "1 second",
+);
+
+// EXPECT: linteffect/no-uninterruptible-concurrent-region
+// QA: broad uninterruptible regions should not wrap concurrent work.
+export const uninterruptibleFanout = Effect.uninterruptible(
+  Effect.all(userIds.map((userId) => sendNotification(userId))),
+);
+
+// EXPECT: linteffect/no-unbounded-queue-or-pubsub
+// QA: Queue/PubSub capacity should be explicit at the owning boundary.
+export const unboundedNotificationQueue = Queue.unbounded<string>();
+
+const globalNotificationCache = new Map<string, number>();
+
+// EXPECT: linteffect/no-global-mutable-concurrency-state
+// QA: global mutable containers should not be touched from concurrent Effect work.
+export const globalMutableCacheWrites = Effect.all(
+  userIds.map((userId) => Effect.sync(() => globalNotificationCache.set(userId, userId.length))),
+  { concurrency: 4 },
 );

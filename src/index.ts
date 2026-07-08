@@ -1838,6 +1838,87 @@ function concurrentEffectWorkNode(node: unknown): unknown | undefined {
   return undefined;
 }
 
+const concurrentEffectCalls = new Set(["all", "forEach", "fork", "race", "raceAll"]);
+
+function containsConcurrentOperation(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (containsEffectMemberCallInSet(node, concurrentEffectCalls)) {
+    return true;
+  }
+
+  if (isMemberCall(node, "Queue", "take")) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsConcurrentOperation(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsConcurrentOperation(child, seen)
+  ));
+}
+
+function isUninterruptibleConcurrentRegion(node: unknown): boolean {
+  return (
+    isEffectMemberCallNamed(node, "uninterruptible") &&
+    containsConcurrentOperation((node as Node & { arguments: unknown[] }).arguments[0])
+  );
+}
+
+function isUnboundedQueueOrPubSub(node: unknown): boolean {
+  return isMemberCall(node, "Queue", "unbounded") || isMemberCall(node, "PubSub", "unbounded");
+}
+
+function isMutableContainerInit(node: unknown): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const candidate = node as Node;
+  return (
+    candidate.type === "ObjectExpression" ||
+    candidate.type === "ArrayExpression" ||
+    (
+      candidate.type === "NewExpression" &&
+      (isIdentifier(candidate.callee, "Map") || isIdentifier(candidate.callee, "Set"))
+    ) ||
+    (
+      candidate.type === "CallExpression" &&
+      (isIdentifier(candidate.callee, "Map") || isIdentifier(candidate.callee, "Set"))
+    )
+  );
+}
+
+function mutableGlobalDeclarationNames(node: unknown): string[] {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+    return [];
+  }
+
+  const declaration = node as Node;
+  const declarations = Array.isArray(declaration.declarations) ? declaration.declarations : [];
+  if (declaration.kind === "let" || declaration.kind === "var") {
+    return variableDeclarationIdentifierNames(node);
+  }
+
+  return declarations.flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) {
+      return [];
+    }
+
+    const id = (entry as Node).id;
+    return isIdentifier(id) && isMutableContainerInit((entry as Node).init) ? [id.name] : [];
+  });
+}
+
 function forkedFiberVariableName(node: unknown): string | undefined {
   if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclarator") {
     return undefined;
@@ -5483,6 +5564,94 @@ const noTimeoutWithNoninterruptiblePromise = defineRule({
   },
 });
 
+const noUninterruptibleConcurrentRegion = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isUninterruptibleConcurrentRegion(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid uninterruptible concurrent regions. Why: wrapping fork/race/all/forEach or queue work in uninterruptible blocks cancellation and can strand work under shutdown. Fix: keep only the critical section uninterruptible and leave concurrent work interruptible or scoped.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noUnboundedQueueOrPubSub = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isUnboundedQueueOrPubSub(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid unbounded Queue or PubSub constructors. Why: unbounded buffers hide backpressure and can fail under load. Fix: use Queue.bounded / PubSub.bounded with an explicit capacity at the owning boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noGlobalMutableConcurrencyState = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const globalMutableNames = new Set<string>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      VariableDeclaration(node: any) {
+        for (const name of mutableGlobalDeclarationNames(node)) {
+          globalMutableNames.add(name);
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const workNode = concurrentEffectWorkNode(node);
+        if (!workNode) {
+          return;
+        }
+
+        const mutationNode = findSharedMutableStateMutation(workNode, globalMutableNames);
+        if (mutationNode) {
+          report(
+            context,
+            mutationNode,
+            "Rule: avoid global mutable concurrency state. Why: module-scope mutable state touched from concurrent Effect work behaves like shared mutable global state. Fix: move ownership into Ref/SynchronizedRef/Queue/Layer state or pass immutable values through bounded effects.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const preventDynamicImports = defineRule({
   create(context: OxlintContext) {
     return {
@@ -5586,6 +5755,9 @@ const rules = {
   "no-promise-concurrency-in-effect": noPromiseConcurrencyInEffect,
   "no-shared-mutable-state-across-fibers": noSharedMutableStateAcrossFibers,
   "no-timeout-with-noninterruptible-promise": noTimeoutWithNoninterruptiblePromise,
+  "no-uninterruptible-concurrent-region": noUninterruptibleConcurrentRegion,
+  "no-unbounded-queue-or-pubsub": noUnboundedQueueOrPubSub,
+  "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
 };
 
 type RuleName = keyof typeof rules;
@@ -5651,6 +5823,9 @@ export const concurrencySafetyRules = rulesFromNames([
   "no-promise-concurrency-in-effect",
   "no-shared-mutable-state-across-fibers",
   "no-timeout-with-noninterruptible-promise",
+  "no-uninterruptible-concurrent-region",
+  "no-unbounded-queue-or-pubsub",
+  "no-global-mutable-concurrency-state",
 ] as const);
 
 export const pipelineShapeAndSequencingRules = rulesFromNames([

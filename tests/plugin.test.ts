@@ -3280,4 +3280,113 @@ describe("linteffect Oxlint plugin", () => {
 
     expect(reports).toHaveLength(0);
   });
+
+  it("catches uninterruptible regions around concurrent work", () => {
+    const reports = runRuleSequence("no-uninterruptible-concurrent-region", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("uninterruptible", effectCall("all", arrayLiteral(identifier("work")))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid uninterruptible concurrent regions");
+  });
+
+  it("allows uninterruptible regions around non-concurrent work", () => {
+    const reports = runRuleSequence("no-uninterruptible-concurrent-region", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("uninterruptible", effectCall("succeed", identifier("value"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches unbounded Queue and PubSub constructors", () => {
+    const reports = runRuleSequence("no-unbounded-queue-or-pubsub", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(memberExpression("Queue", "unbounded")),
+      },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(memberExpression("PubSub", "unbounded")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(2);
+    expect(reports[0].message).toContain("avoid unbounded Queue or PubSub");
+  });
+
+  it("allows bounded Queue constructors", () => {
+    const reports = runRuleSequence("no-unbounded-queue-or-pubsub", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(memberExpression("Queue", "bounded"), numericLiteral(64)),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches global mutable state touched from concurrent Effect work", () => {
+    const reports = runRuleSequence("no-global-mutable-concurrency-state", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          kind: "let",
+          declarations: [{ type: "VariableDeclarator", id: identifier("cache"), init: callExpression(identifier("Map")) }],
+        },
+      },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "all",
+          callExpression(
+            memberExpression("items", "map"),
+            arrowCallback(effectCall(
+              "sync",
+              arrowCallback(callExpression(memberExpression("cache", "set"), identifier("value"), identifier("value"))),
+            )),
+          ),
+          objectLiteral(property("concurrency", numericLiteral(4))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid global mutable concurrency state");
+  });
+
+  it("allows immutable module state in concurrent Effect work", () => {
+    const reports = runRuleSequence("no-global-mutable-concurrency-state", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          kind: "const",
+          declarations: [{ type: "VariableDeclarator", id: identifier("cache"), init: callExpression(identifier("Map")) }],
+        },
+      },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "all",
+          callExpression(memberExpression("items", "map"), arrowCallback(effectCall("succeed", identifier("value")))),
+          objectLiteral(property("concurrency", numericLiteral(4))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
 });
