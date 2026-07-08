@@ -170,6 +170,8 @@ const groupExpectations = {
     "no-layer-provide-in-service-definition",
     "require-service-accessors",
     "require-service-dependencies",
+    "no-namespace-effect-import",
+    "no-manual-service-object-export",
     "no-layer-merge-in-request-handler",
     "no-service-method-returning-promise",
   ],
@@ -310,6 +312,8 @@ describe("linteffect config exports", () => {
       "linteffect/no-layer-provide-in-service-definition": "error",
       "linteffect/require-service-accessors": "error",
       "linteffect/require-service-dependencies": "error",
+      "linteffect/no-namespace-effect-import": "error",
+      "linteffect/no-manual-service-object-export": "error",
       "linteffect/no-layer-merge-in-request-handler": "error",
       "linteffect/no-service-method-returning-promise": "error",
     });

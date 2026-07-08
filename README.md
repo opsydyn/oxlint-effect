@@ -176,6 +176,8 @@ boundaries.
 | `linteffect/no-layer-provide-in-service-definition` | `Layer.provide(...)` nested inside an `Effect.Service` options object. | Service definitions should declare implementation and dependencies; layer assembly belongs at application, test, or composition boundaries. |
 | `linteffect/require-service-accessors` | `Effect.Service` classes whose options omit `accessors: true`. | Static accessors keep service APIs consistent and avoid hand-written dependency plumbing. |
 | `linteffect/require-service-dependencies` | `Effect.Service` implementations that `yield* SomeService` without a `dependencies` option. | Service dependency graphs should be declared where the service is defined. |
+| `linteffect/no-namespace-effect-import` | `import * as ... from "effect"` and other Effect package namespace imports. | Direct named imports keep the Effect surface explicit and easier to scan. |
+| `linteffect/no-manual-service-object-export` | Exported `*Service` object literals with function-valued members. | Public service APIs should use `Effect.Service` for accessors, default layers, and dependency ownership. |
 | `linteffect/no-layer-merge-in-request-handler` | `Layer.merge*` or `Layer.provide` inside request/route/handler functions. | Request handlers should run programs, not assemble the application dependency graph. |
 | `linteffect/no-service-method-returning-promise` | Methods returned from `Effect.Service` implementations that return `Promise`. | Service APIs should preserve Effect cancellation, tracing, typed failures, and dependency semantics. |
 

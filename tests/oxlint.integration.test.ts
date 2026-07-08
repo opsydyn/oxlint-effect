@@ -126,6 +126,8 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-layer-provide-in-service-definition)");
     expect(result.output).toContain("linteffect(require-service-accessors)");
     expect(result.output).toContain("linteffect(require-service-dependencies)");
+    expect(result.output).toContain("linteffect(no-namespace-effect-import)");
+    expect(result.output).toContain("linteffect(no-manual-service-object-export)");
     expect(result.output).toContain("linteffect(no-layer-merge-in-request-handler)");
     expect(result.output).toContain("linteffect(no-service-method-returning-promise)");
   });

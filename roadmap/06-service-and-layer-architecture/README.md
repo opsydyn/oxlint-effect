@@ -18,8 +18,8 @@ Primary references:
 | [x] | `linteffect/no-layer-provide-in-service-definition` | `layer-provide-anti-pattern` | recommended | low | `Layer.provide` inside `Effect.Service` class definition |
 | [x] | `linteffect/require-service-accessors` | service pattern | strict | low | `Effect.Service` options without `accessors: true` |
 | [x] | `linteffect/require-service-dependencies` | service pattern | strict | medium | service uses `yield* SomeService` but lacks `dependencies` option |
-| [ ] | `linteffect/no-namespace-effect-import` | import pattern | strict | low | `import * as Effect from "effect"` or platform namespace imports |
-| [ ] | `linteffect/no-manual-service-object-export` | service pattern | ddd | medium | exported service-shaped object instead of `Effect.Service` |
+| [x] | `linteffect/no-namespace-effect-import` | import pattern | strict | low | `import * as Effect from "effect"` or platform namespace imports |
+| [x] | `linteffect/no-manual-service-object-export` | service pattern | ddd | medium | exported service-shaped object instead of `Effect.Service` |
 | [x] | `linteffect/no-layer-merge-in-request-handler` | layer composition | runtime | medium | `Layer.merge*` / `Layer.provide` inside route handlers |
 | [x] | `linteffect/no-service-method-returning-promise` | service pattern | recommended | medium | service object method returns `Promise` instead of `Effect` |
 | [ ] | `linteffect/prefer-layer-pipe` | styleguide layer pillar | strict | low | nested `Layer.provide(Layer.provide(...))` or static Layer call towers that can be expressed as `Layer.pipe()` |
@@ -43,8 +43,8 @@ Primary references:
 
 ### Slice 3: Import And Export Hygiene
 
-- [ ] `no-namespace-effect-import`
-- [ ] `no-manual-service-object-export`
+- [x] `no-namespace-effect-import`
+- [x] `no-manual-service-object-export`
 
 ### Slice 4: Layer Pillar Style
 
@@ -73,9 +73,8 @@ prove it can distinguish application composition files from local adapters.
 
 Slice 2 gap review:
 
-- Covered now: missing `dependencies` for `yield* SomeService`, layer composition
-  in named request/route/handler functions, and Promise-returning service
-  methods.
-- Remaining slices should demonstrate namespace imports, manual service object
-  exports, nested `Layer.provide`, inline `Effect.provide`, long merge chains,
-  and scattered service layer composition.
+- Covered now: missing `dependencies` for `yield* SomeService`, namespace Effect
+  imports, manual exported service objects, layer composition in named
+  request/route/handler functions, and Promise-returning service methods.
+- Remaining slices should demonstrate nested `Layer.provide`, inline
+  `Effect.provide`, long merge chains, and scattered service layer composition.

@@ -1,4 +1,5 @@
 import { Context, Effect, Layer, Match, Option, Queue, Ref, Runtime, flow, pipe } from "effect";
+import * as EffectNamespace from "effect";
 import { Atom } from "@effect-atom/atom-react";
 import { useState } from "react";
 
@@ -305,6 +306,10 @@ const oversizedAnonymousConcept = Effect.map(program, (value) => {
 });
 
 const LegacyUserService = Context.Tag("LegacyUserService");
+
+export const ManualUserService = {
+  load: () => Effect.succeed(id),
+};
 
 class ServiceWithInlineProvide extends Effect.Service<ServiceWithInlineProvide>()(
   "ServiceWithInlineProvide",

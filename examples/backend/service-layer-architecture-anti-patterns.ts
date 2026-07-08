@@ -1,4 +1,7 @@
 import { Context, Effect, Layer } from "effect";
+// EXPECT: linteffect/no-namespace-effect-import
+// QA: namespace imports hide the preferred direct Effect package import shape.
+import * as EffectNamespace from "effect";
 
 declare const DatabaseService: any;
 declare const id: string;
@@ -6,6 +9,12 @@ declare const id: string;
 // EXPECT: linteffect/prefer-effect-service
 // QA: application services should use Effect.Service instead of Context.Tag.
 const LegacyUserService = Context.Tag("LegacyUserService");
+
+// EXPECT: linteffect/no-manual-service-object-export
+// QA: exported service-shaped objects should become Effect.Service classes.
+export const ManualUserService = {
+  load: () => Effect.succeed(id),
+};
 
 // EXPECT: linteffect/no-layer-provide-in-service-definition
 // QA: Effect.Service definitions should not hide layer assembly inside the service body.
@@ -68,11 +77,13 @@ class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturnin
 ) {}
 
 // GAP REVIEW:
-// Later slices should add EXPECT examples for namespace Effect imports, manual
-// service object exports, nested Layer.provide, inline Effect.provide in
-// programs, long Layer.merge chains, and scattered service layer composition.
+// Later slices should add EXPECT examples for nested Layer.provide, inline
+// Effect.provide in programs, long Layer.merge chains, and scattered service
+// layer composition.
 
+void EffectNamespace;
 void LegacyUserService;
+void ManualUserService;
 void ServiceWithInlineProvide;
 void ServiceWithoutAccessors;
 void ServiceWithoutDependencies;

@@ -206,6 +206,16 @@ const importFrom = (source: string) => ({
   },
 });
 
+const namespaceImportFrom = (source: string, name: string) => ({
+  ...importFrom(source),
+  specifiers: [
+    {
+      type: "ImportNamespaceSpecifier",
+      local: identifier(name),
+    },
+  ],
+});
+
 const variableDeclarationWithInit = (init: unknown) => ({
   type: "VariableDeclaration",
   declarations: [
@@ -2940,6 +2950,71 @@ describe("linteffect Oxlint plugin", () => {
             returnStatement(objectLiteral()),
           )))),
         )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches namespace imports from Effect packages", () => {
+    const reports = runRule(
+      "no-namespace-effect-import",
+      "ImportDeclaration",
+      namespaceImportFrom("effect", "Effect"),
+    );
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid namespace imports from Effect packages");
+  });
+
+  it("allows named imports from Effect packages", () => {
+    const reports = runRule("no-namespace-effect-import", "ImportDeclaration", {
+      ...importFrom("effect"),
+      specifiers: [
+        {
+          type: "ImportSpecifier",
+          imported: identifier("Effect"),
+          local: identifier("Effect"),
+        },
+      ],
+    });
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches exported manual service object literals", () => {
+    const reports = runRuleSequence("no-manual-service-object-export", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExportNamedDeclaration",
+        node: {
+          type: "ExportNamedDeclaration",
+          declaration: {
+            type: "VariableDeclaration",
+            declarations: [
+              variableDeclaratorWithInit(
+                "UserService",
+                objectLiteral(property("load", arrowCallbackWithParams([], effectCall("succeed", identifier("id"))))),
+              ),
+            ],
+          },
+        },
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid exported manual service objects");
+  });
+
+  it("allows exported Effect.Service classes for the manual service object rule", () => {
+    const reports = runRuleSequence("no-manual-service-object-export", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ExportNamedDeclaration",
+        node: {
+          type: "ExportNamedDeclaration",
+          declaration: serviceClassDeclaration(objectLiteral(property("accessors", booleanLiteral(true)))),
+        },
       },
     ]);
 

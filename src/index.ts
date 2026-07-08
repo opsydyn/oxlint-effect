@@ -1006,6 +1006,21 @@ function hasAccessorsTrue(options: unknown): boolean {
   return isBooleanLiteral(objectPropertyValue(options, "accessors"), true);
 }
 
+function namespaceEffectImport(node: unknown): unknown | undefined {
+  if (!isEffectEcosystemImport(getImportSource(node) ?? "")) {
+    return undefined;
+  }
+
+  const specifiers = typeof node === "object" && node !== null ? (node as Node).specifiers : undefined;
+  return Array.isArray(specifiers)
+    ? specifiers.find((specifier) => (
+      typeof specifier === "object" &&
+      specifier !== null &&
+      (specifier as Node).type === "ImportNamespaceSpecifier"
+    ))
+    : undefined;
+}
+
 function isYieldedServiceDependency(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -1118,6 +1133,50 @@ function isPromiseReturningProperty(node: unknown): boolean {
 
 function promiseReturningServiceMethod(node: unknown): unknown | undefined {
   return findNode(node, isPromiseReturningProperty);
+}
+
+function objectHasServiceMethod(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "ObjectExpression") {
+    return false;
+  }
+
+  const properties = (node as Node).properties;
+  return Array.isArray(properties) && properties.some((propertyNode) => (
+    typeof propertyNode === "object" &&
+    propertyNode !== null &&
+    (propertyNode as Node).type === "Property" &&
+    (isFunctionLike((propertyNode as Node).value) ||
+      isEffectMemberCallNamed((propertyNode as Node).value, "fn"))
+  ));
+}
+
+function manualServiceObjectExport(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const declaration = (node as Node).declaration;
+  if (typeof declaration !== "object" || declaration === null) {
+    return undefined;
+  }
+
+  if ((declaration as Node).type !== "VariableDeclaration") {
+    return undefined;
+  }
+
+  for (const declarator of ((declaration as Node).declarations as unknown[] | undefined) ?? []) {
+    if (
+      typeof declarator === "object" &&
+      declarator !== null &&
+      isIdentifier((declarator as Node).id) &&
+      ((declarator as Node).id as { name: string }).name.endsWith("Service") &&
+      objectHasServiceMethod((declarator as Node).init)
+    ) {
+      return declarator;
+    }
+  }
+
+  return undefined;
 }
 
 function isAsyncFunctionCallback(node: unknown): boolean {
@@ -4485,6 +4544,48 @@ const requireServiceDependencies = defineRule({
   },
 });
 
+const noNamespaceEffectImport = defineRule({
+  create(context: OxlintContext) {
+    return {
+      ImportDeclaration(node: any) {
+        const namespaceImport = namespaceEffectImport(node);
+        if (namespaceImport) {
+          report(
+            context,
+            namespaceImport,
+            "Rule: avoid namespace imports from Effect packages.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noManualServiceObjectExport = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ExportNamedDeclaration(node: any) {
+        const target = hasEffectEcosystemImport ? manualServiceObjectExport(node) : undefined;
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: avoid exported manual service objects.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noLayerMergeInRequestHandler = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6243,6 +6344,8 @@ const rules = {
   "no-layer-provide-in-service-definition": noLayerProvideInServiceDefinition,
   "require-service-accessors": requireServiceAccessors,
   "require-service-dependencies": requireServiceDependencies,
+  "no-namespace-effect-import": noNamespaceEffectImport,
+  "no-manual-service-object-export": noManualServiceObjectExport,
   "no-layer-merge-in-request-handler": noLayerMergeInRequestHandler,
   "no-service-method-returning-promise": noServiceMethodReturningPromise,
   "no-match-void-branch": noMatchVoidBranch,
@@ -6470,6 +6573,8 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
   "no-layer-provide-in-service-definition",
   "require-service-accessors",
   "require-service-dependencies",
+  "no-namespace-effect-import",
+  "no-manual-service-object-export",
   "no-layer-merge-in-request-handler",
   "no-service-method-returning-promise",
 ] as const);
