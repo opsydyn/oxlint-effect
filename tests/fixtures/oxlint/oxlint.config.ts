@@ -100,5 +100,8 @@ export default defineConfig({
     "linteffect/prefer-pipe-for-behavior": "error",
     "linteffect/prefer-decorated-effect-before-gen": "error",
     "linteffect/no-workflow-in-behavior-pipe": "error",
+    "linteffect/no-mixed-pillar-function": "error",
+    "linteffect/no-clever-effect-expression": "error",
+    "linteffect/prefer-extracted-concept": "error",
   },
 });

@@ -2710,6 +2710,100 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches functions that mix three style pillars", () => {
+    const reports = runRuleSequence("no-mixed-pillar-function", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationReturning(objectLiteral(
+          property("workflow", effectCall("gen", generatorCallback(blockStatement(returnStatement(identifier("value")))))),
+          property("shape", flowCall(identifier("toDto"), identifier("withLabel"), identifier("toCard"))),
+          property("layer", memberCall("Layer", "mergeAll")),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid mixing Effect style pillars");
+  });
+
+  it("allows functions with one primary style pillar", () => {
+    const reports = runRuleSequence("no-mixed-pillar-function", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: functionDeclarationReturning(effectCall("gen", generatorCallback(blockStatement(returnStatement(identifier("value")))))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches clever nested Effect expressions", () => {
+    const reports = runRuleSequence("no-clever-effect-expression", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: pipeCall(
+          effectCall(
+            "map",
+            effectCall("gen", generatorCallback(blockStatement(returnStatement(identifier("value"))))),
+            flowCall(identifier("toDto"), identifier("withLabel"), identifier("toCard")),
+          ),
+          arrowIife(callExpression(identifier("decorate"), identifier("value")), identifier("value")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid clever Effect expressions");
+  });
+
+  it("allows shallow single-pillar expressions", () => {
+    const reports = runRuleSequence("no-clever-effect-expression", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("map", identifier("program"), identifier("toDto")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches oversized anonymous concepts", () => {
+    const reports = runRuleSequence("prefer-extracted-concept", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "map",
+          identifier("program"),
+          arrowCallback(blockStatement(
+            variableDeclarationWithInit(callExpression(identifier("normalize"), identifier("value"))),
+            expressionStatement(callExpression(identifier("decorate"), identifier("value"))),
+            returnStatement(callExpression(identifier("toDto"), identifier("value"))),
+          )),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer extracting named concepts");
+  });
+
+  it("allows small anonymous callbacks", () => {
+    const reports = runRuleSequence("prefer-extracted-concept", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("map", identifier("program"), arrowCallback(callExpression(identifier("toDto"), identifier("value")))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches async callbacks passed to Effect combinators", () => {
     const reports = runRuleSequence("no-async-effect-combinator-callback", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

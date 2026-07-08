@@ -13,22 +13,23 @@ Primary reference:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/no-mixed-pillar-function` | styleguide-four-pillars | strict | high | one function body mixes `Effect.gen`, large `.pipe()`, `flow()`, and `Layer.*` constructs |
-| [ ] | `linteffect/no-clever-effect-expression` | styleguide-team-principles | strict | high | dense expression towers combining `pipe`, `flow`, `Effect.gen`, nested callbacks, and immediate invocation |
-| [ ] | `linteffect/prefer-extracted-concept` | styleguide-team-principles | strict | high | anonymous callbacks or pipelines above a complexity threshold that should become named concepts |
+| [x] | `linteffect/no-mixed-pillar-function` | styleguide-four-pillars | strict | high | one function body mixes `Effect.gen`, large `.pipe()`, `flow()`, and `Layer.*` constructs |
+| [x] | `linteffect/no-clever-effect-expression` | styleguide-team-principles | strict | high | dense expression towers combining `pipe`, `flow`, `Effect.gen`, nested callbacks, and immediate invocation |
+| [x] | `linteffect/prefer-extracted-concept` | styleguide-team-principles | strict | high | anonymous callbacks or pipelines above a complexity threshold that should become named concepts |
 
 ## Slice Plan
 
 ### Slice 1: Strict Readability Heuristics
 
-- [ ] `no-mixed-pillar-function`
-- [ ] `no-clever-effect-expression`
-- [ ] `prefer-extracted-concept`
+- [x] `no-mixed-pillar-function`
+- [x] `no-clever-effect-expression`
+- [x] `prefer-extracted-concept`
 
 ## Detection Notes
 
-Keep this group out of `recommended` initially. These rules encode team taste
-and should mature through examples before public defaults.
+This group is exported as `styleSeparation` and included in `recommended` to
+match the package-wide preset model. Teams that want a narrower rollout can
+compose named rule groups directly.
 
 Possible thresholds:
 

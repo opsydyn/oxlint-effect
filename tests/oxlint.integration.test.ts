@@ -119,6 +119,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(prefer-pipe-for-behavior)");
     expect(result.output).toContain("linteffect(prefer-decorated-effect-before-gen)");
     expect(result.output).toContain("linteffect(no-workflow-in-behavior-pipe)");
+    expect(result.output).toContain("linteffect(no-mixed-pillar-function)");
+    expect(result.output).toContain("linteffect(no-clever-effect-expression)");
+    expect(result.output).toContain("linteffect(prefer-extracted-concept)");
   });
 
   it("allows a clean Effect-style fixture", () => {

@@ -806,6 +806,136 @@ function workflowInBehaviorPipe(node: unknown): unknown | undefined {
   return workflowCount >= 2 || hasEmbeddedControlFlow ? node : undefined;
 }
 
+type StylePillar = "workflow" | "pure" | "behavior" | "layer";
+
+function stylePillarsInNode(
+  node: unknown,
+  pillars = new Set<StylePillar>(),
+  seen = new WeakSet<object>(),
+): Set<StylePillar> {
+  if (isEffectMemberCallNamed(node, "gen") || isWorkflowSequencingOperator(node)) {
+    pillars.add("workflow");
+  }
+
+  if (isFlowCall(node)) {
+    pillars.add("pure");
+  }
+
+  if (isBehaviorDecorationOperator(node)) {
+    pillars.add("behavior");
+  }
+
+  if (isMemberCall(node, "Layer") || isMemberExpression(node, "Layer", "pipe")) {
+    pillars.add("layer");
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      stylePillarsInNode(child, pillars, seen);
+    }
+    return pillars;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return pillars;
+  }
+
+  if (seen.has(node)) {
+    return pillars;
+  }
+  seen.add(node);
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key !== "parent") {
+      stylePillarsInNode(child, pillars, seen);
+    }
+  }
+
+  return pillars;
+}
+
+function isFunctionLike(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (
+      (node as Node).type === "FunctionDeclaration" ||
+      (node as Node).type === "FunctionExpression" ||
+      (node as Node).type === "ArrowFunctionExpression"
+    )
+  );
+}
+
+function mixedPillarFunctionNode(node: unknown): unknown | undefined {
+  if (!isFunctionLike(node)) {
+    return undefined;
+  }
+
+  const body = (node as Node).body;
+  return stylePillarsInNode(body).size >= 3 ? node : undefined;
+}
+
+function callExpressionDepth(node: unknown, seen = new WeakSet<object>()): number {
+  if (Array.isArray(node)) {
+    return node.reduce((maxDepth, child) => Math.max(maxDepth, callExpressionDepth(child, seen)), 0);
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return 0;
+  }
+
+  if (seen.has(node)) {
+    return 0;
+  }
+  seen.add(node);
+
+  const childDepth = Object.entries(node).reduce((maxDepth, [key, child]) => (
+    key === "parent" ? maxDepth : Math.max(maxDepth, callExpressionDepth(child, seen))
+  ), 0);
+
+  return (node as Node).type === "CallExpression" ? childDepth + 1 : childDepth;
+}
+
+function cleverEffectExpressionNode(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const pillars = stylePillarsInNode(node);
+  const hasWrapperTrick = isInlineFunctionIifeCall(node) || findArrowIifeCall(node) !== undefined;
+  return pillars.size >= 2 && (callExpressionDepth(node) >= 4 || hasWrapperTrick) ? node : undefined;
+}
+
+function oversizedAnonymousConceptNode(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const call = node as Node & { arguments?: unknown[] };
+  for (const argument of call.arguments ?? []) {
+    if (
+      typeof argument !== "object" ||
+      argument === null ||
+      !isFunctionLike(argument)
+    ) {
+      continue;
+    }
+
+    const body = (argument as Node).body;
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      (body as Node).type === "BlockStatement" &&
+      Array.isArray((body as Node).body) &&
+      ((body as Node).body as unknown[]).length >= 3
+    ) {
+      return argument;
+    }
+  }
+
+  return undefined;
+}
+
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -3992,6 +4122,85 @@ const noWorkflowInBehaviorPipe = defineRule({
   },
 });
 
+const noMixedPillarFunction = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    function check(node: any) {
+      const mixedFunction = mixedPillarFunctionNode(node);
+      if (hasEffectEcosystemImport && mixedFunction) {
+        report(
+          context,
+          mixedFunction,
+          "Rule: avoid mixing Effect style pillars in one function. Why: workflow, pure transformation, behavior decoration, and Layer wiring each need a clear boundary. Fix: extract named concepts for each pillar and compose them at the call site.",
+        );
+      }
+    }
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration: check,
+      FunctionExpression: check,
+      ArrowFunctionExpression: check,
+    };
+  },
+});
+
+const noCleverEffectExpression = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        const cleverExpression = cleverEffectExpressionNode(node);
+        if (hasEffectEcosystemImport && cleverExpression) {
+          report(
+            context,
+            cleverExpression,
+            "Rule: avoid clever Effect expressions. Why: deeply nested expressions that combine style pillars hide the domain story. Fix: extract named workflow, pure transformation, and behavior steps.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const preferExtractedConcept = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        const anonymousConcept = oversizedAnonymousConceptNode(node);
+        if (hasEffectEcosystemImport && anonymousConcept) {
+          report(
+            context,
+            anonymousConcept,
+            "Rule: prefer extracting named concepts from oversized anonymous callbacks. Why: multi-step inline callbacks hide domain intent. Fix: name the transformation, policy, or workflow step before passing it into Effect.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -5692,6 +5901,9 @@ const rules = {
   "prefer-pipe-for-behavior": preferPipeForBehavior,
   "prefer-decorated-effect-before-gen": preferDecoratedEffectBeforeGen,
   "no-workflow-in-behavior-pipe": noWorkflowInBehaviorPipe,
+  "no-mixed-pillar-function": noMixedPillarFunction,
+  "no-clever-effect-expression": noCleverEffectExpression,
+  "prefer-extracted-concept": preferExtractedConcept,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -5906,6 +6118,12 @@ export const behaviorDecorationRules = rulesFromNames([
   "no-workflow-in-behavior-pipe",
 ] as const);
 
+export const styleSeparationRules = rulesFromNames([
+  "no-mixed-pillar-function",
+  "no-clever-effect-expression",
+  "prefer-extracted-concept",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -5920,6 +6138,7 @@ export const ruleGroups = {
   effectFlow: effectFlowRules,
   pureTransformation: pureTransformationRules,
   behaviorDecoration: behaviorDecorationRules,
+  styleSeparation: styleSeparationRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -5936,6 +6155,7 @@ export const ddd = domainModeling;
 export const effectFlow = presetFor(effectFlowRules);
 export const pureTransformation = presetFor(pureTransformationRules);
 export const behaviorDecoration = presetFor(behaviorDecorationRules);
+export const styleSeparation = presetFor(styleSeparationRules);
 
 export const presets = {
   recommended,
@@ -5951,6 +6171,7 @@ export const presets = {
   effectFlow,
   pureTransformation,
   behaviorDecoration,
+  styleSeparation,
 } as const;
 
 export default definePlugin({

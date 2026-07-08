@@ -27,6 +27,8 @@ import plugin, {
   reactAndRuntimeBoundariesRules,
   recommended,
   ruleGroups,
+  styleSeparation,
+  styleSeparationRules,
 } from "../src/index";
 
 const expectedJsPlugins = [
@@ -156,6 +158,11 @@ const groupExpectations = {
     "prefer-decorated-effect-before-gen",
     "no-workflow-in-behavior-pipe",
   ],
+  styleSeparation: [
+    "no-mixed-pillar-function",
+    "no-clever-effect-expression",
+    "prefer-extracted-concept",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -170,6 +177,7 @@ const exportedRuleGroups = {
   effectFlow: effectFlowRules,
   pureTransformation: pureTransformationRules,
   behaviorDecoration: behaviorDecorationRules,
+  styleSeparation: styleSeparationRules,
 } as const;
 
 const exportedPresets = {
@@ -184,6 +192,7 @@ const exportedPresets = {
   effectFlow,
   pureTransformation,
   behaviorDecoration,
+  styleSeparation,
 } as const;
 
 describe("linteffect config exports", () => {
@@ -282,6 +291,9 @@ describe("linteffect config exports", () => {
       "linteffect/prefer-pipe-for-behavior": "error",
       "linteffect/prefer-decorated-effect-before-gen": "error",
       "linteffect/no-workflow-in-behavior-pipe": "error",
+      "linteffect/no-mixed-pillar-function": "error",
+      "linteffect/no-clever-effect-expression": "error",
+      "linteffect/prefer-extracted-concept": "error",
     });
   });
 

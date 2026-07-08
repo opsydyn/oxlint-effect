@@ -1,4 +1,4 @@
-import { Effect, Match, Option, Queue, Ref, Runtime, pipe } from "effect";
+import { Effect, Layer, Match, Option, Queue, Ref, Runtime, flow, pipe } from "effect";
 import { Atom } from "@effect-atom/atom-react";
 import { useState } from "react";
 
@@ -276,6 +276,32 @@ const workflowInsideBehaviorPipe = Effect.succeed(id).pipe(
   Effect.andThen(saveUser),
   Effect.timeout("5 seconds"),
 );
+
+function mixedPillarFunction() {
+  return {
+    workflow: Effect.gen(function* () {
+      return yield* getUser(id);
+    }),
+    shape: flow(User.toDto, (user) => ({ ...user, label: user.id })),
+    layer: Layer.mergeAll(),
+  };
+}
+
+const cleverEffectExpression = pipe(
+  Effect.map(
+    Effect.gen(function* () {
+      return yield* getUser(id);
+    }),
+    flow(User.toDto, (user) => ({ ...user, label: user.id })),
+  ),
+  ((value) => value),
+);
+
+const oversizedAnonymousConcept = Effect.map(program, (value) => {
+  const normalized = String(value);
+  console.log(normalized);
+  return normalized;
+});
 
 const largeAnonymousFlow = flow(
   User.toDto,

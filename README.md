@@ -58,6 +58,7 @@ Named group presets:
 | `effectFlow` | Effect Flow |
 | `pureTransformation` | Pure Transformation |
 | `behaviorDecoration` | Behavior Decoration |
+| `styleSeparation` | Style Separation |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -157,6 +158,14 @@ boundaries.
 | `linteffect/prefer-pipe-for-behavior` | Static behavior decorators such as `Effect.retry(Effect.succeed(...), policy)`. | Retry, timeout, spans, logging, recovery, DI, and value transforms should read as behavior around an existing effect. |
 | `linteffect/prefer-decorated-effect-before-gen` | Two or more decorated `yield* service.pipe(Effect.retry(...))` / `yield* effect.pipe(Effect.withSpan(...))` steps inside one `Effect.gen`. | Generator bodies should tell the workflow story; behavior policy should be named before the workflow. |
 | `linteffect/no-workflow-in-behavior-pipe` | Pipes that mix behavior decorators with multiple workflow sequencing operators or embedded control flow. | `.pipe()` should answer how an effect behaves, not bury multi-step workflow that belongs in `Effect.gen`. |
+
+### Style Separation
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-mixed-pillar-function` | Functions that mix three or more style pillars: workflow, pure transformation, behavior decoration, and Layer construction. | Each function should have one obvious style so the domain story, policies, transformations, and wiring stay separately reviewable. |
+| `linteffect/no-clever-effect-expression` | Deep or wrapper-heavy expressions combining multiple style pillars, such as `pipe(Effect.map(Effect.gen(...), flow(...)), ((x) => x))`. | Dense expression towers hide intent and make Effect code harder to debug or refactor. |
+| `linteffect/prefer-extracted-concept` | Multi-statement anonymous callbacks passed into Effect combinators. | Inline callback bodies with several steps usually represent a named transformation, policy, or workflow concept. |
 
 ### Concurrency Safety
 
