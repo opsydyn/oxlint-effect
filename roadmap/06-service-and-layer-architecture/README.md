@@ -17,11 +17,11 @@ Primary references:
 | [x] | `linteffect/prefer-effect-service` | `context-tag-anti-pattern` | strict | low | `Context.Tag` / `Context.GenericTag` in app services |
 | [x] | `linteffect/no-layer-provide-in-service-definition` | `layer-provide-anti-pattern` | recommended | low | `Layer.provide` inside `Effect.Service` class definition |
 | [x] | `linteffect/require-service-accessors` | service pattern | strict | low | `Effect.Service` options without `accessors: true` |
-| [ ] | `linteffect/require-service-dependencies` | service pattern | strict | medium | service uses `yield* SomeService` but lacks `dependencies` option |
+| [x] | `linteffect/require-service-dependencies` | service pattern | strict | medium | service uses `yield* SomeService` but lacks `dependencies` option |
 | [ ] | `linteffect/no-namespace-effect-import` | import pattern | strict | low | `import * as Effect from "effect"` or platform namespace imports |
 | [ ] | `linteffect/no-manual-service-object-export` | service pattern | ddd | medium | exported service-shaped object instead of `Effect.Service` |
-| [ ] | `linteffect/no-layer-merge-in-request-handler` | layer composition | runtime | medium | `Layer.merge*` / `Layer.provide` inside route handlers |
-| [ ] | `linteffect/no-service-method-returning-promise` | service pattern | recommended | medium | service object method returns `Promise` instead of `Effect` |
+| [x] | `linteffect/no-layer-merge-in-request-handler` | layer composition | runtime | medium | `Layer.merge*` / `Layer.provide` inside route handlers |
+| [x] | `linteffect/no-service-method-returning-promise` | service pattern | recommended | medium | service object method returns `Promise` instead of `Effect` |
 | [ ] | `linteffect/prefer-layer-pipe` | styleguide layer pillar | strict | low | nested `Layer.provide(Layer.provide(...))` or static Layer call towers that can be expressed as `Layer.pipe()` |
 | [ ] | `linteffect/no-inline-layer-provide-in-program` | styleguide layer pillar | runtime | medium | `Layer.provide` / `Effect.provide` buried inside workflows instead of app/service composition boundaries |
 | [ ] | `linteffect/prefer-layer-mergeall-for-infrastructure` | styleguide layer grouping | strict | medium | long `Layer.merge` chains where `Layer.mergeAll(...)` would group dependencies by concern |
@@ -37,9 +37,9 @@ Primary references:
 
 ### Slice 2: Dependency Architecture
 
-- [ ] `require-service-dependencies`
-- [ ] `no-layer-merge-in-request-handler`
-- [ ] `no-service-method-returning-promise`
+- [x] `require-service-dependencies`
+- [x] `no-layer-merge-in-request-handler`
+- [x] `no-service-method-returning-promise`
 
 ### Slice 3: Import And Export Hygiene
 
@@ -70,3 +70,12 @@ library adapters or tests until path options exist.
 Layer style-guide rules should detect shape first, not infer architecture. Keep
 `no-service-layer-scatter` strict-only until path configuration and examples
 prove it can distinguish application composition files from local adapters.
+
+Slice 2 gap review:
+
+- Covered now: missing `dependencies` for `yield* SomeService`, layer composition
+  in named request/route/handler functions, and Promise-returning service
+  methods.
+- Remaining slices should demonstrate namespace imports, manual service object
+  exports, nested `Layer.provide`, inline `Effect.provide`, long merge chains,
+  and scattered service layer composition.

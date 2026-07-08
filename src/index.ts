@@ -1006,6 +1006,120 @@ function hasAccessorsTrue(options: unknown): boolean {
   return isBooleanLiteral(objectPropertyValue(options, "accessors"), true);
 }
 
+function isYieldedServiceDependency(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "YieldExpression" &&
+    (node as Node).delegate === true &&
+    isIdentifier((node as Node).argument) &&
+    ((node as Node).argument as { name: string }).name.endsWith("Service")
+  );
+}
+
+function findNode(
+  node: unknown,
+  predicate: (node: unknown) => boolean,
+  seen = new WeakSet<object>(),
+): unknown | undefined {
+  if (predicate(node)) {
+    return node;
+  }
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findNode(child, predicate, seen);
+      if (match) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  if (seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    const match = findNode(child, predicate, seen);
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+}
+
+function serviceDependencyWithoutDeclaration(options: unknown): unknown | undefined {
+  if (objectPropertyValue(options, "dependencies")) {
+    return undefined;
+  }
+
+  return findNode(
+    objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped"),
+    isYieldedServiceDependency,
+  );
+}
+
+function isLayerCompositionCall(node: unknown): boolean {
+  if (!isMemberCall(node, "Layer")) {
+    return false;
+  }
+
+  const property = ((node as Node).callee as Node).property;
+  return isIdentifier(property) && (property.name === "provide" || property.name.startsWith("merge"));
+}
+
+function isRequestHandler(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "FunctionDeclaration") {
+    return false;
+  }
+
+  const id = (node as Node).id;
+  return isIdentifier(id) && /(handler|route|request)$/i.test(id.name);
+}
+
+function layerCompositionInRequestHandler(node: unknown): unknown | undefined {
+  if (!isRequestHandler(node)) {
+    return undefined;
+  }
+
+  return findNode((node as Node).body, isLayerCompositionCall) ? node : undefined;
+}
+
+function functionReturnsPromise(node: unknown): boolean {
+  if (!isFunctionLike(node)) {
+    return false;
+  }
+
+  return (
+    isIdentifierTypeReference(returnTypeAnnotation(node), "Promise") ||
+    findPromiseApiCall((node as Node).body) !== undefined
+  );
+}
+
+function isPromiseReturningProperty(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "Property" &&
+    functionReturnsPromise((node as Node).value)
+  );
+}
+
+function promiseReturningServiceMethod(node: unknown): unknown | undefined {
+  return findNode(node, isPromiseReturningProperty);
+}
+
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -4345,6 +4459,83 @@ const requireServiceAccessors = defineRule({
   },
 });
 
+const requireServiceDependencies = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ClassDeclaration(node: any) {
+        const options = effectServiceClassOptions(node);
+        const dependency = options ? serviceDependencyWithoutDeclaration(options) : undefined;
+        if (hasEffectEcosystemImport && dependency) {
+          report(
+            context,
+            dependency,
+            "Rule: declare service dependencies.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noLayerMergeInRequestHandler = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration(node: any) {
+        const handler = layerCompositionInRequestHandler(node);
+        if (hasEffectEcosystemImport && handler) {
+          report(
+            context,
+            handler,
+            "Rule: avoid Layer composition inside request handlers.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noServiceMethodReturningPromise = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ClassDeclaration(node: any) {
+        const options = effectServiceClassOptions(node);
+        const method = options ? promiseReturningServiceMethod(options) : undefined;
+        if (hasEffectEcosystemImport && method) {
+          report(
+            context,
+            method,
+            "Rule: return Effect from service methods.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6051,6 +6242,9 @@ const rules = {
   "prefer-effect-service": preferEffectService,
   "no-layer-provide-in-service-definition": noLayerProvideInServiceDefinition,
   "require-service-accessors": requireServiceAccessors,
+  "require-service-dependencies": requireServiceDependencies,
+  "no-layer-merge-in-request-handler": noLayerMergeInRequestHandler,
+  "no-service-method-returning-promise": noServiceMethodReturningPromise,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -6275,6 +6469,9 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
   "prefer-effect-service",
   "no-layer-provide-in-service-definition",
   "require-service-accessors",
+  "require-service-dependencies",
+  "no-layer-merge-in-request-handler",
+  "no-service-method-returning-promise",
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);

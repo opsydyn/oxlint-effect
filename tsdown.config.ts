@@ -8,6 +8,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
+  minify: true,
   target: "node22",
   outDir: "dist",
   deps: {

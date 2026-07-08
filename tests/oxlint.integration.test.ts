@@ -125,6 +125,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(prefer-effect-service)");
     expect(result.output).toContain("linteffect(no-layer-provide-in-service-definition)");
     expect(result.output).toContain("linteffect(require-service-accessors)");
+    expect(result.output).toContain("linteffect(require-service-dependencies)");
+    expect(result.output).toContain("linteffect(no-layer-merge-in-request-handler)");
+    expect(result.output).toContain("linteffect(no-service-method-returning-promise)");
   });
 
   it("allows a clean Effect-style fixture", () => {

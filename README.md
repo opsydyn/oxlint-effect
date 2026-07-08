@@ -175,6 +175,9 @@ boundaries.
 | `linteffect/prefer-effect-service` | `Context.Tag(...)` and `Context.GenericTag(...)` service definitions. | Modern `Effect.Service` gives services generated accessors, consistent default layers, and clearer dependency ownership. |
 | `linteffect/no-layer-provide-in-service-definition` | `Layer.provide(...)` nested inside an `Effect.Service` options object. | Service definitions should declare implementation and dependencies; layer assembly belongs at application, test, or composition boundaries. |
 | `linteffect/require-service-accessors` | `Effect.Service` classes whose options omit `accessors: true`. | Static accessors keep service APIs consistent and avoid hand-written dependency plumbing. |
+| `linteffect/require-service-dependencies` | `Effect.Service` implementations that `yield* SomeService` without a `dependencies` option. | Service dependency graphs should be declared where the service is defined. |
+| `linteffect/no-layer-merge-in-request-handler` | `Layer.merge*` or `Layer.provide` inside request/route/handler functions. | Request handlers should run programs, not assemble the application dependency graph. |
+| `linteffect/no-service-method-returning-promise` | Methods returned from `Effect.Service` implementations that return `Promise`. | Service APIs should preserve Effect cancellation, tracing, typed failures, and dependency semantics. |
 
 ### Concurrency Safety
 

@@ -1,5 +1,6 @@
 import { Context, Effect, Layer } from "effect";
 
+declare const DatabaseService: any;
 declare const id: string;
 
 // EXPECT: linteffect/prefer-effect-service
@@ -31,6 +32,49 @@ class ServiceWithoutAccessors extends Effect.Service<ServiceWithoutAccessors>()(
   },
 ) {}
 
+// EXPECT: linteffect/require-service-dependencies
+// QA: services that yield other services should declare their Default layers.
+class ServiceWithoutDependencies extends Effect.Service<ServiceWithoutDependencies>()(
+  "ServiceWithoutDependencies",
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      const database = yield* DatabaseService;
+      return {
+        load: () => database.load(id),
+      };
+    }),
+  },
+) {}
+
+// EXPECT: linteffect/no-layer-merge-in-request-handler
+// QA: request handlers should use the application layer, not assemble one.
+function userRouteHandler() {
+  return Layer.mergeAll(Layer.empty, Layer.empty);
+}
+
+// EXPECT: linteffect/no-service-method-returning-promise
+// QA: service methods should return Effect so cancellation and failures stay typed.
+class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturningPromise>()(
+  "ServiceMethodReturningPromise",
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      return {
+        load: (): Promise<string> => Promise.resolve(id),
+      };
+    }),
+  },
+) {}
+
+// GAP REVIEW:
+// Later slices should add EXPECT examples for namespace Effect imports, manual
+// service object exports, nested Layer.provide, inline Effect.provide in
+// programs, long Layer.merge chains, and scattered service layer composition.
+
 void LegacyUserService;
 void ServiceWithInlineProvide;
 void ServiceWithoutAccessors;
+void ServiceWithoutDependencies;
+void userRouteHandler;
+void ServiceMethodReturningPromise;

@@ -2908,6 +2908,125 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches Effect.Service definitions that yield services without dependencies", () => {
+    const reports = runRuleSequence("require-service-dependencies", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("accessors", booleanLiteral(true)),
+          property("effect", effectCall("gen", generatorCallback(blockStatement(
+            variableDeclarationWithInit(yieldExpression(identifier("DatabaseService"), true)),
+            returnStatement(objectLiteral()),
+          )))),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("declare service dependencies");
+  });
+
+  it("allows Effect.Service definitions that declare yielded dependencies", () => {
+    const reports = runRuleSequence("require-service-dependencies", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("accessors", booleanLiteral(true)),
+          property("dependencies", arrayLiteral(memberExpression("DatabaseService", "Default"))),
+          property("effect", effectCall("gen", generatorCallback(blockStatement(
+            variableDeclarationWithInit(yieldExpression(identifier("DatabaseService"), true)),
+            returnStatement(objectLiteral()),
+          )))),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Layer composition inside request handlers", () => {
+    const reports = runRuleSequence("no-layer-merge-in-request-handler", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: {
+          ...functionDeclarationReturning(memberCall("Layer", "mergeAll")),
+          id: identifier("userRouteHandler"),
+        },
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Layer composition inside request handlers");
+  });
+
+  it("allows Layer composition in dedicated layer builders", () => {
+    const reports = runRuleSequence("no-layer-merge-in-request-handler", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "FunctionDeclaration",
+        node: {
+          ...functionDeclarationReturning(memberCall("Layer", "mergeAll")),
+          id: identifier("buildApplicationLayer"),
+        },
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.Service methods that return Promise", () => {
+    const reports = runRuleSequence("no-service-method-returning-promise", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("accessors", booleanLiteral(true)),
+          property(
+            "effect",
+            effectCall(
+              "gen",
+              generatorCallback(blockStatement(returnStatement(objectLiteral(
+                property("load", arrowCallbackWithParams(
+                  [],
+                  callExpression(memberExpression("Promise", "resolve"), identifier("id")),
+                )),
+              )))),
+            ),
+          ),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("return Effect from service methods");
+  });
+
+  it("allows Effect.Service methods that return Effect", () => {
+    const reports = runRuleSequence("no-service-method-returning-promise", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("accessors", booleanLiteral(true)),
+          property(
+            "effect",
+            effectCall(
+              "gen",
+              generatorCallback(blockStatement(returnStatement(objectLiteral(
+                property("load", arrowCallbackWithParams([], effectCall("succeed", identifier("id")))),
+              )))),
+            ),
+          ),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches async callbacks passed to Effect combinators", () => {
     const reports = runRuleSequence("no-async-effect-combinator-callback", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

@@ -240,6 +240,7 @@ const globalMutableConcurrentState = Effect.all(
 );
 
 declare const policy: any;
+declare const DatabaseService: any;
 declare const loadUser: any;
 declare const saveUser: any;
 declare const auditUser: any;
@@ -321,6 +322,35 @@ class ServiceWithoutAccessors extends Effect.Service<ServiceWithoutAccessors>()(
     effect: Effect.gen(function* () {
       return {
         load: () => Effect.succeed(id),
+      };
+    }),
+  },
+) {}
+
+class ServiceWithoutDependencies extends Effect.Service<ServiceWithoutDependencies>()(
+  "ServiceWithoutDependencies",
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      const database = yield* DatabaseService;
+      return {
+        load: () => database.load(id),
+      };
+    }),
+  },
+) {}
+
+function userRouteHandler() {
+  return Layer.mergeAll(Layer.empty, Layer.empty);
+}
+
+class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturningPromise>()(
+  "ServiceMethodReturningPromise",
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      return {
+        load: (): Promise<string> => Promise.resolve(id),
       };
     }),
   },
