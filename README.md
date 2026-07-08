@@ -56,6 +56,7 @@ Named group presets:
 | `domainModeling` | Domain Modeling |
 | `ddd` | Alias for `domainModeling` |
 | `effectFlow` | Effect Flow |
+| `pureTransformation` | Pure Transformation |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -139,6 +140,14 @@ boundaries.
 | `linteffect/no-piped-yield-in-gen` | Two or more `yield* effect.pipe(...)` steps inside one `Effect.gen`. | Keeps decorated effects named before the workflow so generator bodies read as a clear story. |
 | `linteffect/no-gen-for-mapping` | Tiny `Effect.gen` blocks that yield once and return a pure transform. | Simple value mapping belongs in `Effect.map` or a named pure transformation, not workflow syntax. |
 | `linteffect/prefer-gen-for-workflow` | Pipelines with three or more sequencing combinators such as `Effect.flatMap`, `Effect.andThen`, `Effect.tap`, or `Effect.zipRight`. | Long sequencing pipelines read like imperative workflow; `Effect.gen` makes the happy path explicit. |
+
+### Pure Transformation
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-large-anonymous-flow` | `flow(...)` expressions with five or more transformation steps. | Large pure pipelines need a domain name so the transformation is reusable and reviewable. |
+| `linteffect/no-effect-in-flow` | `Effect.*`, `yield`, `await`, async callbacks, console calls, `Promise`, or runtime access inside `flow(...)`. | `flow()` should stay pure; effectful workflow, retries, logging, and dependency access belong in Effect code. |
+| `linteffect/prefer-named-flow` | Non-trivial `flow(...)` expressions passed inline as callback/combinator arguments. | Naming the transformation makes DTO mapping and business calculations explicit instead of anonymous callback logic. |
 
 ### Concurrency Safety
 

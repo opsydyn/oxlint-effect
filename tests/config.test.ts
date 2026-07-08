@@ -18,6 +18,8 @@ import plugin, {
   optionMatchAndDataNormalizationRules,
   pipelineShapeAndSequencing,
   pipelineShapeAndSequencingRules,
+  pureTransformation,
+  pureTransformationRules,
   presets,
   reactAndRuntimeBoundaries,
   reactAndRuntimeBoundariesRules,
@@ -139,6 +141,11 @@ const groupExpectations = {
     "no-gen-for-mapping",
     "prefer-gen-for-workflow",
   ],
+  pureTransformation: [
+    "no-large-anonymous-flow",
+    "no-effect-in-flow",
+    "prefer-named-flow",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -151,6 +158,7 @@ const exportedRuleGroups = {
   atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
   domainModeling: domainModelingRules,
   effectFlow: effectFlowRules,
+  pureTransformation: pureTransformationRules,
 } as const;
 
 const exportedPresets = {
@@ -163,6 +171,7 @@ const exportedPresets = {
   atomStateAndPlatformBoundaries,
   domainModeling,
   effectFlow,
+  pureTransformation,
 } as const;
 
 describe("linteffect config exports", () => {
@@ -252,6 +261,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-piped-yield-in-gen": "error",
       "linteffect/no-gen-for-mapping": "error",
       "linteffect/prefer-gen-for-workflow": "error",
+      "linteffect/no-large-anonymous-flow": "error",
+      "linteffect/no-effect-in-flow": "error",
+      "linteffect/prefer-named-flow": "error",
     });
   });
 

@@ -75,6 +75,12 @@ const pipeCall = (...args: unknown[]) => ({
   arguments: args,
 });
 
+const flowCall = (...args: unknown[]) => ({
+  type: "CallExpression",
+  callee: identifier("flow"),
+  arguments: args,
+});
+
 const methodPipeCall = (target: unknown, ...args: unknown[]) => ({
   type: "CallExpression",
   callee: {
@@ -2485,6 +2491,109 @@ describe("linteffect Oxlint plugin", () => {
           effectCall("retry", identifier("policy")),
           effectCall("timeout", stringLiteral("5 seconds")),
           effectCall("withSpan", stringLiteral("loadUser")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches large anonymous flow expressions", () => {
+    const reports = runRuleSequence("no-large-anonymous-flow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: flowCall(
+          identifier("withImage"),
+          identifier("withPrice"),
+          identifier("withAvailability"),
+          identifier("withPromotions"),
+          identifier("toCard"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid large anonymous flow");
+  });
+
+  it("allows short named flow expressions", () => {
+    const reports = runRuleSequence("no-large-anonymous-flow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: flowCall(
+          identifier("withImage"),
+          identifier("toCard"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect work inside flow expressions", () => {
+    const reports = runRuleSequence("no-effect-in-flow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: flowCall(
+          identifier("toCard"),
+          effectCall("map", identifier("decorate")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid Effect work inside flow");
+  });
+
+  it("allows pure functions inside flow expressions", () => {
+    const reports = runRuleSequence("no-effect-in-flow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: flowCall(
+          identifier("withImage"),
+          identifier("withPrice"),
+          identifier("toCard"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches non-trivial flow expressions passed inline as callbacks", () => {
+    const reports = runRuleSequence("prefer-named-flow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "map",
+          identifier("loadVehicle"),
+          flowCall(
+            identifier("withImage"),
+            identifier("withPrice"),
+            identifier("toCard"),
+          ),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer named flow");
+  });
+
+  it("allows named or tiny flow expressions for callback use", () => {
+    const reports = runRuleSequence("prefer-named-flow", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "map",
+          identifier("loadVehicle"),
+          flowCall(identifier("toCard")),
         ),
       },
     ]);

@@ -91,5 +91,8 @@ export default defineConfig({
     "linteffect/no-piped-yield-in-gen": "error",
     "linteffect/no-gen-for-mapping": "error",
     "linteffect/prefer-gen-for-workflow": "error",
+    "linteffect/no-large-anonymous-flow": "error",
+    "linteffect/no-effect-in-flow": "error",
+    "linteffect/prefer-named-flow": "error",
   },
 });

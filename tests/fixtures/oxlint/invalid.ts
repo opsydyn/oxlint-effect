@@ -252,6 +252,28 @@ const longSequencingPipeline = Effect.succeed(id).pipe(
   Effect.tap(auditUser),
 );
 
+const largeAnonymousFlow = flow(
+  User.toDto,
+  (user) => ({ ...user, label: user.id }),
+  (user) => ({ ...user, href: `/users/${user.id}` }),
+  (user) => ({ ...user, searchable: user.label.toLowerCase() }),
+  (user) => ({ ...user, selected: false }),
+);
+
+const effectInsideFlow = flow(
+  User.toDto,
+  Effect.map((user) => user.id),
+);
+
+const inlineCallbackFlow = Effect.map(
+  getUser(id),
+  flow(
+    User.toDto,
+    (user) => ({ ...user, label: user.id }),
+    (user) => ({ ...user, selected: false }),
+  ),
+);
+
 const graphqlCatchAll = pipe(
   wrapGraphqlCall({ query: "query" }),
   Effect.catchAll(() => Effect.succeed(count)),

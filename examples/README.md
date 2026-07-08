@@ -60,6 +60,8 @@ diagnostics can be treated as implementation gaps.
   `roadmap/01-correctness-core/README.md`.
 - `backend/effect-flow-anti-patterns.ts` mirrors the first Effect Flow slice in
   `roadmap/09-effect-flow/README.md`.
+- `backend/pure-transformation-anti-patterns.ts` mirrors the first Pure
+  Transformation slice in `roadmap/10-pure-transformation/README.md`.
 
 ## npm Consumer Example
 

@@ -619,6 +619,80 @@ function workflowSequencingPipeline(node: unknown): unknown | undefined {
   return sequencingCount >= 3 ? node : undefined;
 }
 
+function isFlowCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "CallExpression" &&
+    Array.isArray((node as Node).arguments) &&
+    isIdentifier((node as Node).callee, "flow")
+  );
+}
+
+function isLargeFlowCall(node: unknown): boolean {
+  return isFlowCall(node) && node.arguments.length >= 5;
+}
+
+function containsAsyncFunction(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (
+    typeof node === "object" &&
+    node !== null &&
+    ((node as Node).type === "ArrowFunctionExpression" ||
+      (node as Node).type === "FunctionExpression") &&
+    (node as Node).async === true
+  ) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsAsyncFunction(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsAsyncFunction(child, seen)
+  ));
+}
+
+function isEffectfulFlowArgument(node: unknown): boolean {
+  return (
+    containsEffectMemberCall(node) ||
+    containsNodeType(node, "YieldExpression") ||
+    containsNodeType(node, "AwaitExpression") ||
+    containsAsyncFunction(node) ||
+    containsConsoleCall(node) ||
+    containsIdentifierNamed(node, "Promise") ||
+    containsIdentifierNamed(node, "Runtime")
+  );
+}
+
+function effectfulFlowArgument(node: unknown): unknown | undefined {
+  if (!isFlowCall(node)) {
+    return undefined;
+  }
+
+  return node.arguments.find((argument) => isEffectfulFlowArgument(argument));
+}
+
+function inlineNonTrivialFlowArgument(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const call = node as Node & { arguments?: unknown[] };
+  return (call.arguments ?? []).find((argument) => (
+    isFlowCall(argument) && argument.arguments.length >= 3
+  ));
+}
+
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -3555,6 +3629,88 @@ const preferGenForWorkflow = defineRule({
   },
 });
 
+const noLargeAnonymousFlow = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isLargeFlowCall(node)) {
+          report(
+            context,
+            node,
+            "Rule: avoid large anonymous flow expressions. Why: long pure transformation chains need a domain name. Fix: extract a named flow or split the transformation into named pure steps.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEffectInFlow = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const effectfulArgument = effectfulFlowArgument(node);
+        if (effectfulArgument) {
+          report(
+            context,
+            effectfulArgument,
+            "Rule: avoid Effect work inside flow. Why: flow should stay a reusable pure transformation boundary. Fix: keep Effect sequencing, logging, retries, and dependency access in Effect pipelines.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const preferNamedFlow = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const inlineFlow = inlineNonTrivialFlowArgument(node);
+        if (inlineFlow) {
+          report(
+            context,
+            inlineFlow,
+            "Rule: prefer named flow transformations. Why: non-trivial pure transformations passed inline are hard to reuse and review. Fix: extract the flow to a named const.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -5161,6 +5317,9 @@ const rules = {
   "no-piped-yield-in-gen": noPipedYieldInGen,
   "no-gen-for-mapping": noGenForMapping,
   "prefer-gen-for-workflow": preferGenForWorkflow,
+  "no-large-anonymous-flow": noLargeAnonymousFlow,
+  "no-effect-in-flow": noEffectInFlow,
+  "prefer-named-flow": preferNamedFlow,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -5357,6 +5516,12 @@ export const effectFlowRules = rulesFromNames([
   "prefer-gen-for-workflow",
 ] as const);
 
+export const pureTransformationRules = rulesFromNames([
+  "no-large-anonymous-flow",
+  "no-effect-in-flow",
+  "prefer-named-flow",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -5369,6 +5534,7 @@ export const ruleGroups = {
   atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
   domainModeling: domainModelingRules,
   effectFlow: effectFlowRules,
+  pureTransformation: pureTransformationRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -5383,6 +5549,7 @@ export const atomStateAndPlatformBoundaries = presetFor(atomStateAndPlatformBoun
 export const domainModeling = presetFor(domainModelingRules);
 export const ddd = domainModeling;
 export const effectFlow = presetFor(effectFlowRules);
+export const pureTransformation = presetFor(pureTransformationRules);
 
 export const presets = {
   recommended,
@@ -5396,6 +5563,7 @@ export const presets = {
   domainModeling,
   ddd,
   effectFlow,
+  pureTransformation,
 } as const;
 
 export default definePlugin({

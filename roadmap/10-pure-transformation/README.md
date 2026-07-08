@@ -13,17 +13,17 @@ Primary reference:
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
 | [ ] | `linteffect/prefer-flow-for-pure-pipeline` | styleguide-flow-pillar | strict | medium | nested pure call towers such as `toCard(withPrice(withImages(value)))` above a depth threshold |
-| [ ] | `linteffect/no-large-anonymous-flow` | styleguide-smell-3 | recommended | low | `flow(...)` with many steps used inline or without a descriptive binding |
-| [ ] | `linteffect/no-effect-in-flow` | styleguide-flow-boundary | recommended | low | `Effect.*`, `yield`, `async`, logging, retry, spans, or dependency access inside `flow(...)` arguments |
-| [ ] | `linteffect/prefer-named-flow` | styleguide-flow-pillar | strict | medium | non-trivial `flow(...)` passed directly as a callback or combinator argument |
+| [x] | `linteffect/no-large-anonymous-flow` | styleguide-smell-3 | recommended | low | `flow(...)` with many steps used inline or without a descriptive binding |
+| [x] | `linteffect/no-effect-in-flow` | styleguide-flow-boundary | recommended | low | `Effect.*`, `yield`, `async`, logging, retry, spans, or dependency access inside `flow(...)` arguments |
+| [x] | `linteffect/prefer-named-flow` | styleguide-flow-pillar | strict | medium | non-trivial `flow(...)` passed directly as a callback or combinator argument |
 
 ## Slice Plan
 
 ### Slice 1: Flow Boundary Safety
 
-- [ ] `no-large-anonymous-flow`
-- [ ] `no-effect-in-flow`
-- [ ] `prefer-named-flow`
+- [x] `no-large-anonymous-flow`
+- [x] `no-effect-in-flow`
+- [x] `prefer-named-flow`
 
 ### Slice 2: Pure Pipeline Discovery
 
