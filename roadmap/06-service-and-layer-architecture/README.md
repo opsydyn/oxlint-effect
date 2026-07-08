@@ -14,9 +14,9 @@ Primary references:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/prefer-effect-service` | `context-tag-anti-pattern` | strict | low | `Context.Tag` / `Context.GenericTag` in app services |
-| [ ] | `linteffect/no-layer-provide-in-service-definition` | `layer-provide-anti-pattern` | recommended | low | `Layer.provide` inside `Effect.Service` class definition |
-| [ ] | `linteffect/require-service-accessors` | service pattern | strict | low | `Effect.Service` options without `accessors: true` |
+| [x] | `linteffect/prefer-effect-service` | `context-tag-anti-pattern` | strict | low | `Context.Tag` / `Context.GenericTag` in app services |
+| [x] | `linteffect/no-layer-provide-in-service-definition` | `layer-provide-anti-pattern` | recommended | low | `Layer.provide` inside `Effect.Service` class definition |
+| [x] | `linteffect/require-service-accessors` | service pattern | strict | low | `Effect.Service` options without `accessors: true` |
 | [ ] | `linteffect/require-service-dependencies` | service pattern | strict | medium | service uses `yield* SomeService` but lacks `dependencies` option |
 | [ ] | `linteffect/no-namespace-effect-import` | import pattern | strict | low | `import * as Effect from "effect"` or platform namespace imports |
 | [ ] | `linteffect/no-manual-service-object-export` | service pattern | ddd | medium | exported service-shaped object instead of `Effect.Service` |
@@ -31,9 +31,9 @@ Primary references:
 
 ### Slice 1: Modern Service Shape
 
-- [ ] `prefer-effect-service`
-- [ ] `no-layer-provide-in-service-definition`
-- [ ] `require-service-accessors`
+- [x] `prefer-effect-service`
+- [x] `no-layer-provide-in-service-definition`
+- [x] `require-service-accessors`
 
 ### Slice 2: Dependency Architecture
 

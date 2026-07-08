@@ -1,4 +1,4 @@
-import { Effect, Layer, Match, Option, Queue, Ref, Runtime, flow, pipe } from "effect";
+import { Context, Effect, Layer, Match, Option, Queue, Ref, Runtime, flow, pipe } from "effect";
 import { Atom } from "@effect-atom/atom-react";
 import { useState } from "react";
 
@@ -302,6 +302,29 @@ const oversizedAnonymousConcept = Effect.map(program, (value) => {
   console.log(normalized);
   return normalized;
 });
+
+const LegacyUserService = Context.Tag("LegacyUserService");
+
+class ServiceWithInlineProvide extends Effect.Service<ServiceWithInlineProvide>()(
+  "ServiceWithInlineProvide",
+  {
+    accessors: true,
+    effect: Effect.gen(function* () {
+      return Layer.provide(Layer.empty, Layer.empty);
+    }),
+  },
+) {}
+
+class ServiceWithoutAccessors extends Effect.Service<ServiceWithoutAccessors>()(
+  "ServiceWithoutAccessors",
+  {
+    effect: Effect.gen(function* () {
+      return {
+        load: () => Effect.succeed(id),
+      };
+    }),
+  },
+) {}
 
 const largeAnonymousFlow = flow(
   User.toDto,

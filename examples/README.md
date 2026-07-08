@@ -66,6 +66,9 @@ diagnostics can be treated as implementation gaps.
   Decoration slice in `roadmap/11-behavior-decoration/README.md`.
 - `backend/style-separation-anti-patterns.ts` mirrors the Style Separation
   slice in `roadmap/12-style-separation/README.md`.
+- `backend/service-layer-architecture-anti-patterns.ts` mirrors the Service
+  and Layer Architecture slice in
+  `roadmap/06-service-and-layer-architecture/README.md`.
 
 ## npm Consumer Example
 

@@ -59,6 +59,7 @@ Named group presets:
 | `pureTransformation` | Pure Transformation |
 | `behaviorDecoration` | Behavior Decoration |
 | `styleSeparation` | Style Separation |
+| `serviceAndLayerArchitecture` | Service and Layer Architecture |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -166,6 +167,14 @@ boundaries.
 | `linteffect/no-mixed-pillar-function` | Functions that mix three or more style pillars: workflow, pure transformation, behavior decoration, and Layer construction. | Each function should have one obvious style so the domain story, policies, transformations, and wiring stay separately reviewable. |
 | `linteffect/no-clever-effect-expression` | Deep or wrapper-heavy expressions combining multiple style pillars, such as `pipe(Effect.map(Effect.gen(...), flow(...)), ((x) => x))`. | Dense expression towers hide intent and make Effect code harder to debug or refactor. |
 | `linteffect/prefer-extracted-concept` | Multi-statement anonymous callbacks passed into Effect combinators. | Inline callback bodies with several steps usually represent a named transformation, policy, or workflow concept. |
+
+### Service and Layer Architecture
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/prefer-effect-service` | `Context.Tag(...)` and `Context.GenericTag(...)` service definitions. | Modern `Effect.Service` gives services generated accessors, consistent default layers, and clearer dependency ownership. |
+| `linteffect/no-layer-provide-in-service-definition` | `Layer.provide(...)` nested inside an `Effect.Service` options object. | Service definitions should declare implementation and dependencies; layer assembly belongs at application, test, or composition boundaries. |
+| `linteffect/require-service-accessors` | `Effect.Service` classes whose options omit `accessors: true`. | Static accessors keep service APIs consistent and avoid hand-written dependency plumbing. |
 
 ### Concurrency Safety
 

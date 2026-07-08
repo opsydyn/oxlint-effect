@@ -936,6 +936,76 @@ function oversizedAnonymousConceptNode(node: unknown): unknown | undefined {
   return undefined;
 }
 
+function calleeContainsEffectService(node: unknown): boolean {
+  if (isMemberExpression(node, "Effect", "Service")) {
+    return true;
+  }
+
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  return calleeContainsEffectService((node as Node).callee);
+}
+
+function effectServiceOptionsObject(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const call = node as Node & { arguments?: unknown[] };
+  if (!calleeContainsEffectService(call.callee)) {
+    return undefined;
+  }
+
+  return [...(call.arguments ?? [])]
+    .reverse()
+    .find((argument) => (
+      typeof argument === "object" &&
+      argument !== null &&
+      (argument as Node).type === "ObjectExpression"
+    ));
+}
+
+function effectServiceClassOptions(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "ClassDeclaration") {
+    return undefined;
+  }
+
+  return effectServiceOptionsObject((node as Node).superClass);
+}
+
+function isContextTagCall(node: unknown): boolean {
+  return isMemberCall(node, "Context", "Tag") || isMemberCall(node, "Context", "GenericTag");
+}
+
+function containsLayerProvideCall(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (isMemberCall(node, "Layer", "provide")) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsLayerProvideCall(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsLayerProvideCall(child, seen)
+  ));
+}
+
+function hasAccessorsTrue(options: unknown): boolean {
+  return isBooleanLiteral(objectPropertyValue(options, "accessors"), true);
+}
+
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
     typeof node === "object" &&
@@ -4201,6 +4271,80 @@ const preferExtractedConcept = defineRule({
   },
 });
 
+const preferEffectService = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isContextTagCall(node)) {
+          report(
+            context,
+            node,
+            "Rule: prefer Effect.Service. Fix: replace Context.Tag service definitions.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noLayerProvideInServiceDefinition = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ClassDeclaration(node: any) {
+        const options = effectServiceClassOptions(node);
+        if (hasEffectEcosystemImport && options && containsLayerProvideCall(options)) {
+          report(
+            context,
+            options,
+            "Rule: do not call Layer.provide inside Effect.Service. Fix: move layer wiring to app/test boundaries.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const requireServiceAccessors = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ClassDeclaration(node: any) {
+        const options = effectServiceClassOptions(node);
+        if (hasEffectEcosystemImport && options && !hasAccessorsTrue(options)) {
+          report(
+            context,
+            options,
+            "Rule: set accessors: true. Fix: add it to Effect.Service options.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noMatchVoidBranch = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -5904,6 +6048,9 @@ const rules = {
   "no-mixed-pillar-function": noMixedPillarFunction,
   "no-clever-effect-expression": noCleverEffectExpression,
   "prefer-extracted-concept": preferExtractedConcept,
+  "prefer-effect-service": preferEffectService,
+  "no-layer-provide-in-service-definition": noLayerProvideInServiceDefinition,
+  "require-service-accessors": requireServiceAccessors,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -6124,6 +6271,12 @@ export const styleSeparationRules = rulesFromNames([
   "prefer-extracted-concept",
 ] as const);
 
+export const serviceAndLayerArchitectureRules = rulesFromNames([
+  "prefer-effect-service",
+  "no-layer-provide-in-service-definition",
+  "require-service-accessors",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -6139,6 +6292,7 @@ export const ruleGroups = {
   pureTransformation: pureTransformationRules,
   behaviorDecoration: behaviorDecorationRules,
   styleSeparation: styleSeparationRules,
+  serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -6156,6 +6310,7 @@ export const effectFlow = presetFor(effectFlowRules);
 export const pureTransformation = presetFor(pureTransformationRules);
 export const behaviorDecoration = presetFor(behaviorDecorationRules);
 export const styleSeparation = presetFor(styleSeparationRules);
+export const serviceAndLayerArchitecture = presetFor(serviceAndLayerArchitectureRules);
 
 export const presets = {
   recommended,
@@ -6172,6 +6327,7 @@ export const presets = {
   pureTransformation,
   behaviorDecoration,
   styleSeparation,
+  serviceAndLayerArchitecture,
 } as const;
 
 export default definePlugin({

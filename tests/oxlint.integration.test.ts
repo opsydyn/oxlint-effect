@@ -122,6 +122,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-mixed-pillar-function)");
     expect(result.output).toContain("linteffect(no-clever-effect-expression)");
     expect(result.output).toContain("linteffect(prefer-extracted-concept)");
+    expect(result.output).toContain("linteffect(prefer-effect-service)");
+    expect(result.output).toContain("linteffect(no-layer-provide-in-service-definition)");
+    expect(result.output).toContain("linteffect(require-service-accessors)");
   });
 
   it("allows a clean Effect-style fixture", () => {

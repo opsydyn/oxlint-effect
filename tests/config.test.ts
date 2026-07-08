@@ -27,6 +27,8 @@ import plugin, {
   reactAndRuntimeBoundariesRules,
   recommended,
   ruleGroups,
+  serviceAndLayerArchitecture,
+  serviceAndLayerArchitectureRules,
   styleSeparation,
   styleSeparationRules,
 } from "../src/index";
@@ -163,6 +165,11 @@ const groupExpectations = {
     "no-clever-effect-expression",
     "prefer-extracted-concept",
   ],
+  serviceAndLayerArchitecture: [
+    "prefer-effect-service",
+    "no-layer-provide-in-service-definition",
+    "require-service-accessors",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -178,6 +185,7 @@ const exportedRuleGroups = {
   pureTransformation: pureTransformationRules,
   behaviorDecoration: behaviorDecorationRules,
   styleSeparation: styleSeparationRules,
+  serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
 } as const;
 
 const exportedPresets = {
@@ -193,6 +201,7 @@ const exportedPresets = {
   pureTransformation,
   behaviorDecoration,
   styleSeparation,
+  serviceAndLayerArchitecture,
 } as const;
 
 describe("linteffect config exports", () => {
@@ -294,6 +303,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-mixed-pillar-function": "error",
       "linteffect/no-clever-effect-expression": "error",
       "linteffect/prefer-extracted-concept": "error",
+      "linteffect/prefer-effect-service": "error",
+      "linteffect/no-layer-provide-in-service-definition": "error",
+      "linteffect/require-service-accessors": "error",
     });
   });
 

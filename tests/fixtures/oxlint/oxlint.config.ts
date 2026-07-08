@@ -103,5 +103,8 @@ export default defineConfig({
     "linteffect/no-mixed-pillar-function": "error",
     "linteffect/no-clever-effect-expression": "error",
     "linteffect/prefer-extracted-concept": "error",
+    "linteffect/prefer-effect-service": "error",
+    "linteffect/no-layer-provide-in-service-definition": "error",
+    "linteffect/require-service-accessors": "error",
   },
 });

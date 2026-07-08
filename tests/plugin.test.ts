@@ -437,6 +437,24 @@ const newExpression = (callee: unknown, ...args: unknown[]) => ({
   arguments: args,
 });
 
+const effectServiceDefinition = (options: unknown) => callExpression(
+  callExpression(
+    callExpression(memberExpression("Effect", "Service"), identifier("UserService")),
+  ),
+  stringLiteral("UserService"),
+  options,
+);
+
+const serviceClassDeclaration = (options: unknown) => ({
+  type: "ClassDeclaration",
+  id: identifier("UserService"),
+  superClass: effectServiceDefinition(options),
+  body: {
+    type: "ClassBody",
+    body: [],
+  },
+});
+
 const throwStatement = (argument: unknown) => ({
   type: "ThrowStatement",
   argument,
@@ -2798,6 +2816,92 @@ describe("linteffect Oxlint plugin", () => {
       {
         visitorName: "CallExpression",
         node: effectCall("map", identifier("program"), arrowCallback(callExpression(identifier("toDto"), identifier("value")))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Context.Tag service definitions", () => {
+    const reports = runRuleSequence("prefer-effect-service", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: memberCall("Context", "Tag"),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer Effect.Service");
+  });
+
+  it("allows Effect.Service definitions for the service preference rule", () => {
+    const reports = runRuleSequence("prefer-effect-service", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectServiceDefinition(objectLiteral(property("accessors", booleanLiteral(true)))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Layer.provide inside Effect.Service definitions", () => {
+    const reports = runRuleSequence("no-layer-provide-in-service-definition", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("accessors", booleanLiteral(true)),
+          property("effect", effectCall(
+            "gen",
+            generatorCallback(blockStatement(returnStatement(memberCall("Layer", "provide")))),
+          )),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("do not call Layer.provide inside Effect.Service");
+  });
+
+  it("allows Layer.provide outside Effect.Service definitions", () => {
+    const reports = runRuleSequence("no-layer-provide-in-service-definition", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: memberCall("Layer", "provide"),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches Effect.Service definitions without accessors", () => {
+    const reports = runRuleSequence("require-service-accessors", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("effect", effectCall("gen", generatorCallback(blockStatement(returnStatement(objectLiteral()))))),
+        )),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("set accessors: true");
+  });
+
+  it("allows Effect.Service definitions with accessors enabled", () => {
+    const reports = runRuleSequence("require-service-accessors", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "ClassDeclaration",
+        node: serviceClassDeclaration(objectLiteral(
+          property("accessors", booleanLiteral(true)),
+          property("effect", effectCall("gen", generatorCallback(blockStatement(returnStatement(objectLiteral()))))),
+        )),
       },
     ]);
 
