@@ -1141,6 +1141,24 @@ function layerMergeChain(node: unknown): unknown | undefined {
     )));
 }
 
+function isLayerLikeDeclarationName(node: unknown): boolean {
+  return isIdentifier(node) && /(Layer|Live)$/.test(node.name);
+}
+
+function scatteredLayerProvideDeclaration(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+    return undefined;
+  }
+
+  return ((node as Node).declarations as unknown[] | undefined)
+    ?.find((declarator) => (
+      typeof declarator === "object" &&
+      declarator !== null &&
+      isLayerLikeDeclarationName((declarator as Node).id) &&
+      findNode((declarator as Node).init, isEffectOrLayerProvideCall)
+    ));
+}
+
 function functionReturnsPromise(node: unknown): boolean {
   if (!isFunctionLike(node)) {
     return false;
@@ -4691,6 +4709,37 @@ const preferLayerMergeallForInfrastructure = defineRule({
   },
 });
 
+const noServiceLayerScatter = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    let scatteredLayerCount = 0;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      VariableDeclaration(node: any) {
+        const target = hasEffectEcosystemImport ? scatteredLayerProvideDeclaration(node) : undefined;
+        if (!target) {
+          return;
+        }
+
+        scatteredLayerCount += 1;
+        if (scatteredLayerCount >= 3) {
+          report(
+            context,
+            target,
+            "Rule: group service layers by concern.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noLayerMergeInRequestHandler = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6456,6 +6505,7 @@ const rules = {
   "prefer-layer-pipe": preferLayerPipe,
   "no-inline-layer-provide-in-program": noInlineLayerProvideInProgram,
   "prefer-layer-mergeall-for-infrastructure": preferLayerMergeallForInfrastructure,
+  "no-service-layer-scatter": noServiceLayerScatter,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -6688,6 +6738,7 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
   "prefer-layer-pipe",
   "no-inline-layer-provide-in-program",
   "prefer-layer-mergeall-for-infrastructure",
+  "no-service-layer-scatter",
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);

@@ -3145,6 +3145,76 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches scattered service layer provisioning constants", () => {
+    const reports = runRuleSequence("no-service-layer-scatter", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          declarations: [
+            variableDeclaratorWithInit(
+              "DatabaseLayer",
+              callExpression(memberExpression("Layer", "provide"), identifier("DatabaseBase"), identifier("ConfigLive")),
+            ),
+          ],
+        },
+      },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          declarations: [
+            variableDeclaratorWithInit(
+              "CacheLayer",
+              callExpression(memberExpression("Layer", "provide"), identifier("CacheBase"), identifier("ConfigLive")),
+            ),
+          ],
+        },
+      },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          declarations: [
+            variableDeclaratorWithInit(
+              "HttpLayer",
+              effectCall("provide", identifier("HttpBase"), identifier("ConfigLive")),
+            ),
+          ],
+        },
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("group service layers by concern");
+  });
+
+  it("allows one grouped infrastructure layer constant", () => {
+    const reports = runRuleSequence("no-service-layer-scatter", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "VariableDeclaration",
+        node: {
+          type: "VariableDeclaration",
+          declarations: [
+            variableDeclaratorWithInit(
+              "InfrastructureLive",
+              callExpression(
+                memberExpression("Layer", "mergeAll"),
+                identifier("DatabaseLive"),
+                identifier("CacheLive"),
+                identifier("HttpLive"),
+              ),
+            ),
+          ],
+        },
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches Effect.Service methods that return Promise", () => {
     const reports = runRuleSequence("no-service-method-returning-promise", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

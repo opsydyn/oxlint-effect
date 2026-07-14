@@ -114,5 +114,6 @@ export default defineConfig({
     "linteffect/prefer-layer-pipe": "error",
     "linteffect/no-inline-layer-provide-in-program": "error",
     "linteffect/prefer-layer-mergeall-for-infrastructure": "error",
+    "linteffect/no-service-layer-scatter": "error",
   },
 });

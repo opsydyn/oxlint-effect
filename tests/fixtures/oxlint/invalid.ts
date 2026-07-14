@@ -363,6 +363,10 @@ const longLayerMergeChain = Layer.merge(
   Layer.empty,
 );
 
+const scatteredDatabaseLayer = Layer.provide(Layer.empty, Layer.empty);
+const scatteredCacheLayer = Layer.provide(Layer.empty, Layer.empty);
+const scatteredHttpLayer = Effect.provide(program, Layer.empty);
+
 class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturningPromise>()(
   "ServiceMethodReturningPromise",
   {

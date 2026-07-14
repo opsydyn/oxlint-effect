@@ -133,6 +133,7 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(prefer-layer-pipe)");
     expect(result.output).toContain("linteffect(no-inline-layer-provide-in-program)");
     expect(result.output).toContain("linteffect(prefer-layer-mergeall-for-infrastructure)");
+    expect(result.output).toContain("linteffect(no-service-layer-scatter)");
   });
 
   it("allows a clean Effect-style fixture", () => {

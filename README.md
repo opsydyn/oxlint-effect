@@ -183,6 +183,7 @@ boundaries.
 | `linteffect/prefer-layer-pipe` | Nested `Layer.provide(...)` call towers. | Layer assembly should read as a left-to-right composition pipeline. |
 | `linteffect/no-inline-layer-provide-in-program` | `Effect.provide(...)` or `Layer.provide(...)` buried inside `Effect.gen` program bodies. | Programs should describe workflow; application layer provisioning belongs at composition boundaries. |
 | `linteffect/prefer-layer-mergeall-for-infrastructure` | Nested `Layer.merge(...)` chains. | Infrastructure groups should use `Layer.mergeAll(...)` so dependency groups stay visible. |
+| `linteffect/no-service-layer-scatter` | Three or more separate `*Layer`/`*Live` constants with inline `Layer.provide` or `Effect.provide`. | Service and infrastructure layers should be grouped by concern instead of scattered one constant at a time. |
 
 ### Concurrency Safety
 

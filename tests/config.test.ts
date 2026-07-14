@@ -177,6 +177,7 @@ const groupExpectations = {
     "prefer-layer-pipe",
     "no-inline-layer-provide-in-program",
     "prefer-layer-mergeall-for-infrastructure",
+    "no-service-layer-scatter",
   ],
 } as const;
 
@@ -322,6 +323,7 @@ describe("linteffect config exports", () => {
       "linteffect/prefer-layer-pipe": "error",
       "linteffect/no-inline-layer-provide-in-program": "error",
       "linteffect/prefer-layer-mergeall-for-infrastructure": "error",
+      "linteffect/no-service-layer-scatter": "error",
     });
   });
 

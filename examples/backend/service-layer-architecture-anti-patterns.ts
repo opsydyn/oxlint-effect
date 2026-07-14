@@ -82,6 +82,12 @@ const longLayerMergeChain = Layer.merge(
   Layer.empty,
 );
 
+// EXPECT: linteffect/no-service-layer-scatter
+// QA: scattered per-service layer constants should be grouped by concern.
+const scatteredDatabaseLayer = Layer.provide(Layer.empty, Layer.empty);
+const scatteredCacheLayer = Layer.provide(Layer.empty, Layer.empty);
+const scatteredHttpLayer = Effect.provide(Effect.succeed(id), Layer.empty);
+
 // EXPECT: linteffect/no-service-method-returning-promise
 // QA: service methods should return Effect so cancellation and failures stay typed.
 class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturningPromise>()(
@@ -96,10 +102,6 @@ class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturnin
   },
 ) {}
 
-// GAP REVIEW:
-// Later slices should add EXPECT examples for scattered service layer
-// composition.
-
 void EffectNamespace;
 void LegacyUserService;
 void ManualUserService;
@@ -110,4 +112,7 @@ void userRouteHandler;
 void nestedLayerProvide;
 void inlineProgramProvide;
 void longLayerMergeChain;
+void scatteredDatabaseLayer;
+void scatteredCacheLayer;
+void scatteredHttpLayer;
 void ServiceMethodReturningPromise;

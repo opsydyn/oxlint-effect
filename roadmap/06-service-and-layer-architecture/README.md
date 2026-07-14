@@ -25,7 +25,7 @@ Primary references:
 | [x] | `linteffect/prefer-layer-pipe` | styleguide layer pillar | strict | low | nested `Layer.provide(Layer.provide(...))` or static Layer call towers that can be expressed as `Layer.pipe()` |
 | [x] | `linteffect/no-inline-layer-provide-in-program` | styleguide layer pillar | runtime | medium | `Layer.provide` / `Effect.provide` buried inside workflows instead of app/service composition boundaries |
 | [x] | `linteffect/prefer-layer-mergeall-for-infrastructure` | styleguide layer grouping | strict | medium | long `Layer.merge` chains where `Layer.mergeAll(...)` would group dependencies by concern |
-| [ ] | `linteffect/no-service-layer-scatter` | styleguide layer grouping | strict | high | many individual `provide` calls in one module instead of grouped Infrastructure/Application/Domain layer constants |
+| [x] | `linteffect/no-service-layer-scatter` | styleguide layer grouping | strict | high | many individual `provide` calls in one module instead of grouped Infrastructure/Application/Domain layer constants |
 
 ## Slice Plan
 
@@ -54,7 +54,7 @@ Primary references:
 
 ### Slice 5: Layer Grouping
 
-- [ ] `no-service-layer-scatter`
+- [x] `no-service-layer-scatter`
 
 ## Detection Notes
 
@@ -67,13 +67,13 @@ Primary references:
 Start with exported classes and exported service constants. Avoid flagging
 library adapters or tests until path options exist.
 
-Layer style-guide rules should detect shape first, not infer architecture. Keep
-`no-service-layer-scatter` strict-only until path configuration and examples
-prove it can distinguish application composition files from local adapters.
+Layer style-guide rules detect shape first, not broad architecture. The
+`no-service-layer-scatter` rule stays conservative by reporting only after three
+separate layer/live constants use inline provisioning in one module.
 
 Slice 2 gap review:
 
 - Covered now: missing `dependencies` for `yield* SomeService`, namespace Effect
   imports, manual exported service objects, layer composition in named
   request/route/handler functions, and Promise-returning service methods.
-- Remaining slices should demonstrate scattered service layer composition.
+- Service and Layer Architecture roadmap complete.
