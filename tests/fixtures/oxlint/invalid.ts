@@ -349,6 +349,20 @@ function userRouteHandler() {
   return Layer.mergeAll(Layer.empty, Layer.empty);
 }
 
+const nestedLayerProvide = Layer.provide(
+  Layer.provide(Layer.empty, Layer.empty),
+  Layer.empty,
+);
+
+const inlineProgramProvide = Effect.gen(function* () {
+  return Effect.provide(program, Layer.empty);
+});
+
+const longLayerMergeChain = Layer.merge(
+  Layer.merge(Layer.empty, Layer.empty),
+  Layer.empty,
+);
+
 class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturningPromise>()(
   "ServiceMethodReturningPromise",
   {

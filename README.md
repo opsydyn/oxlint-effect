@@ -180,6 +180,9 @@ boundaries.
 | `linteffect/no-manual-service-object-export` | Exported `*Service` object literals with function-valued members. | Public service APIs should use `Effect.Service` for accessors, default layers, and dependency ownership. |
 | `linteffect/no-layer-merge-in-request-handler` | `Layer.merge*` or `Layer.provide` inside request/route/handler functions. | Request handlers should run programs, not assemble the application dependency graph. |
 | `linteffect/no-service-method-returning-promise` | Methods returned from `Effect.Service` implementations that return `Promise`. | Service APIs should preserve Effect cancellation, tracing, typed failures, and dependency semantics. |
+| `linteffect/prefer-layer-pipe` | Nested `Layer.provide(...)` call towers. | Layer assembly should read as a left-to-right composition pipeline. |
+| `linteffect/no-inline-layer-provide-in-program` | `Effect.provide(...)` or `Layer.provide(...)` buried inside `Effect.gen` program bodies. | Programs should describe workflow; application layer provisioning belongs at composition boundaries. |
+| `linteffect/prefer-layer-mergeall-for-infrastructure` | Nested `Layer.merge(...)` chains. | Infrastructure groups should use `Layer.mergeAll(...)` so dependency groups stay visible. |
 
 ### Concurrency Safety
 

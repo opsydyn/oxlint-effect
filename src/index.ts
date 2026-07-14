@@ -1111,6 +1111,36 @@ function layerCompositionInRequestHandler(node: unknown): unknown | undefined {
   return findNode((node as Node).body, isLayerCompositionCall) ? node : undefined;
 }
 
+function layerProvideCallTower(node: unknown): unknown | undefined {
+  if (!isMemberCall(node, "Layer", "provide")) {
+    return undefined;
+  }
+
+  return findNode(firstArgument(node as Node & { arguments: unknown[] }), (child) => (
+    child !== node && isMemberCall(child, "Layer", "provide")
+  ));
+}
+
+function isEffectOrLayerProvideCall(node: unknown): boolean {
+  return isEffectMemberCallNamed(node, "provide") || isMemberCall(node, "Layer", "provide");
+}
+
+function inlineLayerProvideInProgram(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  return generator ? findNode(generator.body, isEffectOrLayerProvideCall) : undefined;
+}
+
+function layerMergeChain(node: unknown): unknown | undefined {
+  if (!isMemberCall(node, "Layer", "merge")) {
+    return undefined;
+  }
+
+  return ((node as Node).arguments as unknown[] | undefined)
+    ?.find((argument) => findNode(argument, (child) => (
+      child !== node && isMemberCall(child, "Layer", "merge")
+    )));
+}
+
 function functionReturnsPromise(node: unknown): boolean {
   if (!isFunctionLike(node)) {
     return false;
@@ -4586,6 +4616,81 @@ const noManualServiceObjectExport = defineRule({
   },
 });
 
+const preferLayerPipe = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        const tower = hasEffectEcosystemImport ? layerProvideCallTower(node) : undefined;
+        if (tower) {
+          report(
+            context,
+            tower,
+            "Rule: prefer Layer.pipe for nested layer provisioning.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noInlineLayerProvideInProgram = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        const provide = hasEffectEcosystemImport ? inlineLayerProvideInProgram(node) : undefined;
+        if (provide) {
+          report(
+            context,
+            provide,
+            "Rule: avoid inline layer provisioning inside programs.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const preferLayerMergeallForInfrastructure = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        const chain = hasEffectEcosystemImport ? layerMergeChain(node) : undefined;
+        if (chain) {
+          report(
+            context,
+            chain,
+            "Rule: prefer Layer.mergeAll for infrastructure layer groups.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noLayerMergeInRequestHandler = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6348,6 +6453,9 @@ const rules = {
   "no-manual-service-object-export": noManualServiceObjectExport,
   "no-layer-merge-in-request-handler": noLayerMergeInRequestHandler,
   "no-service-method-returning-promise": noServiceMethodReturningPromise,
+  "prefer-layer-pipe": preferLayerPipe,
+  "no-inline-layer-provide-in-program": noInlineLayerProvideInProgram,
+  "prefer-layer-mergeall-for-infrastructure": preferLayerMergeallForInfrastructure,
   "no-match-void-branch": noMatchVoidBranch,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
@@ -6577,6 +6685,9 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
   "no-manual-service-object-export",
   "no-layer-merge-in-request-handler",
   "no-service-method-returning-promise",
+  "prefer-layer-pipe",
+  "no-inline-layer-provide-in-program",
+  "prefer-layer-mergeall-for-infrastructure",
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);

@@ -22,9 +22,9 @@ Primary references:
 | [x] | `linteffect/no-manual-service-object-export` | service pattern | ddd | medium | exported service-shaped object instead of `Effect.Service` |
 | [x] | `linteffect/no-layer-merge-in-request-handler` | layer composition | runtime | medium | `Layer.merge*` / `Layer.provide` inside route handlers |
 | [x] | `linteffect/no-service-method-returning-promise` | service pattern | recommended | medium | service object method returns `Promise` instead of `Effect` |
-| [ ] | `linteffect/prefer-layer-pipe` | styleguide layer pillar | strict | low | nested `Layer.provide(Layer.provide(...))` or static Layer call towers that can be expressed as `Layer.pipe()` |
-| [ ] | `linteffect/no-inline-layer-provide-in-program` | styleguide layer pillar | runtime | medium | `Layer.provide` / `Effect.provide` buried inside workflows instead of app/service composition boundaries |
-| [ ] | `linteffect/prefer-layer-mergeall-for-infrastructure` | styleguide layer grouping | strict | medium | long `Layer.merge` chains where `Layer.mergeAll(...)` would group dependencies by concern |
+| [x] | `linteffect/prefer-layer-pipe` | styleguide layer pillar | strict | low | nested `Layer.provide(Layer.provide(...))` or static Layer call towers that can be expressed as `Layer.pipe()` |
+| [x] | `linteffect/no-inline-layer-provide-in-program` | styleguide layer pillar | runtime | medium | `Layer.provide` / `Effect.provide` buried inside workflows instead of app/service composition boundaries |
+| [x] | `linteffect/prefer-layer-mergeall-for-infrastructure` | styleguide layer grouping | strict | medium | long `Layer.merge` chains where `Layer.mergeAll(...)` would group dependencies by concern |
 | [ ] | `linteffect/no-service-layer-scatter` | styleguide layer grouping | strict | high | many individual `provide` calls in one module instead of grouped Infrastructure/Application/Domain layer constants |
 
 ## Slice Plan
@@ -48,9 +48,9 @@ Primary references:
 
 ### Slice 4: Layer Pillar Style
 
-- [ ] `prefer-layer-pipe`
-- [ ] `no-inline-layer-provide-in-program`
-- [ ] `prefer-layer-mergeall-for-infrastructure`
+- [x] `prefer-layer-pipe`
+- [x] `no-inline-layer-provide-in-program`
+- [x] `prefer-layer-mergeall-for-infrastructure`
 
 ### Slice 5: Layer Grouping
 
@@ -76,5 +76,4 @@ Slice 2 gap review:
 - Covered now: missing `dependencies` for `yield* SomeService`, namespace Effect
   imports, manual exported service objects, layer composition in named
   request/route/handler functions, and Promise-returning service methods.
-- Remaining slices should demonstrate nested `Layer.provide`, inline
-  `Effect.provide`, long merge chains, and scattered service layer composition.
+- Remaining slices should demonstrate scattered service layer composition.

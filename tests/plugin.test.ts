@@ -3052,6 +3052,99 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches nested Layer.provide call towers", () => {
+    const reports = runRuleSequence("prefer-layer-pipe", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          memberExpression("Layer", "provide"),
+          callExpression(memberExpression("Layer", "provide"), identifier("BaseLayer"), identifier("DatabaseLive")),
+          identifier("HttpLive"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer Layer.pipe");
+  });
+
+  it("allows method pipe Layer provisioning", () => {
+    const reports = runRuleSequence("prefer-layer-pipe", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: methodPipeCall(identifier("BaseLayer"), callExpression(memberExpression("Layer", "provide"), identifier("DatabaseLive"))),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches inline Effect.provide inside Effect.gen programs", () => {
+    const reports = runRuleSequence("no-inline-layer-provide-in-program", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(returnStatement(
+            effectCall("provide", identifier("program"), identifier("AppLayer")),
+          ))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("avoid inline layer provisioning inside programs");
+  });
+
+  it("allows boundary Effect.provide calls outside program bodies", () => {
+    const reports = runRuleSequence("no-inline-layer-provide-in-program", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("provide", identifier("program"), identifier("AppLayer")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches long Layer.merge chains", () => {
+    const reports = runRuleSequence("prefer-layer-mergeall-for-infrastructure", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          memberExpression("Layer", "merge"),
+          callExpression(memberExpression("Layer", "merge"), identifier("DatabaseLive"), identifier("CacheLive")),
+          identifier("HttpLive"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("prefer Layer.mergeAll");
+  });
+
+  it("allows Layer.mergeAll for grouped infrastructure", () => {
+    const reports = runRuleSequence("prefer-layer-mergeall-for-infrastructure", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: callExpression(
+          memberExpression("Layer", "mergeAll"),
+          identifier("DatabaseLive"),
+          identifier("CacheLive"),
+          identifier("HttpLive"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches Effect.Service methods that return Promise", () => {
     const reports = runRuleSequence("no-service-method-returning-promise", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

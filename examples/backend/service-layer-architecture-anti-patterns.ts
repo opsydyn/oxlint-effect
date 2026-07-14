@@ -62,6 +62,26 @@ function userRouteHandler() {
   return Layer.mergeAll(Layer.empty, Layer.empty);
 }
 
+// EXPECT: linteffect/prefer-layer-pipe
+// QA: nested Layer.provide call towers should become readable Layer.pipe chains.
+const nestedLayerProvide = Layer.provide(
+  Layer.provide(Layer.empty, Layer.empty),
+  Layer.empty,
+);
+
+// EXPECT: linteffect/no-inline-layer-provide-in-program
+// QA: programs should not hide application layer provisioning inside workflows.
+const inlineProgramProvide = Effect.gen(function* () {
+  return Effect.provide(Effect.succeed(id), Layer.empty);
+});
+
+// EXPECT: linteffect/prefer-layer-mergeall-for-infrastructure
+// QA: infrastructure layer groups should use Layer.mergeAll instead of merge ladders.
+const longLayerMergeChain = Layer.merge(
+  Layer.merge(Layer.empty, Layer.empty),
+  Layer.empty,
+);
+
 // EXPECT: linteffect/no-service-method-returning-promise
 // QA: service methods should return Effect so cancellation and failures stay typed.
 class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturningPromise>()(
@@ -77,9 +97,8 @@ class ServiceMethodReturningPromise extends Effect.Service<ServiceMethodReturnin
 ) {}
 
 // GAP REVIEW:
-// Later slices should add EXPECT examples for nested Layer.provide, inline
-// Effect.provide in programs, long Layer.merge chains, and scattered service
-// layer composition.
+// Later slices should add EXPECT examples for scattered service layer
+// composition.
 
 void EffectNamespace;
 void LegacyUserService;
@@ -88,4 +107,7 @@ void ServiceWithInlineProvide;
 void ServiceWithoutAccessors;
 void ServiceWithoutDependencies;
 void userRouteHandler;
+void nestedLayerProvide;
+void inlineProgramProvide;
+void longLayerMergeChain;
 void ServiceMethodReturningPromise;

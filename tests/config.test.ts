@@ -174,6 +174,9 @@ const groupExpectations = {
     "no-manual-service-object-export",
     "no-layer-merge-in-request-handler",
     "no-service-method-returning-promise",
+    "prefer-layer-pipe",
+    "no-inline-layer-provide-in-program",
+    "prefer-layer-mergeall-for-infrastructure",
   ],
 } as const;
 
@@ -316,6 +319,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-manual-service-object-export": "error",
       "linteffect/no-layer-merge-in-request-handler": "error",
       "linteffect/no-service-method-returning-promise": "error",
+      "linteffect/prefer-layer-pipe": "error",
+      "linteffect/no-inline-layer-provide-in-program": "error",
+      "linteffect/prefer-layer-mergeall-for-infrastructure": "error",
     });
   });
 
