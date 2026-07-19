@@ -15,6 +15,10 @@
 - A Schema import is the JSON.parse rule's explicit conservative opt-out.
 - Use the repository's `EXPECT` and `QA` example annotation format.
 - Do not create a changeset in this slice.
+- Preserve a green repository suite after each registered rule by adding that
+  rule's `linteffect/*` entry to the exact `recommended.rules` expectation in
+  `tests/config.test.ts`; defer only the new group-specific config assertions
+  to Task 4.
 
 ---
 
@@ -22,6 +26,7 @@
 
 **Files:**
 - Modify: `tests/plugin.test.ts`
+- Modify: `tests/config.test.ts`
 - Modify: `src/index.ts`
 
 **Interfaces:**
@@ -82,6 +87,9 @@ const noNodeFsInEffectCode = defineRule({
 
 Register `"no-node-fs-in-effect-code"` in the `rules` object.
 
+In `tests/config.test.ts`, add `"linteffect/no-node-fs-in-effect-code":
+"error"` to the exact `recommended.rules` expectation.
+
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun test tests/plugin.test.ts --test-name-pattern no-node-fs-in-effect-code`
@@ -91,7 +99,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit the focused rule**
 
 ~~~bash
-git add src/index.ts tests/plugin.test.ts
+git add src/index.ts tests/plugin.test.ts tests/config.test.ts
 git commit -m "Add Node fs boundary rule"
 ~~~
 
@@ -99,6 +107,7 @@ git commit -m "Add Node fs boundary rule"
 
 **Files:**
 - Modify: `tests/plugin.test.ts`
+- Modify: `tests/config.test.ts`
 - Modify: `src/index.ts`
 
 **Interfaces:**
@@ -159,6 +168,9 @@ const noJsonParseWithoutSchema = defineRule({
 
 Register `"no-json-parse-without-schema"` in the `rules` object.
 
+In `tests/config.test.ts`, add `"linteffect/no-json-parse-without-schema":
+"error"` to the exact `recommended.rules` expectation.
+
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun test tests/plugin.test.ts --test-name-pattern no-json-parse-without-schema`
@@ -168,7 +180,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit the focused rule**
 
 ~~~bash
-git add src/index.ts tests/plugin.test.ts
+git add src/index.ts tests/plugin.test.ts tests/config.test.ts
 git commit -m "Add JSON Schema boundary rule"
 ~~~
 
@@ -176,6 +188,7 @@ git commit -m "Add JSON Schema boundary rule"
 
 **Files:**
 - Modify: `tests/plugin.test.ts`
+- Modify: `tests/config.test.ts`
 - Modify: `src/index.ts`
 
 **Interfaces:**
@@ -241,6 +254,9 @@ const noDateNowInEffect = defineRule({
 
 Ensure the recursive helper skips `parent` links. Register `"no-date-now-in-effect"` in `rules`.
 
+In `tests/config.test.ts`, add `"linteffect/no-date-now-in-effect": "error"`
+to the exact `recommended.rules` expectation.
+
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun test tests/plugin.test.ts --test-name-pattern no-date-now-in-effect`
@@ -250,7 +266,7 @@ Expected: PASS with one diagnostic per offending call site.
 - [ ] **Step 5: Commit the focused rule**
 
 ~~~bash
-git add src/index.ts tests/plugin.test.ts
+git add src/index.ts tests/plugin.test.ts tests/config.test.ts
 git commit -m "Add Effect clock boundary rule"
 ~~~
 
@@ -351,4 +367,3 @@ git commit -m "Add platform boundary hygiene rules"
 - Spec coverage: Tasks 1-3 implement the approved rule contracts; Task 4 exports the group and supplies the required CLI, example, README, and roadmap coverage.
 - Placeholder scan: no incomplete requirements or deferred implementation steps remain.
 - Type consistency: public exports use the exact approved `platformAndBoundaryHygiene` and `platformAndBoundaryHygieneRules` names.
-
