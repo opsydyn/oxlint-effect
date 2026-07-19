@@ -324,6 +324,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-inline-layer-provide-in-program": "error",
       "linteffect/prefer-layer-mergeall-for-infrastructure": "error",
       "linteffect/no-service-layer-scatter": "error",
+      "linteffect/no-node-fs-in-effect-code": "error",
     });
   });
 
