@@ -537,6 +537,63 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-json-parse-without-schema", () => {
+    it("reports JSON.parse in Effect modules without a Schema import", () => {
+      const reports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("Schema.decodeUnknown");
+    });
+
+    it("allows JSON.parse when effect/Schema is imported", () => {
+      const reports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect/Schema") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows JSON.parse when Schema is named-imported from effect", () => {
+      const reports = runRuleSequence("no-json-parse-without-schema", [
+        {
+          visitorName: "ImportDeclaration",
+          node: {
+            ...importFrom("effect"),
+            specifiers: [
+              {
+                type: "ImportSpecifier",
+                imported: identifier("Schema"),
+                local: identifier("Schema"),
+              },
+            ],
+          },
+        },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows non-JSON calls and JSON.parse in modules without Effect imports", () => {
+      const nonJsonReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "stringify") },
+      ]);
+
+      const nonEffectReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+      ]);
+
+      expect(nonJsonReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   describe("no-node-fs-in-effect-code", () => {
     it("reports Node fs imports regardless of import order", () => {
       const reports = runRuleSequence("no-node-fs-in-effect-code", [

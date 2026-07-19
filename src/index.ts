@@ -3798,6 +3798,27 @@ function isEffectEcosystemImport(source: string): boolean {
   );
 }
 
+function importsEffectSchema(node: unknown): boolean {
+  const source = getImportSource(node);
+  if (source === "effect/Schema") {
+    return true;
+  }
+
+  if (source !== "effect" || typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const specifiers = (node as Node).specifiers;
+  return Array.isArray(specifiers) && specifiers.some((specifier) => {
+    if (typeof specifier !== "object" || specifier === null) {
+      return false;
+    }
+
+    const item = specifier as Node;
+    return item.type === "ImportSpecifier" && isIdentifier(item.imported, "Schema");
+  });
+}
+
 function createEffectGatedStatementRule(
   visitorName: "IfStatement" | "SwitchStatement" | "ConditionalExpression",
   message: string,
@@ -5744,6 +5765,34 @@ const noNodeFsInEffectCode = defineRule({
   },
 });
 
+const noJsonParseWithoutSchema = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    let hasEffectSchemaImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+        if (importsEffectSchema(node)) hasEffectSchemaImport = true;
+      },
+      CallExpression(node: any) {
+        if (
+          hasEffectEcosystemImport &&
+          !hasEffectSchemaImport &&
+          isMemberExpression(node.callee, "JSON", "parse")
+        ) {
+          report(
+            context,
+            node,
+            "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: decode unknown input with Schema.decodeUnknown at the boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noOverloadedOptionsObject = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6531,6 +6580,7 @@ const rules = {
   "prefer-layer-mergeall-for-infrastructure": preferLayerMergeallForInfrastructure,
   "no-service-layer-scatter": noServiceLayerScatter,
   "no-match-void-branch": noMatchVoidBranch,
+  "no-json-parse-without-schema": noJsonParseWithoutSchema,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
   "no-effect-side-effect-wrapper": noEffectSideEffectWrapper,
