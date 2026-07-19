@@ -5720,6 +5720,30 @@ const noRawTimeDomainField = defineRule({
   },
 });
 
+const nodeFsImportSources = new Set(["fs", "node:fs", "node:fs/promises"]);
+
+const noNodeFsInEffectCode = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const nodeFsImports: unknown[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+        if (source && nodeFsImportSources.has(source)) nodeFsImports.push(node);
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) return;
+        for (const node of nodeFsImports) {
+          const source = getImportSource(node);
+          report(context, node, `Rule: avoid Node fs imports in Effect code (${source ?? "unknown source"}). Why: direct Node filesystem APIs make reusable Effect modules platform-specific. Fix: move filesystem work behind an Effect platform service at the application boundary.`);
+        }
+      },
+    };
+  },
+});
+
 const noOverloadedOptionsObject = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6541,6 +6565,7 @@ const rules = {
   "no-magic-domain-string": noMagicDomainString,
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
+  "no-node-fs-in-effect-code": noNodeFsInEffectCode,
   "no-overloaded-options-object": noOverloadedOptionsObject,
   "no-domain-logic-in-conditional": noDomainLogicInConditional,
   "no-implicit-state-machine-object": noImplicitStateMachineObject,

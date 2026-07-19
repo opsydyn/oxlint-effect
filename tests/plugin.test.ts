@@ -537,6 +537,58 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-node-fs-in-effect-code", () => {
+    it("reports Node fs imports regardless of import order", () => {
+      const reports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("node:fs") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("node:fs");
+
+      const reverseReports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "ImportDeclaration", node: importFrom("node:fs/promises") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reverseReports).toHaveLength(1);
+      expect(reverseReports[0]?.message).toContain("Node fs imports");
+    });
+
+    it("reports each supported Node fs import source in Effect files", () => {
+      for (const source of ["fs", "node:fs", "node:fs/promises"]) {
+        const reports = runRuleSequence("no-node-fs-in-effect-code", [
+          { visitorName: "ImportDeclaration", node: importFrom(source) },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain("Node fs imports");
+      }
+    });
+
+    it("allows non-fs Node imports and files without Effect imports", () => {
+      const pathReports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("node:path") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(pathReports).toHaveLength(0);
+
+      const nonEffectReports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("node:fs") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   it("exports package metadata", () => {
     expect(plugin.meta?.name).toBe("linteffect");
   });
