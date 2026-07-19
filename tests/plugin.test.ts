@@ -585,6 +585,19 @@ describe("linteffect Oxlint plugin", () => {
       expect(reports).toHaveLength(1);
     });
 
+    it("reports Date.now inside the curried Effect.fn callback form", () => {
+      const curriedFn = callbackCall(
+        effectCall("fn", { type: "Literal", value: "span" }),
+        generatorCallback(blockStatement(expressionStatement(dateNowCall()))),
+      );
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: curriedFn },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
     it("allows Date.now outside Effect construction boundaries", () => {
       const topLevelReports = runRuleSequence("no-date-now-in-effect", [
         { visitorName: "ImportDeclaration", node: importFrom("effect") },

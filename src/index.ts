@@ -364,12 +364,19 @@ function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen"): boole
 const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise", "fn"]);
 
 function isEffectConstructionBoundary(node: unknown): node is Node & { arguments: unknown[] } {
-  if (!isEffectMemberCall(node)) {
+  if (isEffectMemberCall(node)) {
+    const property = (node.callee as Node).property;
+    if (isIdentifier(property) && effectConstructionBoundaries.has(property.name)) {
+      return true;
+    }
+  }
+
+  if (typeof node !== "object" || node === null) {
     return false;
   }
 
-  const property = (node.callee as Node).property;
-  return isIdentifier(property) && effectConstructionBoundaries.has(property.name);
+  const call = node as Node;
+  return call.type === "CallExpression" && isEffectMemberCallNamed(call.callee, "fn");
 }
 
 function isDateNowCall(node: unknown): boolean {
