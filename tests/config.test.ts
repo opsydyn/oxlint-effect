@@ -326,6 +326,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-service-layer-scatter": "error",
       "linteffect/no-node-fs-in-effect-code": "error",
       "linteffect/no-json-parse-without-schema": "error",
+      "linteffect/no-date-now-in-effect": "error",
     });
   });
 

@@ -361,6 +361,45 @@ function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen"): boole
   return getEffectGeneratorArgument(node, propertyName) !== undefined;
 }
 
+const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise", "fn"]);
+
+function isEffectConstructionBoundary(node: unknown): node is Node & { arguments: unknown[] } {
+  if (!isEffectMemberCall(node)) {
+    return false;
+  }
+
+  const property = (node.callee as Node).property;
+  return isIdentifier(property) && effectConstructionBoundaries.has(property.name);
+}
+
+function isDateNowCall(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "CallExpression" &&
+    isMemberExpression((node as Node).callee, "Date", "now")
+  );
+}
+
+function findDateNowCalls(node: unknown, seen = new WeakSet<object>()): unknown[] {
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findDateNowCalls(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null || seen.has(node)) {
+    return [];
+  }
+  seen.add(node);
+
+  if (isDateNowCall(node)) {
+    return [node];
+  }
+
+  return Object.entries(node).flatMap(([key, child]) => (
+    key === "parent" ? [] : findDateNowCalls(child, seen)
+  ));
+}
+
 function findYieldWithoutStar(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
   if (Array.isArray(node)) {
     for (const child of node) {
@@ -5793,6 +5832,33 @@ const noJsonParseWithoutSchema = defineRule({
   },
 });
 
+const noDateNowInEffect = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const reportedDateCalls = new WeakSet<object>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport || !isEffectConstructionBoundary(node)) return;
+
+        for (const dateNowCall of findDateNowCalls(node.arguments)) {
+          if (reportedDateCalls.has(dateNowCall as object)) continue;
+          reportedDateCalls.add(dateNowCall as object);
+          report(
+            context,
+            dateNowCall,
+            "Rule: avoid Date.now inside Effect logic. Why: direct wall-clock reads make programs nondeterministic and difficult to test. Fix: obtain time through Effect Clock or DateTime at the boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noOverloadedOptionsObject = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6581,6 +6647,7 @@ const rules = {
   "no-service-layer-scatter": noServiceLayerScatter,
   "no-match-void-branch": noMatchVoidBranch,
   "no-json-parse-without-schema": noJsonParseWithoutSchema,
+  "no-date-now-in-effect": noDateNowInEffect,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
   "no-effect-side-effect-wrapper": noEffectSideEffectWrapper,

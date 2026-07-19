@@ -58,6 +58,8 @@ const memberCall = (object: string, property: string) => ({
   },
 });
 
+const dateNowCall = () => memberCall("Date", "now");
+
 const effectCall = (property: string, ...args: unknown[]) => ({
   type: "CallExpression",
   callee: {
@@ -537,6 +539,72 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-date-now-in-effect", () => {
+    it("reports Date.now inside supported Effect construction boundaries", () => {
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("sync", arrowCallback(dateNowCall())),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("gen", generatorCallback(blockStatement(expressionStatement(dateNowCall())))),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("try", arrowCallback(dateNowCall())),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("tryPromise", asyncArrowCallback(dateNowCall())),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("fn", generatorCallback(blockStatement(expressionStatement(dateNowCall())))),
+        },
+      ]);
+
+      expect(reports).toHaveLength(5);
+      expect(reports[0]?.message).toContain("Clock");
+    });
+
+    it("reports a Date.now call site once across nested Effect boundaries", () => {
+      const now = dateNowCall();
+      const sync = effectCall("sync", arrowCallback(now));
+      const gen = effectCall(
+        "gen",
+        generatorCallback(blockStatement(expressionStatement(sync))),
+      );
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: gen },
+        { visitorName: "CallExpression", node: sync },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("allows Date.now outside Effect construction boundaries", () => {
+      const topLevelReports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: dateNowCall() },
+      ]);
+      const clockReports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("Clock", "currentTime") },
+      ]);
+      const nonEffectReports = runRule("no-date-now-in-effect", "CallExpression", effectCall(
+        "sync",
+        arrowCallback(dateNowCall()),
+      ));
+
+      expect(topLevelReports).toHaveLength(0);
+      expect(clockReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   describe("no-json-parse-without-schema", () => {
     it("reports JSON.parse in Effect modules without a Schema import", () => {
       const reports = runRuleSequence("no-json-parse-without-schema", [
