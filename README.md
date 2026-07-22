@@ -190,7 +190,7 @@ boundaries.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-node-fs-in-effect-code` | `fs`, `node:fs`, and `node:fs/promises` imports in Effect modules. | Effect code should stay portable and move Node filesystem access behind a platform boundary. |
+| `linteffect/no-node-fs-in-effect-code` | `fs`, `node:fs`, `fs/promises`, and `node:fs/promises` imports and module-scope `require()` calls in Effect modules. | Effect code should stay portable and move Node filesystem access behind a platform boundary. |
 | `linteffect/no-json-parse-without-schema` | `JSON.parse(...)` in Effect modules without an explicit Effect Schema import. | External JSON must be decoded through a schema at the boundary rather than trusted as an unvalidated value. |
 | `linteffect/no-date-now-in-effect` | `Date.now()` within supported Effect construction boundaries. | Time should be supplied through Effect's Clock services so workflows remain deterministic and testable. |
 

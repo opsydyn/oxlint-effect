@@ -11,7 +11,9 @@
 ## Global Constraints
 
 - Keep all three detections AST-only and Effect-gated.
-- Do not add path, type, `require`, dynamic-import, or JSON-result data-flow analysis.
+- Do not add path, type, function-scoped `require`, dynamic-import, or
+  JSON-result data-flow analysis. Support only module-scope `require()` calls
+  for the Node filesystem sources covered by Task 1.
 - A Schema import is the JSON.parse rule's explicit conservative opt-out.
 - Use the repository's `EXPECT` and `QA` example annotation format.
 - Do not create a changeset in this slice.

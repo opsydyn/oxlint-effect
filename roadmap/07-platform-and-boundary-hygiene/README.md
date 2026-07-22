@@ -13,7 +13,7 @@ Primary references:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [x] | `linteffect/no-node-fs-in-effect-code` | `node-fs` | recommended | low | `node:fs`, `node:fs/promises`, `fs` imports in Effect code |
+| [x] | `linteffect/no-node-fs-in-effect-code` | `node-fs` | recommended | low | `fs`, `node:fs`, `fs/promises`, and `node:fs/promises` imports and module-scope `require()` calls in Effect code |
 | [ ] | `linteffect/no-node-platform-in-shared-code` | `node-platform-in-shared-code` | strict | medium | Node-only imports outside app/boundary paths |
 | [x] | `linteffect/no-json-parse-without-schema` | `schema-decode-unknown` | recommended | medium | `JSON.parse` without nearby `Schema.decodeUnknown` or Schema import |
 | [x] | `linteffect/no-date-now-in-effect` | Clock guidance | recommended | low | `Date.now()` inside `Effect.sync`, `Effect.gen`, or service methods |
