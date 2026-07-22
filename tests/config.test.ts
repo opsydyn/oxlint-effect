@@ -22,6 +22,8 @@ import plugin, {
   pipelineShapeAndSequencingRules,
   pureTransformation,
   pureTransformationRules,
+  platformAndBoundaryHygiene,
+  platformAndBoundaryHygieneRules,
   presets,
   reactAndRuntimeBoundaries,
   reactAndRuntimeBoundariesRules,
@@ -179,6 +181,11 @@ const groupExpectations = {
     "prefer-layer-mergeall-for-infrastructure",
     "no-service-layer-scatter",
   ],
+  platformAndBoundaryHygiene: [
+    "no-node-fs-in-effect-code",
+    "no-json-parse-without-schema",
+    "no-date-now-in-effect",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -195,6 +202,7 @@ const exportedRuleGroups = {
   behaviorDecoration: behaviorDecorationRules,
   styleSeparation: styleSeparationRules,
   serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
+  platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
 } as const;
 
 const exportedPresets = {
@@ -211,6 +219,7 @@ const exportedPresets = {
   behaviorDecoration,
   styleSeparation,
   serviceAndLayerArchitecture,
+  platformAndBoundaryHygiene,
 } as const;
 
 describe("linteffect config exports", () => {

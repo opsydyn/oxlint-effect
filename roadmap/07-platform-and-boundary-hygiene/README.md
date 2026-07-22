@@ -13,10 +13,10 @@ Primary references:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/no-node-fs-in-effect-code` | `node-fs` | recommended | low | `node:fs`, `node:fs/promises`, `fs` imports in Effect code |
+| [x] | `linteffect/no-node-fs-in-effect-code` | `node-fs` | recommended | low | `node:fs`, `node:fs/promises`, `fs` imports in Effect code |
 | [ ] | `linteffect/no-node-platform-in-shared-code` | `node-platform-in-shared-code` | strict | medium | Node-only imports outside app/boundary paths |
-| [ ] | `linteffect/no-json-parse-without-schema` | `schema-decode-unknown` | recommended | medium | `JSON.parse` without nearby `Schema.decodeUnknown` or Schema import |
-| [ ] | `linteffect/no-date-now-in-effect` | Clock guidance | recommended | low | `Date.now()` inside `Effect.sync`, `Effect.gen`, or service methods |
+| [x] | `linteffect/no-json-parse-without-schema` | `schema-decode-unknown` | recommended | medium | `JSON.parse` without nearby `Schema.decodeUnknown` or Schema import |
+| [x] | `linteffect/no-date-now-in-effect` | Clock guidance | recommended | low | `Date.now()` inside `Effect.sync`, `Effect.gen`, or service methods |
 | [ ] | `linteffect/no-new-date-in-domain-logic` | time modeling | ddd | medium | `new Date()` inside domain/service logic instead of Clock/DateTime |
 | [ ] | `linteffect/no-process-env-direct-read` | config handling | strict | medium | `process.env.*` outside config service/layer files |
 | [ ] | `linteffect/no-boundary-try-catch-without-effect-map` | boundary guidance | strict | medium | boundary `try/catch` that does not run or map an Effect program |
@@ -26,9 +26,9 @@ Primary references:
 
 ### Slice 1: Platform Substitution
 
-- [ ] `no-node-fs-in-effect-code`
-- [ ] `no-json-parse-without-schema`
-- [ ] `no-date-now-in-effect`
+- [x] `no-node-fs-in-effect-code`
+- [x] `no-json-parse-without-schema`
+- [x] `no-date-now-in-effect`
 
 ### Slice 2: Boundary Clarity
 
@@ -55,4 +55,3 @@ Share boundary detection with Correctness Core:
 - `*.spec.ts`
 
 Add config options before enabling strict path-sensitive rules in public presets.
-

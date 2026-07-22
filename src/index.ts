@@ -6890,6 +6890,12 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
   "no-service-layer-scatter",
 ] as const);
 
+export const platformAndBoundaryHygieneRules = rulesFromNames([
+  "no-node-fs-in-effect-code",
+  "no-json-parse-without-schema",
+  "no-date-now-in-effect",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -6906,6 +6912,7 @@ export const ruleGroups = {
   behaviorDecoration: behaviorDecorationRules,
   styleSeparation: styleSeparationRules,
   serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
+  platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -6924,6 +6931,7 @@ export const pureTransformation = presetFor(pureTransformationRules);
 export const behaviorDecoration = presetFor(behaviorDecorationRules);
 export const styleSeparation = presetFor(styleSeparationRules);
 export const serviceAndLayerArchitecture = presetFor(serviceAndLayerArchitectureRules);
+export const platformAndBoundaryHygiene = presetFor(platformAndBoundaryHygieneRules);
 
 export const presets = {
   recommended,
@@ -6941,6 +6949,7 @@ export const presets = {
   behaviorDecoration,
   styleSeparation,
   serviceAndLayerArchitecture,
+  platformAndBoundaryHygiene,
 } as const;
 
 export default definePlugin({

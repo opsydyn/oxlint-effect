@@ -275,6 +275,7 @@ git commit -m "Add Effect clock boundary rule"
 **Files:**
 - Modify: `src/index.ts`
 - Modify: `tests/config.test.ts`
+- Modify: `tests/fixtures/oxlint/oxlint.config.ts`
 - Modify: `tests/fixtures/oxlint/invalid.ts`
 - Modify: `tests/oxlint.integration.test.ts`
 - Create: `examples/backend/platform-boundary-hygiene-anti-patterns.ts`
@@ -298,6 +299,15 @@ platformAndBoundaryHygiene: [
 ~~~
 
 Add the three invalid patterns to `tests/fixtures/oxlint/invalid.ts`, then assert the three `linteffect(...)` diagnostics in `tests/oxlint.integration.test.ts`.
+
+Add the same three rule keys to the explicit `rules` object in
+`tests/fixtures/oxlint/oxlint.config.ts` so the CLI fixture enables them:
+
+~~~ts
+"linteffect/no-node-fs-in-effect-code": "error",
+"linteffect/no-json-parse-without-schema": "error",
+"linteffect/no-date-now-in-effect": "error",
+~~~
 
 - [ ] **Step 2: Run focused config and CLI tests and verify RED**
 
@@ -356,7 +366,8 @@ Expected: every command exits with code 0 and the package remains inside its con
 
 ~~~bash
 git add src/index.ts tests/plugin.test.ts tests/config.test.ts \
-  tests/fixtures/oxlint/invalid.ts tests/oxlint.integration.test.ts \
+  tests/fixtures/oxlint/oxlint.config.ts tests/fixtures/oxlint/invalid.ts \
+  tests/oxlint.integration.test.ts \
   examples/backend/platform-boundary-hygiene-anti-patterns.ts README.md \
   roadmap/07-platform-and-boundary-hygiene/README.md
 git commit -m "Add platform boundary hygiene rules"

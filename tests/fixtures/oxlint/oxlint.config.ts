@@ -115,5 +115,8 @@ export default defineConfig({
     "linteffect/no-inline-layer-provide-in-program": "error",
     "linteffect/prefer-layer-mergeall-for-infrastructure": "error",
     "linteffect/no-service-layer-scatter": "error",
+    "linteffect/no-node-fs-in-effect-code": "error",
+    "linteffect/no-json-parse-without-schema": "error",
+    "linteffect/no-date-now-in-effect": "error",
   },
 });
