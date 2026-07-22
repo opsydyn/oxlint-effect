@@ -11,10 +11,16 @@
 ## Global Constraints
 
 - Keep all three detections AST-only and Effect-gated.
-- Do not add path, type, `require`, dynamic-import, or JSON-result data-flow analysis.
+- Do not add path, type, function-scoped `require`, dynamic-import, or
+  JSON-result data-flow analysis. Support only module-scope `require()` calls
+  for the Node filesystem sources covered by Task 1.
 - A Schema import is the JSON.parse rule's explicit conservative opt-out.
 - Use the repository's `EXPECT` and `QA` example annotation format.
 - Do not create a changeset in this slice.
+- Preserve a green repository suite after each registered rule by adding that
+  rule's `linteffect/*` entry to the exact `recommended.rules` expectation in
+  `tests/config.test.ts`; defer only the new group-specific config assertions
+  to Task 4.
 
 ---
 
@@ -22,6 +28,7 @@
 
 **Files:**
 - Modify: `tests/plugin.test.ts`
+- Modify: `tests/config.test.ts`
 - Modify: `src/index.ts`
 
 **Interfaces:**
@@ -43,7 +50,10 @@ expect(reports).toHaveLength(1);
 expect(reports[0]?.message).toContain("node:fs");
 ~~~
 
-Add positive cases for `fs`, `node:fs`, and `node:fs/promises`; safe cases for `node:path` and a Node FS import without an Effect import.
+Add positive cases for `fs`, `node:fs`, `fs/promises`, and
+`node:fs/promises`, plus module-scope `require(...)`; add safe cases for
+function-scoped `require(...)`, `node:path`, and a Node FS reference without an
+Effect import.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -56,7 +66,7 @@ Expected: FAIL because the plugin does not export the rule.
 In `src/index.ts`, add the source set and a rule adjacent to other import-gated rules:
 
 ~~~ts
-const nodeFsImportSources = new Set(["fs", "node:fs", "node:fs/promises"]);
+const nodeFsImportSources = new Set(["fs", "node:fs", "fs/promises", "node:fs/promises"]);
 
 const noNodeFsInEffectCode = defineRule({
   create(context: OxlintContext) {
@@ -80,7 +90,13 @@ const noNodeFsInEffectCode = defineRule({
 });
 ~~~
 
+Collect supported module-scope `require(...)` calls alongside imports, while
+tracking function entry and exit so function-scoped calls remain allowed.
+
 Register `"no-node-fs-in-effect-code"` in the `rules` object.
+
+In `tests/config.test.ts`, add `"linteffect/no-node-fs-in-effect-code":
+"error"` to the exact `recommended.rules` expectation.
 
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
@@ -91,7 +107,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit the focused rule**
 
 ~~~bash
-git add src/index.ts tests/plugin.test.ts
+git add src/index.ts tests/plugin.test.ts tests/config.test.ts
 git commit -m "Add Node fs boundary rule"
 ~~~
 
@@ -99,6 +115,7 @@ git commit -m "Add Node fs boundary rule"
 
 **Files:**
 - Modify: `tests/plugin.test.ts`
+- Modify: `tests/config.test.ts`
 - Modify: `src/index.ts`
 
 **Interfaces:**
@@ -113,13 +130,16 @@ Add a `describe("no-json-parse-without-schema", ...)` block:
 const reports = runRuleSequence("no-json-parse-without-schema", [
   { visitorName: "ImportDeclaration", node: importFrom("effect") },
   { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+  { visitorName: "Program:exit", node: {} },
 ]);
 
 expect(reports).toHaveLength(1);
 expect(reports[0]?.message).toContain("Schema.decodeUnknown");
 ~~~
 
-Add safe cases for `effect/Schema`, a named `Schema` import from `effect`, a non-JSON call, and JSON parsing in a module with no Effect import.
+Add safe cases for `effect/Schema`, a named `Schema` import from `effect`, a
+non-JSON call, and JSON parsing in a module with no Effect import. Cover both
+late Effect and late Schema imports.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -136,6 +156,7 @@ const noJsonParseWithoutSchema = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
     let hasEffectSchemaImport = false;
+    const jsonParseCalls: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -144,11 +165,13 @@ const noJsonParseWithoutSchema = defineRule({
         if (importsEffectSchema(node)) hasEffectSchemaImport = true;
       },
       CallExpression(node: any) {
-        if (
-          hasEffectEcosystemImport &&
-          !hasEffectSchemaImport &&
-          isMemberExpression(node.callee, "JSON", "parse")
-        ) {
+        if (isMemberExpression(node.callee, "JSON", "parse")) {
+          jsonParseCalls.push(node);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || hasEffectSchemaImport) return;
+        for (const node of jsonParseCalls) {
           report(context, node, "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: decode unknown input with Schema.decodeUnknown at the boundary.");
         }
       },
@@ -159,6 +182,9 @@ const noJsonParseWithoutSchema = defineRule({
 
 Register `"no-json-parse-without-schema"` in the `rules` object.
 
+In `tests/config.test.ts`, add `"linteffect/no-json-parse-without-schema":
+"error"` to the exact `recommended.rules` expectation.
+
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun test tests/plugin.test.ts --test-name-pattern no-json-parse-without-schema`
@@ -168,7 +194,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit the focused rule**
 
 ~~~bash
-git add src/index.ts tests/plugin.test.ts
+git add src/index.ts tests/plugin.test.ts tests/config.test.ts
 git commit -m "Add JSON Schema boundary rule"
 ~~~
 
@@ -176,6 +202,7 @@ git commit -m "Add JSON Schema boundary rule"
 
 **Files:**
 - Modify: `tests/plugin.test.ts`
+- Modify: `tests/config.test.ts`
 - Modify: `src/index.ts`
 
 **Interfaces:**
@@ -195,13 +222,17 @@ const reports = runRuleSequence("no-date-now-in-effect", [
     visitorName: "CallExpression",
     node: effectCall("sync", arrowCallback(dateNowCall())),
   },
+  { visitorName: "Program:exit", node: {} },
 ]);
 
 expect(reports).toHaveLength(1);
 expect(reports[0]?.message).toContain("Clock");
 ~~~
 
-Cover `Effect.sync` and `Effect.gen` positives, a nested `Effect.gen`/ `Effect.sync` case that reports once, and safe top-level `Date.now()`, `Clock.currentTime`, and non-Effect cases.
+Cover `Effect.sync` and `Effect.gen` positives, a nested `Effect.gen`/
+`Effect.sync` case that reports once, an Effect import declared after the
+candidate, and safe top-level `Date.now()`, `Clock.currentTime`, and non-Effect
+cases.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -219,7 +250,8 @@ const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise"
 const noDateNowInEffect = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
-    const reportedDateCalls = new WeakSet<object>();
+    const collectedDateCalls = new WeakSet<object>();
+    const dateNowCalls: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -227,10 +259,16 @@ const noDateNowInEffect = defineRule({
         if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
       },
       CallExpression(node: any) {
-        if (!hasEffectEcosystemImport || !isEffectConstructionBoundary(node)) return;
+        if (!isEffectConstructionBoundary(node)) return;
         for (const dateNowCall of findDateNowCalls(node.arguments)) {
-          if (reportedDateCalls.has(dateNowCall as object)) continue;
-          reportedDateCalls.add(dateNowCall as object);
+          if (collectedDateCalls.has(dateNowCall as object)) continue;
+          collectedDateCalls.add(dateNowCall as object);
+          dateNowCalls.push(dateNowCall);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) return;
+        for (const dateNowCall of dateNowCalls) {
           report(context, dateNowCall, "Rule: avoid Date.now inside Effect logic. Why: direct wall-clock reads make programs nondeterministic and difficult to test. Fix: obtain time through Effect Clock or DateTime at the boundary.");
         }
       },
@@ -241,6 +279,9 @@ const noDateNowInEffect = defineRule({
 
 Ensure the recursive helper skips `parent` links. Register `"no-date-now-in-effect"` in `rules`.
 
+In `tests/config.test.ts`, add `"linteffect/no-date-now-in-effect": "error"`
+to the exact `recommended.rules` expectation.
+
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun test tests/plugin.test.ts --test-name-pattern no-date-now-in-effect`
@@ -250,7 +291,7 @@ Expected: PASS with one diagnostic per offending call site.
 - [ ] **Step 5: Commit the focused rule**
 
 ~~~bash
-git add src/index.ts tests/plugin.test.ts
+git add src/index.ts tests/plugin.test.ts tests/config.test.ts
 git commit -m "Add Effect clock boundary rule"
 ~~~
 
@@ -259,6 +300,7 @@ git commit -m "Add Effect clock boundary rule"
 **Files:**
 - Modify: `src/index.ts`
 - Modify: `tests/config.test.ts`
+- Modify: `tests/fixtures/oxlint/oxlint.config.ts`
 - Modify: `tests/fixtures/oxlint/invalid.ts`
 - Modify: `tests/oxlint.integration.test.ts`
 - Create: `examples/backend/platform-boundary-hygiene-anti-patterns.ts`
@@ -282,6 +324,15 @@ platformAndBoundaryHygiene: [
 ~~~
 
 Add the three invalid patterns to `tests/fixtures/oxlint/invalid.ts`, then assert the three `linteffect(...)` diagnostics in `tests/oxlint.integration.test.ts`.
+
+Add the same three rule keys to the explicit `rules` object in
+`tests/fixtures/oxlint/oxlint.config.ts` so the CLI fixture enables them:
+
+~~~ts
+"linteffect/no-node-fs-in-effect-code": "error",
+"linteffect/no-json-parse-without-schema": "error",
+"linteffect/no-date-now-in-effect": "error",
+~~~
 
 - [ ] **Step 2: Run focused config and CLI tests and verify RED**
 
@@ -340,7 +391,8 @@ Expected: every command exits with code 0 and the package remains inside its con
 
 ~~~bash
 git add src/index.ts tests/plugin.test.ts tests/config.test.ts \
-  tests/fixtures/oxlint/invalid.ts tests/oxlint.integration.test.ts \
+  tests/fixtures/oxlint/oxlint.config.ts tests/fixtures/oxlint/invalid.ts \
+  tests/oxlint.integration.test.ts \
   examples/backend/platform-boundary-hygiene-anti-patterns.ts README.md \
   roadmap/07-platform-and-boundary-hygiene/README.md
 git commit -m "Add platform boundary hygiene rules"
@@ -351,4 +403,3 @@ git commit -m "Add platform boundary hygiene rules"
 - Spec coverage: Tasks 1-3 implement the approved rule contracts; Task 4 exports the group and supplies the required CLI, example, README, and roadmap coverage.
 - Placeholder scan: no incomplete requirements or deferred implementation steps remain.
 - Type consistency: public exports use the exact approved `platformAndBoundaryHygiene` and `platformAndBoundaryHygieneRules` names.
-

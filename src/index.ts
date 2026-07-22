@@ -361,6 +361,52 @@ function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen"): boole
   return getEffectGeneratorArgument(node, propertyName) !== undefined;
 }
 
+const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise", "fn"]);
+
+function isEffectConstructionBoundary(node: unknown): node is Node & { arguments: unknown[] } {
+  if (isEffectMemberCall(node)) {
+    const property = (node.callee as Node).property;
+    if (isIdentifier(property) && effectConstructionBoundaries.has(property.name)) {
+      return true;
+    }
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const call = node as Node;
+  return call.type === "CallExpression" && isEffectMemberCallNamed(call.callee, "fn");
+}
+
+function isDateNowCall(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "CallExpression" &&
+    isMemberExpression((node as Node).callee, "Date", "now")
+  );
+}
+
+function findDateNowCalls(node: unknown, seen = new WeakSet<object>()): unknown[] {
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findDateNowCalls(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null || seen.has(node)) {
+    return [];
+  }
+  seen.add(node);
+
+  if (isDateNowCall(node)) {
+    return [node];
+  }
+
+  return Object.entries(node).flatMap(([key, child]) => (
+    key === "parent" ? [] : findDateNowCalls(child, seen)
+  ));
+}
+
 function findYieldWithoutStar(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
   if (Array.isArray(node)) {
     for (const child of node) {
@@ -3798,6 +3844,27 @@ function isEffectEcosystemImport(source: string): boolean {
   );
 }
 
+function importsEffectSchema(node: unknown): boolean {
+  const source = getImportSource(node);
+  if (source === "effect/Schema") {
+    return true;
+  }
+
+  if (source !== "effect" || typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const specifiers = (node as Node).specifiers;
+  return Array.isArray(specifiers) && specifiers.some((specifier) => {
+    if (typeof specifier !== "object" || specifier === null) {
+      return false;
+    }
+
+    const item = specifier as Node;
+    return item.type === "ImportSpecifier" && isIdentifier(item.imported, "Schema");
+  });
+}
+
 function createEffectGatedStatementRule(
   visitorName: "IfStatement" | "SwitchStatement" | "ConditionalExpression",
   message: string,
@@ -5720,6 +5787,137 @@ const noRawTimeDomainField = defineRule({
   },
 });
 
+const nodeFsImportSources = new Set(["fs", "node:fs", "fs/promises", "node:fs/promises"]);
+
+function getNodeFsRequireSource(node: unknown): string | undefined {
+  if (
+    typeof node !== "object" ||
+    node === null ||
+    (node as Node).type !== "CallExpression" ||
+    !isIdentifier((node as Node).callee, "require")
+  ) {
+    return undefined;
+  }
+
+  const argument = ((node as Node).arguments as unknown[] | undefined)?.[0];
+  if (!isStringLiteral(argument)) return undefined;
+
+  const source = (argument as Node).value as string;
+  return nodeFsImportSources.has(source) ? source : undefined;
+}
+
+const noNodeFsInEffectCode = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    let functionDepth = 0;
+    const nodeFsReferences: Array<{ node: unknown; source: string }> = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+        if (source && nodeFsImportSources.has(source)) {
+          nodeFsReferences.push({ node, source });
+        }
+      },
+      FunctionDeclaration() {
+        functionDepth += 1;
+      },
+      "FunctionDeclaration:exit"() {
+        functionDepth -= 1;
+      },
+      FunctionExpression() {
+        functionDepth += 1;
+      },
+      "FunctionExpression:exit"() {
+        functionDepth -= 1;
+      },
+      ArrowFunctionExpression() {
+        functionDepth += 1;
+      },
+      "ArrowFunctionExpression:exit"() {
+        functionDepth -= 1;
+      },
+      CallExpression(node: any) {
+        if (functionDepth !== 0) return;
+        const source = getNodeFsRequireSource(node);
+        if (source) nodeFsReferences.push({ node, source });
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) return;
+        for (const { node, source } of nodeFsReferences) {
+          report(context, node, `Rule: avoid Node fs imports or require calls in Effect code (${source}). Why: direct Node filesystem APIs make reusable Effect modules platform-specific. Fix: move filesystem work behind an Effect platform service at the application boundary.`);
+        }
+      },
+    };
+  },
+});
+
+const noJsonParseWithoutSchema = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    let hasEffectSchemaImport = false;
+    const jsonParseCalls: unknown[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+        if (importsEffectSchema(node)) hasEffectSchemaImport = true;
+      },
+      CallExpression(node: any) {
+        if (isMemberExpression(node.callee, "JSON", "parse")) {
+          jsonParseCalls.push(node);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || hasEffectSchemaImport) return;
+        for (const node of jsonParseCalls) {
+          report(
+            context,
+            node,
+            "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: decode unknown input with Schema.decodeUnknown at the boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noDateNowInEffect = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const collectedDateCalls = new WeakSet<object>();
+    const dateNowCalls: unknown[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+      },
+      CallExpression(node: any) {
+        if (!isEffectConstructionBoundary(node)) return;
+
+        for (const dateNowCall of findDateNowCalls(node.arguments)) {
+          if (collectedDateCalls.has(dateNowCall as object)) continue;
+          collectedDateCalls.add(dateNowCall as object);
+          dateNowCalls.push(dateNowCall);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) return;
+        for (const dateNowCall of dateNowCalls) {
+          report(
+            context,
+            dateNowCall,
+            "Rule: avoid Date.now inside Effect logic. Why: direct wall-clock reads make programs nondeterministic and difficult to test. Fix: obtain time through Effect Clock or DateTime at the boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noOverloadedOptionsObject = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6507,6 +6705,8 @@ const rules = {
   "prefer-layer-mergeall-for-infrastructure": preferLayerMergeallForInfrastructure,
   "no-service-layer-scatter": noServiceLayerScatter,
   "no-match-void-branch": noMatchVoidBranch,
+  "no-json-parse-without-schema": noJsonParseWithoutSchema,
+  "no-date-now-in-effect": noDateNowInEffect,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
   "no-effect-side-effect-wrapper": noEffectSideEffectWrapper,
@@ -6541,6 +6741,7 @@ const rules = {
   "no-magic-domain-string": noMagicDomainString,
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
+  "no-node-fs-in-effect-code": noNodeFsInEffectCode,
   "no-overloaded-options-object": noOverloadedOptionsObject,
   "no-domain-logic-in-conditional": noDomainLogicInConditional,
   "no-implicit-state-machine-object": noImplicitStateMachineObject,
@@ -6741,6 +6942,12 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
   "no-service-layer-scatter",
 ] as const);
 
+export const platformAndBoundaryHygieneRules = rulesFromNames([
+  "no-node-fs-in-effect-code",
+  "no-json-parse-without-schema",
+  "no-date-now-in-effect",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -6757,6 +6964,7 @@ export const ruleGroups = {
   behaviorDecoration: behaviorDecorationRules,
   styleSeparation: styleSeparationRules,
   serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
+  platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -6775,6 +6983,7 @@ export const pureTransformation = presetFor(pureTransformationRules);
 export const behaviorDecoration = presetFor(behaviorDecorationRules);
 export const styleSeparation = presetFor(styleSeparationRules);
 export const serviceAndLayerArchitecture = presetFor(serviceAndLayerArchitectureRules);
+export const platformAndBoundaryHygiene = presetFor(platformAndBoundaryHygieneRules);
 
 export const presets = {
   recommended,
@@ -6792,6 +7001,7 @@ export const presets = {
   behaviorDecoration,
   styleSeparation,
   serviceAndLayerArchitecture,
+  platformAndBoundaryHygiene,
 } as const;
 
 export default definePlugin({

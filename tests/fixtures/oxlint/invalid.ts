@@ -2,6 +2,7 @@ import { Context, Effect, Layer, Match, Option, Queue, Ref, Runtime, flow, pipe 
 import * as EffectNamespace from "effect";
 import { Atom } from "@effect-atom/atom-react";
 import { useState } from "react";
+import { readFile } from "node:fs";
 
 const count = useState(0);
 
@@ -67,6 +68,14 @@ const fnGenerator = Effect.fn(function* () {
 const syncConsole = Effect.sync(() => {
   console.log(count);
 });
+
+const parsedPayload = JSON.parse('{"id": "user-1"}');
+
+const wallClockRead = Effect.sync(() => Date.now());
+
+void readFile;
+void parsedPayload;
+void wallClockRead;
 
 const nestedGen = Effect.gen(function* () {
   return yield* Effect.gen(function* () {

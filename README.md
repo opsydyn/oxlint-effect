@@ -60,6 +60,7 @@ Named group presets:
 | `behaviorDecoration` | Behavior Decoration |
 | `styleSeparation` | Style Separation |
 | `serviceAndLayerArchitecture` | Service and Layer Architecture |
+| `platformAndBoundaryHygiene` | Platform and Boundary Hygiene |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -184,6 +185,14 @@ boundaries.
 | `linteffect/no-inline-layer-provide-in-program` | `Effect.provide(...)` or `Layer.provide(...)` buried inside `Effect.gen` program bodies. | Programs should describe workflow; application layer provisioning belongs at composition boundaries. |
 | `linteffect/prefer-layer-mergeall-for-infrastructure` | Nested `Layer.merge(...)` chains. | Infrastructure groups should use `Layer.mergeAll(...)` so dependency groups stay visible. |
 | `linteffect/no-service-layer-scatter` | Three or more separate `*Layer`/`*Live` constants with inline `Layer.provide` or `Effect.provide`. | Service and infrastructure layers should be grouped by concern instead of scattered one constant at a time. |
+
+### Platform and Boundary Hygiene
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-node-fs-in-effect-code` | `fs`, `node:fs`, `fs/promises`, and `node:fs/promises` imports and module-scope `require()` calls in Effect modules. | Effect code should stay portable and move Node filesystem access behind a platform boundary. |
+| `linteffect/no-json-parse-without-schema` | `JSON.parse(...)` in Effect modules without an explicit Effect Schema import. | External JSON must be decoded through a schema at the boundary rather than trusted as an unvalidated value. |
+| `linteffect/no-date-now-in-effect` | `Date.now()` within supported Effect construction boundaries. | Time should be supplied through Effect's Clock services so workflows remain deterministic and testable. |
 
 ### Concurrency Safety
 

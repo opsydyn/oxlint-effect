@@ -58,6 +58,14 @@ const memberCall = (object: string, property: string) => ({
   },
 });
 
+const requireCall = (source: string) => ({
+  type: "CallExpression",
+  callee: identifier("require"),
+  arguments: [{ type: "Literal", value: source }],
+});
+
+const dateNowCall = () => memberCall("Date", "now");
+
 const effectCall = (property: string, ...args: unknown[]) => ({
   type: "CallExpression",
   callee: {
@@ -537,6 +545,262 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-date-now-in-effect", () => {
+    it("reports Date.now inside supported Effect construction boundaries", () => {
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("sync", arrowCallback(dateNowCall())),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("gen", generatorCallback(blockStatement(expressionStatement(dateNowCall())))),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("try", arrowCallback(dateNowCall())),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("tryPromise", asyncArrowCallback(dateNowCall())),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("fn", generatorCallback(blockStatement(expressionStatement(dateNowCall())))),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(5);
+      expect(reports[0]?.message).toContain("Clock");
+    });
+
+    it("reports a Date.now call site once across nested Effect boundaries", () => {
+      const now = dateNowCall();
+      const sync = effectCall("sync", arrowCallback(now));
+      const gen = effectCall(
+        "gen",
+        generatorCallback(blockStatement(expressionStatement(sync))),
+      );
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: gen },
+        { visitorName: "CallExpression", node: sync },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("reports Date.now inside the curried Effect.fn callback form", () => {
+      const curriedFn = callbackCall(
+        effectCall("fn", { type: "Literal", value: "span" }),
+        generatorCallback(blockStatement(expressionStatement(dateNowCall()))),
+      );
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: curriedFn },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("reports candidates when the Effect import is declared later", () => {
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall("sync", arrowCallback(dateNowCall())),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("allows Date.now outside Effect construction boundaries", () => {
+      const topLevelReports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: dateNowCall() },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+      const clockReports = runRuleSequence("no-date-now-in-effect", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("Clock", "currentTime") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+      const nonEffectReports = runRuleSequence("no-date-now-in-effect", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall("sync", arrowCallback(dateNowCall())),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(topLevelReports).toHaveLength(0);
+      expect(clockReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
+  describe("no-json-parse-without-schema", () => {
+    it("reports JSON.parse in Effect modules without a Schema import", () => {
+      const reports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("Schema.decodeUnknown");
+    });
+
+    it("allows JSON.parse when effect/Schema is imported", () => {
+      const reports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect/Schema") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows JSON.parse when Schema is named-imported from effect", () => {
+      const reports = runRuleSequence("no-json-parse-without-schema", [
+        {
+          visitorName: "ImportDeclaration",
+          node: {
+            ...importFrom("effect"),
+            specifiers: [
+              {
+                type: "ImportSpecifier",
+                imported: identifier("Schema"),
+                local: identifier("Schema"),
+              },
+            ],
+          },
+        },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("uses final import state regardless of source order", () => {
+      const lateEffectReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+      const lateSchemaReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect/Schema") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(lateEffectReports).toHaveLength(1);
+      expect(lateSchemaReports).toHaveLength(0);
+    });
+
+    it("allows non-JSON calls and JSON.parse in modules without Effect imports", () => {
+      const nonJsonReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "stringify") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      const nonEffectReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(nonJsonReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
+  describe("no-node-fs-in-effect-code", () => {
+    it("reports Node fs imports regardless of import order", () => {
+      const reports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("node:fs") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("node:fs");
+
+      const reverseReports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "ImportDeclaration", node: importFrom("node:fs/promises") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reverseReports).toHaveLength(1);
+      expect(reverseReports[0]?.message).toContain("Node fs imports");
+    });
+
+    it("reports each supported Node fs import source in Effect files", () => {
+      for (const source of ["fs", "node:fs", "fs/promises", "node:fs/promises"]) {
+        const reports = runRuleSequence("no-node-fs-in-effect-code", [
+          { visitorName: "ImportDeclaration", node: importFrom(source) },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain("Node fs imports");
+      }
+    });
+
+    it("reports supported module-scope require calls", () => {
+      for (const source of ["fs", "node:fs", "fs/promises", "node:fs/promises"]) {
+        const reports = runRuleSequence("no-node-fs-in-effect-code", [
+          { visitorName: "CallExpression", node: requireCall(source) },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain(source);
+      }
+    });
+
+    it("allows require calls inside function scope", () => {
+      const reports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "FunctionDeclaration", node: {} },
+        { visitorName: "CallExpression", node: requireCall("node:fs") },
+        { visitorName: "FunctionDeclaration:exit", node: {} },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows non-fs Node imports and files without Effect imports", () => {
+      const pathReports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("node:path") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(pathReports).toHaveLength(0);
+
+      const nonEffectReports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("node:fs") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   it("exports package metadata", () => {
     expect(plugin.meta?.name).toBe("linteffect");
   });

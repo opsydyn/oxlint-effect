@@ -134,6 +134,9 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("linteffect(no-inline-layer-provide-in-program)");
     expect(result.output).toContain("linteffect(prefer-layer-mergeall-for-infrastructure)");
     expect(result.output).toContain("linteffect(no-service-layer-scatter)");
+    expect(result.output).toContain("linteffect(no-node-fs-in-effect-code)");
+    expect(result.output).toContain("linteffect(no-json-parse-without-schema)");
+    expect(result.output).toContain("linteffect(no-date-now-in-effect)");
   });
 
   it("allows a clean Effect-style fixture", () => {
@@ -141,6 +144,16 @@ describe("linteffect oxlint integration", () => {
 
     expect(result.status).toBe(0);
     expect(result.output).not.toContain("linteffect(");
+  });
+
+  it("reports every supported Node fs module form through the CLI", () => {
+    const result = runOxlint("platform-boundary-node-fs.ts");
+    const diagnostics = result.output.match(/linteffect\(no-node-fs-in-effect-code\)/g);
+
+    expect(result.status).toBe(1);
+    expect(diagnostics).toHaveLength(4);
+    expect(result.output).toContain("fs/promises");
+    expect(result.output).toContain("node:fs/promises");
   });
 
   it("allows imperative branching outside Effect files", () => {
