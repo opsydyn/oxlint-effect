@@ -58,6 +58,12 @@ const memberCall = (object: string, property: string) => ({
   },
 });
 
+const requireCall = (source: string) => ({
+  type: "CallExpression",
+  callee: identifier("require"),
+  arguments: [{ type: "Literal", value: source }],
+});
+
 const dateNowCall = () => memberCall("Date", "now");
 
 const effectCall = (property: string, ...args: unknown[]) => ({
@@ -563,6 +569,7 @@ describe("linteffect Oxlint plugin", () => {
           visitorName: "CallExpression",
           node: effectCall("fn", generatorCallback(blockStatement(expressionStatement(dateNowCall())))),
         },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(reports).toHaveLength(5);
@@ -580,6 +587,7 @@ describe("linteffect Oxlint plugin", () => {
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "CallExpression", node: gen },
         { visitorName: "CallExpression", node: sync },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(reports).toHaveLength(1);
@@ -593,6 +601,20 @@ describe("linteffect Oxlint plugin", () => {
       const reports = runRuleSequence("no-date-now-in-effect", [
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "CallExpression", node: curriedFn },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("reports candidates when the Effect import is declared later", () => {
+      const reports = runRuleSequence("no-date-now-in-effect", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall("sync", arrowCallback(dateNowCall())),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(reports).toHaveLength(1);
@@ -602,15 +624,20 @@ describe("linteffect Oxlint plugin", () => {
       const topLevelReports = runRuleSequence("no-date-now-in-effect", [
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "CallExpression", node: dateNowCall() },
+        { visitorName: "Program:exit", node: {} },
       ]);
       const clockReports = runRuleSequence("no-date-now-in-effect", [
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "CallExpression", node: memberCall("Clock", "currentTime") },
+        { visitorName: "Program:exit", node: {} },
       ]);
-      const nonEffectReports = runRule("no-date-now-in-effect", "CallExpression", effectCall(
-        "sync",
-        arrowCallback(dateNowCall()),
-      ));
+      const nonEffectReports = runRuleSequence("no-date-now-in-effect", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall("sync", arrowCallback(dateNowCall())),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
 
       expect(topLevelReports).toHaveLength(0);
       expect(clockReports).toHaveLength(0);
@@ -623,6 +650,7 @@ describe("linteffect Oxlint plugin", () => {
       const reports = runRuleSequence("no-json-parse-without-schema", [
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(reports).toHaveLength(1);
@@ -634,6 +662,7 @@ describe("linteffect Oxlint plugin", () => {
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "ImportDeclaration", node: importFrom("effect/Schema") },
         { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(reports).toHaveLength(0);
@@ -655,19 +684,39 @@ describe("linteffect Oxlint plugin", () => {
           },
         },
         { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(reports).toHaveLength(0);
+    });
+
+    it("uses final import state regardless of source order", () => {
+      const lateEffectReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+      const lateSchemaReports = runRuleSequence("no-json-parse-without-schema", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "ImportDeclaration", node: importFrom("effect/Schema") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(lateEffectReports).toHaveLength(1);
+      expect(lateSchemaReports).toHaveLength(0);
     });
 
     it("allows non-JSON calls and JSON.parse in modules without Effect imports", () => {
       const nonJsonReports = runRuleSequence("no-json-parse-without-schema", [
         { visitorName: "ImportDeclaration", node: importFrom("effect") },
         { visitorName: "CallExpression", node: memberCall("JSON", "stringify") },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       const nonEffectReports = runRuleSequence("no-json-parse-without-schema", [
         { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+        { visitorName: "Program:exit", node: {} },
       ]);
 
       expect(nonJsonReports).toHaveLength(0);
@@ -697,7 +746,7 @@ describe("linteffect Oxlint plugin", () => {
     });
 
     it("reports each supported Node fs import source in Effect files", () => {
-      for (const source of ["fs", "node:fs", "node:fs/promises"]) {
+      for (const source of ["fs", "node:fs", "fs/promises", "node:fs/promises"]) {
         const reports = runRuleSequence("no-node-fs-in-effect-code", [
           { visitorName: "ImportDeclaration", node: importFrom(source) },
           { visitorName: "ImportDeclaration", node: importFrom("effect") },
@@ -707,6 +756,31 @@ describe("linteffect Oxlint plugin", () => {
         expect(reports).toHaveLength(1);
         expect(reports[0]?.message).toContain("Node fs imports");
       }
+    });
+
+    it("reports supported module-scope require calls", () => {
+      for (const source of ["fs", "node:fs", "fs/promises", "node:fs/promises"]) {
+        const reports = runRuleSequence("no-node-fs-in-effect-code", [
+          { visitorName: "CallExpression", node: requireCall(source) },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain(source);
+      }
+    });
+
+    it("allows require calls inside function scope", () => {
+      const reports = runRuleSequence("no-node-fs-in-effect-code", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "FunctionDeclaration", node: {} },
+        { visitorName: "CallExpression", node: requireCall("node:fs") },
+        { visitorName: "FunctionDeclaration:exit", node: {} },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
     });
 
     it("allows non-fs Node imports and files without Effect imports", () => {

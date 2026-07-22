@@ -48,7 +48,10 @@ expect(reports).toHaveLength(1);
 expect(reports[0]?.message).toContain("node:fs");
 ~~~
 
-Add positive cases for `fs`, `node:fs`, and `node:fs/promises`; safe cases for `node:path` and a Node FS import without an Effect import.
+Add positive cases for `fs`, `node:fs`, `fs/promises`, and
+`node:fs/promises`, plus module-scope `require(...)`; add safe cases for
+function-scoped `require(...)`, `node:path`, and a Node FS reference without an
+Effect import.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -61,7 +64,7 @@ Expected: FAIL because the plugin does not export the rule.
 In `src/index.ts`, add the source set and a rule adjacent to other import-gated rules:
 
 ~~~ts
-const nodeFsImportSources = new Set(["fs", "node:fs", "node:fs/promises"]);
+const nodeFsImportSources = new Set(["fs", "node:fs", "fs/promises", "node:fs/promises"]);
 
 const noNodeFsInEffectCode = defineRule({
   create(context: OxlintContext) {
@@ -84,6 +87,9 @@ const noNodeFsInEffectCode = defineRule({
   },
 });
 ~~~
+
+Collect supported module-scope `require(...)` calls alongside imports, while
+tracking function entry and exit so function-scoped calls remain allowed.
 
 Register `"no-node-fs-in-effect-code"` in the `rules` object.
 
@@ -122,13 +128,16 @@ Add a `describe("no-json-parse-without-schema", ...)` block:
 const reports = runRuleSequence("no-json-parse-without-schema", [
   { visitorName: "ImportDeclaration", node: importFrom("effect") },
   { visitorName: "CallExpression", node: memberCall("JSON", "parse") },
+  { visitorName: "Program:exit", node: {} },
 ]);
 
 expect(reports).toHaveLength(1);
 expect(reports[0]?.message).toContain("Schema.decodeUnknown");
 ~~~
 
-Add safe cases for `effect/Schema`, a named `Schema` import from `effect`, a non-JSON call, and JSON parsing in a module with no Effect import.
+Add safe cases for `effect/Schema`, a named `Schema` import from `effect`, a
+non-JSON call, and JSON parsing in a module with no Effect import. Cover both
+late Effect and late Schema imports.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -145,6 +154,7 @@ const noJsonParseWithoutSchema = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
     let hasEffectSchemaImport = false;
+    const jsonParseCalls: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -153,11 +163,13 @@ const noJsonParseWithoutSchema = defineRule({
         if (importsEffectSchema(node)) hasEffectSchemaImport = true;
       },
       CallExpression(node: any) {
-        if (
-          hasEffectEcosystemImport &&
-          !hasEffectSchemaImport &&
-          isMemberExpression(node.callee, "JSON", "parse")
-        ) {
+        if (isMemberExpression(node.callee, "JSON", "parse")) {
+          jsonParseCalls.push(node);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || hasEffectSchemaImport) return;
+        for (const node of jsonParseCalls) {
           report(context, node, "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: decode unknown input with Schema.decodeUnknown at the boundary.");
         }
       },
@@ -208,13 +220,17 @@ const reports = runRuleSequence("no-date-now-in-effect", [
     visitorName: "CallExpression",
     node: effectCall("sync", arrowCallback(dateNowCall())),
   },
+  { visitorName: "Program:exit", node: {} },
 ]);
 
 expect(reports).toHaveLength(1);
 expect(reports[0]?.message).toContain("Clock");
 ~~~
 
-Cover `Effect.sync` and `Effect.gen` positives, a nested `Effect.gen`/ `Effect.sync` case that reports once, and safe top-level `Date.now()`, `Clock.currentTime`, and non-Effect cases.
+Cover `Effect.sync` and `Effect.gen` positives, a nested `Effect.gen`/
+`Effect.sync` case that reports once, an Effect import declared after the
+candidate, and safe top-level `Date.now()`, `Clock.currentTime`, and non-Effect
+cases.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -232,7 +248,8 @@ const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise"
 const noDateNowInEffect = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
-    const reportedDateCalls = new WeakSet<object>();
+    const collectedDateCalls = new WeakSet<object>();
+    const dateNowCalls: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -240,10 +257,16 @@ const noDateNowInEffect = defineRule({
         if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
       },
       CallExpression(node: any) {
-        if (!hasEffectEcosystemImport || !isEffectConstructionBoundary(node)) return;
+        if (!isEffectConstructionBoundary(node)) return;
         for (const dateNowCall of findDateNowCalls(node.arguments)) {
-          if (reportedDateCalls.has(dateNowCall as object)) continue;
-          reportedDateCalls.add(dateNowCall as object);
+          if (collectedDateCalls.has(dateNowCall as object)) continue;
+          collectedDateCalls.add(dateNowCall as object);
+          dateNowCalls.push(dateNowCall);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) return;
+        for (const dateNowCall of dateNowCalls) {
           report(context, dateNowCall, "Rule: avoid Date.now inside Effect logic. Why: direct wall-clock reads make programs nondeterministic and difficult to test. Fix: obtain time through Effect Clock or DateTime at the boundary.");
         }
       },

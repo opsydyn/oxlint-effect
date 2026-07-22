@@ -5787,24 +5787,66 @@ const noRawTimeDomainField = defineRule({
   },
 });
 
-const nodeFsImportSources = new Set(["fs", "node:fs", "node:fs/promises"]);
+const nodeFsImportSources = new Set(["fs", "node:fs", "fs/promises", "node:fs/promises"]);
+
+function getNodeFsRequireSource(node: unknown): string | undefined {
+  if (
+    typeof node !== "object" ||
+    node === null ||
+    (node as Node).type !== "CallExpression" ||
+    !isIdentifier((node as Node).callee, "require")
+  ) {
+    return undefined;
+  }
+
+  const argument = ((node as Node).arguments as unknown[] | undefined)?.[0];
+  if (!isStringLiteral(argument)) return undefined;
+
+  const source = (argument as Node).value as string;
+  return nodeFsImportSources.has(source) ? source : undefined;
+}
 
 const noNodeFsInEffectCode = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
-    const nodeFsImports: unknown[] = [];
+    let functionDepth = 0;
+    const nodeFsReferences: Array<{ node: unknown; source: string }> = [];
 
     return {
       ImportDeclaration(node: any) {
         const source = getImportSource(node);
         if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
-        if (source && nodeFsImportSources.has(source)) nodeFsImports.push(node);
+        if (source && nodeFsImportSources.has(source)) {
+          nodeFsReferences.push({ node, source });
+        }
+      },
+      FunctionDeclaration() {
+        functionDepth += 1;
+      },
+      "FunctionDeclaration:exit"() {
+        functionDepth -= 1;
+      },
+      FunctionExpression() {
+        functionDepth += 1;
+      },
+      "FunctionExpression:exit"() {
+        functionDepth -= 1;
+      },
+      ArrowFunctionExpression() {
+        functionDepth += 1;
+      },
+      "ArrowFunctionExpression:exit"() {
+        functionDepth -= 1;
+      },
+      CallExpression(node: any) {
+        if (functionDepth !== 0) return;
+        const source = getNodeFsRequireSource(node);
+        if (source) nodeFsReferences.push({ node, source });
       },
       "Program:exit"() {
         if (!hasEffectEcosystemImport) return;
-        for (const node of nodeFsImports) {
-          const source = getImportSource(node);
-          report(context, node, `Rule: avoid Node fs imports in Effect code (${source ?? "unknown source"}). Why: direct Node filesystem APIs make reusable Effect modules platform-specific. Fix: move filesystem work behind an Effect platform service at the application boundary.`);
+        for (const { node, source } of nodeFsReferences) {
+          report(context, node, `Rule: avoid Node fs imports or require calls in Effect code (${source}). Why: direct Node filesystem APIs make reusable Effect modules platform-specific. Fix: move filesystem work behind an Effect platform service at the application boundary.`);
         }
       },
     };
@@ -5815,6 +5857,7 @@ const noJsonParseWithoutSchema = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
     let hasEffectSchemaImport = false;
+    const jsonParseCalls: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -5823,11 +5866,13 @@ const noJsonParseWithoutSchema = defineRule({
         if (importsEffectSchema(node)) hasEffectSchemaImport = true;
       },
       CallExpression(node: any) {
-        if (
-          hasEffectEcosystemImport &&
-          !hasEffectSchemaImport &&
-          isMemberExpression(node.callee, "JSON", "parse")
-        ) {
+        if (isMemberExpression(node.callee, "JSON", "parse")) {
+          jsonParseCalls.push(node);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || hasEffectSchemaImport) return;
+        for (const node of jsonParseCalls) {
           report(
             context,
             node,
@@ -5842,7 +5887,8 @@ const noJsonParseWithoutSchema = defineRule({
 const noDateNowInEffect = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
-    const reportedDateCalls = new WeakSet<object>();
+    const collectedDateCalls = new WeakSet<object>();
+    const dateNowCalls: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -5850,11 +5896,17 @@ const noDateNowInEffect = defineRule({
         if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
       },
       CallExpression(node: any) {
-        if (!hasEffectEcosystemImport || !isEffectConstructionBoundary(node)) return;
+        if (!isEffectConstructionBoundary(node)) return;
 
         for (const dateNowCall of findDateNowCalls(node.arguments)) {
-          if (reportedDateCalls.has(dateNowCall as object)) continue;
-          reportedDateCalls.add(dateNowCall as object);
+          if (collectedDateCalls.has(dateNowCall as object)) continue;
+          collectedDateCalls.add(dateNowCall as object);
+          dateNowCalls.push(dateNowCall);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) return;
+        for (const dateNowCall of dateNowCalls) {
           report(
             context,
             dateNowCall,

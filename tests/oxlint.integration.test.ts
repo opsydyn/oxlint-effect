@@ -146,6 +146,16 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).not.toContain("linteffect(");
   });
 
+  it("reports every supported Node fs module form through the CLI", () => {
+    const result = runOxlint("platform-boundary-node-fs.ts");
+    const diagnostics = result.output.match(/linteffect\(no-node-fs-in-effect-code\)/g);
+
+    expect(result.status).toBe(1);
+    expect(diagnostics).toHaveLength(4);
+    expect(result.output).toContain("fs/promises");
+    expect(result.output).toContain("node:fs/promises");
+  });
+
   it("allows imperative branching outside Effect files", () => {
     const result = runOxlint("plain-branching.ts");
 

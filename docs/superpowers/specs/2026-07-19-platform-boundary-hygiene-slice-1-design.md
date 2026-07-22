@@ -13,19 +13,22 @@ AST-only checks for Effect TypeScript modules:
 
 ### `no-node-fs-in-effect-code`
 
-Report imports from `fs`, `node:fs`, and `node:fs/promises` when the same module
-imports the Effect ecosystem (`effect`, `effect/*`, or `@effect-atom/atom-react`).
-Collect imports through the full module and report at `Program:exit` so source
-order does not change the result.
+Report imports and module-scope `require(...)` calls from `fs`, `node:fs`,
+`fs/promises`, and `node:fs/promises` when the same module imports the Effect
+ecosystem (`effect`, `effect/*`, or `@effect-atom/atom-react`). Collect module
+facts through the full traversal and report at `Program:exit` so source order
+does not change the result.
 
-Do not inspect `require`, dynamic imports, or filename/path context in this
-slice. The rule is an Effect-module portability check, not a general Node ban.
+Do not inspect function-scoped `require`, dynamic imports, or filename/path
+context in this slice. The rule is an Effect-module portability check, not a
+general Node ban.
 
 ### `no-json-parse-without-schema`
 
 Report `JSON.parse(...)` in an Effect module unless the module imports an Effect
 Schema entry point. An import from `effect/Schema` or a `Schema` binding from the
 `effect` package is sufficient evidence for this conservative first version.
+Collect parse candidates and import facts before deciding at `Program:exit`.
 
 Do not attempt data-flow analysis between a parse result and a schema decode.
 The presence of the Schema import is the explicit opt-out.
@@ -35,6 +38,8 @@ The presence of the Schema import is the explicit opt-out.
 Report each `Date.now()` call that occurs within the callback/body of an
 Effect-construction boundary. This slice covers `Effect.gen`, `Effect.sync`,
 `Effect.try`, `Effect.tryPromise`, and `Effect.fn` calls in Effect modules.
+Collect candidates independently of import order, then apply the final
+Effect-module gate at `Program:exit`.
 
 Report each call site once, even if nested Effect boundaries would otherwise
 encounter it more than once. The diagnostic should point users to Effect
