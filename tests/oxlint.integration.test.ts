@@ -6,12 +6,12 @@ const repoRoot = path.resolve(import.meta.dir, "..");
 const fixtureRoot = path.join(repoRoot, "tests", "fixtures", "oxlint");
 const oxlintBin = path.join(repoRoot, "node_modules", ".bin", "oxlint");
 
-function runOxlint(fileName: string) {
+function runOxlint(fileName: string, configFileName = "oxlint.config.ts") {
   const result = spawnSync(
     oxlintBin,
     [
       "--config",
-      path.join(fixtureRoot, "oxlint.config.ts"),
+      path.join(fixtureRoot, configFileName),
       path.join(fixtureRoot, fileName),
     ],
     {
@@ -154,6 +154,36 @@ describe("linteffect oxlint integration", () => {
     expect(diagnostics).toHaveLength(4);
     expect(result.output).toContain("fs/promises");
     expect(result.output).toContain("node:fs/promises");
+  });
+
+  it("reports all platform boundary diagnostics in shared code", () => {
+    const result = runOxlint("platform-boundary-shared.ts");
+
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("linteffect(no-node-platform-in-shared-code)");
+    expect(result.output).toContain("linteffect(no-process-env-direct-read)");
+    expect(result.output).toContain("linteffect(no-hidden-effect-execution)");
+  });
+
+  it("allows platform boundary APIs in the default server path", () => {
+    const result = runOxlint("server/platform-boundary-allowed.ts");
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain("linteffect(no-node-platform-in-shared-code)");
+    expect(result.output).not.toContain("linteffect(no-process-env-direct-read)");
+    expect(result.output).not.toContain("linteffect(no-hidden-effect-execution)");
+  });
+
+  it("allows platform boundary APIs in configured custom paths", () => {
+    const result = runOxlint(
+      "custom-boundary/platform-boundary-allowed.ts",
+      "oxlint.custom-boundary.config.ts",
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain("linteffect(no-node-platform-in-shared-code)");
+    expect(result.output).not.toContain("linteffect(no-process-env-direct-read)");
+    expect(result.output).not.toContain("linteffect(no-hidden-effect-execution)");
   });
 
   it("allows imperative branching outside Effect files", () => {

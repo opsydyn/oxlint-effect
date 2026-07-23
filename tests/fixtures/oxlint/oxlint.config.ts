@@ -118,5 +118,8 @@ export default defineConfig({
     "linteffect/no-node-fs-in-effect-code": "error",
     "linteffect/no-json-parse-without-schema": "error",
     "linteffect/no-date-now-in-effect": "error",
+    "linteffect/no-node-platform-in-shared-code": "error",
+    "linteffect/no-process-env-direct-read": "error",
+    "linteffect/no-hidden-effect-execution": "error",
   },
 });

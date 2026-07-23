@@ -193,6 +193,40 @@ boundaries.
 | `linteffect/no-node-fs-in-effect-code` | `fs`, `node:fs`, `fs/promises`, and `node:fs/promises` imports and module-scope `require()` calls in Effect modules. | Effect code should stay portable and move Node filesystem access behind a platform boundary. |
 | `linteffect/no-json-parse-without-schema` | `JSON.parse(...)` in Effect modules without an explicit Effect Schema import. | External JSON must be decoded through a schema at the boundary rather than trusted as an unvalidated value. |
 | `linteffect/no-date-now-in-effect` | `Date.now()` within supported Effect construction boundaries. | Time should be supplied through Effect's Clock services so workflows remain deterministic and testable. |
+| `linteffect/no-node-platform-in-shared-code` | Node built-in imports, including `node:*` and bare built-in module names, outside configured boundary paths. | Shared modules should remain portable and obtain platform capabilities through services or explicit application boundaries. |
+| `linteffect/no-process-env-direct-read` | Direct and computed `process.env` reads outside configured boundary and configuration paths. | Environment values should be decoded once in a configuration service or Layer rather than read as ambient state. |
+| `linteffect/no-hidden-effect-execution` | Direct `Effect.run*` calls in Effect modules outside configured boundary paths. | Reusable code should return Effects and leave runtime execution ownership at an application boundary. |
+
+Configure path-sensitive rules independently when a repository uses different
+application and configuration boundaries:
+
+```ts
+import { defineConfig } from "oxlint";
+import { platformAndBoundaryHygiene } from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  plugins: ["typescript"],
+  jsPlugins: [...platformAndBoundaryHygiene.jsPlugins],
+  rules: {
+    ...platformAndBoundaryHygiene.rules,
+    "linteffect/no-node-platform-in-shared-code": [
+      "error",
+      { boundaryPaths: ["apps/**", "server/**"] },
+    ],
+    "linteffect/no-process-env-direct-read": [
+      "error",
+      {
+        boundaryPaths: ["apps/**", "server/**"],
+        configPaths: ["packages/config/**"],
+      },
+    ],
+    "linteffect/no-hidden-effect-execution": [
+      "error",
+      { boundaryPaths: ["apps/**", "server/**"] },
+    ],
+  },
+});
+```
 
 ### Concurrency Safety
 
