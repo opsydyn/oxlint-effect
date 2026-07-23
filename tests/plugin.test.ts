@@ -573,6 +573,50 @@ describe("linteffect Oxlint plugin", () => {
       expect(reports[0]?.message).toContain("direct process.env reads");
     });
 
+    it("reports terminal process.env reads in variable and destructuring initializers", () => {
+      const directRead = processEnvRead();
+      const directDeclaration = {
+        type: "VariableDeclarator",
+        id: identifier("environment"),
+        init: directRead,
+      };
+      Object.assign(directRead, { parent: directDeclaration });
+
+      const destructuredRead = processEnvRead();
+      const destructuringDeclaration = {
+        type: "VariableDeclarator",
+        id: { type: "ObjectPattern", properties: [] },
+        init: destructuredRead,
+      };
+      Object.assign(destructuredRead, { parent: destructuringDeclaration });
+
+      const directReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        directRead,
+      );
+      const destructuringReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        destructuredRead,
+      );
+
+      expect(directReports).toHaveLength(1);
+      expect(destructuringReports).toHaveLength(1);
+    });
+
+    it("reports process.env property reads once when both member nodes are visited", () => {
+      const propertyRead = processEnvRead("DATABASE_URL") as any;
+      Object.assign(propertyRead.object, { parent: propertyRead });
+
+      const reports = runRuleSequence("no-process-env-direct-read", [
+        { visitorName: "MemberExpression", node: propertyRead },
+        { visitorName: "MemberExpression", node: propertyRead.object },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
     it("allows direct environment reads in default boundary and config paths", () => {
       const paths = [
         "/repo/server/start.ts",
@@ -616,7 +660,7 @@ describe("linteffect Oxlint plugin", () => {
       expect(defaultConfigReports).toHaveLength(1);
     });
 
-    it("reports computed reads and ignores direct assignment targets", () => {
+    it("reports computed reads and ignores direct property assignment targets", () => {
       const computedReports = runRule(
         "no-process-env-direct-read",
         "MemberExpression",
@@ -633,6 +677,20 @@ describe("linteffect Oxlint plugin", () => {
 
       expect(computedReports).toHaveLength(1);
       expect(assignmentReports).toHaveLength(0);
+    });
+
+    it("ignores terminal process.env assignment targets", () => {
+      const writeTarget = processEnvRead();
+      const assignment = assignmentExpression(writeTarget, identifier("environment"));
+      Object.assign(writeTarget, { parent: assignment });
+
+      const reports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        writeTarget,
+      );
+
+      expect(reports).toHaveLength(0);
     });
   });
 
@@ -668,6 +726,34 @@ describe("linteffect Oxlint plugin", () => {
 
       expect(builtInReports).toHaveLength(1);
       expect(packageReports).toHaveLength(0);
+    });
+
+    it("allows bare imports for built-ins that require the node: prefix", () => {
+      const sources = ["sea", "sqlite", "test", "test/reporters"];
+
+      for (const source of sources) {
+        const reports = runRule(
+          "no-node-platform-in-shared-code",
+          "ImportDeclaration",
+          importFrom(source),
+        );
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("reports node: imports for prefix-only built-ins", () => {
+      const sources = ["node:sea", "node:sqlite", "node:test", "node:test/reporters"];
+
+      for (const source of sources) {
+        const reports = runRule(
+          "no-node-platform-in-shared-code",
+          "ImportDeclaration",
+          importFrom(source),
+        );
+
+        expect(reports).toHaveLength(1);
+      }
     });
 
     it("allows node:* imports from src main entrypoints", () => {

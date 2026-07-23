@@ -156,7 +156,7 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).toContain("node:fs/promises");
   });
 
-  it("reports all platform boundary diagnostics in shared code", () => {
+  it("reports all platform boundary diagnostics, including terminal process.env, in shared code", () => {
     const result = runOxlint("platform-boundary-shared.ts");
     const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
       .map((match) => match[1])

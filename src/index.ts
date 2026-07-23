@@ -5889,10 +5889,10 @@ const nodeBuiltinImportSources = new Set([
   "constants", "crypto", "dgram", "diagnostics_channel", "dns", "dns/promises", "domain",
   "events", "fs", "fs/promises", "http", "http2", "https", "inspector", "inspector/promises",
   "module", "net", "os", "path", "path/posix", "path/win32", "perf_hooks", "process",
-  "punycode", "querystring", "readline", "readline/promises", "repl", "sea", "sqlite", "stream",
-  "stream/consumers", "stream/promises", "stream/web", "string_decoder", "sys", "test",
-  "test/reporters", "timers", "timers/promises", "tls", "trace_events", "tty", "url", "util",
-  "util/types", "v8", "vm", "wasi", "worker_threads", "zlib",
+  "punycode", "querystring", "readline", "readline/promises", "repl", "stream",
+  "stream/consumers", "stream/promises", "stream/web", "string_decoder", "sys", "timers",
+  "timers/promises", "tls", "trace_events", "tty", "url", "util", "util/types", "v8", "vm",
+  "wasi", "worker_threads", "zlib",
 ]);
 
 function isNodeBuiltinImport(source: string): boolean {
@@ -5923,7 +5923,12 @@ function isProcessEnvMember(node: unknown): boolean {
 }
 
 function isProcessEnvRead(node: unknown): boolean {
-  return isMemberExpressionNode(node) && isProcessEnvMember(node.object);
+  if (!isMemberExpressionNode(node)) return false;
+  if (isProcessEnvMember(node.object)) return true;
+  if (!isProcessEnvMember(node)) return false;
+
+  const parent = node.parent;
+  return !isMemberExpressionNode(parent) || parent.object !== node;
 }
 
 function isProcessEnvWriteTarget(node: unknown): boolean {
