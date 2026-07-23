@@ -185,6 +185,7 @@ const groupExpectations = {
     "no-node-fs-in-effect-code",
     "no-json-parse-without-schema",
     "no-date-now-in-effect",
+    "no-node-platform-in-shared-code",
   ],
 } as const;
 
@@ -336,6 +337,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-node-fs-in-effect-code": "error",
       "linteffect/no-json-parse-without-schema": "error",
       "linteffect/no-date-now-in-effect": "error",
+      "linteffect/no-node-platform-in-shared-code": "error",
     });
   });
 

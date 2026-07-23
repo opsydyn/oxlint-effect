@@ -3,28 +3,24 @@ import plugin from "../src/index";
 
 type Report = { message: string; node: unknown };
 type Visitor = Record<string, (node: any) => void>;
+type RuleContextInput = {
+  readonly filename?: string;
+  readonly options?: readonly unknown[];
+};
 
-function runRule(ruleName: string, visitorName: string, node: unknown): Report[] {
-  const reports: Report[] = [];
-  const rule = plugin.rules[ruleName];
-
-  if (!rule || !("create" in rule) || !rule.create) {
-    throw new Error(`Rule ${ruleName} is not exported`);
-  }
-
-  const visitor = rule.create({
-    report(report: Report) {
-      reports.push(report);
-    },
-  } as any) as Visitor;
-
-  visitor[visitorName]?.(node);
-  return reports;
+function runRule(
+  ruleName: string,
+  visitorName: string,
+  node: unknown,
+  contextInput: RuleContextInput = {},
+): Report[] {
+  return runRuleSequence(ruleName, [{ visitorName, node }], contextInput);
 }
 
 function runRuleSequence(
   ruleName: string,
   visits: Array<{ visitorName: string; node: unknown }>,
+  contextInput: RuleContextInput = {},
 ): Report[] {
   const reports: Report[] = [];
   const rule = plugin.rules[ruleName];
@@ -34,6 +30,8 @@ function runRuleSequence(
   }
 
   const visitor = rule.create({
+    filename: contextInput.filename ?? "/repo/src/domain/order.ts",
+    options: contextInput.options ?? [],
     report(report: Report) {
       reports.push(report);
     },
@@ -545,6 +543,94 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-node-platform-in-shared-code", () => {
+    it("reports node:* imports from shared code and allows configured boundary paths", () => {
+      const sharedReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+      );
+      const serverReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        { filename: "/repo/server/http.ts" },
+      );
+
+      expect(sharedReports).toHaveLength(1);
+      expect(serverReports).toHaveLength(0);
+    });
+
+    it("reports bare Node built-ins but allows non-Node packages", () => {
+      const builtInReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("fs"),
+      );
+      const packageReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node-fetch"),
+      );
+
+      expect(builtInReports).toHaveLength(1);
+      expect(packageReports).toHaveLength(0);
+    });
+
+    it("allows node:* imports from src main entrypoints", () => {
+      const reports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:fs"),
+        { filename: "/repo/src/main.ts" },
+      );
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows default single-star and nested globstar boundary paths", () => {
+      const testReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        { filename: "/repo/src/order.test.ts" },
+      );
+      const routeReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        { filename: "/repo/app/api/orders/route.ts" },
+      );
+
+      expect(testReports).toHaveLength(0);
+      expect(routeReports).toHaveLength(0);
+    });
+
+    it("replaces default boundary paths with custom configured paths", () => {
+      const workerReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        {
+          filename: "/repo/workers/entry.ts",
+          options: [{ boundaryPaths: ["workers/**"] }],
+        },
+      );
+      const serverReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        {
+          filename: "/repo/server/http.ts",
+          options: [{ boundaryPaths: ["workers/**"] }],
+        },
+      );
+
+      expect(workerReports).toHaveLength(0);
+      expect(serverReports).toHaveLength(1);
+    });
+  });
+
   describe("no-date-now-in-effect", () => {
     it("reports Date.now inside supported Effect construction boundaries", () => {
       const reports = runRuleSequence("no-date-now-in-effect", [

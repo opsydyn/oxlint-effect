@@ -3836,6 +3836,77 @@ function getImportSource(node: unknown): string | undefined {
   return undefined;
 }
 
+const defaultBoundaryPaths = [
+  "bin/**", "scripts/**", "cli/**", "**/main.ts",
+  "app/api/**/route.ts", "server/**", "*.test.ts", "*.spec.ts",
+] as const;
+
+const boundaryPathOptionsSchema = [{
+  type: "object",
+  properties: {
+    boundaryPaths: { type: "array", items: { type: "string" } },
+  },
+  additionalProperties: false,
+}] as const;
+
+function rulePathOptions(context: OxlintContext): Record<string, unknown> {
+  const firstOption = context.options[0];
+  return typeof firstOption === "object" && firstOption !== null
+    ? firstOption as Record<string, unknown>
+    : {};
+}
+
+function stringArrayOption(options: Record<string, unknown>, name: string): readonly string[] | undefined {
+  const value = options[name];
+  return Array.isArray(value) && value.every((item) => typeof item === "string")
+    ? value
+    : undefined;
+}
+
+function normalisePath(path: string): string {
+  return path.replace(/\\/g, "/").replace(/^\.\/+/, "").replace(/\/{2,}/g, "/").replace(/\/$/, "");
+}
+
+function globSegmentToRegExp(segment: string): string {
+  return segment.replace(/[|\\{}()[\]^$+?.]/g, "\\$&").replace(/\*/g, "[^/]*");
+}
+
+function globToRegExp(pattern: string): RegExp {
+  const segments = normalisePath(pattern).split("/");
+  const startsWithGlobstar = segments[0] === "**";
+  const firstSegment = startsWithGlobstar ? 1 : 0;
+  let expression = startsWithGlobstar ? "(?:.*/)?" : "(?:^|.*/)";
+
+  for (let index = firstSegment; index < segments.length; index += 1) {
+    const segment = segments[index];
+    const isLastSegment = index === segments.length - 1;
+
+    if (segment === "**") {
+      expression += isLastSegment ? "(?:/.*)?" : "(?:/[^/]+)*";
+      continue;
+    }
+
+    if (index > firstSegment) {
+      expression += "/";
+    }
+    expression += globSegmentToRegExp(segment);
+  }
+
+  return new RegExp(`${expression}$`);
+}
+
+function pathMatchesPattern(filename: string, pattern: string): boolean {
+  return globToRegExp(pattern).test(normalisePath(filename));
+}
+
+function boundaryPathsFor(context: OxlintContext): readonly string[] {
+  return stringArrayOption(rulePathOptions(context), "boundaryPaths") ?? defaultBoundaryPaths;
+}
+
+function isBoundaryPath(context: OxlintContext): boolean {
+  return boundaryPathsFor(context).some((pattern) => pathMatchesPattern(context.filename, pattern));
+}
+
 function isEffectEcosystemImport(source: string): boolean {
   return (
     source === "effect" ||
@@ -5789,6 +5860,39 @@ const noRawTimeDomainField = defineRule({
 
 const nodeFsImportSources = new Set(["fs", "node:fs", "fs/promises", "node:fs/promises"]);
 
+const nodeBuiltinImportSources = new Set([
+  "assert", "assert/strict", "async_hooks", "buffer", "child_process", "cluster", "console",
+  "constants", "crypto", "dgram", "diagnostics_channel", "dns", "dns/promises", "domain",
+  "events", "fs", "fs/promises", "http", "http2", "https", "inspector", "inspector/promises",
+  "module", "net", "os", "path", "path/posix", "path/win32", "perf_hooks", "process",
+  "punycode", "querystring", "readline", "readline/promises", "repl", "sea", "sqlite", "stream",
+  "stream/consumers", "stream/promises", "stream/web", "string_decoder", "sys", "test",
+  "test/reporters", "timers", "timers/promises", "tls", "trace_events", "tty", "url", "util",
+  "util/types", "v8", "vm", "wasi", "worker_threads", "zlib",
+]);
+
+function isNodeBuiltinImport(source: string): boolean {
+  return source.startsWith("node:") || nodeBuiltinImportSources.has(source);
+}
+
+const noNodePlatformInSharedCode = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isNodeBuiltinImport(source) && !isBoundaryPath(context)) {
+          report(
+            context,
+            node,
+            "Rule: avoid Node platform imports in shared code. Why: reusable modules must not require a Node runtime. Fix: move the import behind a configured application boundary or an Effect platform service.",
+          );
+        }
+      },
+    };
+  },
+});
+
 function getNodeFsRequireSource(node: unknown): string | undefined {
   if (
     typeof node !== "object" ||
@@ -6742,6 +6846,7 @@ const rules = {
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
   "no-node-fs-in-effect-code": noNodeFsInEffectCode,
+  "no-node-platform-in-shared-code": noNodePlatformInSharedCode,
   "no-overloaded-options-object": noOverloadedOptionsObject,
   "no-domain-logic-in-conditional": noDomainLogicInConditional,
   "no-implicit-state-machine-object": noImplicitStateMachineObject,
@@ -6946,6 +7051,7 @@ export const platformAndBoundaryHygieneRules = rulesFromNames([
   "no-node-fs-in-effect-code",
   "no-json-parse-without-schema",
   "no-date-now-in-effect",
+  "no-node-platform-in-shared-code",
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
