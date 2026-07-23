@@ -990,6 +990,62 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-hidden-effect-execution", () => {
+    it("reports direct Effect.run calls regardless of import order", () => {
+      for (const method of ["runPromise", "runSync", "runFork"]) {
+        const reports = runRuleSequence("no-hidden-effect-execution", [
+          { visitorName: "CallExpression", node: effectCall(method, identifier("program")) },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain("hidden Effect execution");
+      }
+    });
+
+    it("allows Effect.run calls at default boundary paths and outside Effect modules", () => {
+      for (const filename of ["/repo/bin/cli.ts", "/repo/server/entry.ts"]) {
+        const reports = runRuleSequence("no-hidden-effect-execution", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+          { visitorName: "Program:exit", node: {} },
+        ], { filename });
+
+        expect(reports).toHaveLength(0);
+      }
+
+      const nonEffectReports = runRuleSequence("no-hidden-effect-execution", [
+        { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(nonEffectReports).toHaveLength(0);
+    });
+
+    it("replaces default boundary paths with configured paths", () => {
+      const configuredBoundaryReports = runRuleSequence("no-hidden-effect-execution", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+        { visitorName: "Program:exit", node: {} },
+      ], {
+        filename: "/repo/workers/consumer.ts",
+        options: [{ boundaryPaths: ["workers/**"] }],
+      });
+      const defaultBoundaryReports = runRuleSequence("no-hidden-effect-execution", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+        { visitorName: "Program:exit", node: {} },
+      ], {
+        filename: "/repo/bin/cli.ts",
+        options: [{ boundaryPaths: ["workers/**"] }],
+      });
+
+      expect(configuredBoundaryReports).toHaveLength(0);
+      expect(defaultBoundaryReports).toHaveLength(1);
+    });
+  });
+
   it("exports package metadata", () => {
     expect(plugin.meta?.name).toBe("linteffect");
   });

@@ -182,6 +182,7 @@ const groupExpectations = {
     "no-service-layer-scatter",
   ],
   platformAndBoundaryHygiene: [
+    "no-hidden-effect-execution",
     "no-node-fs-in-effect-code",
     "no-json-parse-without-schema",
     "no-date-now-in-effect",
@@ -335,6 +336,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-inline-layer-provide-in-program": "error",
       "linteffect/prefer-layer-mergeall-for-infrastructure": "error",
       "linteffect/no-service-layer-scatter": "error",
+      "linteffect/no-hidden-effect-execution": "error",
       "linteffect/no-node-fs-in-effect-code": "error",
       "linteffect/no-json-parse-without-schema": "error",
       "linteffect/no-date-now-in-effect": "error",

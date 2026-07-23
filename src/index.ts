@@ -6039,6 +6039,34 @@ const noNodeFsInEffectCode = defineRule({
   },
 });
 
+const noHiddenEffectExecution = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const runCalls: unknown[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+      },
+      CallExpression(node: any) {
+        if (isEffectRunCall(node)) runCalls.push(node);
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || isBoundaryPath(context)) return;
+        for (const node of runCalls) {
+          report(
+            context,
+            (node as Node).callee,
+            "Rule: avoid hidden Effect execution. Why: Effect.run* fixes runtime ownership inside reusable code. Fix: return the Effect and execute it from a configured application, CLI, worker, route, or test boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noJsonParseWithoutSchema = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6927,6 +6955,7 @@ const rules = {
   "no-magic-domain-string": noMagicDomainString,
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
+  "no-hidden-effect-execution": noHiddenEffectExecution,
   "no-node-fs-in-effect-code": noNodeFsInEffectCode,
   "no-node-platform-in-shared-code": noNodePlatformInSharedCode,
   "no-process-env-direct-read": noProcessEnvDirectRead,
@@ -7131,6 +7160,7 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
 ] as const);
 
 export const platformAndBoundaryHygieneRules = rulesFromNames([
+  "no-hidden-effect-execution",
   "no-node-fs-in-effect-code",
   "no-json-parse-without-schema",
   "no-date-now-in-effect",
