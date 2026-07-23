@@ -91,8 +91,9 @@ syntax. It does not infer aliases, inspect function names, or change
 
 Register the three rules in the plugin and add them to
 `platformAndBoundaryHygieneRules` and `platformAndBoundaryHygiene`. Document
-them as strict rules. Do not add them to `recommended`; path conventions are
-project-specific even with conservative defaults.
+them as strict, path-sensitive guidance. Preserve the package's existing
+`recommended = allRules` contract, so registering the rules also includes them
+in `recommended` and its exact config expectation.
 
 ## Verification And Documentation
 
@@ -109,4 +110,3 @@ Every rule must include:
 The slice introduces no changeset. Before completion, run `bun run test`,
 `bun run typecheck`, `bun run docs:api:check`, `bun run build`, `bun run lint`,
 `bun run size`, `bun run pack:dry-run`, and `git diff --check`.
-
