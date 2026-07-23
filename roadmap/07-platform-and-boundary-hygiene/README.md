@@ -20,7 +20,7 @@ Primary references:
 | [ ] | `linteffect/no-new-date-in-domain-logic` | time modeling | ddd | medium | `new Date()` inside domain/service logic instead of Clock/DateTime |
 | [x] | `linteffect/no-process-env-direct-read` | config handling | strict | medium | direct and computed `process.env` reads outside configured boundary and config paths |
 | [ ] | `linteffect/no-boundary-try-catch-without-effect-map` | boundary guidance | strict | medium | boundary `try/catch` that does not run or map an Effect program |
-| [x] | `linteffect/no-hidden-effect-execution` | hidden-effect-execution | recommended | medium | direct `Effect.run*` calls in Effect modules outside configured boundary paths |
+| [x] | `linteffect/no-hidden-effect-execution` | hidden-effect-execution | strict | medium | direct `Effect.run*` calls in Effect modules outside configured boundary paths |
 
 ## Slice Plan
 
