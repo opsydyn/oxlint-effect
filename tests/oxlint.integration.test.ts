@@ -158,11 +158,19 @@ describe("linteffect oxlint integration", () => {
 
   it("reports all platform boundary diagnostics in shared code", () => {
     const result = runOxlint("platform-boundary-shared.ts");
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
 
     expect(result.status).toBe(1);
     expect(result.output).toContain("linteffect(no-node-platform-in-shared-code)");
     expect(result.output).toContain("linteffect(no-process-env-direct-read)");
     expect(result.output).toContain("linteffect(no-hidden-effect-execution)");
+    expect(ruleIds).toEqual([
+      "no-hidden-effect-execution",
+      "no-node-platform-in-shared-code",
+      "no-process-env-direct-read",
+    ]);
   });
 
   it("allows platform boundary APIs in the default server path", () => {
