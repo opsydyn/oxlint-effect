@@ -64,6 +64,24 @@ const requireCall = (source: string) => ({
 
 const dateNowCall = () => memberCall("Date", "now");
 
+const processEnvRead = (property?: string, computed = false) => {
+  const environment = {
+    type: "MemberExpression",
+    object: identifier("process"),
+    property: identifier("env"),
+    computed: false,
+  };
+
+  return property === undefined
+    ? environment
+    : {
+      type: "MemberExpression",
+      object: environment,
+      property: computed ? { type: "Literal", value: property } : identifier(property),
+      computed,
+    };
+};
+
 const effectCall = (property: string, ...args: unknown[]) => ({
   type: "CallExpression",
   callee: {
@@ -543,6 +561,81 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-process-env-direct-read", () => {
+    it("reports direct environment reads outside allowed paths", () => {
+      const reports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL"),
+      );
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("direct process.env reads");
+    });
+
+    it("allows direct environment reads in default boundary and config paths", () => {
+      const paths = [
+        "/repo/server/start.ts",
+        "/repo/src/config/runtimeConfig.ts",
+        "/repo/src/RuntimeConfigLayer.ts",
+      ];
+
+      for (const filename of paths) {
+        const reports = runRule(
+          "no-process-env-direct-read",
+          "MemberExpression",
+          processEnvRead("DATABASE_URL"),
+          { filename },
+        );
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("replaces default config paths with configured paths", () => {
+      const reports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL"),
+        {
+          filename: "/repo/packages/env/read.ts",
+          options: [{ configPaths: ["packages/env/**"] }],
+        },
+      );
+      const defaultConfigReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL"),
+        {
+          filename: "/repo/src/config/runtimeConfig.ts",
+          options: [{ configPaths: ["packages/env/**"] }],
+        },
+      );
+
+      expect(reports).toHaveLength(0);
+      expect(defaultConfigReports).toHaveLength(1);
+    });
+
+    it("reports computed reads and ignores direct assignment targets", () => {
+      const computedReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL", true),
+      );
+      const writeTarget = processEnvRead("DATABASE_URL");
+      const assignment = assignmentExpression(writeTarget, { type: "Literal", value: "test" });
+      Object.assign(writeTarget, { parent: assignment });
+      const assignmentReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        writeTarget,
+      );
+
+      expect(computedReports).toHaveLength(1);
+      expect(assignmentReports).toHaveLength(0);
+    });
+  });
+
   describe("no-node-platform-in-shared-code", () => {
     it("reports node:* imports from shared code and allows configured boundary paths", () => {
       const sharedReports = runRule(

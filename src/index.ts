@@ -3841,10 +3841,21 @@ const defaultBoundaryPaths = [
   "app/api/**/route.ts", "server/**", "*.test.ts", "*.spec.ts",
 ] as const;
 
+const defaultConfigPaths = ["**/config/**", "**/*Config.ts", "**/*ConfigLayer.ts"] as const;
+
 const boundaryPathOptionsSchema = [{
   type: "object",
   properties: {
     boundaryPaths: { type: "array", items: { type: "string" } },
+  },
+  additionalProperties: false,
+}] as const;
+
+const processEnvPathOptionsSchema = [{
+  type: "object",
+  properties: {
+    boundaryPaths: { type: "array", items: { type: "string" } },
+    configPaths: { type: "array", items: { type: "string" } },
   },
   additionalProperties: false,
 }] as const;
@@ -3910,6 +3921,14 @@ function boundaryPathsFor(context: OxlintContext): readonly string[] {
 
 function isBoundaryPath(context: OxlintContext): boolean {
   return boundaryPathsFor(context).some((pattern) => pathMatchesPattern(context.filename, pattern));
+}
+
+function configPathsFor(context: OxlintContext): readonly string[] {
+  return stringArrayOption(rulePathOptions(context), "configPaths") ?? defaultConfigPaths;
+}
+
+function isConfigPath(context: OxlintContext): boolean {
+  return configPathsFor(context).some((pattern) => pathMatchesPattern(context.filename, pattern));
 }
 
 function isEffectEcosystemImport(source: string): boolean {
@@ -5880,6 +5899,42 @@ function isNodeBuiltinImport(source: string): boolean {
   return source.startsWith("node:") || nodeBuiltinImportSources.has(source);
 }
 
+function isMemberExpressionNode(node: unknown): node is Node {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    ((node as Node).type === "MemberExpression" || (node as Node).type === "OptionalMemberExpression")
+  );
+}
+
+function isNamedMemberProperty(member: Node, name: string): boolean {
+  return (
+    (member.computed !== true && isIdentifier(member.property, name)) ||
+    (member.computed === true && isStringLiteral(member.property) && (member.property as Node).value === name)
+  );
+}
+
+function isProcessEnvMember(node: unknown): boolean {
+  return (
+    isMemberExpressionNode(node) &&
+    isIdentifier(node.object, "process") &&
+    isNamedMemberProperty(node, "env")
+  );
+}
+
+function isProcessEnvRead(node: unknown): boolean {
+  return isMemberExpressionNode(node) && isProcessEnvMember(node.object);
+}
+
+function isProcessEnvWriteTarget(node: unknown): boolean {
+  if (!isMemberExpressionNode(node) || typeof node.parent !== "object" || node.parent === null) {
+    return false;
+  }
+
+  const parent = node.parent as Node;
+  return parent.type === "AssignmentExpression" && parent.left === node;
+}
+
 const noNodePlatformInSharedCode = defineRule({
   meta: { schema: boundaryPathOptionsSchema },
   create(context: OxlintContext) {
@@ -5891,6 +5946,28 @@ const noNodePlatformInSharedCode = defineRule({
             context,
             node,
             "Rule: avoid Node platform imports in shared code. Why: reusable modules must not require a Node runtime. Fix: move the import behind a configured application boundary or an Effect platform service.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noProcessEnvDirectRead = defineRule({
+  meta: { schema: processEnvPathOptionsSchema },
+  create(context: OxlintContext) {
+    return {
+      MemberExpression(node: any) {
+        if (
+          isProcessEnvRead(node) &&
+          !isProcessEnvWriteTarget(node) &&
+          !isBoundaryPath(context) &&
+          !isConfigPath(context)
+        ) {
+          report(
+            context,
+            node,
+            "Rule: avoid direct process.env reads outside configuration boundaries. Why: ambient configuration leaks runtime coupling into domain code. Fix: decode environment values in a configured Config service or Layer and depend on that service.",
           );
         }
       },
@@ -6852,6 +6929,7 @@ const rules = {
   "no-raw-time-domain-field": noRawTimeDomainField,
   "no-node-fs-in-effect-code": noNodeFsInEffectCode,
   "no-node-platform-in-shared-code": noNodePlatformInSharedCode,
+  "no-process-env-direct-read": noProcessEnvDirectRead,
   "no-overloaded-options-object": noOverloadedOptionsObject,
   "no-domain-logic-in-conditional": noDomainLogicInConditional,
   "no-implicit-state-machine-object": noImplicitStateMachineObject,
@@ -7057,6 +7135,7 @@ export const platformAndBoundaryHygieneRules = rulesFromNames([
   "no-json-parse-without-schema",
   "no-date-now-in-effect",
   "no-node-platform-in-shared-code",
+  "no-process-env-direct-read",
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);

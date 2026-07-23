@@ -186,6 +186,7 @@ const groupExpectations = {
     "no-json-parse-without-schema",
     "no-date-now-in-effect",
     "no-node-platform-in-shared-code",
+    "no-process-env-direct-read",
   ],
 } as const;
 
@@ -338,6 +339,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-json-parse-without-schema": "error",
       "linteffect/no-date-now-in-effect": "error",
       "linteffect/no-node-platform-in-shared-code": "error",
+      "linteffect/no-process-env-direct-read": "error",
     });
   });
 
