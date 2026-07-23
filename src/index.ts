@@ -3836,6 +3836,101 @@ function getImportSource(node: unknown): string | undefined {
   return undefined;
 }
 
+const defaultBoundaryPaths = [
+  "bin/**", "scripts/**", "cli/**", "**/main.ts",
+  "app/api/**/route.ts", "server/**", "*.test.ts", "*.spec.ts",
+] as const;
+
+const defaultConfigPaths = ["**/config/**", "**/*Config.ts", "**/*ConfigLayer.ts"] as const;
+
+const boundaryPathOptionsSchema = [{
+  type: "object",
+  properties: {
+    boundaryPaths: { type: "array", items: { type: "string" } },
+  },
+  additionalProperties: false,
+}] as const;
+
+const processEnvPathOptionsSchema = [{
+  type: "object",
+  properties: {
+    boundaryPaths: { type: "array", items: { type: "string" } },
+    configPaths: { type: "array", items: { type: "string" } },
+  },
+  additionalProperties: false,
+}] as const;
+
+function rulePathOptions(context: OxlintContext): Record<string, unknown> {
+  const firstOption = context.options[0];
+  return typeof firstOption === "object" && firstOption !== null
+    ? firstOption as Record<string, unknown>
+    : {};
+}
+
+function stringArrayOption(options: Record<string, unknown>, name: string): readonly string[] | undefined {
+  const value = options[name];
+  return Array.isArray(value) && value.every((item) => typeof item === "string")
+    ? value
+    : undefined;
+}
+
+function normalisePath(path: string): string {
+  return path.replace(/\\/g, "/").replace(/^\.\/+/, "").replace(/\/{2,}/g, "/").replace(/\/$/, "");
+}
+
+function globSegmentToRegExp(segment: string): string {
+  return segment.replace(/[|\\{}()[\]^$+?.]/g, "\\$&").replace(/\*/g, "[^/]*");
+}
+
+function globToRegExp(pattern: string): RegExp {
+  const normalisedPattern = normalisePath(pattern);
+  if (normalisedPattern === "**") {
+    return /^.*$/;
+  }
+
+  const segments = normalisedPattern.split("/");
+  const startsWithGlobstar = segments[0] === "**";
+  const firstSegment = startsWithGlobstar ? 1 : 0;
+  let expression = startsWithGlobstar ? "(?:.*/)?" : "(?:^|.*/)";
+
+  for (let index = firstSegment; index < segments.length; index += 1) {
+    const segment = segments[index];
+    const isLastSegment = index === segments.length - 1;
+
+    if (segment === "**") {
+      expression += isLastSegment ? "(?:/.*)?" : "(?:/[^/]+)*";
+      continue;
+    }
+
+    if (index > firstSegment) {
+      expression += "/";
+    }
+    expression += globSegmentToRegExp(segment);
+  }
+
+  return new RegExp(`${expression}$`);
+}
+
+function pathMatchesPattern(filename: string, pattern: string): boolean {
+  return globToRegExp(pattern).test(normalisePath(filename));
+}
+
+function boundaryPathsFor(context: OxlintContext): readonly string[] {
+  return stringArrayOption(rulePathOptions(context), "boundaryPaths") ?? defaultBoundaryPaths;
+}
+
+function isBoundaryPath(context: OxlintContext): boolean {
+  return boundaryPathsFor(context).some((pattern) => pathMatchesPattern(context.filename, pattern));
+}
+
+function configPathsFor(context: OxlintContext): readonly string[] {
+  return stringArrayOption(rulePathOptions(context), "configPaths") ?? defaultConfigPaths;
+}
+
+function isConfigPath(context: OxlintContext): boolean {
+  return configPathsFor(context).some((pattern) => pathMatchesPattern(context.filename, pattern));
+}
+
 function isEffectEcosystemImport(source: string): boolean {
   return (
     source === "effect" ||
@@ -5789,6 +5884,102 @@ const noRawTimeDomainField = defineRule({
 
 const nodeFsImportSources = new Set(["fs", "node:fs", "fs/promises", "node:fs/promises"]);
 
+const nodeBuiltinImportSources = new Set([
+  "assert", "assert/strict", "async_hooks", "buffer", "child_process", "cluster", "console",
+  "constants", "crypto", "dgram", "diagnostics_channel", "dns", "dns/promises", "domain",
+  "events", "fs", "fs/promises", "http", "http2", "https", "inspector", "inspector/promises",
+  "module", "net", "os", "path", "path/posix", "path/win32", "perf_hooks", "process",
+  "punycode", "querystring", "readline", "readline/promises", "repl", "stream",
+  "stream/consumers", "stream/promises", "stream/web", "string_decoder", "sys", "timers",
+  "timers/promises", "tls", "trace_events", "tty", "url", "util", "util/types", "v8", "vm",
+  "wasi", "worker_threads", "zlib",
+]);
+
+function isNodeBuiltinImport(source: string): boolean {
+  return source.startsWith("node:") || nodeBuiltinImportSources.has(source);
+}
+
+function isMemberExpressionNode(node: unknown): node is Node {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    ((node as Node).type === "MemberExpression" || (node as Node).type === "OptionalMemberExpression")
+  );
+}
+
+function isNamedMemberProperty(member: Node, name: string): boolean {
+  return (
+    (member.computed !== true && isIdentifier(member.property, name)) ||
+    (member.computed === true && isStringLiteral(member.property) && (member.property as Node).value === name)
+  );
+}
+
+function isProcessEnvMember(node: unknown): boolean {
+  return (
+    isMemberExpressionNode(node) &&
+    isIdentifier(node.object, "process") &&
+    isNamedMemberProperty(node, "env")
+  );
+}
+
+function isProcessEnvRead(node: unknown): boolean {
+  if (!isMemberExpressionNode(node)) return false;
+  if (isProcessEnvMember(node.object)) return true;
+  if (!isProcessEnvMember(node)) return false;
+
+  const parent = node.parent;
+  return !isMemberExpressionNode(parent) || parent.object !== node;
+}
+
+function isProcessEnvWriteTarget(node: unknown): boolean {
+  if (!isMemberExpressionNode(node) || typeof node.parent !== "object" || node.parent === null) {
+    return false;
+  }
+
+  const parent = node.parent as Node;
+  return parent.type === "AssignmentExpression" && parent.left === node;
+}
+
+const noNodePlatformInSharedCode = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isNodeBuiltinImport(source) && !isBoundaryPath(context)) {
+          report(
+            context,
+            node,
+            "Rule: avoid Node platform imports in shared code. Why: reusable modules must not require a Node runtime. Fix: move the import behind a configured application boundary or an Effect platform service.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noProcessEnvDirectRead = defineRule({
+  meta: { schema: processEnvPathOptionsSchema },
+  create(context: OxlintContext) {
+    return {
+      MemberExpression(node: any) {
+        if (
+          isProcessEnvRead(node) &&
+          !isProcessEnvWriteTarget(node) &&
+          !isBoundaryPath(context) &&
+          !isConfigPath(context)
+        ) {
+          report(
+            context,
+            node,
+            "Rule: avoid direct process.env reads outside configuration boundaries. Why: ambient configuration leaks runtime coupling into domain code. Fix: decode environment values in a configured Config service or Layer and depend on that service.",
+          );
+        }
+      },
+    };
+  },
+});
+
 function getNodeFsRequireSource(node: unknown): string | undefined {
   if (
     typeof node !== "object" ||
@@ -5847,6 +6038,34 @@ const noNodeFsInEffectCode = defineRule({
         if (!hasEffectEcosystemImport) return;
         for (const { node, source } of nodeFsReferences) {
           report(context, node, `Rule: avoid Node fs imports or require calls in Effect code (${source}). Why: direct Node filesystem APIs make reusable Effect modules platform-specific. Fix: move filesystem work behind an Effect platform service at the application boundary.`);
+        }
+      },
+    };
+  },
+});
+
+const noHiddenEffectExecution = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const runCalls: unknown[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+      },
+      CallExpression(node: any) {
+        if (isEffectRunCall(node)) runCalls.push(node);
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || isBoundaryPath(context)) return;
+        for (const node of runCalls) {
+          report(
+            context,
+            (node as Node).callee,
+            "Rule: avoid hidden Effect execution. Why: Effect.run* fixes runtime ownership inside reusable code. Fix: return the Effect and execute it from a configured application, CLI, worker, route, or test boundary.",
+          );
         }
       },
     };
@@ -6741,7 +6960,10 @@ const rules = {
   "no-magic-domain-string": noMagicDomainString,
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
+  "no-hidden-effect-execution": noHiddenEffectExecution,
   "no-node-fs-in-effect-code": noNodeFsInEffectCode,
+  "no-node-platform-in-shared-code": noNodePlatformInSharedCode,
+  "no-process-env-direct-read": noProcessEnvDirectRead,
   "no-overloaded-options-object": noOverloadedOptionsObject,
   "no-domain-logic-in-conditional": noDomainLogicInConditional,
   "no-implicit-state-machine-object": noImplicitStateMachineObject,
@@ -6943,9 +7165,12 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
 ] as const);
 
 export const platformAndBoundaryHygieneRules = rulesFromNames([
+  "no-hidden-effect-execution",
   "no-node-fs-in-effect-code",
   "no-json-parse-without-schema",
   "no-date-now-in-effect",
+  "no-node-platform-in-shared-code",
+  "no-process-env-direct-read",
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);

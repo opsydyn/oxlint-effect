@@ -14,13 +14,13 @@ Primary references:
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
 | [x] | `linteffect/no-node-fs-in-effect-code` | `node-fs` | recommended | low | `fs`, `node:fs`, `fs/promises`, and `node:fs/promises` imports and module-scope `require()` calls in Effect code |
-| [ ] | `linteffect/no-node-platform-in-shared-code` | `node-platform-in-shared-code` | strict | medium | Node-only imports outside app/boundary paths |
+| [x] | `linteffect/no-node-platform-in-shared-code` | `node-platform-in-shared-code` | strict | medium | Node built-in imports outside configured boundary paths |
 | [x] | `linteffect/no-json-parse-without-schema` | `schema-decode-unknown` | recommended | medium | `JSON.parse` without nearby `Schema.decodeUnknown` or Schema import |
 | [x] | `linteffect/no-date-now-in-effect` | Clock guidance | recommended | low | `Date.now()` inside `Effect.sync`, `Effect.gen`, or service methods |
 | [ ] | `linteffect/no-new-date-in-domain-logic` | time modeling | ddd | medium | `new Date()` inside domain/service logic instead of Clock/DateTime |
-| [ ] | `linteffect/no-process-env-direct-read` | config handling | strict | medium | `process.env.*` outside config service/layer files |
+| [x] | `linteffect/no-process-env-direct-read` | config handling | strict | medium | direct and computed `process.env` reads outside configured boundary and config paths |
 | [ ] | `linteffect/no-boundary-try-catch-without-effect-map` | boundary guidance | strict | medium | boundary `try/catch` that does not run or map an Effect program |
-| [ ] | `linteffect/no-hidden-effect-execution` | hidden-effect-execution | recommended | medium | functions that call `Effect.run*` but are not named/located as boundaries |
+| [x] | `linteffect/no-hidden-effect-execution` | hidden-effect-execution | strict | medium | direct `Effect.run*` calls in Effect modules outside configured boundary paths |
 
 ## Slice Plan
 
@@ -32,9 +32,9 @@ Primary references:
 
 ### Slice 2: Boundary Clarity
 
-- [ ] `no-node-platform-in-shared-code`
-- [ ] `no-process-env-direct-read`
-- [ ] `no-hidden-effect-execution`
+- [x] `no-node-platform-in-shared-code`
+- [x] `no-process-env-direct-read`
+- [x] `no-hidden-effect-execution`
 
 ### Slice 3: Time And Framework Edges
 
@@ -43,7 +43,7 @@ Primary references:
 
 ## Boundary Paths
 
-Share boundary detection with Correctness Core:
+The path-sensitive rules use these boundary paths by default:
 
 - `bin/**`
 - `scripts/**`
@@ -54,4 +54,11 @@ Share boundary detection with Correctness Core:
 - `*.test.ts`
 - `*.spec.ts`
 
-Add config options before enabling strict path-sensitive rules in public presets.
+`no-process-env-direct-read` also allows these configuration paths by default:
+
+- `**/config/**`
+- `**/*Config.ts`
+- `**/*ConfigLayer.ts`
+
+Supplying `boundaryPaths` or `configPaths` replaces the corresponding default
+list for that rule.

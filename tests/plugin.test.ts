@@ -3,28 +3,24 @@ import plugin from "../src/index";
 
 type Report = { message: string; node: unknown };
 type Visitor = Record<string, (node: any) => void>;
+type RuleContextInput = {
+  readonly filename?: string;
+  readonly options?: readonly unknown[];
+};
 
-function runRule(ruleName: string, visitorName: string, node: unknown): Report[] {
-  const reports: Report[] = [];
-  const rule = plugin.rules[ruleName];
-
-  if (!rule || !("create" in rule) || !rule.create) {
-    throw new Error(`Rule ${ruleName} is not exported`);
-  }
-
-  const visitor = rule.create({
-    report(report: Report) {
-      reports.push(report);
-    },
-  } as any) as Visitor;
-
-  visitor[visitorName]?.(node);
-  return reports;
+function runRule(
+  ruleName: string,
+  visitorName: string,
+  node: unknown,
+  contextInput: RuleContextInput = {},
+): Report[] {
+  return runRuleSequence(ruleName, [{ visitorName, node }], contextInput);
 }
 
 function runRuleSequence(
   ruleName: string,
   visits: Array<{ visitorName: string; node: unknown }>,
+  contextInput: RuleContextInput = {},
 ): Report[] {
   const reports: Report[] = [];
   const rule = plugin.rules[ruleName];
@@ -34,6 +30,8 @@ function runRuleSequence(
   }
 
   const visitor = rule.create({
+    filename: contextInput.filename ?? "/repo/src/domain/order.ts",
+    options: contextInput.options ?? [],
     report(report: Report) {
       reports.push(report);
     },
@@ -65,6 +63,24 @@ const requireCall = (source: string) => ({
 });
 
 const dateNowCall = () => memberCall("Date", "now");
+
+const processEnvRead = (property?: string, computed = false) => {
+  const environment = {
+    type: "MemberExpression",
+    object: identifier("process"),
+    property: identifier("env"),
+    computed: false,
+  };
+
+  return property === undefined
+    ? environment
+    : {
+      type: "MemberExpression",
+      object: environment,
+      property: computed ? { type: "Literal", value: property } : identifier(property),
+      computed,
+    };
+};
 
 const effectCall = (property: string, ...args: unknown[]) => ({
   type: "CallExpression",
@@ -545,6 +561,265 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  describe("no-process-env-direct-read", () => {
+    it("reports direct environment reads outside allowed paths", () => {
+      const reports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL"),
+      );
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("direct process.env reads");
+    });
+
+    it("reports terminal process.env reads in variable and destructuring initializers", () => {
+      const directRead = processEnvRead();
+      const directDeclaration = {
+        type: "VariableDeclarator",
+        id: identifier("environment"),
+        init: directRead,
+      };
+      Object.assign(directRead, { parent: directDeclaration });
+
+      const destructuredRead = processEnvRead();
+      const destructuringDeclaration = {
+        type: "VariableDeclarator",
+        id: { type: "ObjectPattern", properties: [] },
+        init: destructuredRead,
+      };
+      Object.assign(destructuredRead, { parent: destructuringDeclaration });
+
+      const directReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        directRead,
+      );
+      const destructuringReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        destructuredRead,
+      );
+
+      expect(directReports).toHaveLength(1);
+      expect(destructuringReports).toHaveLength(1);
+    });
+
+    it("reports process.env property reads once when both member nodes are visited", () => {
+      const propertyRead = processEnvRead("DATABASE_URL") as any;
+      Object.assign(propertyRead.object, { parent: propertyRead });
+
+      const reports = runRuleSequence("no-process-env-direct-read", [
+        { visitorName: "MemberExpression", node: propertyRead },
+        { visitorName: "MemberExpression", node: propertyRead.object },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("allows direct environment reads in default boundary and config paths", () => {
+      const paths = [
+        "/repo/server/start.ts",
+        "/repo/src/config/runtimeConfig.ts",
+        "/repo/src/RuntimeConfigLayer.ts",
+      ];
+
+      for (const filename of paths) {
+        const reports = runRule(
+          "no-process-env-direct-read",
+          "MemberExpression",
+          processEnvRead("DATABASE_URL"),
+          { filename },
+        );
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("replaces default config paths with configured paths", () => {
+      const reports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL"),
+        {
+          filename: "/repo/packages/env/read.ts",
+          options: [{ configPaths: ["packages/env/**"] }],
+        },
+      );
+      const defaultConfigReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL"),
+        {
+          filename: "/repo/src/config/runtimeConfig.ts",
+          options: [{ configPaths: ["packages/env/**"] }],
+        },
+      );
+
+      expect(reports).toHaveLength(0);
+      expect(defaultConfigReports).toHaveLength(1);
+    });
+
+    it("reports computed reads and ignores direct property assignment targets", () => {
+      const computedReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        processEnvRead("DATABASE_URL", true),
+      );
+      const writeTarget = processEnvRead("DATABASE_URL");
+      const assignment = assignmentExpression(writeTarget, { type: "Literal", value: "test" });
+      Object.assign(writeTarget, { parent: assignment });
+      const assignmentReports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        writeTarget,
+      );
+
+      expect(computedReports).toHaveLength(1);
+      expect(assignmentReports).toHaveLength(0);
+    });
+
+    it("ignores terminal process.env assignment targets", () => {
+      const writeTarget = processEnvRead();
+      const assignment = assignmentExpression(writeTarget, identifier("environment"));
+      Object.assign(writeTarget, { parent: assignment });
+
+      const reports = runRule(
+        "no-process-env-direct-read",
+        "MemberExpression",
+        writeTarget,
+      );
+
+      expect(reports).toHaveLength(0);
+    });
+  });
+
+  describe("no-node-platform-in-shared-code", () => {
+    it("reports node:* imports from shared code and allows configured boundary paths", () => {
+      const sharedReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+      );
+      const serverReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        { filename: "/repo/server/http.ts" },
+      );
+
+      expect(sharedReports).toHaveLength(1);
+      expect(serverReports).toHaveLength(0);
+    });
+
+    it("reports bare Node built-ins but allows non-Node packages", () => {
+      const builtInReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("fs"),
+      );
+      const packageReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node-fetch"),
+      );
+
+      expect(builtInReports).toHaveLength(1);
+      expect(packageReports).toHaveLength(0);
+    });
+
+    it("allows bare imports for built-ins that require the node: prefix", () => {
+      const sources = ["sea", "sqlite", "test", "test/reporters"];
+
+      for (const source of sources) {
+        const reports = runRule(
+          "no-node-platform-in-shared-code",
+          "ImportDeclaration",
+          importFrom(source),
+        );
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("reports node: imports for prefix-only built-ins", () => {
+      const sources = ["node:sea", "node:sqlite", "node:test", "node:test/reporters"];
+
+      for (const source of sources) {
+        const reports = runRule(
+          "no-node-platform-in-shared-code",
+          "ImportDeclaration",
+          importFrom(source),
+        );
+
+        expect(reports).toHaveLength(1);
+      }
+    });
+
+    it("allows node:* imports from src main entrypoints", () => {
+      const reports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:fs"),
+        { filename: "/repo/src/main.ts" },
+      );
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows default single-star and nested globstar boundary paths", () => {
+      const testReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        { filename: "/repo/src/order.test.ts" },
+      );
+      const routeReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        { filename: "/repo/app/api/orders/route.ts" },
+      );
+
+      expect(testReports).toHaveLength(0);
+      expect(routeReports).toHaveLength(0);
+    });
+
+    it("replaces default boundary paths with custom configured paths", () => {
+      const allPathsReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        {
+          filename: "/repo/src/domain/order.ts",
+          options: [{ boundaryPaths: ["**"] }],
+        },
+      );
+      const workerReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        {
+          filename: "/repo/workers/entry.ts",
+          options: [{ boundaryPaths: ["workers/**"] }],
+        },
+      );
+      const serverReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        {
+          filename: "/repo/server/http.ts",
+          options: [{ boundaryPaths: ["workers/**"] }],
+        },
+      );
+
+      expect(allPathsReports).toHaveLength(0);
+      expect(workerReports).toHaveLength(0);
+      expect(serverReports).toHaveLength(1);
+    });
+  });
+
   describe("no-date-now-in-effect", () => {
     it("reports Date.now inside supported Effect construction boundaries", () => {
       const reports = runRuleSequence("no-date-now-in-effect", [
@@ -798,6 +1073,62 @@ describe("linteffect Oxlint plugin", () => {
       ]);
 
       expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
+  describe("no-hidden-effect-execution", () => {
+    it("reports direct Effect.run calls regardless of import order", () => {
+      for (const method of ["runPromise", "runSync", "runFork"]) {
+        const reports = runRuleSequence("no-hidden-effect-execution", [
+          { visitorName: "CallExpression", node: effectCall(method, identifier("program")) },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain("hidden Effect execution");
+      }
+    });
+
+    it("allows Effect.run calls at default boundary paths and outside Effect modules", () => {
+      for (const filename of ["/repo/bin/cli.ts", "/repo/server/entry.ts"]) {
+        const reports = runRuleSequence("no-hidden-effect-execution", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+          { visitorName: "Program:exit", node: {} },
+        ], { filename });
+
+        expect(reports).toHaveLength(0);
+      }
+
+      const nonEffectReports = runRuleSequence("no-hidden-effect-execution", [
+        { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(nonEffectReports).toHaveLength(0);
+    });
+
+    it("replaces default boundary paths with configured paths", () => {
+      const configuredBoundaryReports = runRuleSequence("no-hidden-effect-execution", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+        { visitorName: "Program:exit", node: {} },
+      ], {
+        filename: "/repo/workers/consumer.ts",
+        options: [{ boundaryPaths: ["workers/**"] }],
+      });
+      const defaultBoundaryReports = runRuleSequence("no-hidden-effect-execution", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall("runPromise", identifier("program")) },
+        { visitorName: "Program:exit", node: {} },
+      ], {
+        filename: "/repo/bin/cli.ts",
+        options: [{ boundaryPaths: ["workers/**"] }],
+      });
+
+      expect(configuredBoundaryReports).toHaveLength(0);
+      expect(defaultBoundaryReports).toHaveLength(1);
     });
   });
 
