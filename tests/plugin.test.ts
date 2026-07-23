@@ -607,6 +607,15 @@ describe("linteffect Oxlint plugin", () => {
     });
 
     it("replaces default boundary paths with custom configured paths", () => {
+      const allPathsReports = runRule(
+        "no-node-platform-in-shared-code",
+        "ImportDeclaration",
+        importFrom("node:path"),
+        {
+          filename: "/repo/src/domain/order.ts",
+          options: [{ boundaryPaths: ["**"] }],
+        },
+      );
       const workerReports = runRule(
         "no-node-platform-in-shared-code",
         "ImportDeclaration",
@@ -626,6 +635,7 @@ describe("linteffect Oxlint plugin", () => {
         },
       );
 
+      expect(allPathsReports).toHaveLength(0);
       expect(workerReports).toHaveLength(0);
       expect(serverReports).toHaveLength(1);
     });

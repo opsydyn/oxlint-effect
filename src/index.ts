@@ -3872,7 +3872,12 @@ function globSegmentToRegExp(segment: string): string {
 }
 
 function globToRegExp(pattern: string): RegExp {
-  const segments = normalisePath(pattern).split("/");
+  const normalisedPattern = normalisePath(pattern);
+  if (normalisedPattern === "**") {
+    return /^.*$/;
+  }
+
+  const segments = normalisedPattern.split("/");
   const startsWithGlobstar = segments[0] === "**";
   const firstSegment = startsWithGlobstar ? 1 : 0;
   let expression = startsWithGlobstar ? "(?:.*/)?" : "(?:^|.*/)";
