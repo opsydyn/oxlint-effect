@@ -9,5 +9,11 @@ export default defineConfig({
       specifier: "../src/index.ts",
     },
   ],
-  rules: allRules,
+  rules: {
+    ...allRules,
+    "linteffect/no-boundary-try-catch-without-effect-map": [
+      "error",
+      { boundaryPaths: ["examples/backend/platform-boundary-hygiene-anti-patterns.ts"] },
+    ],
+  },
 });

@@ -51,6 +51,7 @@
 
 **Files:**
 - Modify: `tests/fixtures/oxlint/oxlint.config.ts`
+- Create: `tests/fixtures/oxlint/oxlint.platform-slice-3.config.ts`
 - Create: `tests/fixtures/oxlint/platform-time-invalid.ts`
 - Create: `tests/fixtures/oxlint/server/platform-catch-invalid.ts`
 - Create: `tests/fixtures/oxlint/server/platform-time-and-catch-allowed.ts`
@@ -60,12 +61,12 @@
 - Modify: `README.md`
 - Modify: `roadmap/07-platform-and-boundary-hygiene/README.md`
 
-- [ ] Enable both rules explicitly in the integration fixture config.
-- [ ] Add a shared Effect fixture with `new Date()` that reports only the time rule, a `server/` fixture with raw `try`/`catch` that reports only the catch rule, and an allowed server fixture using `new Date()` plus `Effect.tryPromise` that stays clean.
-- [ ] Add CLI assertions for exact rule IDs and clean allowed output. Do not expect `bun run lint:examples` to exit zero; it intentionally validates a warning corpus.
-- [ ] Append `EXPECT` and `QA` annotations for both anti-patterns. In `examples/oxlint.config.ts`, spread `allRules` and override only the catch rule's `boundaryPaths` with `examples/backend/platform-boundary-hygiene-anti-patterns.ts`; this makes the boundary-only warning observable without exempting the example's time warning.
-- [ ] Add concise README entries under Domain-Driven Design and Platform and Boundary Hygiene, including default scope and configuration guidance.
-- [ ] Mark the Slice 3 checklist complete and the roadmap group complete only after the checks below pass.
+- [x] Enable both rules explicitly in the integration fixture configs.
+- [x] Add a shared Effect fixture with `new Date()` that reports only the time rule, a `server/` fixture with raw `try`/`catch` that reports only the catch rule, and an allowed server fixture using `new Date()` plus `Effect.tryPromise` that stays clean.
+- [x] Add CLI assertions for exact rule IDs and clean allowed output. Do not expect `bun run lint:examples` to exit zero; it intentionally validates a warning corpus.
+- [x] Append `EXPECT` and `QA` annotations for both anti-patterns. In `examples/oxlint.config.ts`, spread `allRules` and override only the catch rule's `boundaryPaths` with `examples/backend/platform-boundary-hygiene-anti-patterns.ts`; this makes the boundary-only warning observable without exempting the example's time warning.
+- [x] Add concise README entries under Domain-Driven Design and Platform and Boundary Hygiene, including default scope and configuration guidance.
+- [x] Mark the Slice 3 checklist complete and the roadmap group complete after CLI coverage and example-corpus diagnostics pass.
 
 **Commit:** `Document platform boundary hygiene slice 3`
 

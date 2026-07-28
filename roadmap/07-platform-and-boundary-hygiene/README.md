@@ -17,9 +17,9 @@ Primary references:
 | [x] | `linteffect/no-node-platform-in-shared-code` | `node-platform-in-shared-code` | strict | medium | Node built-in imports outside configured boundary paths |
 | [x] | `linteffect/no-json-parse-without-schema` | `schema-decode-unknown` | recommended | medium | `JSON.parse` without nearby `Schema.decodeUnknown` or Schema import |
 | [x] | `linteffect/no-date-now-in-effect` | Clock guidance | recommended | low | `Date.now()` inside `Effect.sync`, `Effect.gen`, or service methods |
-| [ ] | `linteffect/no-new-date-in-domain-logic` | time modeling | ddd | medium | `new Date()` inside domain/service logic instead of Clock/DateTime |
+| [x] | `linteffect/no-new-date-in-domain-logic` | time modeling | ddd | medium | `new Date()` in Effect-importing modules outside configured runtime boundaries instead of Clock/DateTime |
 | [x] | `linteffect/no-process-env-direct-read` | config handling | strict | medium | direct and computed `process.env` reads outside configured boundary and config paths |
-| [ ] | `linteffect/no-boundary-try-catch-without-effect-map` | boundary guidance | strict | medium | boundary `try/catch` that does not run or map an Effect program |
+| [x] | `linteffect/no-boundary-try-catch-without-effect-map` | boundary guidance | strict | medium | boundary `try/catch` with no direct supported Effect mapping or execution call |
 | [x] | `linteffect/no-hidden-effect-execution` | hidden-effect-execution | strict | medium | direct `Effect.run*` calls in Effect modules outside configured boundary paths |
 
 ## Slice Plan
@@ -36,10 +36,10 @@ Primary references:
 - [x] `no-process-env-direct-read`
 - [x] `no-hidden-effect-execution`
 
-### Slice 3: Time And Framework Edges
+### Slice 3: Time And Framework Edges (Complete)
 
-- [ ] `no-new-date-in-domain-logic`
-- [ ] `no-boundary-try-catch-without-effect-map`
+- [x] `no-new-date-in-domain-logic`
+- [x] `no-boundary-try-catch-without-effect-map`
 
 ## Boundary Paths
 

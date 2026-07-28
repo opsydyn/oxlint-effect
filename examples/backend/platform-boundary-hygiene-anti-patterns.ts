@@ -20,6 +20,21 @@ const parsedPayload = JSON.parse("{\"id\": \"user-1\"}");
 // QA: Effect workflows should obtain time from Clock rather than the wall clock.
 const wallClockRead = Effect.sync(() => Date.now());
 
+// EXPECT: linteffect/no-new-date-in-domain-logic
+// QA: Effect domain code should receive time from Clock or model it at the boundary.
+const constructedAt = new Date();
+
+function startServer(): void {}
+
+// EXPECT: linteffect/no-try-catch
+// EXPECT: linteffect/no-boundary-try-catch-without-effect-map
+// QA: Boundary failures should be mapped through Effect instead of imperative try/catch.
+try {
+  startServer();
+} catch (error) {
+  console.error(error);
+}
+
 // EXPECT: linteffect/no-hidden-effect-execution
 // QA: Runtime execution stays at configured application boundaries.
 const result = Effect.runPromise(Effect.succeed("started"));
@@ -29,4 +44,5 @@ void readFile;
 void databaseUrl;
 void parsedPayload;
 void wallClockRead;
+void constructedAt;
 void result;

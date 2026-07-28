@@ -194,6 +194,36 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).not.toContain("linteffect(no-hidden-effect-execution)");
   });
 
+  it("reports only domain Date construction in shared Effect code", () => {
+    const result = runOxlint("platform-time-invalid.ts", "oxlint.platform-slice-3.config.ts");
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual(["no-new-date-in-domain-logic"]);
+  });
+
+  it("reports only unmapped try/catch blocks at boundaries", () => {
+    const result = runOxlint("server/platform-catch-invalid.ts", "oxlint.platform-slice-3.config.ts");
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual(["no-boundary-try-catch-without-effect-map"]);
+  });
+
+  it("allows Date construction and mapped catches at boundaries", () => {
+    const result = runOxlint(
+      "server/platform-time-and-catch-allowed.ts",
+      "oxlint.platform-slice-3.config.ts",
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain("linteffect(");
+  });
+
   it("allows imperative branching outside Effect files", () => {
     const result = runOxlint("plain-branching.ts");
 

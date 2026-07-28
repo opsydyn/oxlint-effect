@@ -193,9 +193,11 @@ boundaries.
 | `linteffect/no-node-fs-in-effect-code` | `fs`, `node:fs`, `fs/promises`, and `node:fs/promises` imports and module-scope `require()` calls in Effect modules. | Effect code should stay portable and move Node filesystem access behind a platform boundary. |
 | `linteffect/no-json-parse-without-schema` | `JSON.parse(...)` in Effect modules without an explicit Effect Schema import. | External JSON must be decoded through a schema at the boundary rather than trusted as an unvalidated value. |
 | `linteffect/no-date-now-in-effect` | `Date.now()` within supported Effect construction boundaries. | Time should be supplied through Effect's Clock services so workflows remain deterministic and testable. |
+| `linteffect/no-new-date-in-domain-logic` | `new Date(...)` in Effect-importing modules outside configured runtime boundaries. | Domain code should receive time through Clock or a modeled input rather than constructing a wall-clock value directly. |
 | `linteffect/no-node-platform-in-shared-code` | Node built-in imports, including `node:*` and bare built-in module names, outside configured boundary paths. | Shared modules should remain portable and obtain platform capabilities through services or explicit application boundaries. |
 | `linteffect/no-process-env-direct-read` | Direct and computed `process.env` reads outside configured boundary and configuration paths. | Environment values should be decoded once in a configuration service or Layer rather than read as ambient state. |
 | `linteffect/no-hidden-effect-execution` | Direct `Effect.run*` calls in Effect modules outside configured boundary paths. | Reusable code should return Effects and leave runtime execution ownership at an application boundary. |
+| `linteffect/no-boundary-try-catch-without-effect-map` | `try`/`catch` blocks in configured boundaries with no direct `Effect.try`, error mapping, recovery, or `Effect.run*` call. | Boundary failure handling should stay in Effect's typed error channel rather than becoming imperative control flow. |
 
 Configure path-sensitive rules independently when a repository uses different
 application and configuration boundaries:
@@ -221,6 +223,14 @@ export default defineConfig({
       },
     ],
     "linteffect/no-hidden-effect-execution": [
+      "error",
+      { boundaryPaths: ["apps/**", "server/**"] },
+    ],
+    "linteffect/no-new-date-in-domain-logic": [
+      "error",
+      { boundaryPaths: ["apps/**", "server/**"] },
+    ],
+    "linteffect/no-boundary-try-catch-without-effect-map": [
       "error",
       { boundaryPaths: ["apps/**", "server/**"] },
     ],
