@@ -1848,6 +1848,69 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  describe("no-console-in-effect-flow", () => {
+    it("reports console calls in Effect construction after imports are known", () => {
+      const reports = runRuleSequence("no-console-in-effect-flow", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "sync",
+            arrowCallback(blockStatement(expressionStatement(memberCall("console", "error")))),
+          ),
+        },
+        { visitorName: "CallExpression", node: effectCall(
+          "gen",
+          generatorCallback(blockStatement(expressionStatement(memberCall("console", "warn")))),
+        ) },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(2);
+      expect(reports[0].message).toContain("Effect.log*");
+    });
+
+    it("reports console calls in Effect.Service implementations", () => {
+      const reports = runRuleSequence("no-console-in-effect-flow", [
+        {
+          visitorName: "ClassDeclaration",
+          node: serviceClassDeclaration(objectLiteral(
+            property("effect", effectCall(
+              "gen",
+              generatorCallback(blockStatement(expressionStatement(memberCall("console", "error")))),
+            )),
+          )),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("Effect.log*");
+    });
+
+    it("allows top-level console calls and non-Effect modules", () => {
+      const topLevelReports = runRuleSequence("no-console-in-effect-flow", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: memberCall("console", "error") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+      const nonEffectReports = runRuleSequence("no-console-in-effect-flow", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "tryPromise",
+            arrowCallback(blockStatement(expressionStatement(memberCall("console", "error")))),
+          ),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(topLevelReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   it("catches console calls inside Effect.sync in Effect files", () => {
     const reports = runRuleSequence("no-effect-sync-console", [
       { visitorName: "ImportDeclaration", node: importFrom("@effect-atom/atom-react") },

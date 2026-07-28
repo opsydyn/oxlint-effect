@@ -1120,6 +1120,34 @@ function findNode(
   return undefined;
 }
 
+function findNodes(
+  node: unknown,
+  predicate: (node: unknown) => boolean,
+  seen = new WeakSet<object>(),
+): unknown[] {
+  const matches = predicate(node) ? [node] : [];
+
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findNodes(child, predicate, seen)).concat(matches);
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return matches;
+  }
+
+  if (seen.has(node)) {
+    return matches;
+  }
+  seen.add(node);
+
+  return Object.entries(node).reduce<unknown[]>(
+    (collected, [key, child]) => (
+      key === "parent" ? collected : collected.concat(findNodes(child, predicate, seen))
+    ),
+    matches,
+  );
+}
+
 function serviceDependencyWithoutDeclaration(options: unknown): unknown | undefined {
   if (objectPropertyValue(options, "dependencies")) {
     return undefined;
@@ -1834,6 +1862,20 @@ function isConsoleCall(node: unknown): boolean {
     isIdentifier((call.callee as Node).object, "console") &&
     isIdentifier((call.callee as Node).property)
   );
+}
+
+function consoleCallsInEffectFlow(node: unknown): unknown[] {
+  if (isEffectConstructionBoundary(node)) {
+    return findNodes((node as Node).arguments, isConsoleCall);
+  }
+
+  const options = effectServiceClassOptions(node);
+  return options
+    ? findNodes(
+        objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped"),
+        isConsoleCall,
+      )
+    : [];
 }
 
 function isIdentifierCall(node: unknown, name: string): boolean {
@@ -4253,6 +4295,52 @@ const noEffectSyncConsole = defineRule({
             context,
             node,
             "Rule: avoid console.* inside Effect.sync. Why: it hides side effects. Fix: replace with Effect.log* or remove the console call.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noConsoleInEffectFlow = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const consoleCalls: unknown[] = [];
+    const collectedConsoleCalls = new WeakSet<object>();
+
+    const collectConsoleCalls = (node: unknown) => {
+      for (const consoleCall of consoleCallsInEffectFlow(node)) {
+        if (typeof consoleCall !== "object" || consoleCall === null || collectedConsoleCalls.has(consoleCall)) {
+          continue;
+        }
+        collectedConsoleCalls.add(consoleCall);
+        consoleCalls.push(consoleCall);
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        collectConsoleCalls(node);
+      },
+      ClassDeclaration(node: any) {
+        collectConsoleCalls(node);
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const consoleCall of consoleCalls) {
+          report(
+            context,
+            consoleCall,
+            "Rule: avoid console.* in Effect flow. Why: console output bypasses Effect observability. Fix: use Effect.log* with structured context.",
           );
         }
       },
@@ -6980,6 +7068,7 @@ const rules = {
   "no-return-in-callback": noReturnInCallback,
   "no-effect-fn-generator": noEffectFnGenerator,
   "no-effect-sync-console": noEffectSyncConsole,
+  "no-console-in-effect-flow": noConsoleInEffectFlow,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-piped-yield-in-gen": noPipedYieldInGen,

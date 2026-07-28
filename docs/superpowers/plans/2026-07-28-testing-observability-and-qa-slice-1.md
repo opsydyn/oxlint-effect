@@ -28,7 +28,7 @@
 - Consumes: `isEffectEcosystemImport`, `isEffectConstructionBoundary`, `containsConsoleCall`, `effectServiceClassOptions`, and `objectPropertyValue` from `src/index.ts`.
 - Produces: local helper `consoleCallsInEffectFlow(node: unknown): unknown[]` and rule `noConsoleInEffectFlow`.
 
-- [ ] **Step 1: Write failing unit tests for direct Effect-flow and service cases**
+- [x] **Step 1: Write failing unit tests for direct Effect-flow and service cases**
 
   Add a `describe("no-console-in-effect-flow", ...)` block that checks:
 
@@ -47,13 +47,13 @@
   calls in an Effect module, and non-Effect modules. Assert diagnostic text
   directs users to `Effect.log*`.
 
-- [ ] **Step 2: Run the focused test to verify it fails**
+- [x] **Step 2: Run the focused test to verify it fails**
 
   Run: `bun test tests/plugin.test.ts --test-name-pattern "no-console-in-effect-flow"`
 
   Expected: FAIL because `no-console-in-effect-flow` is not exported.
 
-- [ ] **Step 3: Implement minimal local detection and rule registration**
+- [x] **Step 3: Implement minimal local detection and rule registration**
 
   Add `consoleCallsInEffectFlow` that:
 
@@ -77,14 +77,14 @@
   matching console call at `Program:exit`. Register the rule in `rules` only;
   public grouping is completed in Task 4.
 
-- [ ] **Step 4: Run the focused test to verify it passes**
+- [x] **Step 4: Run the focused test to verify it passes**
 
   Run: `bun test tests/plugin.test.ts --test-name-pattern "no-console-in-effect-flow"`
 
   Expected: PASS for Effect construction and service implementation reports;
   top-level and non-Effect cases remain clean.
 
-- [ ] **Step 5: Commit the isolated rule**
+- [x] **Step 5: Commit the isolated rule**
 
   ```bash
   git add src/index.ts tests/plugin.test.ts
