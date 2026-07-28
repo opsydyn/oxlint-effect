@@ -1132,6 +1132,67 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-new-date-in-domain-logic", () => {
+    it("reports Date construction in Effect modules regardless of import order", () => {
+      for (const date of [
+        newExpression(identifier("Date")),
+        newExpression(identifier("Date"), identifier("timestamp")),
+      ]) {
+        const reports = runRuleSequence("no-new-date-in-domain-logic", [
+          { visitorName: "NewExpression", node: date },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.message).toContain("Clock");
+      }
+    });
+
+    it("allows Date construction at default boundaries and outside Effect modules", () => {
+      const boundaryReports = runRuleSequence("no-new-date-in-domain-logic", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "NewExpression", node: newExpression(identifier("Date")) },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/server/entry.ts" });
+      const nonEffectReports = runRuleSequence("no-new-date-in-domain-logic", [
+        { visitorName: "NewExpression", node: newExpression(identifier("Date")) },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(boundaryReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+
+    it("replaces default boundary paths and ignores other constructors", () => {
+      const configuredBoundaryReports = runRuleSequence("no-new-date-in-domain-logic", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "NewExpression", node: newExpression(identifier("Date")) },
+        { visitorName: "Program:exit", node: {} },
+      ], {
+        filename: "/repo/workers/consumer.ts",
+        options: [{ boundaryPaths: ["workers/**"] }],
+      });
+      const replacedDefaultReports = runRuleSequence("no-new-date-in-domain-logic", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "NewExpression", node: newExpression(identifier("Date")) },
+        { visitorName: "Program:exit", node: {} },
+      ], {
+        filename: "/repo/server/entry.ts",
+        options: [{ boundaryPaths: ["workers/**"] }],
+      });
+      const dateTimeReports = runRuleSequence("no-new-date-in-domain-logic", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "NewExpression", node: newExpression(identifier("DateTime")) },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(configuredBoundaryReports).toHaveLength(0);
+      expect(replacedDefaultReports).toHaveLength(1);
+      expect(dateTimeReports).toHaveLength(0);
+    });
+  });
+
   it("exports package metadata", () => {
     expect(plugin.meta?.name).toBe("linteffect");
   });

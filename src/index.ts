@@ -6137,6 +6137,34 @@ const noDateNowInEffect = defineRule({
   },
 });
 
+const noNewDateInDomainLogic = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const dateConstructions: unknown[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
+      },
+      NewExpression(node: any) {
+        if (isIdentifier(node.callee, "Date")) dateConstructions.push(node);
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || isBoundaryPath(context)) return;
+        for (const node of dateConstructions) {
+          report(
+            context,
+            node,
+            "Rule: avoid new Date in Effect domain logic. Why: direct wall-clock construction makes domain behaviour nondeterministic and difficult to test. Fix: obtain time through Effect Clock or model time at the boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noOverloadedOptionsObject = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6926,6 +6954,7 @@ const rules = {
   "no-match-void-branch": noMatchVoidBranch,
   "no-json-parse-without-schema": noJsonParseWithoutSchema,
   "no-date-now-in-effect": noDateNowInEffect,
+  "no-new-date-in-domain-logic": noNewDateInDomainLogic,
   "no-match-effect-branch": noMatchEffectBranch,
   "warn-effect-sync-wrapper": warnEffectSyncWrapper,
   "no-effect-side-effect-wrapper": noEffectSideEffectWrapper,
@@ -7123,6 +7152,7 @@ export const domainModelingRules = rulesFromNames([
   "no-implicit-state-machine-object",
   "no-adhoc-domain-error",
   "no-domain-meaning-by-folder-only",
+  "no-new-date-in-domain-logic",
 ] as const);
 
 export const effectFlowRules = rulesFromNames([

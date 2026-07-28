@@ -23,11 +23,11 @@
 - Modify: `tests/plugin.test.ts`
 - Modify: `tests/config.test.ts`
 
-- [ ] Add `linteffect/no-new-date-in-domain-logic` beside the existing date rule. Its schema must use `boundaryPathOptionsSchema`, and its message must direct users to inject `Clock` or model time at the boundary.
-- [ ] Collect `NewExpression` nodes whose callee is the identifier `Date`; at `Program:exit`, report candidates only when the file imports an Effect ecosystem package and `isBoundaryPath(context)` is false.
-- [ ] Register it in `rules` and add it to `dddRules`; retain the existing all-rules `recommended` preset.
-- [ ] Add unit tests for `new Date()` and `new Date(value)`, late Effect imports, default boundary exemption, replacement `boundaryPaths`, non-Effect modules, and non-`Date` constructors.
-- [ ] Update config group expectations, including the exact generated `recommended.rules` object.
+- [x] Add `linteffect/no-new-date-in-domain-logic` beside the existing date rule. Its schema must use `boundaryPathOptionsSchema`, and its message must direct users to inject `Clock` or model time at the boundary.
+- [x] Collect `NewExpression` nodes whose callee is the identifier `Date`; at `Program:exit`, report candidates only when the file imports an Effect ecosystem package and `isBoundaryPath(context)` is false.
+- [x] Register it in `rules` and add it to `dddRules`; retain the existing all-rules `recommended` preset.
+- [x] Add unit tests for `new Date()` and `new Date(value)`, late Effect imports, default boundary exemption, replacement `boundaryPaths`, non-Effect modules, and non-`Date` constructors.
+- [x] Update config group expectations, including the exact generated `recommended.rules` object.
 
 **Commit:** `Add domain time boundary rule`
 

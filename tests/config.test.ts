@@ -146,6 +146,7 @@ const groupExpectations = {
     "no-implicit-state-machine-object",
     "no-adhoc-domain-error",
     "no-domain-meaning-by-folder-only",
+    "no-new-date-in-domain-logic",
   ],
   effectFlow: [
     "no-piped-yield-in-gen",
@@ -289,6 +290,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-implicit-state-machine-object": "error",
       "linteffect/no-adhoc-domain-error": "error",
       "linteffect/no-domain-meaning-by-folder-only": "error",
+      "linteffect/no-new-date-in-domain-logic": "error",
       "linteffect/no-yield-without-star-in-effect-gen": "error",
       "linteffect/no-async-effect-combinator-callback": "error",
       "linteffect/no-run-effect-outside-boundary": "error",
@@ -340,6 +342,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-node-fs-in-effect-code": "error",
       "linteffect/no-json-parse-without-schema": "error",
       "linteffect/no-date-now-in-effect": "error",
+      "linteffect/no-new-date-in-domain-logic": "error",
       "linteffect/no-node-platform-in-shared-code": "error",
       "linteffect/no-process-env-direct-read": "error",
     });
