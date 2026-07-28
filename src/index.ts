@@ -2644,11 +2644,14 @@ function returnTypeAnnotation(node: unknown): unknown | undefined {
   return (returnType as Node).typeAnnotation ?? returnType;
 }
 
-function hasExplicitEffectReturnType(node: unknown): boolean {
-  return isQualifiedTypeReference(returnTypeAnnotation(node), "Effect", "Effect");
+function hasExplicitEffectReturnType(node: unknown, declaredReturnType?: unknown): boolean {
+  return (
+    isQualifiedTypeReference(returnTypeAnnotation(node), "Effect", "Effect") ||
+    isQualifiedTypeReference(declaredReturnType, "Effect", "Effect")
+  );
 }
 
-function directReturnExpressions(node: unknown): unknown[] {
+function operationReturnExpressions(node: unknown): unknown[] {
   if (typeof node !== "object" || node === null) {
     return [];
   }
@@ -2662,20 +2665,38 @@ function directReturnExpressions(node: unknown): unknown[] {
     return [body];
   }
 
-  const statements = (body as Node).body;
-  return Array.isArray(statements)
-    ? statements.flatMap((statement) => (
-        typeof statement === "object" &&
-        statement !== null &&
-        (statement as Node).type === "ReturnStatement"
-          ? [(statement as Node).argument]
-          : []
-      ))
-    : [];
+  const collectReturns = (current: unknown, seen = new WeakSet<object>()): unknown[] => {
+    if (Array.isArray(current)) {
+      return current.flatMap((child) => collectReturns(child, seen));
+    }
+
+    if (typeof current !== "object" || current === null || seen.has(current)) {
+      return [];
+    }
+    seen.add(current);
+
+    const currentNode = current as Node;
+    if (currentNode.type === "ReturnStatement") {
+      return [currentNode.argument];
+    }
+    if (
+      currentNode.type === "ArrowFunctionExpression" ||
+      currentNode.type === "FunctionExpression" ||
+      currentNode.type === "FunctionDeclaration"
+    ) {
+      return [];
+    }
+
+    return Object.entries(currentNode).flatMap(([key, child]) => (
+      key === "parent" ? [] : collectReturns(child, seen)
+    ));
+  };
+
+  return collectReturns(body);
 }
 
-function returnedEffectExpression(node: unknown): unknown | undefined {
-  return directReturnExpressions(node).find((expression) => (
+function returnedEffectExpressions(node: unknown): unknown[] {
+  return operationReturnExpressions(node).filter((expression) => (
     isEffectMemberCall(expression) || isPipeStartingWithEffect(expression)
   ));
 }
@@ -2686,16 +2707,36 @@ function containsDirectEffectSpan(expression: unknown): boolean {
   );
 }
 
-function publicEffectOperationWithoutSpan(node: unknown): unknown | undefined {
-  if (!hasExplicitEffectReturnType(node)) {
+function publicEffectOperationWithoutSpan(node: unknown, declaredReturnType?: unknown): unknown | undefined {
+  if (!hasExplicitEffectReturnType(node, declaredReturnType)) {
     return undefined;
   }
 
-  const expression = returnedEffectExpression(node);
-  return !expression || !containsDirectEffectSpan(expression) ? node : undefined;
+  const expressions = returnedEffectExpressions(node);
+  return expressions.length === 0 || expressions.some((expression) => !containsDirectEffectSpan(expression))
+    ? node
+    : undefined;
 }
 
-function exportedFunctionValues(node: unknown): unknown[] {
+type ExportedFunctionValue = {
+  readonly functionNode: unknown;
+  readonly declaredReturnType?: unknown;
+};
+
+function declaredFunctionReturnType(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const annotation = (node as Node).typeAnnotation;
+  if (typeof annotation !== "object" || annotation === null) {
+    return undefined;
+  }
+
+  return returnTypeAnnotation((annotation as Node).typeAnnotation ?? annotation);
+}
+
+function exportedFunctionValues(node: unknown): ExportedFunctionValue[] {
   if (typeof node !== "object" || node === null) {
     return [];
   }
@@ -2711,14 +2752,14 @@ function exportedFunctionValues(node: unknown): unknown[] {
   }
 
   if ((declaration as Node).type === "FunctionDeclaration") {
-    return [declaration];
+    return [{ functionNode: declaration }];
   }
 
   if ((declaration as Node).type !== "VariableDeclaration") {
     return [];
   }
 
-  return ((declaration as Node).declarations as unknown[] | undefined ?? []).flatMap((declarator) => {
+  return (((declaration as Node).declarations as unknown[] | undefined) ?? []).flatMap((declarator) => {
     if (typeof declarator !== "object" || declarator === null) {
       return [];
     }
@@ -2728,43 +2769,48 @@ function exportedFunctionValues(node: unknown): unknown[] {
       typeof init === "object" &&
       init !== null &&
       ((init as Node).type === "ArrowFunctionExpression" || (init as Node).type === "FunctionExpression")
-    ) ? [init] : [];
+    ) ? [{
+      functionNode: init,
+      declaredReturnType: declaredFunctionReturnType((declarator as Node).id),
+    }] : [];
   });
 }
 
 function serviceMethodFunctions(options: unknown): unknown[] {
   const implementation = objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped");
-  const returnedObjects = findReturnStatements(implementation).flatMap((statement) => {
-    const argument = typeof statement === "object" && statement !== null
-      ? (statement as Node).argument
+  const generator = getEffectGeneratorArgument(implementation, "gen");
+  const returnedObject = generator
+    ? operationReturnExpressions(generator).find(isObjectExpression)
+    : isEffectMemberCallNamed(implementation, "succeed") && isObjectExpression(firstArgument(implementation))
+      ? firstArgument(implementation)
       : undefined;
-    return isObjectExpression(argument) ? [argument] : [];
-  });
 
-  return returnedObjects.flatMap((object) => {
-    const properties = (object as Node).properties;
-    if (!Array.isArray(properties)) {
+  if (!returnedObject) {
+    return [];
+  }
+
+  const properties = (returnedObject as Node).properties;
+  if (!Array.isArray(properties)) {
+    return [];
+  }
+
+  return properties.flatMap((property) => {
+    if (typeof property !== "object" || property === null || (property as Node).type !== "Property") {
       return [];
     }
 
-    return properties.flatMap((property) => {
-      if (typeof property !== "object" || property === null || (property as Node).type !== "Property") {
-        return [];
-      }
-
-      const value = (property as Node).value;
-      return (
-        typeof value === "object" &&
-        value !== null &&
-        ((value as Node).type === "ArrowFunctionExpression" || (value as Node).type === "FunctionExpression")
-      ) ? [value] : [];
-    });
+    const value = (property as Node).value;
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      ((value as Node).type === "ArrowFunctionExpression" || (value as Node).type === "FunctionExpression")
+    ) ? [value] : [];
   });
 }
 
 function serviceEffectOperationWithoutSpan(node: unknown): unknown | undefined {
-  const expression = returnedEffectExpression(node);
-  return expression && !containsDirectEffectSpan(expression) ? node : undefined;
+  const expressions = returnedEffectExpressions(node);
+  return expressions.some((expression) => !containsDirectEffectSpan(expression)) ? node : undefined;
 }
 
 function genericEffectErrorReturnType(node: unknown): unknown | undefined {
@@ -4602,12 +4648,18 @@ const requireSpanOnPublicServiceMethod = defineRule({
       },
       ExportNamedDeclaration(node: any) {
         for (const operation of exportedFunctionValues(node)) {
-          collectOperation(publicEffectOperationWithoutSpan(operation));
+          collectOperation(publicEffectOperationWithoutSpan(
+            operation.functionNode,
+            operation.declaredReturnType,
+          ));
         }
       },
       ExportDefaultDeclaration(node: any) {
         for (const operation of exportedFunctionValues(node)) {
-          collectOperation(publicEffectOperationWithoutSpan(operation));
+          collectOperation(publicEffectOperationWithoutSpan(
+            operation.functionNode,
+            operation.declaredReturnType,
+          ));
         }
       },
       ClassDeclaration(node: any) {

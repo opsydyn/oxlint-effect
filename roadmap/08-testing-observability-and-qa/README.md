@@ -16,7 +16,7 @@ Primary references:
 | --- | --- | --- | --- | --- | --- |
 | [x] | `linteffect/no-console-in-effect-flow` | `console-log-in-effect-flow` | recommended | low | `console.*` inside Effect construction and service implementations, prefer `Effect.log*` |
 | [x] | `linteffect/no-effect-log-without-structured-context` | logging discipline | recommended | high | string-only `Effect.logError` / `Effect.logWarning` in direct error handlers and service implementations |
-| [x] | `linteffect/require-span-on-public-service-method` | trace operations with spans | recommended | high | explicit public Effect operations and direct service Effect returns without `Effect.withSpan` |
+| [x] | `linteffect/require-span-on-public-service-method` | trace operations with spans | recommended | high | explicit public Effect operations and direct service Effect returns with any unspanned direct Effect return path |
 | [ ] | `linteffect/no-test-mock-layer-when-default-available` | service test pattern | strict | high | test files providing manual mock layer for `Effect.Service` with `.Default` |
 | [ ] | `linteffect/require-effect-flip-for-error-test` | service test pattern | strict | medium | `expect(...rejects...)` around Effect error tests instead of `Effect.flip` |
 | [ ] | `linteffect/no-runpromise-in-non-async-test-body` | service test pattern | strict | medium | `Effect.runPromise` not awaited or returned in test files |

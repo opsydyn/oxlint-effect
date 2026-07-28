@@ -2164,6 +2164,105 @@ describe("linteffect Oxlint plugin", () => {
       expect(reports).toHaveLength(1);
       expect(reports[0].message).toContain("Effect.withSpan");
     });
+
+    it("reports exported function values typed through their variable declaration", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: {
+            type: "ExportNamedDeclaration",
+            declaration: {
+              type: "VariableDeclaration",
+              declarations: [{
+                type: "VariableDeclarator",
+                id: {
+                  ...identifier("loadUser"),
+                  typeAnnotation: tsTypeAnnotation({
+                    type: "TSFunctionType",
+                    params: [],
+                    returnType: tsTypeAnnotation(effectEffectTypeReference(
+                      identifier("User"),
+                      identifier("LoadError"),
+                      identifier("never"),
+                    )),
+                  }),
+                },
+                init: arrowCallback(effectCall("succeed", identifier("user"))),
+              }],
+            },
+          },
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("reports an operation when any Effect return path lacks a direct span", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: {
+            type: "ExportNamedDeclaration",
+            declaration: {
+              ...functionDeclarationReturning(effectCall(
+                "withSpan",
+                effectCall("succeed", identifier("user")),
+                stringLiteral("user.load"),
+              )),
+              returnType: tsTypeAnnotation(effectEffectTypeReference(
+                identifier("User"),
+                identifier("LoadError"),
+                identifier("never"),
+              )),
+              body: blockStatement(
+                returnStatement(effectCall(
+                  "withSpan",
+                  effectCall("succeed", identifier("user")),
+                  stringLiteral("user.load"),
+                )),
+                returnStatement(effectCall("succeed", identifier("fallbackUser"))),
+              ),
+            },
+          },
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("ignores helper objects returned from nested functions in service implementations", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ClassDeclaration",
+          node: serviceClassDeclaration(objectLiteral(
+            property("effect", effectCall(
+              "gen",
+              generatorCallback(blockStatement(
+                {
+                  type: "FunctionDeclaration",
+                  id: identifier("makeHelper"),
+                  params: [],
+                  body: blockStatement(returnStatement(objectLiteral(
+                    property("helper", arrowCallback(effectCall("succeed", identifier("helper")))),
+                  ))),
+                },
+                returnStatement(objectLiteral(
+                  property("loadUser", arrowCallback(effectCall("succeed", identifier("user")))),
+                )),
+              )),
+            )),
+          )),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
   });
 
   it("catches console calls inside Effect.sync in Effect files", () => {

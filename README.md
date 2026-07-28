@@ -206,7 +206,7 @@ boundaries.
 | --- | --- | --- |
 | `linteffect/no-console-in-effect-flow` | `console.*` inside direct `Effect.gen`, `Effect.sync`, `Effect.try`, `Effect.tryPromise`, or `Effect.fn` callbacks, and `Effect.Service` implementations. | Logging through Effect preserves the runtime's observability context. |
 | `linteffect/no-effect-log-without-structured-context` | String-only `Effect.logError` and `Effect.logWarning` calls in direct error-handler callbacks or `Effect.Service` implementations. | Failure logs need an error, structured fields, or local `Effect.annotateLogs(...)` context for correlation. |
-| `linteffect/require-span-on-public-service-method` | Exported functions or function-valued variables with an explicit `Effect.Effect` return, plus `Effect.Service` methods directly returning an Effect, when no direct `Effect.withSpan(...)` is present. | Public operations need visible trace boundaries. |
+| `linteffect/require-span-on-public-service-method` | Exported functions or function-valued variables with an explicit `Effect.Effect` return (on the function or variable declaration), plus `Effect.Service` methods directly returning an Effect, when any direct Effect return lacks `Effect.withSpan(...)`. | Public operations need visible trace boundaries. |
 
 These rules are deliberately syntax-only. They require an Effect ecosystem import;
 they do not resolve aliases, infer Effect return types, or follow values through
