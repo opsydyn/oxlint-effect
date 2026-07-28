@@ -1911,6 +1911,124 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-effect-log-without-structured-context", () => {
+    it("reports static error logs in direct error handlers", () => {
+      const reports = runRuleSequence("no-effect-log-without-structured-context", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            identifier("program"),
+            arrowCallback(effectCall("logError", stringLiteral("save failed"))),
+          ),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("structured context");
+    });
+
+    it("reports static warning logs in every supported error handler", () => {
+      const reports = runRuleSequence("no-effect-log-without-structured-context", [
+        ...["catchTag", "catchTags", "tapError"].map((operator) => ({
+          visitorName: "CallExpression",
+          node: effectCall(
+            operator,
+            identifier("program"),
+            arrowCallback(effectCall("logWarning", { type: "TemplateLiteral", expressions: [], quasis: [] })),
+          ),
+        })),
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(3);
+    });
+
+    it("reports static error logs in Effect.Service implementations", () => {
+      const reports = runRuleSequence("no-effect-log-without-structured-context", [
+        {
+          visitorName: "ClassDeclaration",
+          node: serviceClassDeclaration(objectLiteral(
+            property("effect", effectCall(
+              "gen",
+              generatorCallback(blockStatement(expressionStatement(effectCall(
+                "logError",
+                stringLiteral("service failed"),
+              )))),
+            )),
+          )),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("allows structured logs and unrelated Effect logging", () => {
+      const reports = runRuleSequence("no-effect-log-without-structured-context", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            identifier("program"),
+            arrowCallback(effectCall("logError", stringLiteral("save failed"), objectLiteral(
+              property("requestId", identifier("requestId")),
+            ))),
+          ),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchTag",
+            identifier("program"),
+            arrowCallback(effectCall("logWarning", stringLiteral("save failed"), identifier("error"))),
+          ),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "tapError",
+            identifier("program"),
+            arrowCallback(blockStatement(
+              expressionStatement(effectCall("annotateLogs", objectLiteral(
+                property("requestId", identifier("requestId")),
+              ))),
+              expressionStatement(effectCall("logError", stringLiteral("save failed"))),
+            )),
+          ),
+        },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchTags",
+            identifier("program"),
+            arrowCallback(effectCall("logInfo", stringLiteral("save failed"))),
+          ),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+      const nonEffectReports = runRuleSequence("no-effect-log-without-structured-context", [
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            identifier("program"),
+            arrowCallback(effectCall("logError", stringLiteral("save failed"))),
+          ),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   it("catches console calls inside Effect.sync in Effect files", () => {
     const reports = runRuleSequence("no-effect-sync-console", [
       { visitorName: "ImportDeclaration", node: importFrom("@effect-atom/atom-react") },

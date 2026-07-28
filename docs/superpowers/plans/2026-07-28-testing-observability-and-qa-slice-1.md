@@ -101,7 +101,7 @@
 - Consumes: `isEffectMemberCallNamed`, `firstArgument`, `callbackBody`, `findNode`, `objectPropertyValue`, and `effectServiceClassOptions`.
 - Produces: `isStaticLogMessage`, `hasStructuredLogContext`, `contextlessErrorLogs`, and rule `noEffectLogWithoutStructuredContext`.
 
-- [ ] **Step 1: Write failing unit tests for error handlers and service implementations**
+- [x] **Step 1: Write failing unit tests for error handlers and service implementations**
 
   Add a `describe("no-effect-log-without-structured-context", ...)` block that
   proves a direct handler report:
@@ -120,13 +120,13 @@
   implementation, `Effect.logInfo`, an object/error second argument, a local
   `Effect.annotateLogs({ requestId })`, and non-Effect modules.
 
-- [ ] **Step 2: Run the focused test to verify it fails**
+- [x] **Step 2: Run the focused test to verify it fails**
 
   Run: `bun test tests/plugin.test.ts --test-name-pattern "no-effect-log-without-structured-context"`
 
   Expected: FAIL because the rule is not exported.
 
-- [ ] **Step 3: Implement syntax-only handler and context checks**
+- [x] **Step 3: Implement syntax-only handler and context checks**
 
   Define the exact handler set:
 
@@ -144,14 +144,14 @@
   `scoped` service implementations, collect the contextless `logError` /
   `logWarning` calls, and report after imports are known.
 
-- [ ] **Step 4: Run the focused test to verify it passes**
+- [x] **Step 4: Run the focused test to verify it passes**
 
   Run: `bun test tests/plugin.test.ts --test-name-pattern "no-effect-log-without-structured-context"`
 
   Expected: PASS; only one-message warning/error logs in the defined local
   contexts report, including each matching log call in one handler subtree.
 
-- [ ] **Step 5: Commit the isolated rule**
+- [x] **Step 5: Commit the isolated rule**
 
   ```bash
   git add src/index.ts tests/plugin.test.ts

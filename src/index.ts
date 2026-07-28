@@ -1878,6 +1878,57 @@ function consoleCallsInEffectFlow(node: unknown): unknown[] {
     : [];
 }
 
+const errorHandlingOperators = new Set(["catchAll", "catchTag", "catchTags", "tapError"]);
+
+function isStaticLogMessage(node: unknown): boolean {
+  return isStringLiteral(node) || (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "TemplateLiteral"
+  );
+}
+
+function isEffectErrorLogCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return isEffectMemberCallNamed(node, "logError") || isEffectMemberCallNamed(node, "logWarning");
+}
+
+function isObjectExpression(node: unknown): boolean {
+  return typeof node === "object" && node !== null && (node as Node).type === "ObjectExpression";
+}
+
+function hasStructuredLogContext(candidate: unknown, logCall: Node & { arguments: unknown[] }): boolean {
+  if (findNode(candidate, (node) => isEffectMemberCallNamed(node, "annotateLogs"))) {
+    return true;
+  }
+
+  return logCall.arguments.slice(1).some((argument) => (
+    isObjectExpression(argument) || !isStaticLogMessage(argument)
+  ));
+}
+
+function contextlessErrorLogs(node: unknown): unknown[] {
+  return findNodes(node, (candidate) => (
+    isEffectErrorLogCall(candidate) &&
+    isStaticLogMessage(firstArgument(candidate)) &&
+    !hasStructuredLogContext(node, candidate)
+  ));
+}
+
+function errorHandlerBodies(node: unknown): unknown[] {
+  if (!isEffectMemberCall(node)) {
+    return [];
+  }
+
+  const property = ((node as Node).callee as Node).property;
+  if (!isIdentifier(property) || !errorHandlingOperators.has(property.name)) {
+    return [];
+  }
+
+  return ((node as Node).arguments as unknown[])
+    .map(callbackBody)
+    .filter((body): body is unknown => body !== undefined);
+}
+
 function isIdentifierCall(node: unknown, name: string): boolean {
   if (typeof node !== "object" || node === null) {
     return false;
@@ -4341,6 +4392,60 @@ const noConsoleInEffectFlow = defineRule({
             context,
             consoleCall,
             "Rule: avoid console.* in Effect flow. Why: console output bypasses Effect observability. Fix: use Effect.log* with structured context.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEffectLogWithoutStructuredContext = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const logCalls: unknown[] = [];
+    const collectedLogCalls = new WeakSet<object>();
+
+    const collectLogCalls = (candidate: unknown) => {
+      for (const logCall of contextlessErrorLogs(candidate)) {
+        if (typeof logCall !== "object" || logCall === null || collectedLogCalls.has(logCall)) {
+          continue;
+        }
+        collectedLogCalls.add(logCall);
+        logCalls.push(logCall);
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        for (const handlerBody of errorHandlerBodies(node)) {
+          collectLogCalls(handlerBody);
+        }
+      },
+      ClassDeclaration(node: any) {
+        const options = effectServiceClassOptions(node);
+        if (!options) {
+          return;
+        }
+        collectLogCalls(
+          objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped"),
+        );
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const logCall of logCalls) {
+          report(
+            context,
+            logCall,
+            "Rule: add structured context to Effect.logError or Effect.logWarning. Why: static failure messages cannot be correlated. Fix: include an error or context object, or use Effect.annotateLogs(...).",
           );
         }
       },
@@ -7069,6 +7174,7 @@ const rules = {
   "no-effect-fn-generator": noEffectFnGenerator,
   "no-effect-sync-console": noEffectSyncConsole,
   "no-console-in-effect-flow": noConsoleInEffectFlow,
+  "no-effect-log-without-structured-context": noEffectLogWithoutStructuredContext,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-piped-yield-in-gen": noPipedYieldInGen,
