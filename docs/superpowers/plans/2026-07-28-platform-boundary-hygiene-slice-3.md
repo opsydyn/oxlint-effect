@@ -75,18 +75,18 @@
 **Files:**
 - Verify only
 
-- [ ] Run `bun run test`.
-- [ ] Run `bun run typecheck`.
-- [ ] Run `bun run docs:api:check`.
-- [ ] Run `bun run build`.
-- [ ] Run `bun run lint`.
-- [ ] Run `bun run size`.
-- [ ] Run `bun run pack:dry-run`.
-- [ ] Run `git diff --check` and inspect `git status --short` before the final commit.
+- [x] Run `bun run test`.
+- [x] Run `bun run typecheck`.
+- [x] Run `bun run docs:api:check`.
+- [x] Run `bun run build`.
+- [x] Run `bun run lint`.
+- [x] Run `bun run size`.
+- [x] Run `bun run pack:dry-run`.
+- [x] Run `git diff --check` and inspect `git status --short` before the final commit.
 
 ## Plan Review
 
-- [ ] Coverage: both rules have direct positive, direct negative, options, config-group, integration, and observable-example coverage.
-- [ ] Scope: no dependency, release-version, or unrelated rule changes are planned.
-- [ ] Semantics: time detection is import-gated; catch detection is boundary-only; the fixture paths demonstrate each distinction independently.
-- [ ] Types: reuse existing `Node`, context, schema, and `WeakSet` patterns rather than introducing an untyped traversal API.
+- [x] Coverage: both rules have direct positive, direct negative, options, config-group, integration, and observable-example coverage.
+- [x] Scope: no dependency, release-version, or unrelated rule changes are planned.
+- [x] Semantics: time detection is import-gated; catch detection is boundary-only; the fixture paths demonstrate each distinction independently.
+- [x] Types: reuse existing `Node`, context, schema, and `WeakSet` patterns rather than introducing an untyped traversal API.
