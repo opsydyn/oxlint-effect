@@ -2644,6 +2644,129 @@ function returnTypeAnnotation(node: unknown): unknown | undefined {
   return (returnType as Node).typeAnnotation ?? returnType;
 }
 
+function hasExplicitEffectReturnType(node: unknown): boolean {
+  return isQualifiedTypeReference(returnTypeAnnotation(node), "Effect", "Effect");
+}
+
+function directReturnExpressions(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  const body = (node as Node).body;
+  if (typeof body !== "object" || body === null) {
+    return [];
+  }
+
+  if ((body as Node).type !== "BlockStatement") {
+    return [body];
+  }
+
+  const statements = (body as Node).body;
+  return Array.isArray(statements)
+    ? statements.flatMap((statement) => (
+        typeof statement === "object" &&
+        statement !== null &&
+        (statement as Node).type === "ReturnStatement"
+          ? [(statement as Node).argument]
+          : []
+      ))
+    : [];
+}
+
+function returnedEffectExpression(node: unknown): unknown | undefined {
+  return directReturnExpressions(node).find((expression) => (
+    isEffectMemberCall(expression) || isPipeStartingWithEffect(expression)
+  ));
+}
+
+function containsDirectEffectSpan(expression: unknown): boolean {
+  return isEffectMemberCallNamed(expression, "withSpan") || (
+    isPipeCall(expression) && pipeParts(expression).some((part) => isEffectMemberCallNamed(part, "withSpan"))
+  );
+}
+
+function publicEffectOperationWithoutSpan(node: unknown): unknown | undefined {
+  if (!hasExplicitEffectReturnType(node)) {
+    return undefined;
+  }
+
+  const expression = returnedEffectExpression(node);
+  return !expression || !containsDirectEffectSpan(expression) ? node : undefined;
+}
+
+function exportedFunctionValues(node: unknown): unknown[] {
+  if (typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  const exportNode = node as Node;
+  if (exportNode.type !== "ExportNamedDeclaration" && exportNode.type !== "ExportDefaultDeclaration") {
+    return [];
+  }
+
+  const declaration = exportNode.declaration;
+  if (typeof declaration !== "object" || declaration === null) {
+    return [];
+  }
+
+  if ((declaration as Node).type === "FunctionDeclaration") {
+    return [declaration];
+  }
+
+  if ((declaration as Node).type !== "VariableDeclaration") {
+    return [];
+  }
+
+  return ((declaration as Node).declarations as unknown[] | undefined ?? []).flatMap((declarator) => {
+    if (typeof declarator !== "object" || declarator === null) {
+      return [];
+    }
+
+    const init = (declarator as Node).init;
+    return (
+      typeof init === "object" &&
+      init !== null &&
+      ((init as Node).type === "ArrowFunctionExpression" || (init as Node).type === "FunctionExpression")
+    ) ? [init] : [];
+  });
+}
+
+function serviceMethodFunctions(options: unknown): unknown[] {
+  const implementation = objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped");
+  const returnedObjects = findReturnStatements(implementation).flatMap((statement) => {
+    const argument = typeof statement === "object" && statement !== null
+      ? (statement as Node).argument
+      : undefined;
+    return isObjectExpression(argument) ? [argument] : [];
+  });
+
+  return returnedObjects.flatMap((object) => {
+    const properties = (object as Node).properties;
+    if (!Array.isArray(properties)) {
+      return [];
+    }
+
+    return properties.flatMap((property) => {
+      if (typeof property !== "object" || property === null || (property as Node).type !== "Property") {
+        return [];
+      }
+
+      const value = (property as Node).value;
+      return (
+        typeof value === "object" &&
+        value !== null &&
+        ((value as Node).type === "ArrowFunctionExpression" || (value as Node).type === "FunctionExpression")
+      ) ? [value] : [];
+    });
+  });
+}
+
+function serviceEffectOperationWithoutSpan(node: unknown): unknown | undefined {
+  const expression = returnedEffectExpression(node);
+  return expression && !containsDirectEffectSpan(expression) ? node : undefined;
+}
+
 function genericEffectErrorReturnType(node: unknown): unknown | undefined {
   const annotation = returnTypeAnnotation(node);
   if (!isQualifiedTypeReference(annotation, "Effect", "Effect")) {
@@ -4446,6 +4569,67 @@ const noEffectLogWithoutStructuredContext = defineRule({
             context,
             logCall,
             "Rule: add structured context to Effect.logError or Effect.logWarning. Why: static failure messages cannot be correlated. Fix: include an error or context object, or use Effect.annotateLogs(...).",
+          );
+        }
+      },
+    };
+  },
+});
+
+const requireSpanOnPublicServiceMethod = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const operations: unknown[] = [];
+    const collectedOperations = new WeakSet<object>();
+
+    const collectOperation = (operation: unknown | undefined) => {
+      if (
+        typeof operation === "object" &&
+        operation !== null &&
+        !collectedOperations.has(operation)
+      ) {
+        collectedOperations.add(operation);
+        operations.push(operation);
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      ExportNamedDeclaration(node: any) {
+        for (const operation of exportedFunctionValues(node)) {
+          collectOperation(publicEffectOperationWithoutSpan(operation));
+        }
+      },
+      ExportDefaultDeclaration(node: any) {
+        for (const operation of exportedFunctionValues(node)) {
+          collectOperation(publicEffectOperationWithoutSpan(operation));
+        }
+      },
+      ClassDeclaration(node: any) {
+        const options = effectServiceClassOptions(node);
+        if (!options) {
+          return;
+        }
+
+        for (const method of serviceMethodFunctions(options)) {
+          collectOperation(serviceEffectOperationWithoutSpan(method));
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const operation of operations) {
+          report(
+            context,
+            operation,
+            "Rule: add Effect.withSpan to public Effect operations. Why: service work needs trace boundaries. Fix: wrap the returned Effect with Effect.withSpan(...).",
           );
         }
       },
@@ -7175,6 +7359,7 @@ const rules = {
   "no-effect-sync-console": noEffectSyncConsole,
   "no-console-in-effect-flow": noConsoleInEffectFlow,
   "no-effect-log-without-structured-context": noEffectLogWithoutStructuredContext,
+  "require-span-on-public-service-method": requireSpanOnPublicServiceMethod,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-piped-yield-in-gen": noPipedYieldInGen,

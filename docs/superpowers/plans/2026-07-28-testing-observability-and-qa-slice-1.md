@@ -168,7 +168,7 @@
 - Consumes: `returnTypeAnnotation`, `isQualifiedTypeReference`, `typeArguments`, `effectServiceClassOptions`, `objectPropertyValue`, and `pipeParts`.
 - Produces: `hasExplicitEffectReturnType`, `returnedEffectExpression`, `containsDirectEffectSpan`, `publicEffectOperationWithoutSpan`, and rule `requireSpanOnPublicServiceMethod`.
 
-- [ ] **Step 1: Write failing unit tests for exported functions and service methods**
+- [x] **Step 1: Write failing unit tests for exported functions and service methods**
 
   Add a `describe("require-span-on-public-service-method", ...)` block that
   checks an exported explicit Effect return without a span:
@@ -192,13 +192,13 @@
   exports, service object methods returning `Effect.succeed`, and service
   methods whose returned Effect is span-wrapped.
 
-- [ ] **Step 2: Run the focused test to verify it fails**
+- [x] **Step 2: Run the focused test to verify it fails**
 
   Run: `bun test tests/plugin.test.ts --test-name-pattern "require-span-on-public-service-method"`
 
   Expected: FAIL because the rule is not exported.
 
-- [ ] **Step 3: Implement explicit-return and service-method span checks**
+- [x] **Step 3: Implement explicit-return and service-method span checks**
 
   Implement `hasExplicitEffectReturnType` with
   `isQualifiedTypeReference(returnTypeAnnotation(node), "Effect", "Effect")`.
@@ -217,14 +217,14 @@
 
   Report each operation lacking one of those forms after imports are known.
 
-- [ ] **Step 4: Run the focused test to verify it passes**
+- [x] **Step 4: Run the focused test to verify it passes**
 
   Run: `bun test tests/plugin.test.ts --test-name-pattern "require-span-on-public-service-method"`
 
   Expected: PASS; explicit exported and service Effect operations without
   spans report, while span-wrapped and out-of-scope shapes remain clean.
 
-- [ ] **Step 5: Commit the isolated rule**
+- [x] **Step 5: Commit the isolated rule**
 
   ```bash
   git add src/index.ts tests/plugin.test.ts

@@ -2029,6 +2029,143 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("require-span-on-public-service-method", () => {
+    it("reports exported functions and arrows with explicit Effect return types", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+            identifier("User"),
+            identifier("LoadError"),
+            identifier("never"),
+          )),
+        },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: {
+            type: "ExportNamedDeclaration",
+            declaration: {
+              type: "VariableDeclaration",
+              declarations: [{
+                type: "VariableDeclarator",
+                id: identifier("loadUsers"),
+                init: {
+                  ...arrowCallback(effectCall("succeed", identifier("users"))),
+                  returnType: tsTypeAnnotation(effectEffectTypeReference(
+                    identifier("Users"),
+                    identifier("LoadError"),
+                    identifier("never"),
+                  )),
+                },
+              }],
+            },
+          },
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(2);
+      expect(reports[0].message).toContain("Effect.withSpan");
+    });
+
+    it("allows direct and piped Effect spans on explicit public operations", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: {
+            type: "ExportNamedDeclaration",
+            declaration: {
+              ...functionDeclarationReturning(effectCall(
+                "withSpan",
+                effectCall("succeed", identifier("user")),
+                stringLiteral("user.load"),
+              )),
+              returnType: tsTypeAnnotation(effectEffectTypeReference(
+                identifier("User"),
+                identifier("LoadError"),
+                identifier("never"),
+              )),
+            },
+          },
+        },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: {
+            type: "ExportNamedDeclaration",
+            declaration: {
+              type: "VariableDeclaration",
+              declarations: [{
+                type: "VariableDeclarator",
+                id: identifier("loadUsers"),
+                init: {
+                  ...arrowCallback(methodPipeCall(
+                    effectCall("succeed", identifier("users")),
+                    effectCall("withSpan", stringLiteral("users.load")),
+                  )),
+                  returnType: tsTypeAnnotation(effectEffectTypeReference(
+                    identifier("Users"),
+                    identifier("LoadError"),
+                    identifier("never"),
+                  )),
+                },
+              }],
+            },
+          },
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows untyped and non-Effect public functions", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: {
+            type: "ExportNamedDeclaration",
+            declaration: functionDeclarationReturning(effectCall("succeed", identifier("user"))),
+          },
+        },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(typeReference("Domain", "User")),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("reports unspanned Effect.Service methods and allows span-wrapped methods", () => {
+      const reports = runRuleSequence("require-span-on-public-service-method", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ClassDeclaration",
+          node: serviceClassDeclaration(objectLiteral(
+            property("effect", effectCall(
+              "gen",
+              generatorCallback(blockStatement(returnStatement(objectLiteral(
+                property("loadUser", arrowCallback(effectCall("succeed", identifier("user")))),
+                property("saveUser", arrowCallback(methodPipeCall(
+                  effectCall("succeed", identifier("user")),
+                  effectCall("withSpan", stringLiteral("user.save")),
+                ))),
+              )))),
+            )),
+          )),
+        },
+        { visitorName: "Program:exit", node: {} },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("Effect.withSpan");
+    });
+  });
+
   it("catches console calls inside Effect.sync in Effect files", () => {
     const reports = runRuleSequence("no-effect-sync-console", [
       { visitorName: "ImportDeclaration", node: importFrom("@effect-atom/atom-react") },
