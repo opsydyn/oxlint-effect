@@ -1193,6 +1193,68 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-boundary-try-catch-without-effect-map", () => {
+    it("reports raw try/catch blocks at default boundaries", () => {
+      const reports = runRule(
+        "no-boundary-try-catch-without-effect-map",
+        "TryStatement",
+        tryStatement(expressionStatement(identifier("startServer"))),
+        { filename: "/repo/server/entry.ts" },
+      );
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.message).toContain("map failures");
+    });
+
+    it("allows direct Effect mapping and execution calls in boundary catches", () => {
+      for (const effect of [
+        effectCall("tryPromise", arrowCallback(identifier("request"))),
+        effectCall("mapError", identifier("program"), identifier("mapError")),
+        effectCall("catchAll", identifier("program"), identifier("recover")),
+        effectCall("runPromise", identifier("program")),
+      ]) {
+        const reports = runRule(
+          "no-boundary-try-catch-without-effect-map",
+          "TryStatement",
+          tryStatement(expressionStatement(effect)),
+          { filename: "/repo/server/entry.ts" },
+        );
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("ignores shared modules and respects replacement boundary paths", () => {
+      const sharedReports = runRule(
+        "no-boundary-try-catch-without-effect-map",
+        "TryStatement",
+        tryStatement(expressionStatement(identifier("loadOrder"))),
+      );
+      const customBoundaryReports = runRule(
+        "no-boundary-try-catch-without-effect-map",
+        "TryStatement",
+        tryStatement(expressionStatement(identifier("consumeMessage"))),
+        {
+          filename: "/repo/workers/consumer.ts",
+          options: [{ boundaryPaths: ["workers/**"] }],
+        },
+      );
+      const replacedDefaultReports = runRule(
+        "no-boundary-try-catch-without-effect-map",
+        "TryStatement",
+        tryStatement(expressionStatement(identifier("startServer"))),
+        {
+          filename: "/repo/server/entry.ts",
+          options: [{ boundaryPaths: ["workers/**"] }],
+        },
+      );
+
+      expect(sharedReports).toHaveLength(0);
+      expect(customBoundaryReports).toHaveLength(1);
+      expect(replacedDefaultReports).toHaveLength(0);
+    });
+  });
+
   it("exports package metadata", () => {
     expect(plugin.meta?.name).toBe("linteffect");
   });

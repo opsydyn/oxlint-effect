@@ -6072,6 +6072,61 @@ const noHiddenEffectExecution = defineRule({
   },
 });
 
+const boundaryEffectHandlingMethods = new Set([
+  "try",
+  "tryPromise",
+  "mapError",
+  "catchAll",
+  "catchTag",
+  "catchTags",
+]);
+
+function containsBoundaryEffectHandling(
+  node: unknown,
+  seen = new WeakSet<object>(),
+): boolean {
+  if (isEffectRunCall(node)) return true;
+
+  if (isEffectMemberCall(node)) {
+    const property = ((node as Node).callee as Node).property;
+    if (isIdentifier(property) && boundaryEffectHandlingMethods.has(property.name)) {
+      return true;
+    }
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsBoundaryEffectHandling(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null || seen.has(node)) {
+    return false;
+  }
+
+  seen.add(node);
+  return Object.entries(node).some(
+    ([key, child]) => key !== "parent" && containsBoundaryEffectHandling(child, seen),
+  );
+}
+
+const noBoundaryTryCatchWithoutEffectMap = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    return {
+      TryStatement(node: any) {
+        if (!node.handler || !isBoundaryPath(context) || containsBoundaryEffectHandling(node)) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: map failures through Effect at application boundaries. Why: imperative try/catch hides typed failure handling and recovery policy. Fix: use Effect.try, Effect.tryPromise, mapError, catchAll, or execute a mapped Effect program.",
+        );
+      },
+    };
+  },
+});
+
 const noJsonParseWithoutSchema = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6990,6 +7045,7 @@ const rules = {
   "no-raw-domain-primitive-params": noRawDomainPrimitiveParams,
   "no-raw-time-domain-field": noRawTimeDomainField,
   "no-hidden-effect-execution": noHiddenEffectExecution,
+  "no-boundary-try-catch-without-effect-map": noBoundaryTryCatchWithoutEffectMap,
   "no-node-fs-in-effect-code": noNodeFsInEffectCode,
   "no-node-platform-in-shared-code": noNodePlatformInSharedCode,
   "no-process-env-direct-read": noProcessEnvDirectRead,
@@ -7196,6 +7252,7 @@ export const serviceAndLayerArchitectureRules = rulesFromNames([
 
 export const platformAndBoundaryHygieneRules = rulesFromNames([
   "no-hidden-effect-execution",
+  "no-boundary-try-catch-without-effect-map",
   "no-node-fs-in-effect-code",
   "no-json-parse-without-schema",
   "no-date-now-in-effect",

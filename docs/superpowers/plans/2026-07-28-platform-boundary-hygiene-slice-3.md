@@ -38,12 +38,12 @@
 - Modify: `tests/plugin.test.ts`
 - Modify: `tests/config.test.ts`
 
-- [ ] Add `linteffect/no-boundary-try-catch-without-effect-map`, with `boundaryPathOptionsSchema` and a message directing users to map failures through Effect before execution.
-- [ ] Add a recursive local-AST helper that recognises direct `Effect.try`, `Effect.tryPromise`, `Effect.mapError`, `Effect.catchAll`, `Effect.catchTag`, `Effect.catchTags`, and existing `Effect.run*` calls. Skip `parent` fields and protect recursion with `WeakSet`.
-- [ ] In the rule's `TryStatement` visitor, return unless `isBoundaryPath(context)` is true. Report a `try`/`catch` when its subtree has none of the allowed direct calls. Do not attempt alias, import-alias, callback-order, or data-flow analysis.
-- [ ] Register it in `rules` and `strictRules`, preserving `recommended` coverage.
-- [ ] Add unit tests for a raw boundary catch report; direct `Effect.tryPromise`, `Effect.mapError`, and `Effect.runPromise` acceptance; shared-module exemption; and custom boundary replacement.
-- [ ] Update config group and generated-preset expectations.
+- [x] Add `linteffect/no-boundary-try-catch-without-effect-map`, with `boundaryPathOptionsSchema` and a message directing users to map failures through Effect before execution.
+- [x] Add a recursive local-AST helper that recognises direct `Effect.try`, `Effect.tryPromise`, `Effect.mapError`, `Effect.catchAll`, `Effect.catchTag`, `Effect.catchTags`, and existing `Effect.run*` calls. Skip `parent` fields and protect recursion with `WeakSet`.
+- [x] In the rule's `TryStatement` visitor, return unless `isBoundaryPath(context)` is true. Report a `try`/`catch` when its subtree has none of the allowed direct calls. Do not attempt alias, import-alias, callback-order, or data-flow analysis.
+- [x] Register it in `rules` and `platformAndBoundaryHygieneRules`, preserving `recommended` coverage. The package has no standalone `strictRules` export.
+- [x] Add unit tests for a raw boundary catch report; direct `Effect.tryPromise`, `Effect.mapError`, and `Effect.runPromise` acceptance; shared-module exemption; and custom boundary replacement.
+- [x] Update config group and generated-preset expectations.
 
 **Commit:** `Add boundary catch mapping rule`
 
