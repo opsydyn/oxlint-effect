@@ -61,6 +61,7 @@ Named group presets:
 | `styleSeparation` | Style Separation |
 | `serviceAndLayerArchitecture` | Service and Layer Architecture |
 | `platformAndBoundaryHygiene` | Platform and Boundary Hygiene |
+| `testingObservabilityAndQa` | Testing, Observability, and QA |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
 you want to compose multiple groups:
@@ -198,6 +199,19 @@ boundaries.
 | `linteffect/no-process-env-direct-read` | Direct and computed `process.env` reads outside configured boundary and configuration paths. | Environment values should be decoded once in a configuration service or Layer rather than read as ambient state. |
 | `linteffect/no-hidden-effect-execution` | Direct `Effect.run*` calls in Effect modules outside configured boundary paths. | Reusable code should return Effects and leave runtime execution ownership at an application boundary. |
 | `linteffect/no-boundary-try-catch-without-effect-map` | `try`/`catch` blocks in configured boundaries with no direct `Effect.try`, error mapping, recovery, or `Effect.run*` call. | Boundary failure handling should stay in Effect's typed error channel rather than becoming imperative control flow. |
+
+### Testing, Observability, and QA
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-console-in-effect-flow` | `console.*` inside direct `Effect.gen`, `Effect.sync`, `Effect.try`, `Effect.tryPromise`, or `Effect.fn` callbacks, and `Effect.Service` implementations. | Logging through Effect preserves the runtime's observability context. |
+| `linteffect/no-effect-log-without-structured-context` | String-only `Effect.logError` and `Effect.logWarning` calls in direct error-handler callbacks or `Effect.Service` implementations. | Failure logs need an error, structured fields, or local `Effect.annotateLogs(...)` context for correlation. |
+| `linteffect/require-span-on-public-service-method` | Exported functions or function-valued variables with an explicit `Effect.Effect` return, plus `Effect.Service` methods directly returning an Effect, when no direct `Effect.withSpan(...)` is present. | Public operations need visible trace boundaries. |
+
+These rules are deliberately syntax-only. They require an Effect ecosystem import;
+they do not resolve aliases, infer Effect return types, or follow values through
+variables. `require-span-on-public-service-method` accepts either data-first
+`Effect.withSpan(program, "operation")` or `.pipe(Effect.withSpan("operation"))`.
 
 Configure path-sensitive rules independently when a repository uses different
 application and configuration boundaries:

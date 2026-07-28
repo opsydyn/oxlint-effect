@@ -14,9 +14,9 @@ Primary references:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/no-console-in-effect-flow` | `console-log-in-effect-flow` | recommended | low | `console.*` inside Effect code, prefer `Effect.log*` |
-| [ ] | `linteffect/no-effect-log-without-structured-context` | logging discipline | strict | high | string-only `Effect.logError` in service/error handlers |
-| [ ] | `linteffect/require-span-on-public-service-method` | trace operations with spans | strict | high | exported service methods returning Effect without `Effect.withSpan` |
+| [x] | `linteffect/no-console-in-effect-flow` | `console-log-in-effect-flow` | recommended | low | `console.*` inside Effect construction and service implementations, prefer `Effect.log*` |
+| [x] | `linteffect/no-effect-log-without-structured-context` | logging discipline | recommended | high | string-only `Effect.logError` / `Effect.logWarning` in direct error handlers and service implementations |
+| [x] | `linteffect/require-span-on-public-service-method` | trace operations with spans | recommended | high | explicit public Effect operations and direct service Effect returns without `Effect.withSpan` |
 | [ ] | `linteffect/no-test-mock-layer-when-default-available` | service test pattern | strict | high | test files providing manual mock layer for `Effect.Service` with `.Default` |
 | [ ] | `linteffect/require-effect-flip-for-error-test` | service test pattern | strict | medium | `expect(...rejects...)` around Effect error tests instead of `Effect.flip` |
 | [ ] | `linteffect/no-runpromise-in-non-async-test-body` | service test pattern | strict | medium | `Effect.runPromise` not awaited or returned in test files |
@@ -25,11 +25,11 @@ Primary references:
 
 ## Slice Plan
 
-### Slice 1: Runtime Observability
+### Slice 1: Runtime Observability (Complete)
 
-- [ ] `no-console-in-effect-flow`
-- [ ] `no-effect-log-without-structured-context`
-- [ ] `require-span-on-public-service-method`
+- [x] `no-console-in-effect-flow`
+- [x] `no-effect-log-without-structured-context`
+- [x] `require-span-on-public-service-method`
 
 ### Slice 2: Test Shape
 
@@ -50,4 +50,3 @@ them out of public `recommended` unless they are generalized.
 Good first public rule: `no-console-in-effect-flow`.
 
 Good first internal rule: `require-rule-doc-entry`.
-

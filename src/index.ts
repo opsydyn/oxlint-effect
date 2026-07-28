@@ -7640,6 +7640,12 @@ export const platformAndBoundaryHygieneRules = rulesFromNames([
   "no-process-env-direct-read",
 ] as const);
 
+export const testingObservabilityAndQaRules = rulesFromNames([
+  "no-console-in-effect-flow",
+  "no-effect-log-without-structured-context",
+  "require-span-on-public-service-method",
+] as const);
+
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 
 export const ruleGroups = {
@@ -7657,6 +7663,7 @@ export const ruleGroups = {
   styleSeparation: styleSeparationRules,
   serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
   platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
+  testingObservabilityAndQa: testingObservabilityAndQaRules,
   ddd: domainModelingRules,
 } as const;
 
@@ -7676,6 +7683,7 @@ export const behaviorDecoration = presetFor(behaviorDecorationRules);
 export const styleSeparation = presetFor(styleSeparationRules);
 export const serviceAndLayerArchitecture = presetFor(serviceAndLayerArchitectureRules);
 export const platformAndBoundaryHygiene = presetFor(platformAndBoundaryHygieneRules);
+export const testingObservabilityAndQa = presetFor(testingObservabilityAndQaRules);
 
 export const presets = {
   recommended,
@@ -7694,6 +7702,7 @@ export const presets = {
   styleSeparation,
   serviceAndLayerArchitecture,
   platformAndBoundaryHygiene,
+  testingObservabilityAndQa,
 } as const;
 
 export default definePlugin({

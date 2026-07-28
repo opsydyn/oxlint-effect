@@ -224,6 +224,27 @@ describe("linteffect oxlint integration", () => {
     expect(result.output).not.toContain("linteffect(");
   });
 
+  it("reports exactly the testing observability diagnostics through the CLI", () => {
+    const result = runOxlint("observability-invalid.ts", "oxlint.observability.config.ts");
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-console-in-effect-flow",
+      "no-effect-log-without-structured-context",
+      "require-span-on-public-service-method",
+    ]);
+  });
+
+  it("allows observability-safe Effect code through the CLI", () => {
+    const result = runOxlint("observability-valid.ts", "oxlint.observability.config.ts");
+
+    expect(result.status).toBe(0);
+    expect(result.output).not.toContain("linteffect(");
+  });
+
   it("allows imperative branching outside Effect files", () => {
     const result = runOxlint("plain-branching.ts");
 

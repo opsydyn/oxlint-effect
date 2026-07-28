@@ -29,6 +29,7 @@ class ServiceWithInlineProvide extends Effect.Service<ServiceWithInlineProvide>(
 ) {}
 
 // EXPECT: linteffect/require-service-accessors
+// EXPECT: linteffect/require-span-on-public-service-method
 // QA: services should enable generated static accessors for consistent APIs.
 class ServiceWithoutAccessors extends Effect.Service<ServiceWithoutAccessors>()(
   "ServiceWithoutAccessors",

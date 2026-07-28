@@ -250,7 +250,7 @@
 - Produces: `testingObservabilityAndQaRules`, `testingObservabilityAndQa`, a
   `ruleGroups.testingObservabilityAndQa` entry, and public docs/examples.
 
-- [ ] **Step 1: Write failing config and CLI contract tests**
+- [x] **Step 1: Write failing config and CLI contract tests**
 
   Extend `groupExpectations` with:
 
@@ -266,7 +266,7 @@
   rule IDs and `observability-valid.ts` returns status zero under the dedicated
   config. Run both test files before the public exports/fixtures exist.
 
-- [ ] **Step 2: Run the config and CLI tests to verify they fail**
+- [x] **Step 2: Run the config and CLI tests to verify they fail**
 
   Run: `bun test tests/config.test.ts`
 
@@ -274,7 +274,7 @@
 
   Expected: FAIL because the group export and fixtures are absent.
 
-- [ ] **Step 3: Add exports, fixtures, examples, documentation, and roadmap updates**
+- [x] **Step 3: Add exports, fixtures, examples, documentation, and roadmap updates**
 
   Add this exact group to `src/index.ts`:
 
@@ -296,7 +296,7 @@
   annotated backend anti-pattern for each rule. Document the exact syntactic
   limits in the README and mark all Roadmap 08 Slice 1 entries complete.
 
-- [ ] **Step 4: Run focused public-surface and example checks**
+- [x] **Step 4: Run focused public-surface and example checks**
 
   Run: `bun test tests/config.test.ts`
 
@@ -307,7 +307,7 @@
   Expected: config and CLI tests PASS. The example command exits 1 and visibly
   includes all three new `linteffect(...)` IDs.
 
-- [ ] **Step 5: Run the full package verification gate**
+- [x] **Step 5: Run the full package verification gate**
 
   ```bash
   bun run test
@@ -323,7 +323,7 @@
   Expected: every command exits zero. `lint:examples` remains intentionally
   non-zero and is not part of the clean package gate.
 
-- [ ] **Step 6: Commit the public surface and verification state**
+- [x] **Step 6: Commit the public surface and verification state**
 
   ```bash
   git add src/index.ts tests/config.test.ts tests/fixtures/oxlint \

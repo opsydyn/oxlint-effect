@@ -33,6 +33,8 @@ import plugin, {
   serviceAndLayerArchitectureRules,
   styleSeparation,
   styleSeparationRules,
+  testingObservabilityAndQa,
+  testingObservabilityAndQaRules,
 } from "../src/index";
 
 const expectedJsPlugins = [
@@ -191,6 +193,11 @@ const groupExpectations = {
     "no-node-platform-in-shared-code",
     "no-process-env-direct-read",
   ],
+  testingObservabilityAndQa: [
+    "no-console-in-effect-flow",
+    "no-effect-log-without-structured-context",
+    "require-span-on-public-service-method",
+  ],
 } as const;
 
 const exportedRuleGroups = {
@@ -208,6 +215,7 @@ const exportedRuleGroups = {
   styleSeparation: styleSeparationRules,
   serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
   platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
+  testingObservabilityAndQa: testingObservabilityAndQaRules,
 } as const;
 
 const exportedPresets = {
@@ -225,6 +233,7 @@ const exportedPresets = {
   styleSeparation,
   serviceAndLayerArchitecture,
   platformAndBoundaryHygiene,
+  testingObservabilityAndQa,
 } as const;
 
 describe("linteffect config exports", () => {
@@ -258,6 +267,9 @@ describe("linteffect config exports", () => {
       "linteffect/no-return-in-callback": "error",
       "linteffect/no-effect-fn-generator": "error",
       "linteffect/no-effect-sync-console": "error",
+      "linteffect/no-console-in-effect-flow": "error",
+      "linteffect/no-effect-log-without-structured-context": "error",
+      "linteffect/require-span-on-public-service-method": "error",
       "linteffect/no-nested-effect-gen": "error",
       "linteffect/no-match-void-branch": "error",
       "linteffect/no-match-effect-branch": "error",
