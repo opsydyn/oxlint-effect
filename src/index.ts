@@ -4103,6 +4103,8 @@ const defaultBoundaryPaths = [
   "app/api/**/route.ts", "server/**", "*.test.ts", "*.spec.ts",
 ] as const;
 
+const defaultTestPaths = ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"] as const;
+
 const defaultConfigPaths = ["**/config/**", "**/*Config.ts", "**/*ConfigLayer.ts"] as const;
 
 const boundaryPathOptionsSchema = [{
@@ -4185,6 +4187,10 @@ function isBoundaryPath(context: OxlintContext): boolean {
   return boundaryPathsFor(context).some((pattern) => pathMatchesPattern(context.filename, pattern));
 }
 
+function isTestPath(context: OxlintContext): boolean {
+  return defaultTestPaths.some((pattern) => pathMatchesPattern(context.filename, pattern));
+}
+
 function configPathsFor(context: OxlintContext): readonly string[] {
   return stringArrayOption(rulePathOptions(context), "configPaths") ?? defaultConfigPaths;
 }
@@ -4199,6 +4205,50 @@ function isEffectEcosystemImport(source: string): boolean {
     source.startsWith("effect/") ||
     source === "@effect-atom/atom-react"
   );
+}
+
+function directTestCallback(node: unknown): Node | undefined {
+  if (
+    !isIdentifierCall(node, "it") &&
+    !isIdentifierCall(node, "test") &&
+    !isIdentifierCall(node, "specify") &&
+    !isIdentifierCall(node, "bench")
+  ) {
+    return undefined;
+  }
+
+  const arguments_ = (node as Node & { arguments?: unknown[] }).arguments;
+  const callback = arguments_?.at(-1);
+  return isFunctionLike(callback) ? callback : undefined;
+}
+
+function discardedRunPromiseInTestCallback(callback: Node): Node | undefined {
+  const body = callback.body;
+  if (isEffectMemberCallNamed(body, "runPromise")) {
+    return undefined;
+  }
+
+  if (
+    typeof body !== "object" ||
+    body === null ||
+    (body as Node).type !== "BlockStatement" ||
+    !Array.isArray((body as Node).body)
+  ) {
+    return undefined;
+  }
+
+  for (const statement of (body as Node & { body: unknown[] }).body) {
+    if (
+      typeof statement === "object" &&
+      statement !== null &&
+      (statement as Node).type === "ExpressionStatement" &&
+      isEffectMemberCallNamed((statement as Node).expression, "runPromise")
+    ) {
+      return (statement as Node).expression as Node;
+    }
+  }
+
+  return undefined;
 }
 
 function importsEffectSchema(node: unknown): boolean {
@@ -4682,6 +4732,46 @@ const requireSpanOnPublicServiceMethod = defineRule({
             context,
             operation,
             "Rule: add Effect.withSpan to public Effect operations. Why: service work needs trace boundaries. Fix: wrap the returned Effect with Effect.withSpan(...).",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noRunpromiseInNonAsyncTestBody = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const candidates: Node[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!isTestPath(context)) {
+          return;
+        }
+
+        const callback = directTestCallback(node);
+        const candidate = callback && discardedRunPromiseInTestCallback(callback);
+        if (candidate) {
+          candidates.push(candidate);
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const candidate of candidates) {
+          report(
+            context,
+            candidate,
+            "Rule: do not discard Effect.runPromise in a test body. Why: the test can finish before the Effect result is observed. Fix: await or return Effect.runPromise so the test framework observes completion.",
           );
         }
       },
@@ -7412,6 +7502,7 @@ const rules = {
   "no-console-in-effect-flow": noConsoleInEffectFlow,
   "no-effect-log-without-structured-context": noEffectLogWithoutStructuredContext,
   "require-span-on-public-service-method": requireSpanOnPublicServiceMethod,
+  "no-runpromise-in-non-async-test-body": noRunpromiseInNonAsyncTestBody,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-piped-yield-in-gen": noPipedYieldInGen,

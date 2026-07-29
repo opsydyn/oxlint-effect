@@ -185,6 +185,17 @@ const asyncArrowCallback = (body: unknown) => ({
   body,
 });
 
+const awaitExpression = (argument: unknown) => ({
+  type: "AwaitExpression",
+  argument,
+});
+
+const testCall = (name: string, callback: unknown) => callExpression(
+  identifier(name),
+  { type: "Literal", value: "keeps the test shape explicit" },
+  callback,
+);
+
 const arrowCallbackWithParams = (params: unknown[], body: unknown) => ({
   type: "ArrowFunctionExpression",
   params,
@@ -1129,6 +1140,68 @@ describe("linteffect Oxlint plugin", () => {
 
       expect(configuredBoundaryReports).toHaveLength(0);
       expect(defaultBoundaryReports).toHaveLength(1);
+    });
+  });
+
+  describe("no-runpromise-in-non-async-test-body", () => {
+    it("reports discarded direct Effect.runPromise calls in supported test callbacks", () => {
+      for (const testFunction of ["it", "test", "specify", "bench"]) {
+        const runPromise = effectCall("runPromise", identifier("program"));
+        const reports = runRuleSequence("no-runpromise-in-non-async-test-body", [
+          {
+            visitorName: "CallExpression",
+            node: testCall(testFunction, arrowCallback(blockStatement(expressionStatement(runPromise)))),
+          },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ], { filename: "/repo/tests/order-service.test.ts" });
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.node).toBe(runPromise);
+      }
+    });
+
+    it("allows awaited, returned, and implicit-return Effect.runPromise calls", () => {
+      const allowedCallbacks = [
+        asyncArrowCallback(blockStatement(expressionStatement(awaitExpression(effectCall("runPromise", identifier("program")))))),
+        arrowCallback(blockStatement(returnStatement(effectCall("runPromise", identifier("program"))))),
+        arrowCallback(effectCall("runPromise", identifier("program"))),
+      ];
+
+      for (const callback of allowedCallbacks) {
+        const reports = runRuleSequence("no-runpromise-in-non-async-test-body", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: testCall("it", callback) },
+          { visitorName: "Program:exit", node: {} },
+        ], { filename: "/repo/tests/order-service.test.ts" });
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("ignores non-test paths, files without Effect, and unsupported wrappers", () => {
+      const candidate = testCall(
+        "it",
+        arrowCallback(blockStatement(expressionStatement(effectCall("runPromise", identifier("program"))))),
+      );
+      const nonTestReports = runRuleSequence("no-runpromise-in-non-async-test-body", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: candidate },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/src/order-service.ts" });
+      const nonEffectReports = runRuleSequence("no-runpromise-in-non-async-test-body", [
+        { visitorName: "CallExpression", node: candidate },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.test.ts" });
+      const wrappedReports = runRuleSequence("no-runpromise-in-non-async-test-body", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: testCall("itEach", arrowCallback(blockStatement(expressionStatement(effectCall("runPromise", identifier("program")))))) },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.test.ts" });
+
+      expect(nonTestReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+      expect(wrappedReports).toHaveLength(0);
     });
   });
 
