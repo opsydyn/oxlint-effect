@@ -44,19 +44,21 @@ actionable list when an exported rule:
 
 `legacy/parity` entries intentionally skip the roadmap-row assertion. All
 rules, including legacy/parity rules, still require README and example coverage.
+Rule-ID matching must support the existing `[a-zA-Z0-9-]` convention because
+`no-effect-orElse-ladder` has a capital `E`.
 
 Do not parse TypeScript source to discover rule names. Import the actual plugin
 registry so the test follows the public shipped surface.
 
 ## Documentation And Backfill
 
-Backfill the current audit gaps:
+Backfill annotated examples for the current audit gaps:
 
-- README entry for `linteffect/no-effect-orElse-ladder`;
-- annotated examples for
-  `no-if-statement`, `no-ternary`, `no-branch-in-object`,
-  `no-atom-registry-effect-sync`, `no-family-collection-read`,
-  `no-effect-orElse-ladder`, and `no-effect-succeed-variable`.
+- `no-if-statement`
+- `no-ternary`
+- `no-branch-in-object`
+- `no-atom-registry-effect-sync`
+- `no-family-collection-read`
 
 Add the inventory contract to `examples/README.md` so contributors know that
 every new exported rule needs a README entry, `EXPECT`/ `QA` example, and
