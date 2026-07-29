@@ -4315,6 +4315,33 @@ function isEffectRunPromiseRejectsMember(node: unknown): node is Node {
   return isEffectMemberCallNamed(argument, "runPromise");
 }
 
+function isServiceDefaultReference(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "MemberExpression" &&
+    (node as Node).computed !== true &&
+    isIdentifier((node as Node).property, "Default")
+  );
+}
+
+function isManualTestLayer(node: unknown): boolean {
+  return isMemberCall(node, "Layer", "succeed") || isMemberCall(node, "Layer", "effect");
+}
+
+function manualLayersNextToServiceDefault(node: unknown): Node[] {
+  if (!isMemberCall(node, "Layer", "provide")) {
+    return [];
+  }
+
+  const arguments_ = (node as Node).arguments;
+  if (!Array.isArray(arguments_) || !arguments_.some(isServiceDefaultReference)) {
+    return [];
+  }
+
+  return arguments_.filter(isManualTestLayer) as Node[];
+}
+
 function importsEffectSchema(node: unknown): boolean {
   const source = getImportSource(node);
   if (source === "effect/Schema") {
@@ -4875,6 +4902,40 @@ const requireEffectFlipForErrorTest = defineRule({
             context,
             candidate,
             "Rule: prefer Effect.flip for expected typed Effect failures in tests. Why: it turns the expected failure into a successful error value for structural assertions. Fix: flip the Effect, then assert the error _tag, message, and fields.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noTestMockLayerWhenDefaultAvailable = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const candidates: Node[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (isTestPath(context)) {
+          candidates.push(...manualLayersNextToServiceDefault(node));
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const candidate of candidates) {
+          report(
+            context,
+            candidate,
+            "Rule: avoid a manual test layer beside an explicit service Default layer. Why: the test is already opting into the service's real default composition and the sibling mock can hide that contract. Fix: use the Default layer with its required infrastructure, or remove Default when a replacement is intentional.",
           );
         }
       },
@@ -7607,6 +7668,7 @@ const rules = {
   "require-span-on-public-service-method": requireSpanOnPublicServiceMethod,
   "no-runpromise-in-non-async-test-body": noRunpromiseInNonAsyncTestBody,
   "require-effect-flip-for-error-test": requireEffectFlipForErrorTest,
+  "no-test-mock-layer-when-default-available": noTestMockLayerWhenDefaultAvailable,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-piped-yield-in-gen": noPipedYieldInGen,

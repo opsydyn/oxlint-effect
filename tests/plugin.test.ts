@@ -1280,6 +1280,77 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-test-mock-layer-when-default-available", () => {
+    it("reports direct manual layers next to a service Default layer", () => {
+      for (const method of ["succeed", "effect"]) {
+        const manualLayer = callExpression(
+          memberAccess(identifier("Layer"), method),
+          identifier("FileSystem"),
+          identifier("testFileSystem"),
+        );
+        const reports = runRuleSequence("no-test-mock-layer-when-default-available", [
+          {
+            visitorName: "CallExpression",
+            node: callExpression(
+              memberAccess(identifier("Layer"), "provide"),
+              memberAccess(identifier("OrderService"), "Default"),
+              manualLayer,
+            ),
+          },
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "Program:exit", node: {} },
+        ], { filename: "/repo/tests/__tests__/order-service.ts" });
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0]?.node).toBe(manualLayer);
+      }
+    });
+
+    it("allows infrastructure layers, standalone mocks, source files, and non-Effect files", () => {
+      const defaultLayer = memberAccess(identifier("OrderService"), "Default");
+      const manualLayer = callExpression(
+        memberAccess(identifier("Layer"), "succeed"),
+        identifier("FileSystem"),
+        identifier("testFileSystem"),
+      );
+      const infrastructureLayer = memberAccess(identifier("NodeContext"), "layer");
+      const withInfrastructure = callExpression(
+        memberAccess(identifier("Layer"), "provide"),
+        defaultLayer,
+        infrastructureLayer,
+      );
+      const withoutDefault = callExpression(
+        memberAccess(identifier("Layer"), "provide"),
+        manualLayer,
+      );
+      const candidate = callExpression(
+        memberAccess(identifier("Layer"), "provide"),
+        defaultLayer,
+        manualLayer,
+      );
+
+      const allowedReports = runRuleSequence("no-test-mock-layer-when-default-available", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: withInfrastructure },
+        { visitorName: "CallExpression", node: withoutDefault },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.spec.ts" });
+      const sourceReports = runRuleSequence("no-test-mock-layer-when-default-available", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: candidate },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/src/order-service.ts" });
+      const nonEffectReports = runRuleSequence("no-test-mock-layer-when-default-available", [
+        { visitorName: "CallExpression", node: candidate },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.test.ts" });
+
+      expect(allowedReports).toHaveLength(0);
+      expect(sourceReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
+    });
+  });
+
   describe("no-new-date-in-domain-logic", () => {
     it("reports Date construction in Effect modules regardless of import order", () => {
       for (const date of [
