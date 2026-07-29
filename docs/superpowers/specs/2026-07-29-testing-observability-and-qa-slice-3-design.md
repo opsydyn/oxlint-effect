@@ -59,6 +59,8 @@ Backfill annotated examples for the current audit gaps:
 - `no-branch-in-object`
 - `no-atom-registry-effect-sync`
 - `no-family-collection-read`
+- `no-react-state`
+- `no-render-side-effects`
 
 Add the inventory contract to `examples/README.md` so contributors know that
 every new exported rule needs a README entry, `EXPECT`/ `QA` example, and

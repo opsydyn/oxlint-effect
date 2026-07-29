@@ -8,6 +8,26 @@ declare const SomeRuntimeLive: any;
 declare function wrapGraphqlCall(input: unknown): any;
 declare function invalidate(key: string): void;
 declare function setState(value: unknown): void;
+declare const Atom: {
+  readonly family: (callback: (get: (atom: unknown) => unknown) => unknown) => unknown;
+  readonly set: (atom: unknown, value: unknown) => unknown;
+};
+declare const userAtom: unknown;
+declare const UsersCollectionAtom: unknown;
+
+// EXPECT: linteffect/no-if-statement
+// QA: Imperative branching in Effect modules should use Match or a named domain decision.
+if (count > 0) {
+  console.log("positive");
+}
+
+// EXPECT: linteffect/no-ternary
+// QA: Ternaries hide branching policy inside expressions.
+const branchWithTernary = count > 0 ? "positive" : "zero";
+
+// EXPECT: linteffect/no-branch-in-object
+// QA: Resolve decisions before assembling an object.
+const branchInObject = { status: count > 0 ? "positive" : "zero" };
 
 // EXPECT: linteffect/no-switch-statement
 // QA: Switch statements in Effect files should warn.
@@ -130,6 +150,14 @@ const syncConsole = Effect.sync(() => {
   console.log(count);
 });
 
+// EXPECT: linteffect/no-atom-registry-effect-sync
+// QA: Atom operations must not be hidden inside Effect.sync.
+const atomOperationInSync = Effect.sync(() => Atom.set(userAtom, count));
+
+// EXPECT: linteffect/no-family-collection-read
+// QA: Atom.family should project from keyed sources, not broad collection atoms.
+const userFamily = Atom.family((get) => get(UsersCollectionAtom));
+
 // EXPECT: linteffect/no-nested-effect-gen
 // QA: Nested Effect.gen calls should warn.
 const nestedGen = Effect.gen(function* () {
@@ -220,6 +248,10 @@ void [
   callbackReturn,
   fnGenerator,
   syncConsole,
+  branchWithTernary,
+  branchInObject,
+  atomOperationInSync,
+  userFamily,
   nestedGen,
   matchVoidBranch,
   matchEffectBranch,
