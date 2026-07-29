@@ -56,6 +56,13 @@ const memberCall = (object: string, property: string) => ({
   },
 });
 
+const memberAccess = (object: unknown, property: string) => ({
+  type: "MemberExpression",
+  object,
+  property: identifier(property),
+  computed: false,
+});
+
 const requireCall = (source: string) => ({
   type: "CallExpression",
   callee: identifier("require"),
@@ -1202,6 +1209,74 @@ describe("linteffect Oxlint plugin", () => {
       expect(nonTestReports).toHaveLength(0);
       expect(nonEffectReports).toHaveLength(0);
       expect(wrappedReports).toHaveLength(0);
+    });
+  });
+
+  describe("require-effect-flip-for-error-test", () => {
+    it("reports direct runPromise rejection assertions in supported test callbacks", () => {
+      const rejects = memberAccess(
+        callExpression(identifier("expect"), effectCall("runPromise", identifier("program"))),
+        "rejects",
+      );
+      const assertion = callExpression(memberAccess(rejects, "toMatchObject"), objectLiteral(
+        property("_tag", { type: "Literal", value: "OrderNotFound" }),
+      ));
+      const reports = runRuleSequence("require-effect-flip-for-error-test", [
+        {
+          visitorName: "CallExpression",
+          node: testCall("it", asyncArrowCallback(blockStatement(expressionStatement(awaitExpression(assertion))))),
+        },
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.test.ts" });
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0]?.node).toBe(rejects);
+      expect(reports[0]?.message).toContain("Effect.flip");
+    });
+
+    it("allows unrelated assertions and ignores out-of-scope files", () => {
+      const effectResolves = callExpression(
+        memberAccess(
+          memberAccess(callExpression(identifier("expect"), effectCall("runPromise", identifier("program"))), "resolves"),
+          "toEqual",
+        ),
+        identifier("value"),
+      );
+      const promiseRejects = callExpression(
+        memberAccess(
+          memberAccess(callExpression(identifier("expect"), identifier("promise")), "rejects"),
+          "toThrow",
+        ),
+      );
+      const effectRejects = memberAccess(
+        callExpression(identifier("expect"), effectCall("runPromise", identifier("program"))),
+        "rejects",
+      );
+      const candidate = testCall(
+        "test",
+        asyncArrowCallback(blockStatement(expressionStatement(awaitExpression(callExpression(memberAccess(effectRejects, "toThrow")))))),
+      );
+
+      const allowedReports = runRuleSequence("require-effect-flip-for-error-test", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: testCall("it", asyncArrowCallback(blockStatement(expressionStatement(awaitExpression(effectResolves))))) },
+        { visitorName: "CallExpression", node: testCall("it", asyncArrowCallback(blockStatement(expressionStatement(awaitExpression(promiseRejects))))) },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.test.ts" });
+      const nonTestReports = runRuleSequence("require-effect-flip-for-error-test", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: candidate },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/src/order-service.ts" });
+      const nonEffectReports = runRuleSequence("require-effect-flip-for-error-test", [
+        { visitorName: "CallExpression", node: candidate },
+        { visitorName: "Program:exit", node: {} },
+      ], { filename: "/repo/tests/order-service.test.ts" });
+
+      expect(allowedReports).toHaveLength(0);
+      expect(nonTestReports).toHaveLength(0);
+      expect(nonEffectReports).toHaveLength(0);
     });
   });
 

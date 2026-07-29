@@ -4219,7 +4219,7 @@ function directTestCallback(node: unknown): Node | undefined {
 
   const arguments_ = (node as Node & { arguments?: unknown[] }).arguments;
   const callback = arguments_?.at(-1);
-  return isFunctionLike(callback) ? callback : undefined;
+  return isFunctionLike(callback) ? callback as Node : undefined;
 }
 
 function discardedRunPromiseInTestCallback(callback: Node): Node | undefined {
@@ -4249,6 +4249,70 @@ function discardedRunPromiseInTestCallback(callback: Node): Node | undefined {
   }
 
   return undefined;
+}
+
+function nodesInDirectTestCallback(
+  callback: Node,
+  predicate: (node: Node) => boolean,
+): Node[] {
+  const matches: Node[] = [];
+  const seen = new WeakSet<object>();
+
+  function visit(node: unknown, isRoot = false): void {
+    if (Array.isArray(node)) {
+      for (const child of node) {
+        visit(child);
+      }
+      return;
+    }
+
+    if (typeof node !== "object" || node === null || seen.has(node)) {
+      return;
+    }
+    seen.add(node);
+
+    const candidate = node as Node;
+    if (!isRoot && isFunctionLike(candidate)) {
+      return;
+    }
+    if (predicate(candidate)) {
+      matches.push(candidate);
+    }
+
+    for (const [key, child] of Object.entries(candidate)) {
+      if (key !== "parent") {
+        visit(child);
+      }
+    }
+  }
+
+  visit(callback, true);
+  return matches;
+}
+
+function isEffectRunPromiseRejectsMember(node: unknown): node is Node {
+  if (
+    typeof node !== "object" ||
+    node === null ||
+    (node as Node).type !== "MemberExpression" ||
+    (node as Node).computed === true ||
+    !isIdentifier((node as Node).property, "rejects")
+  ) {
+    return false;
+  }
+
+  const expectation = (node as Node).object;
+  if (!isIdentifierCall(expectation, "expect")) {
+    return false;
+  }
+
+  const arguments_ = (expectation as Node).arguments;
+  if (!Array.isArray(arguments_)) {
+    return false;
+  }
+
+  const argument = arguments_[0];
+  return isEffectMemberCallNamed(argument, "runPromise");
 }
 
 function importsEffectSchema(node: unknown): boolean {
@@ -4772,6 +4836,45 @@ const noRunpromiseInNonAsyncTestBody = defineRule({
             context,
             candidate,
             "Rule: do not discard Effect.runPromise in a test body. Why: the test can finish before the Effect result is observed. Fix: await or return Effect.runPromise so the test framework observes completion.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const requireEffectFlipForErrorTest = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const candidates: Node[] = [];
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!isTestPath(context)) {
+          return;
+        }
+
+        const callback = directTestCallback(node);
+        if (callback) {
+          candidates.push(...nodesInDirectTestCallback(callback, isEffectRunPromiseRejectsMember));
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        for (const candidate of candidates) {
+          report(
+            context,
+            candidate,
+            "Rule: prefer Effect.flip for expected typed Effect failures in tests. Why: it turns the expected failure into a successful error value for structural assertions. Fix: flip the Effect, then assert the error _tag, message, and fields.",
           );
         }
       },
@@ -7503,6 +7606,7 @@ const rules = {
   "no-effect-log-without-structured-context": noEffectLogWithoutStructuredContext,
   "require-span-on-public-service-method": requireSpanOnPublicServiceMethod,
   "no-runpromise-in-non-async-test-body": noRunpromiseInNonAsyncTestBody,
+  "require-effect-flip-for-error-test": requireEffectFlipForErrorTest,
   "no-nested-effect-gen": noNestedEffectGen,
   "no-yield-without-star-in-effect-gen": noYieldWithoutStarInEffectGen,
   "no-piped-yield-in-gen": noPipedYieldInGen,
