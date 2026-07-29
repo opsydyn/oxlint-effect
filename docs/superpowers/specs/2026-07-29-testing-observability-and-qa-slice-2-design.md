@@ -77,9 +77,11 @@ variables.
 ## Public Surface
 
 Add the rules to `testingObservabilityAndQaRules`,
-`testingObservabilityAndQa`, `ruleGroups`, `presets`, the exact recommended
-expectation, and the standard Oxlint fixture config. They remain excluded from
-`recommended` despite being visible in the group export.
+`testingObservabilityAndQa`, `ruleGroups`, `presets`, and the standard Oxlint
+fixture config. Add `recommendedRules` as the existing recommended set minus
+the three Slice 2 test-shape rules, and derive `recommended` from that export.
+Keep `allRules` complete. This makes the rules available in the group without
+silently changing the existing recommended configuration.
 
 Add dedicated valid and invalid CLI fixtures, an annotated backend
 test-shape anti-pattern example for all three rules, README rule entries, and
