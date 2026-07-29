@@ -7773,6 +7773,15 @@ const rules = {
 
 type RuleName = keyof typeof rules;
 
+const strictTestingObservabilityAndQaRuleNames = [
+  "no-runpromise-in-non-async-test-body",
+  "require-effect-flip-for-error-test",
+  "no-test-mock-layer-when-default-available",
+] as const satisfies readonly RuleName[];
+
+type StrictTestingObservabilityAndQaRuleName =
+  typeof strictTestingObservabilityAndQaRuleNames[number];
+
 function rulesFromNames<const T extends readonly RuleName[]>(ruleNames: T) {
   return Object.fromEntries(
     ruleNames.map((ruleName) => [`linteffect/${ruleName}`, "error"]),
@@ -7953,9 +7962,16 @@ export const testingObservabilityAndQaRules = rulesFromNames([
   "no-console-in-effect-flow",
   "no-effect-log-without-structured-context",
   "require-span-on-public-service-method",
+  ...strictTestingObservabilityAndQaRuleNames,
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
+const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
+  (ruleName): ruleName is Exclude<RuleName, StrictTestingObservabilityAndQaRuleName> => (
+    !(strictTestingObservabilityAndQaRuleNames as readonly RuleName[]).includes(ruleName)
+  ),
+);
+export const recommendedRules = rulesFromNames(recommendedRuleNames);
 
 export const ruleGroups = {
   reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
@@ -7976,7 +7992,7 @@ export const ruleGroups = {
   ddd: domainModelingRules,
 } as const;
 
-export const recommended = presetFor(allRules);
+export const recommended = presetFor(recommendedRules);
 export const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
 export const effectComposition = presetFor(effectCompositionRules);
 export const concurrencySafety = presetFor(concurrencySafetyRules);

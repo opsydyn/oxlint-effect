@@ -100,9 +100,10 @@ export default defineConfig({
 
 ## Rule Groups
 
-The recommended config enables every rule as an error. The rules are heuristic:
-they flag code shapes that tend to hide Effect flow, domain meaning, or runtime
-boundaries.
+The recommended config enables the broadly applicable rules as errors. Strict
+groups can add more opinionated checks where a team has adopted the associated
+workflow. The rules are heuristic: they flag code shapes that tend to hide
+Effect flow, domain meaning, or runtime boundaries.
 
 ### React and Runtime Boundaries
 
@@ -207,11 +208,24 @@ boundaries.
 | `linteffect/no-console-in-effect-flow` | `console.*` inside direct `Effect.gen`, `Effect.sync`, `Effect.try`, `Effect.tryPromise`, or `Effect.fn` callbacks, and `Effect.Service` implementations. | Logging through Effect preserves the runtime's observability context. |
 | `linteffect/no-effect-log-without-structured-context` | String-only `Effect.logError` and `Effect.logWarning` calls in direct error-handler callbacks or `Effect.Service` implementations. | Failure logs need an error, structured fields, or local `Effect.annotateLogs(...)` context for correlation. |
 | `linteffect/require-span-on-public-service-method` | Exported functions or function-valued variables with an explicit `Effect.Effect` return (on the function or variable declaration), plus `Effect.Service` methods directly returning an Effect, when any direct Effect return lacks `Effect.withSpan(...)`. | Public operations need visible trace boundaries. |
+| `linteffect/no-runpromise-in-non-async-test-body` | Discarded direct `Effect.runPromise(...)` calls in `*.test.*`, `*.spec.*`, and `__tests__` files. | Tests must await or return runtime execution so the framework observes completion. |
+| `linteffect/require-effect-flip-for-error-test` | Direct `await expect(Effect.runPromise(effect)).rejects...` assertions in conventional test files. | An expected typed Effect failure is clearer when `Effect.flip` yields the error as a value for structural assertions. |
+| `linteffect/no-test-mock-layer-when-default-available` | A direct `Layer.succeed(...)` or `Layer.effect(...)` sibling of `SomeService.Default` in the same `Layer.provide(...)` call. | An explicit default composition and a sibling replacement layer can hide which service contract the test exercises. |
 
 These rules are deliberately syntax-only. They require an Effect ecosystem import;
 they do not resolve aliases, infer Effect return types, or follow values through
 variables. `require-span-on-public-service-method` accepts either data-first
 `Effect.withSpan(program, "operation")` or `.pipe(Effect.withSpan("operation"))`.
+
+The three test-shape rules are strict opt-in checks: use
+`testingObservabilityAndQa` when a repository follows this test style; they are
+not in `recommended`. For an expected typed failure, the preferred pattern from
+[EffectPatterns service-test guidance](https://github.com/PaulJPhilp/EffectPatterns/blob/main/docs/SERVICE_PATTERNS.md)
+is to apply `Effect.flip`, execute the flipped Effect, and assert the returned
+error's `_tag`, message, and structured fields. This rule deliberately matches
+only a direct `expect(Effect.runPromise(...)).rejects` shape; ordinary
+JavaScript rejection assertions, aliases, helpers, and other promise chains are
+out of scope.
 
 Configure path-sensitive rules independently when a repository uses different
 application and configuration boundaries:

@@ -28,6 +28,7 @@ import plugin, {
   reactAndRuntimeBoundaries,
   reactAndRuntimeBoundariesRules,
   recommended,
+  recommendedRules,
   ruleGroups,
   serviceAndLayerArchitecture,
   serviceAndLayerArchitectureRules,
@@ -197,6 +198,9 @@ const groupExpectations = {
     "no-console-in-effect-flow",
     "no-effect-log-without-structured-context",
     "require-span-on-public-service-method",
+    "no-runpromise-in-non-async-test-body",
+    "require-effect-flip-for-error-test",
+    "no-test-mock-layer-when-default-available",
   ],
 } as const;
 
@@ -239,6 +243,7 @@ const exportedPresets = {
 describe("linteffect config exports", () => {
   it("exports a recommended config with plugin loading and enabled rules", () => {
     expect(recommended.jsPlugins as unknown).toEqual(expectedJsPlugins);
+    expect(recommended.rules).toEqual(recommendedRules);
 
     expect(recommended.rules).toEqual({
       "linteffect/no-react-state": "error",

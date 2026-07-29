@@ -69,6 +69,9 @@ diagnostics can be treated as implementation gaps.
 - `backend/service-layer-architecture-anti-patterns.ts` mirrors the Service
   and Layer Architecture slice in
   `roadmap/06-service-and-layer-architecture/README.md`.
+- `backend/__tests__/testing-observability-and-qa-test-shape-anti-patterns.test.ts`
+  mirrors the strict Test Shape slice in
+  `roadmap/08-testing-observability-and-qa/README.md`.
 
 ## npm Consumer Example
 
