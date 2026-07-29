@@ -103,7 +103,7 @@
 
   Expected: the focused test passes, `lint:examples` exits `1`, and `comm` prints no missing expected rule IDs.
 
-- [ ] **Step 6: Commit the implementation contract.**
+- [x] **Step 6: Commit the implementation contract.**
 
   ```bash
   git add docs/rule-qa-inventory.json tests/rule-qa.test.ts examples/backend/effect-anti-patterns.ts
@@ -118,11 +118,11 @@
 - Modify: `roadmap/08-testing-observability-and-qa/README.md`
 - Modify: `docs/superpowers/plans/2026-07-29-testing-observability-and-qa-slice-3.md`
 
-- [ ] **Step 1: Link the official Effect.flip documentation.**
+- [x] **Step 1: Link the official Effect.flip documentation.**
 
   Update the strict error-test guidance in `README.md` so its existing [EffectPatterns service-test guidance](https://github.com/PaulJPhilp/EffectPatterns/blob/main/docs/SERVICE_PATTERNS.md) reference is accompanied by the official [Effect.flip API reference](https://effect-ts.github.io/effect/effect/Effect.ts.html#flip). Keep the explanation lightweight: `Effect.flip` turns an expected typed failure into the success channel so the test assertion is explicit.
 
-- [ ] **Step 2: Explain contributor-facing QA ownership.**
+- [x] **Step 2: Explain contributor-facing QA ownership.**
 
   Add a concise `Rule QA Inventory` section to `examples/README.md`. State that any exported rule change must update:
 
@@ -132,7 +132,7 @@
 
   Include the focused verification command: `bun test tests/rule-qa.test.ts`.
 
-- [ ] **Step 3: Mark Slice 3 complete in Roadmap 08.**
+- [x] **Step 3: Mark Slice 3 complete in Roadmap 08.**
 
   In `roadmap/08-testing-observability-and-qa/README.md`, mark the two Slice 3 internal QA contract entries complete:
 
@@ -141,7 +141,7 @@
 
   Mark the associated Slice 3 checklist complete. These remain roadmap controls only; do not label them as configurable Oxlint rules.
 
-- [ ] **Step 4: Run the complete package verification suite.**
+- [x] **Step 4: Run the complete package verification suite.**
 
   Run:
 
@@ -165,7 +165,7 @@
 
   Expected: all standard package gates pass; the examples lint command exits `1`; and the expected-versus-observed comparison has no output.
 
-- [ ] **Step 5: Complete plan evidence and commit the documentation.**
+- [x] **Step 5: Complete plan evidence and commit the documentation.**
 
   Change this plan's completed checkboxes to `[x]` only after their commands pass. Record any non-default verification observations in the relevant task step. Then commit:
 
@@ -176,8 +176,8 @@
 
 ## Final Review
 
-- [ ] Confirm the inventory has exactly the exported rule IDs, with no internal QA labels or future candidates.
-- [ ] Confirm every exported rule has one README table entry and at least one annotated example.
-- [ ] Confirm each roadmap-owned inventory entry has a completed rule row in the stated roadmap.
-- [ ] Confirm `Effect.flip` links to the official Effect API documentation.
-- [ ] Confirm the full verification suite and intentional example-lint contract pass as specified.
+- [x] Confirm the inventory has exactly the exported rule IDs, with no internal QA labels or future candidates.
+- [x] Confirm every exported rule has one README table entry and at least one annotated example.
+- [x] Confirm each roadmap-owned inventory entry has a completed rule row in the stated roadmap.
+- [x] Confirm `Effect.flip` links to the official Effect API documentation.
+- [x] Confirm the full verification suite and intentional example-lint contract pass as specified.

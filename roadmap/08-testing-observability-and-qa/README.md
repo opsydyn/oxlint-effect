@@ -20,8 +20,8 @@ Primary references:
 | [x] | `linteffect/no-test-mock-layer-when-default-available` | service test pattern | strict | high | test files providing manual mock layer for `Effect.Service` with `.Default` |
 | [x] | `linteffect/require-effect-flip-for-error-test` | service test pattern | strict | medium | `expect(...rejects...)` around Effect error tests instead of `Effect.flip` |
 | [x] | `linteffect/no-runpromise-in-non-async-test-body` | service test pattern | strict | medium | `Effect.runPromise` not awaited or returned in test files |
-| [ ] | `linteffect/require-example-fixture-for-rule` | QA docs | strict | high | roadmap/docs rule added without example fixture annotation |
-| [ ] | `linteffect/require-rule-doc-entry` | QA docs | strict | medium | exported rule missing README and roadmap entry |
+| [x] | `linteffect/require-example-fixture-for-rule` | QA docs | strict | high | roadmap/docs rule added without example fixture annotation |
+| [x] | `linteffect/require-rule-doc-entry` | QA docs | strict | medium | exported rule missing README and roadmap entry |
 
 ## Slice Plan
 
@@ -39,8 +39,8 @@ Primary references:
 
 ### Slice 3: Roadmap And Example QA
 
-- [ ] `require-example-fixture-for-rule`
-- [ ] `require-rule-doc-entry`
+- [x] `require-example-fixture-for-rule`
+- [x] `require-rule-doc-entry`
 
 ## QA Notes
 

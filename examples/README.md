@@ -38,6 +38,20 @@ The final `comm` command should print no lines for implemented rules. Future
 rule examples intentionally remain in the missing set until the matching rule is
 shipped.
 
+## Rule QA Inventory
+
+Every exported rule must have a README table entry, an adjacent `EXPECT` and
+`QA` anti-pattern annotation, and an entry in
+`docs/rule-qa-inventory.json`. The inventory maps a rule to its completed
+roadmap README or to `legacy/parity` for shipped rules that predate a roadmap
+group.
+
+Run the contract check after changing an exported rule:
+
+```bash
+bun test tests/rule-qa.test.ts
+```
+
 ## Beyond-Parity Examples
 
 Some files document beyond-parity rule families as QA fixtures. They use

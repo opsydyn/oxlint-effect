@@ -221,8 +221,10 @@ The three test-shape rules are strict opt-in checks: use
 `testingObservabilityAndQa` when a repository follows this test style; they are
 not in `recommended`. For an expected typed failure, the preferred pattern from
 [EffectPatterns service-test guidance](https://github.com/PaulJPhilp/EffectPatterns/blob/main/docs/SERVICE_PATTERNS.md)
-is to apply `Effect.flip`, execute the flipped Effect, and assert the returned
-error's `_tag`, message, and structured fields. This rule deliberately matches
+is to apply [`Effect.flip`](https://effect-ts.github.io/effect/effect/Effect.ts.html#flip),
+execute the flipped Effect, and assert the returned error's `_tag`, message,
+and structured fields. `Effect.flip` moves the expected typed failure into the
+success channel, making the assertion explicit. This rule deliberately matches
 only a direct `expect(Effect.runPromise(...)).rejects` shape; ordinary
 JavaScript rejection assertions, aliases, helpers, and other promise chains are
 out of scope.
