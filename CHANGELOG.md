@@ -1,5 +1,14 @@
 # @opsydyn/oxlint-effect
 
+## 0.6.0
+
+### Minor Changes
+
+- Add platform and boundary hygiene, testing and observability rule groups, and
+  strict Effect test-shape diagnostics. The package now also checks that every
+  exported rule has README documentation, an annotated QA example, and explicit
+  roadmap or legacy ownership.
+
 ## 0.5.0
 
 ### Minor Changes
