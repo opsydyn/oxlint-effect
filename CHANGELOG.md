@@ -1,5 +1,11 @@
 # @opsydyn/oxlint-effect
 
+## 0.7.0
+
+### Minor Changes
+
+- f744e21: Add strict concurrency-safety diagnostics for suspension inside semaphore permits, effectful SynchronizedRef modifiers, and unscoped daemon fibers. The rules use conservative direct-call syntax detection and keep custom abstractions outside their analysis scope.
+
 ## 0.6.0
 
 ### Minor Changes
