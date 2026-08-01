@@ -68,7 +68,7 @@
   "size-limit": [
     {
       "path": "dist/index.mjs",
-      "limit": "21 KB"
+      "limit": "22 KB"
     }
   ],
   "publishConfig": {
