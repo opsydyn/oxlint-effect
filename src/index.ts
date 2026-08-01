@@ -8399,6 +8399,180 @@ const noManualResourceClose = defineRule({
   },
 });
 
+function isScopeMakeCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return isMemberCall(node, "Scope", "make") && Array.isArray((node as Node).arguments);
+}
+
+function isScopeCloseFor(node: unknown, bindingName: string): boolean {
+  return isMemberCall(node, "Scope", "close") && isIdentifier(firstArgument(node as Node & { arguments: unknown[] }), bindingName);
+}
+
+function findLexicalNode(
+  node: unknown,
+  predicate: (candidate: unknown) => boolean,
+  root = true,
+  seen = new WeakSet<object>(),
+): unknown | undefined {
+  if (predicate(node)) return node;
+
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findLexicalNode(child, predicate, root, seen);
+      if (match) return match;
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object" || node === null || seen.has(node)) {
+    return undefined;
+  }
+  seen.add(node);
+
+  if (!root && isFunctionLike(node)) return undefined;
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") continue;
+    const match = findLexicalNode(child, predicate, false, seen);
+    if (match) return match;
+  }
+
+  return undefined;
+}
+
+function enclosingFunction(node: unknown): Node | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return undefined;
+    seen.add(current);
+    if (isFunctionLike(current)) return current as Node;
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function scopeMakeBindingName(node: unknown): string | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return undefined;
+    seen.add(current);
+
+    if (
+      (current as Node).type === "VariableDeclarator" &&
+      isIdentifier((current as Node).id) &&
+      findNode((current as Node).init, (candidate) => candidate === node)
+    ) {
+      return ((current as Node).id as Node & { name: string }).name;
+    }
+
+    if (isFunctionLike(current)) return undefined;
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function hasMatchingScopeClose(node: unknown): boolean {
+  const bindingName = scopeMakeBindingName(node);
+  const functionNode = enclosingFunction(node);
+  if (bindingName === undefined || functionNode === undefined) return false;
+
+  return findLexicalNode(
+    functionNode.body,
+    (candidate) => isScopeCloseFor(candidate, bindingName),
+  ) !== undefined;
+}
+
+function isScopeAcquireReleaseCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireUseRelease") ||
+    isEffectMemberCallNamed(node, "acquireReleaseInterruptible")
+  ) && Array.isArray((node as Node).arguments);
+}
+
+function hasMatchingScopeReleaseCallback(node: Node & { arguments: unknown[] }): boolean {
+  const callbacks = isEffectMemberCallNamed(node, "acquireUseRelease")
+    ? node.arguments.slice(2)
+    : node.arguments.slice(1);
+
+  return callbacks.some((callback) => {
+    if (!isFunctionLike(callback)) return false;
+    const parameter = ((callback as Node).params as unknown[] | undefined)?.[0];
+    if (!isIdentifier(parameter)) return false;
+
+    return findLexicalNode(
+      (callback as Node).body,
+      (candidate) => isScopeCloseFor(candidate, parameter.name),
+    ) !== undefined;
+  });
+}
+
+function hasScopeOwner(node: unknown): boolean {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if (
+      isEffectMemberCallNamed(current, "scoped") ||
+      isMemberCall(current, "Layer", "scoped")
+    ) {
+      return true;
+    }
+
+    if (
+      isScopeAcquireReleaseCall(current) &&
+      firstArgument(current) === node &&
+      hasMatchingScopeReleaseCallback(current)
+    ) {
+      return true;
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return hasMatchingScopeClose(node);
+}
+
+const noUnboundScope = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !isScopeMakeCall(node) ||
+          hasScopeOwner(node)
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: avoid an unbound scope. Why: an unbound Scope can leak resources and finalizers. Fix: use Effect.scoped/Layer.scoped, close the scope explicitly, or acquire it with a matching release callback.",
+        );
+      },
+    };
+  },
+});
+
 const rules = {
   "no-react-state": noReactState,
   "no-if-statement": noIfStatement,
@@ -8523,6 +8697,7 @@ const rules = {
   "no-manual-deferred-coordination": noManualDeferredCoordination,
   "no-acquire-without-scoped-release": noAcquireWithoutScopedRelease,
   "no-manual-resource-close": noManualResourceClose,
+  "no-unbound-scope": noUnboundScope,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,

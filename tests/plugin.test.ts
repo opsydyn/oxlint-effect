@@ -5204,6 +5204,138 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-unbound-scope", () => {
+    it("reports Scope.make without an Effect-owned lifecycle", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(scopeMake);
+      expect(reports[0].message).toContain("unbound scope");
+    });
+
+    it("requires an Effect import and respects boundary paths", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const withoutImport = runRuleSequence("no-unbound-scope", [
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+      expect(withoutImport).toHaveLength(0);
+
+      const boundaryReports = runRuleSequence(
+        "no-unbound-scope",
+        [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: scopeMake },
+        ],
+        { filename: "/repo/server/route.ts" },
+      );
+      expect(boundaryReports).toHaveLength(0);
+    });
+
+    it("allows scopes enclosed by Effect.scoped and Layer.scoped", () => {
+      const owners = [
+        effectCall("scoped", objectMethodCall(identifier("Scope"), "make")),
+        objectMethodCall(identifier("Layer"), "scoped", objectMethodCall(identifier("Scope"), "make")),
+      ];
+
+      for (const owner of owners) {
+        const scopeMake = findCallByMethod(owner, ["make"]);
+        linkParents(owner);
+        const reports = runRuleSequence("no-unbound-scope", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: scopeMake },
+        ]);
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("allows a local scope with a matching Scope.close", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));
+      const scopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [scopeBinding],
+      };
+      const scopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(
+          scopeDeclaration,
+          expressionStatement(yieldExpression(scopeClose, true)),
+        )),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows a direct acquire/release scope with a matching callback parameter", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const owner = effectCall(
+        "acquireRelease",
+        scopeMake,
+        arrowCallbackWithParams([identifier("scope")], scopeClose),
+      );
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("does not treat Scope.addFinalizer as closing a created scope", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));
+      const scopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [scopeBinding],
+      };
+      const finalizer = objectMethodCall(
+        identifier("Scope"),
+        "addFinalizer",
+        identifier("scope"),
+        arrowCallback(identifier("finalizer")),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(scopeDeclaration, expressionStatement(finalizer))),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+  });
+
   it("reports resource-like acquisition inside concurrent Effect work", () => {
     const positiveCases = [
       concurrentWork("fork", resourceAcquire("openConnection")),
