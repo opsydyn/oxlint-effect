@@ -1,4 +1,5 @@
 {
+  "no-acquire-without-scoped-release": "roadmap/02-concurrency-safety/README.md",
   "no-adhoc-domain-error": "roadmap/05-domain-modeling/README.md",
   "no-arrow-ladder": "legacy/parity",
   "no-async-effect-combinator-callback": "roadmap/01-correctness-core/README.md",
@@ -48,6 +49,7 @@
   "no-layer-merge-in-request-handler": "roadmap/06-service-and-layer-architecture/README.md",
   "no-layer-provide-in-service-definition": "roadmap/06-service-and-layer-architecture/README.md",
   "no-magic-domain-string": "roadmap/05-domain-modeling/README.md",
+  "no-manual-deferred-coordination": "roadmap/02-concurrency-safety/README.md",
   "no-manual-effect-channels": "legacy/parity",
   "no-manual-service-object-export": "roadmap/06-service-and-layer-architecture/README.md",
   "no-match-effect-branch": "legacy/parity",
