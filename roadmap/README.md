@@ -42,6 +42,8 @@ grouped by the engineering outcome each group protects.
 - `observability`: logging, tracing, and deterministic-testability rules.
 - `concurrencySafety`: every concurrency rule in this roadmap, including the
   Rust-inspired expansion, for teams that want one focused concurrency preset.
+- `resourceLifetime`: cleanup, scope ownership, and resource escape rules for
+  teams that want one focused resource lifecycle preset.
 - `effectFlow`: workflow, behavior, and generator/pipe separation rules from
   `styleguide.md`.
 - `pureTransformation`: `flow()` and pure data transformation rules.
@@ -56,7 +58,7 @@ grouped by the engineering outcome each group protects.
 | --- | --- | ---: | --- |
 | [01 Correctness Core](./01-correctness-core/README.md) | Effect execution semantics and Promise/error escape hatches | 10 | yield-star, async callbacks, run boundaries |
 | [02 Concurrency Safety](./02-concurrency-safety/README.md) | Fibers, parallelism, races, retry storms, mutable state, Rust-inspired ownership discipline | 18 | unbounded all, fire-and-forget fork, fork in loop |
-| [03 Resource Lifetime](./03-resource-lifetime/README.md) | Scope, acquire/release, resource cleanup, app-level layers | 10 | manual close, unbound scope, Scope.global |
+| [03 Resource Lifetime](./03-resource-lifetime/README.md) | Scope, acquire/release, resource cleanup, app-level layers | 10 | manual close, unbound scope, resource escape |
 | [04 Error Modeling](./04-error-modeling/README.md) | Tagged errors, preserving causes, typed error channels | 10 | generic error channel, string fail, generic rethrow |
 | [05 Domain Modeling](./05-domain-modeling/README.md) | Brands, state machines, domain primitives, predicates | 10 | raw IDs, boolean flags, magic strings |
 | [06 Service And Layer Architecture](./06-service-and-layer-architecture/README.md) | Effect.Service, Context.Tag migration, layer composition, dependency graph style | 12 | Context.Tag, Layer.provide in service, missing accessors |

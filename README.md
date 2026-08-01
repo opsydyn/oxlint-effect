@@ -49,6 +49,7 @@ Named group presets:
 | `reactAndRuntimeBoundaries` | React and Runtime Boundaries |
 | `effectComposition` | Effect Composition |
 | `concurrencySafety` | Concurrency Safety |
+| `resourceLifetime` | Resource Lifetime |
 | `pipelineShapeAndSequencing` | Pipeline Shape and Sequencing |
 | `branchingAndLocalControlFlow` | Branching and Local Control Flow |
 | `optionMatchAndDataNormalization` | Option, Match, and Data Normalization |
@@ -290,6 +291,19 @@ export default defineConfig({
 | `linteffect/no-unscoped-background-fiber` | Direct `Effect.forkDaemon(...)` without a direct `Effect.supervised(...)` child-effect marker. | Strict-only protection that requires daemon work to expose supervision or use scoped ownership instead of silently outliving the caller. |
 | `linteffect/no-manual-deferred-coordination` | A local `Deferred.make(...)` / `Deferred.unsafeMake(...)` latch whose matching `Deferred.await(...)` has no timeout, race, interruption, scope, or finalizer protection. | Strict-only protection against unbounded waits and implicit completion ownership in ad hoc coordination. |
 | `linteffect/no-acquire-without-scoped-release` | Resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls for client, connection, pool, database, file, socket, stream, server, subscription, or handle values inside concurrent Effect work without scoped release evidence. | Keeps resources acquired by concurrent work tied to `acquireRelease`, `acquireUseRelease`, `Effect.scoped`, or a matching finalizer. |
+
+### Resource Lifetime
+
+These rules use a central syntax-only resource vocabulary (`client`, `connection`,
+`conn`, `pool`, `db`, `database`, `file`, `socket`, `stream`, `server`,
+`subscription`, and `handle`). They require an Effect ecosystem import and
+support the same `boundaryPaths` option as the other lifecycle rules.
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-manual-resource-close` | Resource-like `.close()`, `.destroy()`, `.dispose()`, or `.cleanup()` calls outside release or finalizer callbacks. | Keeps cleanup owned by Effect scopes instead of ad hoc imperative code. |
+| `linteffect/no-unbound-scope` | `Scope.make()` without `Effect.scoped`, `Layer.scoped`, explicit `Scope.close`, or a matching acquire/release callback. | Prevents scopes and their finalizers from being leaked. |
+| `linteffect/no-resource-succeed-escape` | `Effect.succeed(resourceLike)` for client, connection, pool, file, socket, stream, server, subscription, or handle-shaped values. | Keeps live resource lifetimes inside scoped Effect ownership; this heuristic is focused-only rather than recommended. |
 
 ### Pipeline Shape and Sequencing
 
