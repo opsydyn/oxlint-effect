@@ -77,6 +77,16 @@ const deferredBinding = (name: string, method = "make") => (
 
 const deferredAwait = (name: string) => deferredCall("await", identifier(name));
 
+const namedCall = (name: string, ...args: unknown[]) => (
+  callExpression(identifier(name), ...args)
+);
+
+const resourceAcquire = (name: string) => namedCall(name, stringLiteral("primary"));
+
+const concurrentWork = (propertyName: string, ...args: unknown[]) => (
+  effectCall(propertyName, ...args)
+);
+
 const curriedMethodCall = (
   object: unknown,
   propertyName: string,
@@ -5032,6 +5042,134 @@ describe("linteffect Oxlint plugin", () => {
       { visitorName: "CallExpression", node: deferredAwait("ready") },
     ]);
     expect(importedReports).toHaveLength(2);
+  });
+
+  it("reports resource-like acquisition inside concurrent Effect work", () => {
+    const positiveCases = [
+      concurrentWork("fork", resourceAcquire("openConnection")),
+      concurrentWork("forkScoped", resourceAcquire("createClient")),
+      concurrentWork("forkDaemon", resourceAcquire("connectToDatabase")),
+      concurrentWork("all", arrayLiteral(resourceAcquire("openFile"))),
+      concurrentWork("forEach", identifier("items"), arrowCallback(resourceAcquire("acquireHandle"))),
+      concurrentWork("race", resourceAcquire("listenServer"), identifier("fallback")),
+      concurrentWork("raceFirst", resourceAcquire("subscribeStream"), identifier("fallback")),
+      concurrentWork("raceAll", arrayLiteral(resourceAcquire("openSocket"))),
+      concurrentWork("fork", effectCall("promise", arrowCallback(resourceAcquire("openConnection")))),
+    ];
+
+    for (const work of positiveCases) {
+      const reports = runRuleSequence("no-acquire-without-scoped-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: work },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("scoped release");
+    }
+  });
+
+  it("reports the acquisition node rather than the concurrent combinator", () => {
+    const acquisition = resourceAcquire("openConnection");
+    const reports = runRuleSequence("no-acquire-without-scoped-release", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: concurrentWork("fork", acquisition) },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].node).toBe(acquisition);
+  });
+
+  it("allows acquisition with scoped release evidence", () => {
+    const connectionBinding = variableDeclaratorWithInit(
+      "connection",
+      yieldExpression(resourceAcquire("openConnection")),
+    );
+    const connectionDeclaration = {
+      type: "VariableDeclaration",
+      kind: "const",
+      declarations: [connectionBinding],
+    };
+    const finalizer = effectCall(
+      "addFinalizer",
+      arrowCallback(objectMethodCall(identifier("connection"), "close")),
+    );
+    const generator = effectCall(
+      "gen",
+      generatorCallback(blockStatement(
+        connectionDeclaration,
+        expressionStatement(finalizer),
+        expressionStatement(objectMethodCall(identifier("connection"), "query", stringLiteral("select 1"))),
+      )),
+    );
+    const safeCases = [
+      concurrentWork(
+        "fork",
+        effectCall(
+          "acquireRelease",
+          resourceAcquire("openConnection"),
+          arrowCallback(effectCall("succeed", identifier("closed"))),
+        ),
+      ),
+      concurrentWork(
+        "fork",
+        effectCall(
+          "acquireUseRelease",
+          resourceAcquire("createClient"),
+          identifier("use"),
+          identifier("release"),
+        ),
+      ),
+      concurrentWork("fork", effectCall("scoped", resourceAcquire("openFile"))),
+      concurrentWork(
+        "fork",
+        methodPipeCall(resourceAcquire("openSocket"), memberAccess(identifier("Effect"), "scoped")),
+      ),
+      concurrentWork("fork", generator),
+    ];
+
+    for (const work of safeCases) {
+      const reports = runRuleSequence("no-acquire-without-scoped-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: work },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    }
+  });
+
+  it("ignores generic factories, existing resource methods, and non-concurrent acquisition", () => {
+    const cases = [
+      concurrentWork("fork", namedCall("makeClient")),
+      concurrentWork("fork", objectMethodCall(identifier("client"), "connect")),
+      resourceAcquire("openConnection"),
+    ];
+
+    for (const node of cases) {
+      const reports = runRuleSequence("no-acquire-without-scoped-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    }
+  });
+
+  it("requires an Effect ecosystem import and deduplicates nested concurrent roots", () => {
+    const acquisition = resourceAcquire("openConnection");
+    const inner = concurrentWork("fork", acquisition);
+    const outer = concurrentWork("all", arrayLiteral(inner));
+
+    const withoutImport = runRuleSequence("no-acquire-without-scoped-release", [
+      { visitorName: "CallExpression", node: outer },
+    ]);
+    expect(withoutImport).toHaveLength(0);
+
+    const reports = runRuleSequence("no-acquire-without-scoped-release", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: outer },
+      { visitorName: "CallExpression", node: inner },
+    ]);
+    expect(reports).toHaveLength(1);
   });
 
   it("catches high-risk work inside a held semaphore permit", () => {

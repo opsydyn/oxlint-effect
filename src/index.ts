@@ -2676,6 +2676,182 @@ function concurrentEffectWorkNode(node: unknown): unknown | undefined {
   return undefined;
 }
 
+const concurrentWorkMembers = new Set([
+  "fork",
+  "forkScoped",
+  "forkDaemon",
+  "all",
+  "forEach",
+  "race",
+  "raceFirst",
+  "raceAll",
+]);
+
+const resourceAcquisitionVerbs = new Set([
+  "open",
+  "connect",
+  "create",
+  "start",
+  "listen",
+  "subscribe",
+  "acquire",
+]);
+
+const resourceLikeTerms = new Set([
+  "client",
+  "connection",
+  "conn",
+  "pool",
+  "db",
+  "database",
+  "file",
+  "socket",
+  "stream",
+  "server",
+  "subscription",
+  "handle",
+]);
+
+function concurrentWorkArguments(node: unknown): unknown[] | undefined {
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const property = ((node as Node).callee as Node).property;
+  return isIdentifier(property) && concurrentWorkMembers.has(property.name)
+    ? (node as Node & { arguments: unknown[] }).arguments
+    : undefined;
+}
+
+function resourceAcquisitionCall(node: unknown): node is Node & { callee: Node } {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const call = node as Node;
+  const callee = call.callee;
+  let name: string | undefined;
+
+  if (isIdentifier(callee)) {
+    name = callee.name;
+  } else if (typeof callee === "object" && callee !== null && (callee as Node).type === "MemberExpression") {
+    const member = callee as Node;
+    if (member.computed !== true && isIdentifier(member.property)) {
+      name = member.property.name;
+    }
+  }
+
+  if (!name || name === "acquireRelease" || name === "acquireUseRelease") {
+    return false;
+  }
+
+  const tokens = name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((token) => token.toLowerCase());
+  return (
+    tokens.some((token) => resourceAcquisitionVerbs.has(token)) &&
+    tokens.some((token) => resourceLikeTerms.has(token))
+  );
+}
+
+function hasScopedReleaseEvidence(node: unknown, bindingName?: string): boolean {
+  if (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireUseRelease") ||
+    isEffectMemberCallNamed(node, "scoped") ||
+    isEffectScopedPipeCall(node)
+  ) {
+    return true;
+  }
+
+  return bindingName !== undefined && hasMatchingDeferredFinalizer(node, bindingName);
+}
+
+function matchingFinalizerBindingNames(node: unknown): Set<string> {
+  const bindingNames = new Set<string>();
+  for (const candidate of findNodes(node, (child) => (
+    typeof child === "object" && child !== null && (child as Node).type === "VariableDeclarator"
+  ))) {
+    const declaration = candidate as Node;
+    if (
+      isIdentifier(declaration.id) &&
+      findNode(declaration.init, resourceAcquisitionCall) &&
+      hasMatchingDeferredFinalizer(node, declaration.id.name)
+    ) {
+      bindingNames.add(declaration.id.name);
+    }
+  }
+  return bindingNames;
+}
+
+function collectUnscopedResourceAcquisitions(
+  node: unknown,
+  matches: unknown[],
+  seen = new WeakSet<object>(),
+  ownedBindings = new Set<string>(),
+  owned = false,
+): void {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      collectUnscopedResourceAcquisitions(child, matches, seen, ownedBindings, owned);
+    }
+    return;
+  }
+
+  if (typeof node !== "object" || node === null || seen.has(node)) {
+    return;
+  }
+  seen.add(node);
+
+  if (hasScopedReleaseEvidence(node)) {
+    return;
+  }
+
+  const nextOwnedBindings = new Set(ownedBindings);
+  if (isFunctionLike(node)) {
+    for (const name of matchingFinalizerBindingNames(node)) {
+      nextOwnedBindings.add(name);
+    }
+  }
+
+  const declaration = (node as Node).type === "VariableDeclarator" ? node as Node : undefined;
+  const declarationName = declaration && isIdentifier(declaration.id) ? declaration.id.name : undefined;
+  const declarationIsOwned = declarationName !== undefined && nextOwnedBindings.has(declarationName);
+
+  if (resourceAcquisitionCall(node) && !owned) {
+    matches.push(node);
+    return;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    collectUnscopedResourceAcquisitions(
+      child,
+      matches,
+      seen,
+      nextOwnedBindings,
+      owned || declarationIsOwned,
+    );
+  }
+}
+
+function findUnscopedResourceAcquisition(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  const matches: unknown[] = [];
+  collectUnscopedResourceAcquisitions(node, matches, seen);
+  return matches[0];
+}
+
+function findUnscopedResourceAcquisitions(node: unknown): unknown[] {
+  const matches: unknown[] = [];
+  collectUnscopedResourceAcquisitions(node, matches);
+  return matches;
+}
+
 const concurrentEffectCalls = new Set(["all", "forEach", "fork", "race", "raceAll"]);
 
 function containsConcurrentOperation(node: unknown, seen = new WeakSet<object>()): boolean {
@@ -7951,6 +8127,45 @@ const noManualDeferredCoordination = defineRule({
   },
 });
 
+const noAcquireWithoutScopedRelease = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const reported = new WeakSet<object>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const work = concurrentWorkArguments(node);
+        if (!work) {
+          return;
+        }
+
+        for (const acquisition of findUnscopedResourceAcquisitions(work)) {
+          if (typeof acquisition !== "object" || acquisition === null || reported.has(acquisition)) {
+            continue;
+          }
+
+          reported.add(acquisition);
+          report(
+            context,
+            acquisition,
+            "Rule: avoid resource acquisition without scoped release. Why: acquiring a client, connection, file, or handle inside concurrent work can outlive failures and interruption. Fix: wrap acquisition in acquireRelease/acquireUseRelease, use Effect.scoped, or register a matching finalizer.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noYieldWithHeldSemaphorePermit = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -8175,6 +8390,7 @@ const rules = {
   "no-unbounded-queue-or-pubsub": noUnboundedQueueOrPubSub,
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
   "no-manual-deferred-coordination": noManualDeferredCoordination,
+  "no-acquire-without-scoped-release": noAcquireWithoutScopedRelease,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
