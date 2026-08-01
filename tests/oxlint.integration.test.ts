@@ -27,6 +27,23 @@ function runOxlint(fileName: string, configFileName = "oxlint.config.ts") {
 }
 
 describe("linteffect oxlint integration", () => {
+  it("reports exactly the Slice 7 concurrency safety diagnostics", () => {
+    const result = runOxlint(
+      "concurrency-safety-slice-7.ts",
+      "oxlint.concurrency-slice-7.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-acquire-without-scoped-release",
+      "no-acquire-without-scoped-release",
+      "no-manual-deferred-coordination",
+    ]);
+  });
+
   it("reports exactly the Slice 6 concurrency safety diagnostics", () => {
     const result = runOxlint(
       "concurrency-safety-slice-6.ts",
