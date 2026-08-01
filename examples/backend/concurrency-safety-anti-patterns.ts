@@ -1,4 +1,4 @@
-import { Effect, Queue, SynchronizedRef } from "effect";
+import { Deferred, Effect, Queue, SynchronizedRef } from "effect";
 
 declare const userIds: ReadonlyArray<string>;
 declare const sendNotification: (userId: string) => Effect.Effect<void, never, never>;
@@ -11,6 +11,9 @@ declare const semaphore: Effect.Semaphore;
 declare const synchronizedRef: SynchronizedRef.SynchronizedRef<number>;
 declare const scope: unknown;
 declare const supervisor: unknown;
+declare const openConnection: () => Effect.Effect<unknown, never, never>;
+declare const createClient: () => Effect.Effect<unknown, never, never>;
+declare const releaseClient: (client: unknown) => Effect.Effect<void, never, never>;
 
 // EXPECT: linteffect/no-unbounded-effect-all
 // QA: Mapping a whole collection into Effect.all should declare a concurrency limit.
@@ -104,6 +107,30 @@ export const synchronizedRefHeldAcrossFork = SynchronizedRef.modifyEffect(
 // EXPECT: linteffect/no-unscoped-background-fiber
 // QA: Daemon fibers detach from the caller's scope and need explicit ownership.
 export const unscopedDaemonWorker = Effect.forkDaemon(Effect.sync(() => "daemon"));
+
+// EXPECT: linteffect/no-manual-deferred-coordination
+// QA: Local Deferred latches should have a bounded wait or explicit ownership.
+export const unboundedReadyLatch = Effect.gen(function* () {
+  const ready = yield* Deferred.make<void>();
+  return yield* Deferred.await(ready);
+});
+
+// EXPECT: linteffect/no-acquire-without-scoped-release
+// QA: Concurrent resource acquisition should be bracketed by scoped release ownership.
+export const unscopedConnectionWorker = Effect.fork(openConnection());
+
+export const scopedConnectionWorker = Effect.fork(
+  Effect.scoped(openConnection()),
+);
+
+export const bracketedClientWorker = Effect.fork(
+  Effect.acquireRelease(createClient(), releaseClient),
+);
+
+export const boundedReadyLatch = Effect.gen(function* () {
+  const ready = yield* Deferred.make<void>();
+  return yield* Effect.timeout(Deferred.await(ready), "1 second");
+});
 
 export const safePermitCriticalSection = semaphore.withPermit(Effect.sync(() => "ok"));
 export const safeSynchronizedRefUpdate = SynchronizedRef.update(
