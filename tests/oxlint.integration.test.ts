@@ -27,6 +27,24 @@ function runOxlint(fileName: string, configFileName = "oxlint.config.ts") {
 }
 
 describe("linteffect oxlint integration", () => {
+  it("reports exactly the Slice 6 concurrency safety diagnostics", () => {
+    const result = runOxlint(
+      "concurrency-safety-slice-6.ts",
+      "oxlint.concurrency-slice-6.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-unscoped-background-fiber",
+      "no-yield-with-held-mutable-ref",
+      "no-yield-with-held-semaphore-permit",
+      "no-yield-with-held-semaphore-permit",
+    ]);
+  });
+
   it("reports linteffect diagnostics through the oxlint CLI", () => {
     const result = runOxlint("invalid.ts");
 

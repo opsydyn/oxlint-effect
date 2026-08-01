@@ -85,20 +85,31 @@ function hasNestedEffectCallArgument(node: unknown): node is Node & { arguments:
   return node.arguments.slice(0, 2).some((argument) => isEffectMemberCall(argument));
 }
 
-function containsEffectMemberCallNamed(node: unknown, propertyName: string): boolean {
+function containsEffectMemberCallNamed(
+  node: unknown,
+  propertyName: string,
+  seen = new WeakSet<object>(),
+): boolean {
   if (isEffectMemberCallNamed(node, propertyName)) {
     return true;
   }
 
   if (Array.isArray(node)) {
-    return node.some((child) => containsEffectMemberCallNamed(child, propertyName));
+    return node.some((child) => containsEffectMemberCallNamed(child, propertyName, seen));
   }
 
   if (typeof node !== "object" || node === null) {
     return false;
   }
 
-  return Object.values(node).some((child) => containsEffectMemberCallNamed(child, propertyName));
+  if (seen.has(node)) {
+    return false;
+  }
+
+  seen.add(node);
+  return Object.entries(node).some(
+    ([key, child]) => key !== "parent" && containsEffectMemberCallNamed(child, propertyName, seen),
+  );
 }
 
 function getFlatMapLadderMessage(node: unknown): string | undefined {
