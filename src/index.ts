@@ -2754,13 +2754,16 @@ function isResourceCleanupCall(node: unknown): boolean {
     callee === null ||
     (callee as Node).type !== "MemberExpression" ||
     (callee as Node).computed === true ||
-    !isIdentifier((callee as Node).property) ||
-    !resourceCleanupMethods.has((callee as Node).property.name)
+    !isIdentifier((callee as Node).property)
   ) {
     return false;
   }
 
-  return isResourceLikeExpression((callee as Node).object);
+  const member = callee as Node & { property: Node & { name: string } };
+  return (
+    resourceCleanupMethods.has(member.property.name) &&
+    isResourceLikeExpression(member.object)
+  );
 }
 
 function concurrentWorkArguments(node: unknown): unknown[] | undefined {
@@ -8496,9 +8499,10 @@ function isScopeAcquireReleaseCall(node: unknown): node is Node & { arguments: u
 }
 
 function hasMatchingScopeReleaseCallback(node: Node & { arguments: unknown[] }): boolean {
+  const arguments_ = (node as Node & { arguments: unknown[] }).arguments;
   const callbacks = isEffectMemberCallNamed(node, "acquireUseRelease")
-    ? node.arguments.slice(2)
-    : node.arguments.slice(1);
+    ? arguments_.slice(2)
+    : arguments_.slice(1);
 
   return callbacks.some((callback) => {
     if (!isFunctionLike(callback)) return false;
@@ -8825,6 +8829,12 @@ export const concurrencySafetyRules = rulesFromNames([
   "no-acquire-without-scoped-release",
 ] as const);
 
+export const resourceLifetimeRules = rulesFromNames([
+  "no-manual-resource-close",
+  "no-unbound-scope",
+  "no-resource-succeed-escape",
+] as const);
+
 export const pipelineShapeAndSequencingRules = rulesFromNames([
   "no-nested-effect-call",
   "no-effect-ladder",
@@ -8943,12 +8953,14 @@ export const testingObservabilityAndQaRules = rulesFromNames([
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
+const recommendedExcludedRuleNames = [
+  ...strictTestingObservabilityAndQaRuleNames,
+  ...strictConcurrencySafetyRuleNames,
+  "no-resource-succeed-escape",
+] as readonly RuleName[];
 const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
-  (ruleName): ruleName is Exclude<RuleName, StrictRuleName> => (
-    !([
-      ...strictTestingObservabilityAndQaRuleNames,
-      ...strictConcurrencySafetyRuleNames,
-    ] as readonly RuleName[]).includes(ruleName)
+  (ruleName): ruleName is Exclude<RuleName, StrictRuleName | "no-resource-succeed-escape"> => (
+    !recommendedExcludedRuleNames.includes(ruleName)
   ),
 );
 export const recommendedRules = rulesFromNames(recommendedRuleNames);
@@ -8957,6 +8969,7 @@ export const ruleGroups = {
   reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
   effectComposition: effectCompositionRules,
   concurrencySafety: concurrencySafetyRules,
+  resourceLifetime: resourceLifetimeRules,
   pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
   branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
@@ -8976,6 +8989,7 @@ export const recommended = presetFor(recommendedRules);
 export const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
 export const effectComposition = presetFor(effectCompositionRules);
 export const concurrencySafety = presetFor(concurrencySafetyRules);
+export const resourceLifetime = presetFor(resourceLifetimeRules);
 export const pipelineShapeAndSequencing = presetFor(pipelineShapeAndSequencingRules);
 export const branchingAndLocalControlFlow = presetFor(branchingAndLocalControlFlowRules);
 export const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNormalizationRules);
@@ -8995,6 +9009,7 @@ export const presets = {
   reactAndRuntimeBoundaries,
   effectComposition,
   concurrencySafety,
+  resourceLifetime,
   pipelineShapeAndSequencing,
   branchingAndLocalControlFlow,
   optionMatchAndDataNormalization,

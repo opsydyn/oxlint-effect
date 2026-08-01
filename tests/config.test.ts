@@ -29,6 +29,8 @@ import plugin, {
   reactAndRuntimeBoundariesRules,
   recommended,
   recommendedRules,
+  resourceLifetime,
+  resourceLifetimeRules,
   ruleGroups,
   serviceAndLayerArchitecture,
   serviceAndLayerArchitectureRules,
@@ -99,6 +101,11 @@ const groupExpectations = {
     "no-unscoped-background-fiber",
     "no-manual-deferred-coordination",
     "no-acquire-without-scoped-release",
+  ],
+  resourceLifetime: [
+    "no-manual-resource-close",
+    "no-unbound-scope",
+    "no-resource-succeed-escape",
   ],
   pipelineShapeAndSequencing: [
     "no-nested-effect-call",
@@ -213,6 +220,7 @@ const exportedRuleGroups = {
   reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
   effectComposition: effectCompositionRules,
   concurrencySafety: concurrencySafetyRules,
+  resourceLifetime: resourceLifetimeRules,
   pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
   branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
@@ -231,6 +239,7 @@ const exportedPresets = {
   reactAndRuntimeBoundaries,
   effectComposition,
   concurrencySafety,
+  resourceLifetime,
   pipelineShapeAndSequencing,
   branchingAndLocalControlFlow,
   optionMatchAndDataNormalization,
@@ -258,6 +267,10 @@ describe("linteffect config exports", () => {
     ]) {
       expect(recommended.rules).not.toHaveProperty(`linteffect/${ruleName}`);
     }
+
+    expect(recommended.rules).toHaveProperty("linteffect/no-manual-resource-close", "error");
+    expect(recommended.rules).toHaveProperty("linteffect/no-unbound-scope", "error");
+    expect(recommended.rules).not.toHaveProperty("linteffect/no-resource-succeed-escape");
 
     expect(recommended.rules).toEqual({
       "linteffect/no-react-state": "error",
@@ -347,6 +360,8 @@ describe("linteffect config exports", () => {
       "linteffect/no-unbounded-queue-or-pubsub": "error",
       "linteffect/no-global-mutable-concurrency-state": "error",
       "linteffect/no-acquire-without-scoped-release": "error",
+      "linteffect/no-manual-resource-close": "error",
+      "linteffect/no-unbound-scope": "error",
       "linteffect/no-piped-yield-in-gen": "error",
       "linteffect/no-gen-for-mapping": "error",
       "linteffect/prefer-gen-for-workflow": "error",
