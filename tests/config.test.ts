@@ -97,6 +97,8 @@ const groupExpectations = {
     "no-yield-with-held-semaphore-permit",
     "no-yield-with-held-mutable-ref",
     "no-unscoped-background-fiber",
+    "no-manual-deferred-coordination",
+    "no-acquire-without-scoped-release",
   ],
   pipelineShapeAndSequencing: [
     "no-nested-effect-call",

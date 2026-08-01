@@ -8482,6 +8482,7 @@ export const concurrencySafetyRules = rulesFromNames([
   "no-unbounded-queue-or-pubsub",
   "no-global-mutable-concurrency-state",
   ...strictConcurrencySafetyRuleNames,
+  "no-acquire-without-scoped-release",
 ] as const);
 
 export const pipelineShapeAndSequencingRules = rulesFromNames([
