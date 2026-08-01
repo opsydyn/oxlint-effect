@@ -94,6 +94,9 @@ const groupExpectations = {
     "no-uninterruptible-concurrent-region",
     "no-unbounded-queue-or-pubsub",
     "no-global-mutable-concurrency-state",
+    "no-yield-with-held-semaphore-permit",
+    "no-yield-with-held-mutable-ref",
+    "no-unscoped-background-fiber",
   ],
   pipelineShapeAndSequencing: [
     "no-nested-effect-call",
@@ -244,6 +247,14 @@ describe("linteffect config exports", () => {
   it("exports a recommended config with plugin loading and enabled rules", () => {
     expect(recommended.jsPlugins as unknown).toEqual(expectedJsPlugins);
     expect(recommended.rules).toEqual(recommendedRules);
+
+    for (const ruleName of [
+      "no-yield-with-held-semaphore-permit",
+      "no-yield-with-held-mutable-ref",
+      "no-unscoped-background-fiber",
+    ]) {
+      expect(recommended.rules).not.toHaveProperty(`linteffect/${ruleName}`);
+    }
 
     expect(recommended.rules).toEqual({
       "linteffect/no-react-state": "error",

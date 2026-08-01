@@ -37,9 +37,9 @@ individual default preset remains `strict` or `runtime`.
 | [x] | `linteffect/no-uninterruptible-concurrent-region` | cancellation discipline | runtime | medium | `Effect.uninterruptible(...)` or pipe argument around `Effect.fork`, `Effect.race`, `Effect.all`, `Effect.forEach`, or `Queue.take` work |
 | [x] | `linteffect/no-unbounded-queue-or-pubsub` | backpressure discipline | runtime | medium | `Queue.unbounded()`, `PubSub.unbounded()`, or unbounded constructors outside tests or explicit boundary files |
 | [x] | `linteffect/no-global-mutable-concurrency-state` | `static mut` / shared-state discipline | strict | high | module-scope `let`, `Map`, `Set`, or object mutation from concurrent Effect callbacks |
-| [ ] | `linteffect/no-yield-with-held-semaphore-permit` | lock-across-suspension discipline | strict | high | `yield* Semaphore.withPermits(...)` / acquire-permit style code whose callback contains unrelated `yield*` or forked work |
-| [ ] | `linteffect/no-yield-with-held-mutable-ref` | mutable-reference-across-suspension discipline | strict | high | mutable state handles captured before a later `yield*` in the same `Effect.gen` block |
-| [ ] | `linteffect/no-unscoped-background-fiber` | structured ownership / RAII | strict | medium | forked effects stored, returned, or discarded without scoped lifetime, supervisor, join, await, or interrupt evidence |
+| [x] | `linteffect/no-yield-with-held-semaphore-permit` | lock-across-suspension discipline | strict | high | direct semaphore `withPermit` / `withPermits` coordination whose effect or callback contains supported high-risk Effect members, `Queue.take`, or `Deferred.await` |
+| [x] | `linteffect/no-yield-with-held-mutable-ref` | mutable-reference-across-suspension discipline | strict | high | direct or method-style `SynchronizedRef.modifyEffect`, `modifySomeEffect`, `updateEffect`, or `updateAndGetEffect` whose callback contains supported high-risk Effect members, `Queue.take`, or `Deferred.await` |
+| [x] | `linteffect/no-unscoped-background-fiber` | structured ownership / RAII | strict | medium | direct `Effect.forkDaemon` without a direct `Effect.supervised` marker in the child argument |
 | [ ] | `linteffect/no-manual-deferred-coordination` | ad hoc synchronization discipline | strict | high | `Deferred.make` / `Deferred.unsafeMake` used as a latch without timeout, interruption, or scoped ownership nearby |
 | [ ] | `linteffect/no-acquire-without-scoped-release` | scoped resource lifetime discipline | runtime | high | resource acquisition calls in concurrent work without `Effect.acquireRelease`, `Effect.scoped`, or finalizer evidence |
 
@@ -75,9 +75,9 @@ individual default preset remains `strict` or `runtime`.
 
 ### Slice 6: Held State Across Suspension
 
-- [ ] `no-yield-with-held-semaphore-permit`
-- [ ] `no-yield-with-held-mutable-ref`
-- [ ] `no-unscoped-background-fiber`
+- [x] `no-yield-with-held-semaphore-permit`
+- [x] `no-yield-with-held-mutable-ref`
+- [x] `no-unscoped-background-fiber`
 
 ### Slice 7: Coordination And Acquisition Discipline
 

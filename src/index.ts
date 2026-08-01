@@ -85,20 +85,31 @@ function hasNestedEffectCallArgument(node: unknown): node is Node & { arguments:
   return node.arguments.slice(0, 2).some((argument) => isEffectMemberCall(argument));
 }
 
-function containsEffectMemberCallNamed(node: unknown, propertyName: string): boolean {
+function containsEffectMemberCallNamed(
+  node: unknown,
+  propertyName: string,
+  seen = new WeakSet<object>(),
+): boolean {
   if (isEffectMemberCallNamed(node, propertyName)) {
     return true;
   }
 
   if (Array.isArray(node)) {
-    return node.some((child) => containsEffectMemberCallNamed(child, propertyName));
+    return node.some((child) => containsEffectMemberCallNamed(child, propertyName, seen));
   }
 
   if (typeof node !== "object" || node === null) {
     return false;
   }
 
-  return Object.values(node).some((child) => containsEffectMemberCallNamed(child, propertyName));
+  if (seen.has(node)) {
+    return false;
+  }
+
+  seen.add(node);
+  return Object.entries(node).some(
+    ([key, child]) => key !== "parent" && containsEffectMemberCallNamed(child, propertyName, seen),
+  );
 }
 
 function getFlatMapLadderMessage(node: unknown): string | undefined {
@@ -2203,6 +2214,156 @@ function containsEffectMemberCallInSet(
   ));
 }
 
+const highRiskEffectMembers = new Set([
+  "sleep",
+  "await",
+  "promise",
+  "tryPromise",
+  "fork",
+  "forkDaemon",
+  "forkScoped",
+  "all",
+  "forEach",
+  "race",
+  "raceAll",
+]);
+
+const effectfulSynchronizedRefMembers = new Set([
+  "modifyEffect",
+  "modifySomeEffect",
+  "updateEffect",
+  "updateAndGetEffect",
+]);
+
+function containsHighRiskSuspension(node: unknown, seen = new WeakSet<object>()): boolean {
+  if (isEffectMemberCall(node)) {
+    const property = ((node as Node).callee as Node).property;
+    if (isIdentifier(property) && highRiskEffectMembers.has(property.name)) {
+      return true;
+    }
+  }
+
+  if (isMemberCall(node, "Queue", "take") || isMemberCall(node, "Deferred", "await")) {
+    return true;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((child) => containsHighRiskSuspension(child, seen));
+  }
+
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  if (seen.has(node)) {
+    return false;
+  }
+  seen.add(node);
+
+  return Object.entries(node).some(([key, child]) => (
+    key !== "parent" && containsHighRiskSuspension(child, seen)
+  ));
+}
+
+function isAnyObjectMemberCallNamed(node: unknown, propertyName: string): node is Node & { arguments: unknown[] } {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const call = node as Node;
+  return (
+    call.type === "CallExpression" &&
+    Array.isArray(call.arguments) &&
+    typeof call.callee === "object" &&
+    call.callee !== null &&
+    (call.callee as Node).type === "MemberExpression" &&
+    (call.callee as Node).computed !== true &&
+    isIdentifier((call.callee as Node).property, propertyName)
+  );
+}
+
+function heldSemaphoreWork(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const call = node as Node & { arguments?: unknown[] };
+  if (!Array.isArray(call.arguments)) {
+    return undefined;
+  }
+
+  if (
+    typeof call.callee === "object" &&
+    call.callee !== null &&
+    (call.callee as Node).type === "CallExpression"
+  ) {
+    const inner = call.callee as Node;
+    if (
+      (isAnyObjectMemberCallNamed(inner, "withPermit") || isAnyObjectMemberCallNamed(inner, "withPermits")) &&
+      call.arguments.length > 0
+    ) {
+      return call.arguments[0];
+    }
+  }
+
+  if (isMemberCall(call, "TSemaphore", "withPermit") || isMemberCall(call, "TSemaphore", "withPermits")) {
+    return call.arguments[0];
+  }
+
+  if (isAnyObjectMemberCallNamed(call, "withPermit") || isAnyObjectMemberCallNamed(call, "withPermits")) {
+    return call.arguments.at(-1);
+  }
+
+  return undefined;
+}
+
+function synchronizedRefModifierWork(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const call = node as Node & { arguments?: unknown[] };
+  if (!Array.isArray(call.arguments)) {
+    return undefined;
+  }
+
+  if (
+    typeof call.callee === "object" &&
+    call.callee !== null &&
+    (call.callee as Node).type === "CallExpression"
+  ) {
+    const inner = call.callee as Node;
+    if (
+      isEffectfulSynchronizedRefCall(inner, "SynchronizedRef") &&
+      call.arguments.length > 0
+    ) {
+      return (inner as Node & { arguments: unknown[] }).arguments.at(-1);
+    }
+  }
+
+  if (isEffectfulSynchronizedRefCall(call, "SynchronizedRef") && call.arguments.length > 1) {
+    return call.arguments.at(-1);
+  }
+
+  if (isAnyEffectfulSynchronizedRefCall(call) && !isSynchronizedRefNamespaceCall(call)) {
+    return call.arguments.at(-1);
+  }
+
+  return undefined;
+}
+
+function isEffectfulSynchronizedRefCall(node: unknown, objectName: string): boolean {
+  return [...effectfulSynchronizedRefMembers].some((propertyName) => isMemberCall(node, objectName, propertyName));
+}
+
+function isAnyEffectfulSynchronizedRefCall(node: unknown): boolean {
+  return [...effectfulSynchronizedRefMembers].some((propertyName) => isAnyObjectMemberCallNamed(node, propertyName));
+}
+
+function isSynchronizedRefNamespaceCall(node: unknown): boolean {
+  return [...effectfulSynchronizedRefMembers].some((propertyName) => isMemberCall(node, "SynchronizedRef", propertyName));
+}
+
 const raceCleanupCalls = new Set([
   "acquireRelease",
   "acquireUseRelease",
@@ -2560,7 +2721,7 @@ function pipeParts(node: unknown): unknown[] {
 
 function isPipeStartingWithEffect(node: unknown): boolean {
   const [first] = pipeParts(node);
-  return first !== undefined && containsAnyEffectMemberCall(first);
+  return first !== undefined && containsEffectMemberCall(first);
 }
 
 function isEffectWrapperAliasExpression(node: unknown): boolean {
@@ -3489,29 +3650,6 @@ function isStreamMemberCall(node: unknown): boolean {
   );
 }
 
-function containsAnyEffectMemberCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isEffectMemberCall(node)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsAnyEffectMemberCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsAnyEffectMemberCall(child, seen)
-  ));
-}
-
 function containsBranchSequencingCall(node: unknown, seen = new WeakSet<object>()): boolean {
   if (
     branchSequencingEffectCalls.some((propertyName) => isEffectMemberCallNamed(node, propertyName)) ||
@@ -3540,7 +3678,7 @@ function containsBranchSequencingCall(node: unknown, seen = new WeakSet<object>(
 }
 
 function isSequencingBranchBody(node: unknown): boolean {
-  return containsAnyEffectMemberCall(node) && containsBranchSequencingCall(node);
+  return containsEffectMemberCall(node) && containsBranchSequencingCall(node);
 }
 
 function containsSequencingMatchBranch(node: unknown, seen = new WeakSet<object>()): boolean {
@@ -7634,6 +7772,64 @@ const noGlobalMutableConcurrencyState = defineRule({
   },
 });
 
+const noYieldWithHeldSemaphorePermit = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const work = heldSemaphoreWork(node);
+        if (work && containsHighRiskSuspension(work)) {
+          report(
+            context,
+            node,
+            "Rule: avoid suspension while holding a semaphore permit. Why: sleeping, awaiting, or forking under a permit holds capacity while unrelated work waits. Fix: narrow the permit-protected section and perform interruptible or concurrent work outside it.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noYieldWithHeldMutableRef = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const callback = synchronizedRefModifierWork(node);
+        if (callback && containsHighRiskSuspension(callback)) {
+          report(
+            context,
+            node,
+            "Rule: avoid suspension while holding synchronized reference coordination. Why: effectful SynchronizedRef modifiers hold internal coordination while the callback sleeps, awaits, or starts concurrent work. Fix: compute the effect outside the modifier and commit a short synchronous state transition.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const preventDynamicImports = defineRule({
   create(context: OxlintContext) {
     return {
@@ -7642,6 +7838,36 @@ const preventDynamicImports = defineRule({
           context,
           node,
           "Rule: avoid dynamic imports. Why: runtime module loading obscures dependency boundaries. Fix: use static imports.",
+        );
+      },
+    };
+  },
+});
+
+const noUnscopedBackgroundFiber = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          !isEffectMemberCallNamed(node, "forkDaemon") ||
+          containsEffectMemberCallNamed(firstArgument(node), "supervised")
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: avoid unscoped background fibers. Why: Effect.forkDaemon detaches work from the caller's scope and can outlive failures and shutdown. Fix: use forkScoped/forkIn or make supervisor ownership explicit in the child effect.",
         );
       },
     };
@@ -7769,6 +7995,9 @@ const rules = {
   "no-uninterruptible-concurrent-region": noUninterruptibleConcurrentRegion,
   "no-unbounded-queue-or-pubsub": noUnboundedQueueOrPubSub,
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
+  "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
+  "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
+  "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
 };
 
 type RuleName = keyof typeof rules;
@@ -7781,6 +8010,15 @@ const strictTestingObservabilityAndQaRuleNames = [
 
 type StrictTestingObservabilityAndQaRuleName =
   typeof strictTestingObservabilityAndQaRuleNames[number];
+
+const strictConcurrencySafetyRuleNames = [
+  "no-yield-with-held-semaphore-permit",
+  "no-yield-with-held-mutable-ref",
+  "no-unscoped-background-fiber",
+] as const satisfies readonly RuleName[];
+
+type StrictRuleName = StrictTestingObservabilityAndQaRuleName |
+  typeof strictConcurrencySafetyRuleNames[number];
 
 function rulesFromNames<const T extends readonly RuleName[]>(ruleNames: T) {
   return Object.fromEntries(
@@ -7846,6 +8084,7 @@ export const concurrencySafetyRules = rulesFromNames([
   "no-uninterruptible-concurrent-region",
   "no-unbounded-queue-or-pubsub",
   "no-global-mutable-concurrency-state",
+  ...strictConcurrencySafetyRuleNames,
 ] as const);
 
 export const pipelineShapeAndSequencingRules = rulesFromNames([
@@ -7967,8 +8206,11 @@ export const testingObservabilityAndQaRules = rulesFromNames([
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
-  (ruleName): ruleName is Exclude<RuleName, StrictTestingObservabilityAndQaRuleName> => (
-    !(strictTestingObservabilityAndQaRuleNames as readonly RuleName[]).includes(ruleName)
+  (ruleName): ruleName is Exclude<RuleName, StrictRuleName> => (
+    !([
+      ...strictTestingObservabilityAndQaRuleNames,
+      ...strictConcurrencySafetyRuleNames,
+    ] as readonly RuleName[]).includes(ruleName)
   ),
 );
 export const recommendedRules = rulesFromNames(recommendedRuleNames);

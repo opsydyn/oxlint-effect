@@ -285,6 +285,9 @@ export default defineConfig({
 | `linteffect/no-uninterruptible-concurrent-region` | `Effect.uninterruptible(...)` wrapping `fork`, `race`, `all`, `forEach`, or queue-taking work. | Broad uninterruptible concurrent regions block cancellation and can strand work during shutdown. |
 | `linteffect/no-unbounded-queue-or-pubsub` | `Queue.unbounded()` and `PubSub.unbounded()`. | Unbounded buffers hide backpressure and can fail under load; capacity should be owned explicitly. |
 | `linteffect/no-global-mutable-concurrency-state` | Module-level mutable state or mutable containers touched from concurrent Effect work. | Global mutable state under concurrency behaves like shared memory; move ownership into Effect primitives or layers. |
+| `linteffect/no-yield-with-held-semaphore-permit` | Direct semaphore `withPermit` / `withPermits` work whose effect contains sleep, await, Promise interop, queue waiting, or concurrent Effect work. | Strict-only protection against holding a permit while interruptible or concurrent work occupies the critical section. |
+| `linteffect/no-yield-with-held-mutable-ref` | Effectful `SynchronizedRef` modifiers (`modifyEffect`, `modifySomeEffect`, `updateEffect`, `updateAndGetEffect`) whose callback suspends or starts concurrent work. | Strict-only protection that keeps internal reference coordination short and synchronous. |
+| `linteffect/no-unscoped-background-fiber` | Direct `Effect.forkDaemon(...)` without a direct `Effect.supervised(...)` child-effect marker. | Strict-only protection that requires daemon work to expose supervision or use scoped ownership instead of silently outliving the caller. |
 
 ### Pipeline Shape and Sequencing
 

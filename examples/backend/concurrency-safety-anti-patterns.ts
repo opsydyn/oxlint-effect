@@ -1,4 +1,4 @@
-import { Effect, Queue } from "effect";
+import { Effect, Queue, SynchronizedRef } from "effect";
 
 declare const userIds: ReadonlyArray<string>;
 declare const sendNotification: (userId: string) => Effect.Effect<void, never, never>;
@@ -7,6 +7,10 @@ declare const fastProgram: Effect.Effect<string, never, never>;
 declare const slowProgram: Effect.Effect<string, never, never>;
 declare const fs: { readonly readFileSync: (path: string) => string };
 declare const fetchProfile: () => Promise<string>;
+declare const semaphore: Effect.Semaphore;
+declare const synchronizedRef: SynchronizedRef.SynchronizedRef<number>;
+declare const scope: unknown;
+declare const supervisor: unknown;
 
 // EXPECT: linteffect/no-unbounded-effect-all
 // QA: Mapping a whole collection into Effect.all should declare a concurrency limit.
@@ -84,4 +88,30 @@ const globalNotificationCache = new Map<string, number>();
 export const globalMutableCacheWrites = Effect.all(
   userIds.map((userId) => Effect.sync(() => globalNotificationCache.set(userId, userId.length))),
   { concurrency: 4 },
+);
+
+// EXPECT: linteffect/no-yield-with-held-semaphore-permit
+// QA: A permit should protect a short synchronous state transition, not a sleeping effect.
+export const permitHeldAcrossSleep = semaphore.withPermit(Effect.sleep("1 second"));
+
+// EXPECT: linteffect/no-yield-with-held-mutable-ref
+// QA: SynchronizedRef effect modifiers should not hold coordination while starting concurrent work.
+export const synchronizedRefHeldAcrossFork = SynchronizedRef.modifyEffect(
+  synchronizedRef,
+  () => Effect.forkScoped(Effect.sync(() => "work")).pipe(Effect.as([0, 0] as const)),
+);
+
+// EXPECT: linteffect/no-unscoped-background-fiber
+// QA: Daemon fibers detach from the caller's scope and need explicit ownership.
+export const unscopedDaemonWorker = Effect.forkDaemon(Effect.sync(() => "daemon"));
+
+export const safePermitCriticalSection = semaphore.withPermit(Effect.sync(() => "ok"));
+export const safeSynchronizedRefUpdate = SynchronizedRef.update(
+  synchronizedRef,
+  (value) => value + 1,
+);
+export const safeScopedWorker = Effect.forkScoped(Effect.sync(() => "scoped"));
+export const safeInWorker = Effect.forkIn(Effect.sync(() => "in-scope"), scope);
+export const supervisedDaemonWorker = Effect.forkDaemon(
+  Effect.supervised(Effect.sync(() => "supervised"), supervisor),
 );

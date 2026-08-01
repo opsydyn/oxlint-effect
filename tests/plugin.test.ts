@@ -63,6 +63,17 @@ const memberAccess = (object: unknown, property: string) => ({
   computed: false,
 });
 
+const objectMethodCall = (object: unknown, propertyName: string, ...args: unknown[]) => (
+  callExpression(memberAccess(object, propertyName), ...args)
+);
+
+const curriedMethodCall = (
+  object: unknown,
+  propertyName: string,
+  methodArgs: unknown[],
+  effect: unknown,
+) => callExpression(objectMethodCall(object, propertyName, ...methodArgs), effect);
+
 const requireCall = (source: string) => ({
   type: "CallExpression",
   callee: identifier("require"),
@@ -4897,6 +4908,272 @@ describe("linteffect Oxlint plugin", () => {
           objectLiteral(property("concurrency", numericLiteral(4))),
         ),
       },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches high-risk work inside a held semaphore permit", () => {
+    const reports = runRuleSequence("no-yield-with-held-semaphore-permit", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: curriedMethodCall(
+          identifier("semaphore"),
+          "withPermits",
+          [numericLiteral(1)],
+          effectCall("sleep", stringLiteral("1 second")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("suspension while holding a semaphore permit");
+  });
+
+  it("allows synchronous work inside a held semaphore permit", () => {
+    const reports = runRuleSequence("no-yield-with-held-semaphore-permit", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: curriedMethodCall(
+          identifier("semaphore"),
+          "withPermits",
+          [numericLiteral(1)],
+          effectCall("sync", arrowCallback(stringLiteral("ok"))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches the direct TSemaphore namespace form", () => {
+    const reports = runRuleSequence("no-yield-with-held-semaphore-permit", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect/TSemaphore") },
+      {
+        visitorName: "CallExpression",
+        node: objectMethodCall(
+          identifier("TSemaphore"),
+          "withPermit",
+          effectCall("await", identifier("deferred")),
+          identifier("semaphore"),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
+  it("catches nested Queue and Effect.gen suspension while holding a permit", () => {
+    const reports = runRuleSequence("no-yield-with-held-semaphore-permit", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: curriedMethodCall(
+          identifier("semaphore"),
+          "withPermit",
+          [],
+          effectCall(
+            "gen",
+            generatorCallback(blockStatement(
+              expressionStatement(objectMethodCall(identifier("Queue"), "take", identifier("queue"))),
+            )),
+          ),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
+  it("catches Deferred.await while holding a semaphore permit", () => {
+    const reports = runRuleSequence("no-yield-with-held-semaphore-permit", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: curriedMethodCall(
+          identifier("semaphore"),
+          "withPermit",
+          [],
+          objectMethodCall(identifier("Deferred"), "await", identifier("deferred")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
+  it("does not classify held semaphore permits without an Effect import", () => {
+    const reports = runRule(
+      "no-yield-with-held-semaphore-permit",
+      "CallExpression",
+      curriedMethodCall(
+        identifier("semaphore"),
+        "withPermits",
+        [numericLiteral(1)],
+        effectCall("sleep", stringLiteral("1 second")),
+      ),
+    );
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches effectful SynchronizedRef modifiers", () => {
+    const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: objectMethodCall(
+          identifier("SynchronizedRef"),
+          "modifyEffect",
+          identifier("ref"),
+          arrowCallback(effectCall("sleep", stringLiteral("1 second"))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("suspension while holding synchronized reference coordination");
+  });
+
+  it("catches all supported effectful modifier names", () => {
+    const modifierNames = ["modifySomeEffect", "updateEffect", "updateAndGetEffect"];
+
+    for (const modifierName of modifierNames) {
+      const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: objectMethodCall(
+            identifier("SynchronizedRef"),
+            modifierName,
+            identifier("ref"),
+            arrowCallback(effectCall("forkScoped", identifier("program"))),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    }
+  });
+
+  it("catches method-style SynchronizedRef modifiers", () => {
+    const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: objectMethodCall(
+          identifier("ref"),
+          "modifyEffect",
+          arrowCallback(effectCall("await", identifier("deferred"))),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
+  it("reports only the outer curried SynchronizedRef modifier application", () => {
+    const inner = objectMethodCall(
+      identifier("SynchronizedRef"),
+      "updateEffect",
+      arrowCallback(effectCall("sleep", stringLiteral("1 second"))),
+    );
+    const outer = callExpression(inner, identifier("ref"));
+
+    const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: inner,
+      },
+      {
+        visitorName: "CallExpression",
+        node: outer,
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
+  it("allows synchronous reference updates and ordinary Ref methods", () => {
+    const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: objectMethodCall(
+          identifier("SynchronizedRef"),
+          "update",
+          identifier("ref"),
+          arrowCallback(identifier("value")),
+        ),
+      },
+      {
+        visitorName: "CallExpression",
+        node: objectMethodCall(
+          identifier("ref"),
+          "update",
+          arrowCallback(identifier("value")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("does not classify held mutable references without an Effect import", () => {
+    const reports = runRule(
+      "no-yield-with-held-mutable-ref",
+      "CallExpression",
+      objectMethodCall(
+        identifier("SynchronizedRef"),
+        "modifyEffect",
+        identifier("ref"),
+        arrowCallback(effectCall("sleep", stringLiteral("1 second"))),
+      ),
+    );
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("catches direct daemon fibers", () => {
+    const reports = runRuleSequence("no-unscoped-background-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("forkDaemon", identifier("program")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("unscoped background fiber");
+  });
+
+  it("allows scoped and explicitly supervised fiber forms", () => {
+    const reports = runRuleSequence("no-unscoped-background-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: effectCall("forkScoped", identifier("program")) },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("forkIn", identifier("program"), identifier("scope")),
+      },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "forkDaemon",
+          effectCall("supervised", identifier("program"), identifier("supervisor")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("leaves ordinary Effect.fork to the existing fork rules", () => {
+    const reports = runRuleSequence("no-unscoped-background-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: effectCall("fork", identifier("program")) },
     ]);
 
     expect(reports).toHaveLength(0);
