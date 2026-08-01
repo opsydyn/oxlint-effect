@@ -46,6 +46,56 @@ function runRuleSequence(
 
 const identifier = (name: string) => ({ type: "Identifier", name });
 
+const linkParents = <T>(node: T): T => {
+  const visit = (value: unknown, parent?: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child, parent);
+      return;
+    }
+
+    if (typeof value !== "object" || value === null) return;
+
+    const object = value as Record<string, unknown>;
+    if (parent !== undefined) object.parent = parent;
+
+    for (const [key, child] of Object.entries(object)) {
+      if (key !== "parent") visit(child, value);
+    }
+  };
+
+  visit(node);
+  return node;
+};
+
+const findCallByMethod = (node: unknown, methodNames: readonly string[]): unknown => {
+  if (typeof node === "object" && node !== null) {
+    const candidate = node as Record<string, unknown>;
+    const callee = candidate.callee as Record<string, unknown> | undefined;
+    const property = callee?.property as Record<string, unknown> | undefined;
+    if (
+      candidate.type === "CallExpression" &&
+      callee?.type === "MemberExpression" &&
+      typeof property?.name === "string" &&
+      methodNames.includes(property.name)
+    ) {
+      return node;
+    }
+
+    for (const [key, child] of Object.entries(candidate)) {
+      if (key === "parent") continue;
+      const match = findCallByMethod(child, methodNames);
+      if (match !== undefined) return match;
+    }
+  } else if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findCallByMethod(child, methodNames);
+      if (match !== undefined) return match;
+    }
+  }
+
+  return undefined;
+};
+
 const memberCall = (object: string, property: string) => ({
   type: "CallExpression",
   callee: {
@@ -5042,6 +5092,116 @@ describe("linteffect Oxlint plugin", () => {
       { visitorName: "CallExpression", node: deferredAwait("ready") },
     ]);
     expect(importedReports).toHaveLength(2);
+  });
+
+  describe("no-manual-resource-close", () => {
+    it("reports resource-like manual cleanup calls", () => {
+      const cases = [
+        objectMethodCall(identifier("client"), "close"),
+        objectMethodCall(identifier("fileHandle"), "dispose"),
+        objectMethodCall(identifier("database"), "destroy"),
+        objectMethodCall(identifier("connection"), "cleanup"),
+        objectMethodCall(memberAccess(identifier("client"), "connection"), "close"),
+      ];
+
+      for (const node of cases) {
+        const reports = runRuleSequence("no-manual-resource-close", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0].node).toBe(node);
+        expect(reports[0].message).toContain("manual resource cleanup");
+      }
+
+      const unrelated = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: objectMethodCall(identifier("logger"), "close") },
+      ]);
+
+      expect(unrelated).toHaveLength(0);
+    });
+
+    it("requires an Effect import and respects boundary paths", () => {
+      const cleanup = objectMethodCall(identifier("client"), "close");
+      const withoutImport = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "CallExpression", node: cleanup },
+      ]);
+      expect(withoutImport).toHaveLength(0);
+
+      const boundaryReports = runRuleSequence(
+        "no-manual-resource-close",
+        [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: cleanup },
+        ],
+        { filename: "/repo/server/route.ts" },
+      );
+      expect(boundaryReports).toHaveLength(0);
+    });
+
+    it("allows cleanup owned by release and finalizer callbacks", () => {
+      const cases = [
+        effectCall(
+          "acquireRelease",
+          identifier("acquireClient"),
+          arrowCallback(objectMethodCall(identifier("client"), "close")),
+        ),
+        effectCall(
+          "acquireUseRelease",
+          identifier("acquireClient"),
+          identifier("useClient"),
+          arrowCallback(objectMethodCall(identifier("client"), "dispose")),
+        ),
+        effectCall(
+          "acquireReleaseInterruptible",
+          identifier("acquireClient"),
+          arrowCallback(objectMethodCall(identifier("client"), "destroy")),
+        ),
+        effectCall(
+          "addFinalizer",
+          arrowCallback(objectMethodCall(identifier("client"), "cleanup")),
+        ),
+        objectMethodCall(
+          identifier("Scope"),
+          "addFinalizer",
+          identifier("scope"),
+          arrowCallback(objectMethodCall(identifier("client"), "close")),
+        ),
+        objectMethodCall(
+          identifier("Scope"),
+          "addFinalizerExit",
+          identifier("scope"),
+          arrowCallback(objectMethodCall(identifier("client"), "close")),
+        ),
+      ];
+
+      for (const owner of cases) {
+        const cleanup = findCallByMethod(owner, ["close", "destroy", "dispose", "cleanup"]);
+        linkParents(owner);
+
+        const reports = runRuleSequence("no-manual-resource-close", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: cleanup },
+        ]);
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("does not treat Effect.ensuring as release ownership", () => {
+      const cleanup = objectMethodCall(identifier("client"), "close");
+      const owner = effectCall("ensuring", identifier("program"), arrowCallback(cleanup));
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: cleanup },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
   });
 
   it("reports resource-like acquisition inside concurrent Effect work", () => {

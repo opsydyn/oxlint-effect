@@ -2712,6 +2712,57 @@ const resourceLikeTerms = new Set([
   "handle",
 ]);
 
+const resourceCleanupMethods = new Set(["close", "destroy", "dispose", "cleanup"]);
+
+function identifierNameTokens(name: string): string[] {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((token) => token.toLowerCase());
+}
+
+function isResourceLikeName(name: string): boolean {
+  return identifierNameTokens(name).some((token) => resourceLikeTerms.has(token));
+}
+
+function isResourceLikeExpression(node: unknown): boolean {
+  if (isIdentifier(node)) {
+    return isResourceLikeName(node.name);
+  }
+
+  if (!isMemberExpressionNode(node)) {
+    return false;
+  }
+
+  const member = node as Node;
+  return (
+    (member.computed !== true && isIdentifier(member.property) && isResourceLikeName(member.property.name)) ||
+    isResourceLikeExpression(member.object)
+  );
+}
+
+function isResourceCleanupCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const call = node as Node;
+  const callee = call.callee;
+  if (
+    typeof callee !== "object" ||
+    callee === null ||
+    (callee as Node).type !== "MemberExpression" ||
+    (callee as Node).computed === true ||
+    !isIdentifier((callee as Node).property) ||
+    !resourceCleanupMethods.has((callee as Node).property.name)
+  ) {
+    return false;
+  }
+
+  return isResourceLikeExpression((callee as Node).object);
+}
+
 function concurrentWorkArguments(node: unknown): unknown[] | undefined {
   if (!isEffectMemberCall(node)) {
     return undefined;
@@ -2745,14 +2796,10 @@ function resourceAcquisitionCall(node: unknown): node is Node & { callee: Node }
     return false;
   }
 
-  const tokens = name
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .split(/[^A-Za-z0-9]+/)
-    .filter(Boolean)
-    .map((token) => token.toLowerCase());
+  const tokens = identifierNameTokens(name);
   return (
     tokens.some((token) => resourceAcquisitionVerbs.has(token)) &&
-    tokens.some((token) => resourceLikeTerms.has(token))
+    isResourceLikeName(name)
   );
 }
 
@@ -8268,6 +8315,90 @@ const noUnscopedBackgroundFiber = defineRule({
   },
 });
 
+function resourceReleaseCallbackArguments(node: unknown): readonly unknown[] {
+  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).arguments)) {
+    return [];
+  }
+
+  const arguments_ = (node as Node & { arguments: unknown[] }).arguments;
+  if (isEffectMemberCallNamed(node, "acquireUseRelease")) {
+    return arguments_.slice(2);
+  }
+
+  if (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireReleaseInterruptible")
+  ) {
+    return arguments_.slice(1);
+  }
+
+  if (isEffectMemberCallNamed(node, "addFinalizer")) {
+    return arguments_.slice(0, 1);
+  }
+
+  if (
+    isMemberCall(node, "Scope", "addFinalizer") ||
+    isMemberCall(node, "Scope", "addFinalizerExit")
+  ) {
+    return arguments_.slice(1);
+  }
+
+  return [];
+}
+
+function hasReleaseOwnership(node: unknown): boolean {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if (isFunctionLike(current)) {
+      const owner = (current as Node).parent;
+      if (resourceReleaseCallbackArguments(owner).some((argument) => argument === current)) {
+        return true;
+      }
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
+const noManualResourceClose = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !isResourceCleanupCall(node) ||
+          hasReleaseOwnership(node)
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: avoid manual resource cleanup. Why: direct close/dispose calls can bypass Effect scope ownership. Fix: acquire the resource with Effect.acquireRelease or register cleanup with a Scope finalizer.",
+        );
+      },
+    };
+  },
+});
+
 const rules = {
   "no-react-state": noReactState,
   "no-if-statement": noIfStatement,
@@ -8391,6 +8522,7 @@ const rules = {
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
   "no-manual-deferred-coordination": noManualDeferredCoordination,
   "no-acquire-without-scoped-release": noAcquireWithoutScopedRelease,
+  "no-manual-resource-close": noManualResourceClose,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
