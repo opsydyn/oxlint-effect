@@ -8573,6 +8573,38 @@ const noUnboundScope = defineRule({
   },
 });
 
+const noResourceSucceedEscape = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !isEffectMemberCallNamed(node, "succeed") ||
+          !isResourceLikeExpression(firstArgument(node))
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: avoid resource escape through Effect.succeed. Why: ordinary success values do not express resource lifetime ownership. Fix: keep the resource inside Effect.acquireRelease, Scope, or a service layer.",
+        );
+      },
+    };
+  },
+});
+
 const rules = {
   "no-react-state": noReactState,
   "no-if-statement": noIfStatement,
@@ -8698,6 +8730,7 @@ const rules = {
   "no-acquire-without-scoped-release": noAcquireWithoutScopedRelease,
   "no-manual-resource-close": noManualResourceClose,
   "no-unbound-scope": noUnboundScope,
+  "no-resource-succeed-escape": noResourceSucceedEscape,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,

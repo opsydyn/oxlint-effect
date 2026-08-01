@@ -5336,6 +5336,62 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("no-resource-succeed-escape", () => {
+    it("reports resource-like values returned through Effect.succeed", () => {
+      const cases = [
+        effectCall("succeed", identifier("client")),
+        effectCall("succeed", memberAccess(identifier("database"), "pool")),
+        effectCall("succeed", identifier("fileHandle")),
+      ];
+
+      for (const node of cases) {
+        const reports = runRuleSequence("no-resource-succeed-escape", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0].node).toBe(node);
+        expect(reports[0].message).toContain("resource escape");
+      }
+    });
+
+    it("allows ordinary success values and non-resource domains", () => {
+      const cases = [
+        effectCall("succeed", stringLiteral("ok")),
+        effectCall("succeed", identifier("order")),
+        effectCall("succeed", objectLiteral(property("client", booleanLiteral(true)))),
+      ];
+
+      for (const node of cases) {
+        const reports = runRuleSequence("no-resource-succeed-escape", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node },
+        ]);
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("requires an Effect import and respects boundary paths", () => {
+      const escaped = effectCall("succeed", identifier("client"));
+      const withoutImport = runRuleSequence("no-resource-succeed-escape", [
+        { visitorName: "CallExpression", node: escaped },
+      ]);
+      expect(withoutImport).toHaveLength(0);
+
+      const boundaryReports = runRuleSequence(
+        "no-resource-succeed-escape",
+        [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: escaped },
+        ],
+        { filename: "/repo/server/route.ts" },
+      );
+      expect(boundaryReports).toHaveLength(0);
+    });
+  });
+
   it("reports resource-like acquisition inside concurrent Effect work", () => {
     const positiveCases = [
       concurrentWork("fork", resourceAcquire("openConnection")),
