@@ -7856,6 +7856,36 @@ const preventDynamicImports = defineRule({
   },
 });
 
+const noUnscopedBackgroundFiber = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          !isEffectMemberCallNamed(node, "forkDaemon") ||
+          containsEffectMemberCallNamed(firstArgument(node), "supervised")
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: avoid unscoped background fibers. Why: Effect.forkDaemon detaches work from the caller's scope and can outlive failures and shutdown. Fix: use forkScoped/forkIn or make supervisor ownership explicit in the child effect.",
+        );
+      },
+    };
+  },
+});
+
 const rules = {
   "no-react-state": noReactState,
   "no-if-statement": noIfStatement,
@@ -7979,6 +8009,7 @@ const rules = {
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
+  "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
 };
 
 type RuleName = keyof typeof rules;
@@ -7995,6 +8026,7 @@ type StrictTestingObservabilityAndQaRuleName =
 const strictConcurrencySafetyRuleNames = [
   "no-yield-with-held-semaphore-permit",
   "no-yield-with-held-mutable-ref",
+  "no-unscoped-background-fiber",
 ] as const satisfies readonly RuleName[];
 
 type StrictRuleName = StrictTestingObservabilityAndQaRuleName |

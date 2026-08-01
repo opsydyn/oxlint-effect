@@ -96,6 +96,7 @@ const groupExpectations = {
     "no-global-mutable-concurrency-state",
     "no-yield-with-held-semaphore-permit",
     "no-yield-with-held-mutable-ref",
+    "no-unscoped-background-fiber",
   ],
   pipelineShapeAndSequencing: [
     "no-nested-effect-call",
@@ -250,6 +251,7 @@ describe("linteffect config exports", () => {
     for (const ruleName of [
       "no-yield-with-held-semaphore-permit",
       "no-yield-with-held-mutable-ref",
+      "no-unscoped-background-fiber",
     ]) {
       expect(recommended.rules).not.toHaveProperty(`linteffect/${ruleName}`);
     }

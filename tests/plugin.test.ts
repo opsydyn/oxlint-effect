@@ -5137,6 +5137,48 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  it("catches direct daemon fibers", () => {
+    const reports = runRuleSequence("no-unscoped-background-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("forkDaemon", identifier("program")),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("unscoped background fiber");
+  });
+
+  it("allows scoped and explicitly supervised fiber forms", () => {
+    const reports = runRuleSequence("no-unscoped-background-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: effectCall("forkScoped", identifier("program")) },
+      {
+        visitorName: "CallExpression",
+        node: effectCall("forkIn", identifier("program"), identifier("scope")),
+      },
+      {
+        visitorName: "CallExpression",
+        node: effectCall(
+          "forkDaemon",
+          effectCall("supervised", identifier("program"), identifier("supervisor")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("leaves ordinary Effect.fork to the existing fork rules", () => {
+    const reports = runRuleSequence("no-unscoped-background-fiber", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: effectCall("fork", identifier("program")) },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
   it("catches direct fire-and-forget Effect.fork statements", () => {
     const reports = runRuleSequence("no-fire-and-forget-fork", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
