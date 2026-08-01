@@ -2721,7 +2721,7 @@ function pipeParts(node: unknown): unknown[] {
 
 function isPipeStartingWithEffect(node: unknown): boolean {
   const [first] = pipeParts(node);
-  return first !== undefined && containsAnyEffectMemberCall(first);
+  return first !== undefined && containsEffectMemberCall(first);
 }
 
 function isEffectWrapperAliasExpression(node: unknown): boolean {
@@ -3650,29 +3650,6 @@ function isStreamMemberCall(node: unknown): boolean {
   );
 }
 
-function containsAnyEffectMemberCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isEffectMemberCall(node)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsAnyEffectMemberCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsAnyEffectMemberCall(child, seen)
-  ));
-}
-
 function containsBranchSequencingCall(node: unknown, seen = new WeakSet<object>()): boolean {
   if (
     branchSequencingEffectCalls.some((propertyName) => isEffectMemberCallNamed(node, propertyName)) ||
@@ -3701,7 +3678,7 @@ function containsBranchSequencingCall(node: unknown, seen = new WeakSet<object>(
 }
 
 function isSequencingBranchBody(node: unknown): boolean {
-  return containsAnyEffectMemberCall(node) && containsBranchSequencingCall(node);
+  return containsEffectMemberCall(node) && containsBranchSequencingCall(node);
 }
 
 function containsSequencingMatchBranch(node: unknown, seen = new WeakSet<object>()): boolean {
