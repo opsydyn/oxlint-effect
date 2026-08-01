@@ -4987,6 +4987,23 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(1);
   });
 
+  it("catches Deferred.await while holding a semaphore permit", () => {
+    const reports = runRuleSequence("no-yield-with-held-semaphore-permit", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      {
+        visitorName: "CallExpression",
+        node: curriedMethodCall(
+          identifier("semaphore"),
+          "withPermit",
+          [],
+          objectMethodCall(identifier("Deferred"), "await", identifier("deferred")),
+        ),
+      },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
   it("does not classify held semaphore permits without an Effect import", () => {
     const reports = runRule(
       "no-yield-with-held-semaphore-permit",
@@ -5041,7 +5058,7 @@ describe("linteffect Oxlint plugin", () => {
     }
   });
 
-  it("catches method-style and curried SynchronizedRef modifiers", () => {
+  it("catches method-style SynchronizedRef modifiers", () => {
     const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       {
@@ -5052,20 +5069,32 @@ describe("linteffect Oxlint plugin", () => {
           arrowCallback(effectCall("await", identifier("deferred"))),
         ),
       },
+    ]);
+
+    expect(reports).toHaveLength(1);
+  });
+
+  it("reports only the outer curried SynchronizedRef modifier application", () => {
+    const inner = objectMethodCall(
+      identifier("SynchronizedRef"),
+      "updateEffect",
+      arrowCallback(effectCall("sleep", stringLiteral("1 second"))),
+    );
+    const outer = callExpression(inner, identifier("ref"));
+
+    const reports = runRuleSequence("no-yield-with-held-mutable-ref", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
       {
         visitorName: "CallExpression",
-        node: callExpression(
-          objectMethodCall(
-            identifier("SynchronizedRef"),
-            "updateEffect",
-            arrowCallback(effectCall("sleep", stringLiteral("1 second"))),
-          ),
-          identifier("ref"),
-        ),
+        node: inner,
+      },
+      {
+        visitorName: "CallExpression",
+        node: outer,
       },
     ]);
 
-    expect(reports).toHaveLength(2);
+    expect(reports).toHaveLength(1);
   });
 
   it("allows synchronous reference updates and ordinary Ref methods", () => {
