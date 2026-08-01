@@ -260,8 +260,10 @@ updated `main` containing the committed design spec.
   ```
 
   Add the implementation to the internal `rules` object as
-  `"no-manual-deferred-coordination": noManualDeferredCoordination`. Do not
-  add it to `concurrencySafetyRules` or the strict tuple until Task 4.
+  `"no-manual-deferred-coordination": noManualDeferredCoordination`, and add
+  its ID to `strictConcurrencySafetyRuleNames` immediately so the generated
+  `recommendedRules` type remains correct while the group export is completed
+  in Task 4. Do not add it to `concurrencySafetyRules` until Task 4.
 
 - [ ] **Step 8: Run the focused tests and commit the green rule.** Run:
 
@@ -485,7 +487,8 @@ updated `main` containing the committed design spec.
   `rules` registry. In `src/index.ts`:
 
   - add both IDs to `concurrencySafetyRules` after the Slice 6 IDs;
-  - add `no-manual-deferred-coordination` to `strictConcurrencySafetyRuleNames`;
+  - verify `no-manual-deferred-coordination` is present in
+    `strictConcurrencySafetyRuleNames`;
   - leave `no-acquire-without-scoped-release` outside the strict tuple;
   - do not alter any existing group or recommended rule.
 

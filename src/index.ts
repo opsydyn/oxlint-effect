@@ -2364,6 +2364,123 @@ function isSynchronizedRefNamespaceCall(node: unknown): boolean {
   return [...effectfulSynchronizedRefMembers].some((propertyName) => isMemberCall(node, "SynchronizedRef", propertyName));
 }
 
+const deferredConstructorMembers = new Set(["make", "unsafeMake", "makeUnsafe"]);
+const deferredTimeoutMembers = new Set([
+  "timeout",
+  "timeoutOption",
+  "timeoutFail",
+  "timeoutFailCause",
+  "timeoutTo",
+]);
+const deferredInterruptionMembers = new Set(["race", "raceFirst", "raceAll", "interruptible", "scoped"]);
+
+function isEffectMemberExpressionNamed(node: unknown, propertyName: string): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const member = node as Node;
+  return (
+    member.type === "MemberExpression" &&
+    member.computed !== true &&
+    isIdentifier(member.object, "Effect") &&
+    isIdentifier(member.property, propertyName)
+  );
+}
+
+function isDeferredConstructorCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const call = node as Node;
+  const callee = call.callee;
+  if (typeof callee !== "object" || callee === null || (callee as Node).type !== "MemberExpression") {
+    return false;
+  }
+
+  const member = callee as Node;
+  return (
+    member.computed !== true &&
+    isIdentifier(member.object, "Deferred") &&
+    isIdentifier(member.property) &&
+    deferredConstructorMembers.has(member.property.name)
+  );
+}
+
+function isDeferredAwaitCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return isMemberCall(node, "Deferred", "await") && Array.isArray((node as Node).arguments);
+}
+
+function deferredBindingName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclarator") {
+    return undefined;
+  }
+
+  const declaration = node as Node;
+  if (!isIdentifier(declaration.id) || !findNode(declaration.init, isDeferredConstructorCall)) {
+    return undefined;
+  }
+
+  return declaration.id.name;
+}
+
+function hasMatchingDeferredFinalizer(node: unknown, bindingName: string): boolean {
+  return Boolean(findNode(node, (candidate) => {
+    if (!isMemberCall(candidate, "Effect", "addFinalizer") && !isMemberCall(candidate, "Scope", "addFinalizer")) {
+      return false;
+    }
+
+    const arguments_ = (candidate as Node & { arguments?: unknown[] }).arguments;
+    return Array.isArray(arguments_) && arguments_.some((argument) => {
+      const body = callbackBody(argument);
+      return body !== undefined && containsIdentifierNamed(body, bindingName);
+    });
+  }));
+}
+
+function isEffectScopedPipeCall(node: unknown): boolean {
+  if (!isPipeCall(node)) {
+    return false;
+  }
+
+  const arguments_ = (node as Node & { arguments?: unknown[] }).arguments;
+  return Array.isArray(arguments_) && arguments_.some((argument) => isEffectMemberExpressionNamed(argument, "scoped"));
+}
+
+function isDeferredAwaitProtected(node: unknown, bindingName: string): boolean {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) {
+      return false;
+    }
+    seen.add(current);
+
+    if (
+      (isEffectMemberCall(current) && (() => {
+        const property = ((current as Node).callee as Node).property;
+        return isIdentifier(property) && (
+          deferredTimeoutMembers.has(property.name) ||
+          deferredInterruptionMembers.has(property.name)
+        );
+      })()) ||
+      isEffectScopedPipeCall(current)
+    ) {
+      return true;
+    }
+
+    if (isFunctionLike(current) && hasMatchingDeferredFinalizer(current, bindingName)) {
+      return true;
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
 const raceCleanupCalls = new Set([
   "acquireRelease",
   "acquireUseRelease",
@@ -7772,6 +7889,68 @@ const noGlobalMutableConcurrencyState = defineRule({
   },
 });
 
+const noManualDeferredCoordination = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const deferredScopes = [new Set<string>()];
+    const reported = new WeakSet<object>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration() {
+        deferredScopes.push(new Set());
+      },
+      "FunctionDeclaration:exit"() {
+        deferredScopes.pop();
+      },
+      FunctionExpression() {
+        deferredScopes.push(new Set());
+      },
+      "FunctionExpression:exit"() {
+        deferredScopes.pop();
+      },
+      ArrowFunctionExpression() {
+        deferredScopes.push(new Set());
+      },
+      "ArrowFunctionExpression:exit"() {
+        deferredScopes.pop();
+      },
+      VariableDeclarator(node: any) {
+        const name = deferredBindingName(node);
+        if (name) {
+          deferredScopes.at(-1)?.add(name);
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport || !isDeferredAwaitCall(node)) {
+          return;
+        }
+
+        const binding = firstArgument(node);
+        if (!isIdentifier(binding) || !deferredScopes.at(-1)?.has(binding.name)) {
+          return;
+        }
+
+        if (isDeferredAwaitProtected(node, binding.name) || reported.has(node)) {
+          return;
+        }
+
+        reported.add(node);
+        report(
+          context,
+          node,
+          "Rule: avoid unbounded manual Deferred coordination. Why: a local latch can wait forever and make shutdown or failure ownership implicit. Fix: bound the await with a timeout/race, keep it interruptible, or tie completion and cleanup to a scope finalizer.",
+        );
+      },
+    };
+  },
+});
+
 const noYieldWithHeldSemaphorePermit = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -7995,6 +8174,7 @@ const rules = {
   "no-uninterruptible-concurrent-region": noUninterruptibleConcurrentRegion,
   "no-unbounded-queue-or-pubsub": noUnboundedQueueOrPubSub,
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
+  "no-manual-deferred-coordination": noManualDeferredCoordination,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
@@ -8012,6 +8192,7 @@ type StrictTestingObservabilityAndQaRuleName =
   typeof strictTestingObservabilityAndQaRuleNames[number];
 
 const strictConcurrencySafetyRuleNames = [
+  "no-manual-deferred-coordination",
   "no-yield-with-held-semaphore-permit",
   "no-yield-with-held-mutable-ref",
   "no-unscoped-background-fiber",

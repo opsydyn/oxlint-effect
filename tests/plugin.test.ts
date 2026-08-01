@@ -67,6 +67,16 @@ const objectMethodCall = (object: unknown, propertyName: string, ...args: unknow
   callExpression(memberAccess(object, propertyName), ...args)
 );
 
+const deferredCall = (method: string, ...args: unknown[]) => (
+  objectMethodCall(identifier("Deferred"), method, ...args)
+);
+
+const deferredBinding = (name: string, method = "make") => (
+  variableDeclaratorWithInit(name, yieldExpression(deferredCall(method)))
+);
+
+const deferredAwait = (name: string) => deferredCall("await", identifier(name));
+
 const curriedMethodCall = (
   object: unknown,
   propertyName: string,
@@ -4911,6 +4921,117 @@ describe("linteffect Oxlint plugin", () => {
     ]);
 
     expect(reports).toHaveLength(0);
+  });
+
+  it("reports an unbounded await of a locally created Deferred", () => {
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("manual Deferred coordination");
+  });
+
+  it("reports both supported unsafe Deferred constructor spellings", () => {
+    for (const method of ["unsafeMake", "makeUnsafe"]) {
+      const reports = runRuleSequence("no-manual-deferred-coordination", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "VariableDeclarator", node: deferredBinding("ready", method) },
+        { visitorName: "CallExpression", node: deferredAwait("ready") },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    }
+  });
+
+  it("allows Deferred awaits with explicit bounds and ownership", () => {
+    const protectedAwaitCases: Array<(awaitNode: unknown) => unknown> = [
+      (awaitNode) => effectCall("timeout", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutOption", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutFail", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutFailCause", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutTo", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("race", awaitNode, effectCall("sleep", stringLiteral("1 second"))),
+      (awaitNode) => effectCall("raceFirst", awaitNode, effectCall("sleep", stringLiteral("1 second"))),
+      (awaitNode) => effectCall("interruptible", awaitNode),
+      (awaitNode) => effectCall("scoped", awaitNode),
+      (awaitNode) => methodPipeCall(awaitNode, memberAccess(identifier("Effect"), "scoped")),
+    ];
+
+    for (const makeProtectedAwait of protectedAwaitCases) {
+      const awaitNode = deferredAwait("ready");
+      const protectedAwait = makeProtectedAwait(awaitNode);
+      Object.assign(awaitNode, { parent: protectedAwait });
+
+      const reports = runRuleSequence("no-manual-deferred-coordination", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+        { visitorName: "CallExpression", node: awaitNode },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    }
+  });
+
+  it("allows a Deferred await with a matching finalizer", () => {
+    const awaitNode = deferredAwait("ready");
+    const finalizer = effectCall(
+      "addFinalizer",
+      arrowCallback(deferredCall("succeed", identifier("ready"))),
+    );
+    const body = blockStatement(
+      expressionStatement(finalizer),
+      expressionStatement(awaitNode),
+    );
+    const generator = effectCall("gen", generatorCallback(body));
+    const functionNode = generator.arguments[0];
+    Object.assign(awaitNode, { parent: body.body[1] });
+    Object.assign(body.body[1] as object, { parent: body });
+    Object.assign(body, { parent: functionNode });
+    Object.assign(functionNode as object, { parent: generator });
+
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: awaitNode },
+      { visitorName: "CallExpression", node: generator },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("ignores unrelated Deferred bindings and separate function scopes", () => {
+    const functionNode = { type: "FunctionDeclaration" };
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("other") },
+      { visitorName: "FunctionDeclaration", node: functionNode },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+      { visitorName: "FunctionDeclaration:exit", node: functionNode },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("requires an Effect ecosystem import and reports each unprotected await once", () => {
+    const awaitNode = deferredAwait("ready");
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: awaitNode },
+      { visitorName: "CallExpression", node: awaitNode },
+    ]);
+    expect(reports).toHaveLength(0);
+
+    const importedReports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+    ]);
+    expect(importedReports).toHaveLength(2);
   });
 
   it("catches high-risk work inside a held semaphore permit", () => {
