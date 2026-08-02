@@ -750,6 +750,118 @@ function inlineNonTrivialFlowArgument(node: unknown): unknown | undefined {
   ));
 }
 
+const pureTransformationImpureNames = new Set([
+  "Date",
+  "Runtime",
+  "fetch",
+  "import",
+  "queueMicrotask",
+  "require",
+  "setInterval",
+  "setTimeout",
+]);
+
+function pureTransformationCallName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return undefined;
+  }
+
+  const callee = (node as Node).callee;
+  if (isIdentifier(callee)) {
+    return callee.name;
+  }
+
+  if (
+    typeof callee === "object" &&
+    callee !== null &&
+    (callee as Node).type === "MemberExpression" &&
+    (callee as Node).computed !== true &&
+    isIdentifier((callee as Node).property)
+  ) {
+    return ((callee as Node).property as Node & { name: string }).name;
+  }
+
+  return undefined;
+}
+
+function isPureTransformationCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const name = pureTransformationCallName(node);
+  return (
+    !containsEffectMemberCall(node) &&
+    !containsNodeType(node, "AwaitExpression") &&
+    !containsNodeType(node, "YieldExpression") &&
+    !containsIdentifierNamed(node, "Promise") &&
+    !containsConsoleCall(node) &&
+    !pureTransformationImpureNames.has(name ?? "") &&
+    !(
+      typeof (node as Node).callee === "object" &&
+      (node as Node).callee !== null &&
+      isIdentifier(((node as Node).callee as Node).object, "console")
+    )
+  );
+}
+
+function pureTransformationCallDepth(node: unknown): number {
+  if (!isPureTransformationCall(node)) {
+    return 0;
+  }
+
+  const call = node as Node & { arguments?: unknown[]; callee?: unknown };
+  const childDepth = [call.callee, ...(call.arguments ?? [])]
+    .filter((child) => !isFunctionLike(child))
+    .reduce<number>((maxDepth, child) => Math.max(maxDepth, pureTransformationCallDepth(child)), 0);
+  return childDepth + 1;
+}
+
+function preferFlowForPurePipelineNode(node: unknown): unknown | undefined {
+  if (pureTransformationCallDepth(node) < 3) {
+    return undefined;
+  }
+
+  const parent = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  return isPureTransformationCall(parent) ? undefined : node;
+}
+
+function businessLogicInPipeCallback(node: unknown): unknown | undefined {
+  if (!isPipeCall(node)) {
+    return undefined;
+  }
+
+  for (const part of pipeOperatorArguments(node)) {
+    if (!isEffectMemberCallNamed(part, "flatMap")) {
+      continue;
+    }
+
+    const callback = part.arguments.find(isFunctionLike);
+    if (!callback) {
+      continue;
+    }
+
+    const body = (callback as Node).body;
+    const hasControlFlow = [
+      "IfStatement",
+      "SwitchStatement",
+      "ForStatement",
+      "ForInStatement",
+      "ForOfStatement",
+      "WhileStatement",
+      "DoWhileStatement",
+    ].some((type) => containsNodeType(body, type));
+    const hasServiceRetrieval = findNode(body, isYieldedServiceDependency) !== undefined;
+    const effectStepCount = findNodes(body, isEffectMemberCall).length;
+
+    if (hasControlFlow || hasServiceRetrieval || effectStepCount >= 2) {
+      return callback;
+    }
+  }
+
+  return undefined;
+}
+
 const behaviorDecorationOperators = new Set([
   "annotateLogs",
   "as",
@@ -4405,6 +4517,63 @@ function typeMembers(node: unknown): unknown[] {
   return [];
 }
 
+function isErrorLikeTypeName(node: unknown): boolean {
+  return isIdentifier(node) && /(?:Error|Failure|Fault)$/i.test(node.name);
+}
+
+function isTagOnlyTypeShape(node: unknown): boolean {
+  const members = typeMembers(node);
+  return members.length === 1 && getPropertyName((members[0] as Node).key) === "_tag";
+}
+
+function isEmptyTaggedErrorPayload(node: unknown): boolean {
+  const superTypeArguments = typeof node === "object" && node !== null
+    ? (node as Node).superTypeArguments
+    : undefined;
+  const superParameters = typeof superTypeArguments === "object" && superTypeArguments !== null
+    ? ((superTypeArguments as Node).params ?? (superTypeArguments as Node).arguments)
+    : undefined;
+  const parameters = Array.isArray(superParameters) ? superParameters : typeArguments(node);
+  if (parameters.length === 0) {
+    return true;
+  }
+
+  const payload = parameters[0];
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    ((payload as Node).type === "TSObjectKeyword" ||
+      ((payload as Node).type === "TSTypeLiteral" && typeMembers(payload).length === 0))
+  );
+}
+
+function emptyErrorTagNode(node: unknown): unknown | undefined {
+  if (typeof node !== "object" || node === null) {
+    return undefined;
+  }
+
+  const declaration = node as Node;
+  if (
+    (declaration.type === "TSTypeAliasDeclaration" || declaration.type === "TSInterfaceDeclaration") &&
+    isErrorLikeTypeName(declaration.id) &&
+    isTagOnlyTypeShape(
+      declaration.type === "TSTypeAliasDeclaration" ? declaration.typeAnnotation : declaration,
+    )
+  ) {
+    return node;
+  }
+
+  if (
+    declaration.type === "ClassDeclaration" &&
+    isMemberCall(declaration.superClass, "Data", "TaggedError") &&
+    isEmptyTaggedErrorPayload(declaration)
+  ) {
+    return node;
+  }
+
+  return undefined;
+}
+
 function rawTimeDomainFields(node: unknown): unknown[] {
   return typeMembers(node).filter(isRawTimeDomainField);
 }
@@ -5877,6 +6046,64 @@ const preferNamedFlow = defineRule({
   },
 });
 
+const preferFlowForPurePipeline = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const tower = preferFlowForPurePipelineNode(node);
+        if (tower) {
+          report(
+            context,
+            tower,
+            "Rule: prefer flow for a deep pure call pipeline. Why: nested transformation towers hide the data pipeline and make reuse difficult. Fix: name the pure steps and compose them with flow, or keep the pipeline short.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noBusinessLogicInPipe = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const callback = businessLogicInPipeCallback(node);
+        if (callback) {
+          report(
+            context,
+            callback,
+            "Rule: keep business workflow logic out of Effect.pipe callbacks. Why: branching, service lookup, and multi-step effects are hard to read as decoration. Fix: move the workflow into Effect.gen and reserve pipe for behavior around the completed effect.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const preferPipeForBehavior = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6590,6 +6817,48 @@ const noSwallowedCatchAll = defineRule({
             context,
             handlerBody,
             "Rule: avoid swallowing errors in catchAll. Why: succeed/void recovery can hide failures without telemetry or typed recovery. Fix: log, re-fail with a structured error, or recover through an explicit domain branch.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEmptyErrorTag = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      TSTypeAliasDeclaration(node: any) {
+        if (hasEffectEcosystemImport && emptyErrorTagNode(node)) {
+          report(
+            context,
+            node,
+            "Rule: give tagged domain errors meaningful payloads. Why: a tag-only error loses operation context and recovery detail. Fix: add structured fields or use a more appropriate expected-state model when no context is needed.",
+          );
+        }
+      },
+      TSInterfaceDeclaration(node: any) {
+        if (hasEffectEcosystemImport && emptyErrorTagNode(node)) {
+          report(
+            context,
+            node,
+            "Rule: give tagged domain errors meaningful payloads. Why: a tag-only error loses operation context and recovery detail. Fix: add structured fields or use a more appropriate expected-state model when no context is needed.",
+          );
+        }
+      },
+      ClassDeclaration(node: any) {
+        if (hasEffectEcosystemImport && emptyErrorTagNode(node)) {
+          report(
+            context,
+            node,
+            "Rule: give tagged domain errors meaningful payloads. Why: a tag-only error loses operation context and recovery detail. Fix: add structured fields or use a more appropriate expected-state model when no context is needed.",
           );
         }
       },
@@ -9209,6 +9478,404 @@ const noResourceSucceedEscape = defineRule({
   },
 });
 
+function isResourceLikeConstruction(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "NewExpression") {
+    return false;
+  }
+
+  const callee = (node as Node).callee;
+  let name: string | undefined;
+  if (isIdentifier(callee)) {
+    name = callee.name;
+  } else if (
+    typeof callee === "object" &&
+    callee !== null &&
+    (callee as Node).type === "MemberExpression" &&
+    (callee as Node).computed !== true &&
+    isIdentifier((callee as Node).property)
+  ) {
+    name = ((callee as Node).property as Node & { name: string }).name;
+  }
+
+  return name !== undefined && isResourceLikeName(name);
+}
+
+function isResourceLifecycleCandidate(node: unknown): boolean {
+  return resourceAcquisitionCall(node) || isResourceLikeConstruction(node);
+}
+
+function isResourceAcquireReleaseCall(node: unknown): boolean {
+  return (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireReleaseInterruptible") ||
+    isEffectMemberCallNamed(node, "acquireUseRelease")
+  );
+}
+
+function hasResourceLifecycleOwner(node: unknown): boolean {
+  if (hasReleaseOwnership(node)) {
+    return true;
+  }
+
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) {
+      return false;
+    }
+    seen.add(current);
+
+    if (
+      isResourceAcquireReleaseCall(current) ||
+      isEffectMemberCallNamed(current, "scoped") ||
+      isMemberCall(current, "Layer", "scoped") ||
+      isEffectScopedPipeCall(current)
+    ) {
+      return true;
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
+function resourceLexicalScope(node: unknown): Node | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) {
+      return undefined;
+    }
+    seen.add(current);
+
+    if (isFunctionLike(current) || (current as Node).type === "Program") {
+      return current as Node;
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function unownedResourcesInScope(scope: Node): unknown[] {
+  return findNodes(scope, (candidate) => (
+    isResourceLifecycleCandidate(candidate) &&
+    resourceLexicalScope(candidate) === scope &&
+    !hasResourceLifecycleOwner(candidate)
+  ));
+}
+
+function nestedAcquireReleaseNode(node: unknown): unknown | undefined {
+  if (!isResourceAcquireReleaseCall(node)) {
+    return undefined;
+  }
+
+  return findNodes(node, isResourceAcquireReleaseCall).length >= 3 ? node : undefined;
+}
+
+function requestLifecycleFunctionName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || !isFunctionLike(node)) {
+    return undefined;
+  }
+
+  const functionNode = node as Node;
+  if (isIdentifier(functionNode.id)) {
+    return functionNode.id.name;
+  }
+
+  const parent = functionNode.parent;
+  if (typeof parent !== "object" || parent === null) {
+    return undefined;
+  }
+
+  if ((parent as Node).type === "VariableDeclarator" && isIdentifier((parent as Node).id)) {
+    return ((parent as Node).id as Node & { name: string }).name;
+  }
+
+  if (
+    (parent as Node).type === "Property" &&
+    isIdentifier((parent as Node).key)
+  ) {
+    return ((parent as Node).key as Node & { name: string }).name;
+  }
+
+  return undefined;
+}
+
+function isRequestLifecycleFunction(node: unknown): boolean {
+  const name = requestLifecycleFunctionName(node);
+  return name !== undefined && /(?:handler|route|request|endpoint|controller)$/i.test(name);
+}
+
+function requestScopedResourceNodes(node: unknown): unknown[] {
+  if (!isRequestLifecycleFunction(node) || typeof node !== "object" || node === null) {
+    return [];
+  }
+
+  const functionNode = node as Node;
+  return findNodes(functionNode.body, (candidate) => (
+    isResourceLifecycleCandidate(candidate) && enclosingFunction(candidate) === functionNode
+  ));
+}
+
+function openResourceInRunScope(node: unknown): unknown | undefined {
+  const scope = resourceLexicalScope(node);
+  if (scope === undefined) {
+    return undefined;
+  }
+
+  return unownedResourcesInScope(scope)[0];
+}
+
+function programInitializerForReference(reference: unknown): unknown | undefined {
+  if (!isIdentifier(reference)) {
+    return undefined;
+  }
+
+  const functionScope = enclosingFunction(reference);
+  const scopes = functionScope === undefined ? [] : [functionScope];
+  let current = typeof reference === "object" && reference !== null
+    ? (reference as Node).parent
+    : undefined;
+  const seen = new WeakSet<object>();
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) {
+      break;
+    }
+    seen.add(current);
+    if ((current as Node).type === "Program") {
+      scopes.push(current as Node);
+      break;
+    }
+    current = (current as Node).parent;
+  }
+
+  for (const scope of scopes) {
+    const declaration = findNode(scope, (candidate) => (
+      typeof candidate === "object" &&
+      candidate !== null &&
+      (candidate as Node).type === "VariableDeclarator" &&
+      isIdentifier((candidate as Node).id, reference.name) &&
+      (candidate as Node).init !== undefined
+    ));
+    if (declaration) {
+      return (declaration as Node).init;
+    }
+  }
+
+  return undefined;
+}
+
+function effectRunMissingLayerProvision(node: unknown): boolean {
+  if (!isEffectRunCall(node)) {
+    return false;
+  }
+
+  const argument = firstArgument(node as Node & { arguments: unknown[] });
+  const program = findNode(argument, isYieldedServiceDependency) !== undefined
+    ? argument
+    : programInitializerForReference(argument) ?? argument;
+
+  return (
+    findNode(program, isYieldedServiceDependency) !== undefined &&
+    findNode(program, isEffectOrLayerProvideCall) === undefined
+  );
+}
+
+const noResourceWithoutAcquireRelease = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !resourceAcquisitionCall(node) ||
+          hasResourceLifecycleOwner(node)
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: acquire resources with an Effect release owner. Why: open/connect/create calls can leak across failure and interruption when they are ordinary calls. Fix: use Effect.acquireRelease, Effect.acquireUseRelease, Effect.scoped, or a matching finalizer.",
+        );
+      },
+    };
+  },
+});
+
+const noRequestScopedLongLivedResource = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const reported = new WeakSet<object>();
+
+    const reportResources = (node: unknown) => {
+      for (const candidate of requestScopedResourceNodes(node)) {
+        if (typeof candidate !== "object" || candidate === null || reported.has(candidate)) {
+          continue;
+        }
+        reported.add(candidate);
+        report(
+          context,
+          candidate,
+          "Rule: do not acquire long-lived resources inside request-scoped handlers. Why: per-request clients and pools multiply connections and make shutdown ownership ambiguous. Fix: provide the resource through a Layer or a longer-lived service boundary.",
+        );
+      }
+    };
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration(node: any) {
+        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
+          reportResources(node);
+        }
+      },
+      FunctionExpression(node: any) {
+        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
+          reportResources(node);
+        }
+      },
+      ArrowFunctionExpression(node: any) {
+        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
+          reportResources(node);
+        }
+      },
+    };
+  },
+});
+
+const noGlobalResourceSingleton = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      NewExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          enclosingFunction(node) !== undefined ||
+          !isResourceLikeConstruction(node)
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: do not create global resource singletons in Effect modules. Why: module-level clients and pools bypass Layer ownership and make tests and shutdown order implicit. Fix: construct the resource in a Layer or Effect.Service and provide it at the application boundary.",
+        );
+      },
+    };
+  },
+});
+
+const noRunWithOpenResource = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const openResource = openResourceInRunScope(node);
+        if (isEffectRunCall(node) && openResource !== undefined) {
+          report(
+            context,
+            node,
+            "Rule: do not run an Effect while an unowned resource is open in the same scope. Why: runtime execution can finish without closing the resource. Fix: move acquisition into acquireRelease/scoped ownership and run only the managed effect.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noNestedAcquireRelease = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const nested = nestedAcquireReleaseNode(node);
+        if (nested) {
+          report(
+            context,
+            nested,
+            "Rule: avoid deeply nested resource acquisition. Why: nested release stacks are difficult to audit and compose. Fix: build a named Layer or combine independent resources into one managed acquisition boundary.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noMissingLayerProvisionAtRun = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && effectRunMissingLayerProvision(node)) {
+          report(
+            context,
+            node,
+            "Rule: provide service layers before running an Effect that retrieves services. Why: an unprovided tag fails at runtime and hides the dependency contract at the boundary. Fix: compose the required Layer and use Effect.provide or Layer.provide before Effect.run*.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const rules = {
   "no-react-state": noReactState,
   "no-if-statement": noIfStatement,
@@ -9235,9 +9902,11 @@ const rules = {
   "no-piped-yield-in-gen": noPipedYieldInGen,
   "no-gen-for-mapping": noGenForMapping,
   "prefer-gen-for-workflow": preferGenForWorkflow,
+  "no-business-logic-in-pipe": noBusinessLogicInPipe,
   "no-large-anonymous-flow": noLargeAnonymousFlow,
   "no-effect-in-flow": noEffectInFlow,
   "prefer-named-flow": preferNamedFlow,
+  "prefer-flow-for-pure-pipeline": preferFlowForPurePipeline,
   "prefer-pipe-for-behavior": preferPipeForBehavior,
   "prefer-decorated-effect-before-gen": preferDecoratedEffectBeforeGen,
   "no-workflow-in-behavior-pipe": noWorkflowInBehaviorPipe,
@@ -9284,6 +9953,7 @@ const rules = {
   "no-effect-type-alias": noEffectTypeAlias,
   "no-public-generic-effect-error": noPublicGenericEffectError,
   "no-early-catchall-null": noEarlyCatchallNull,
+  "no-empty-error-tag": noEmptyErrorTag,
   "no-expected-state-as-error": noExpectedStateAsError,
   "no-exception-domain-error": noExceptionDomainError,
   "no-effect-fail-error-message": noEffectFailErrorMessage,
@@ -9344,6 +10014,12 @@ const rules = {
   "no-manual-resource-close": noManualResourceClose,
   "no-unbound-scope": noUnboundScope,
   "no-resource-succeed-escape": noResourceSucceedEscape,
+  "no-resource-without-acquire-release": noResourceWithoutAcquireRelease,
+  "no-request-scoped-long-lived-resource": noRequestScopedLongLivedResource,
+  "no-global-resource-singleton": noGlobalResourceSingleton,
+  "no-run-with-open-resource": noRunWithOpenResource,
+  "no-nested-acquire-release": noNestedAcquireRelease,
+  "no-missing-layer-provision-at-run": noMissingLayerProvisionAtRun,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
@@ -9369,11 +10045,30 @@ const strictConcurrencySafetyRuleNames = [
 
 const strictErrorModelingRuleNames = [
   "no-early-catchall-null",
+  "no-empty-error-tag",
+] as const satisfies readonly RuleName[];
+
+const strictEffectFlowRuleNames = [
+  "no-business-logic-in-pipe",
+] as const satisfies readonly RuleName[];
+
+const strictPureTransformationRuleNames = [
+  "prefer-flow-for-pure-pipeline",
+] as const satisfies readonly RuleName[];
+
+const strictResourceLifetimeRuleNames = [
+  "no-request-scoped-long-lived-resource",
+  "no-global-resource-singleton",
+  "no-nested-acquire-release",
+  "no-missing-layer-provision-at-run",
 ] as const satisfies readonly RuleName[];
 
 type StrictRuleName = StrictTestingObservabilityAndQaRuleName |
   typeof strictConcurrencySafetyRuleNames[number] |
-  typeof strictErrorModelingRuleNames[number];
+  typeof strictErrorModelingRuleNames[number] |
+  typeof strictEffectFlowRuleNames[number] |
+  typeof strictPureTransformationRuleNames[number] |
+  typeof strictResourceLifetimeRuleNames[number];
 
 function rulesFromNames<const T extends readonly RuleName[]>(ruleNames: T) {
   return Object.fromEntries(
@@ -9447,6 +10142,9 @@ export const resourceLifetimeRules = rulesFromNames([
   "no-manual-resource-close",
   "no-unbound-scope",
   "no-resource-succeed-escape",
+  "no-resource-without-acquire-release",
+  ...strictResourceLifetimeRuleNames,
+  "no-run-with-open-resource",
 ] as const);
 
 export const pipelineShapeAndSequencingRules = rulesFromNames([
@@ -9521,6 +10219,7 @@ type DddErrorModelingRuleName = typeof dddErrorModelingRuleNames[number];
 const errorModelingRuleNames = [
   ...dddErrorModelingRuleNames,
   "no-early-catchall-null",
+  "no-empty-error-tag",
   "no-exception-domain-error",
   "no-effect-fail-error-message",
   "no-catchall-generic-rethrow",
@@ -9538,12 +10237,14 @@ export const effectFlowRules = rulesFromNames([
   "no-piped-yield-in-gen",
   "no-gen-for-mapping",
   "prefer-gen-for-workflow",
+  ...strictEffectFlowRuleNames,
 ] as const);
 
 export const pureTransformationRules = rulesFromNames([
   "no-large-anonymous-flow",
   "no-effect-in-flow",
   "prefer-named-flow",
+  ...strictPureTransformationRuleNames,
 ] as const);
 
 export const behaviorDecorationRules = rulesFromNames([
@@ -9595,6 +10296,9 @@ const recommendedExcludedRuleNames = [
   ...strictTestingObservabilityAndQaRuleNames,
   ...strictConcurrencySafetyRuleNames,
   ...strictErrorModelingRuleNames,
+  ...strictEffectFlowRuleNames,
+  ...strictPureTransformationRuleNames,
+  ...strictResourceLifetimeRuleNames,
   ...dddErrorModelingRuleNames,
   "no-resource-succeed-escape",
 ] as readonly RuleName[];

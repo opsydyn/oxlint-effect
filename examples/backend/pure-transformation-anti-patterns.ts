@@ -13,6 +13,10 @@ const withLabel = (vehicle: { readonly id: string; readonly price: number }) => 
   label: vehicle.id.toUpperCase(),
 });
 
+const addSelection = (value: string) => `${value}:selected`;
+const addRoute = (value: string) => `${value}/details`;
+const addSummary = (value: string) => ({ value });
+
 // EXPECT: linteffect/no-large-anonymous-flow
 // QA: large pure transformations should be extracted to a named domain mapper.
 const largeAnonymousVehicleCard = flow(
@@ -41,6 +45,11 @@ const inlineFlowCallback = Effect.map(
   ),
 );
 
+// EXPECT: linteffect/prefer-flow-for-pure-pipeline
+// QA: A deep pure call tower hides a reusable transformation pipeline.
+const nestedPureTransformation = addSummary(addRoute(addSelection("vehicle")));
+
 void largeAnonymousVehicleCard;
 void effectfulTransformation;
 void inlineFlowCallback;
+void nestedPureTransformation;

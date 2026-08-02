@@ -1,9 +1,17 @@
-import { Effect } from "effect";
+import { Data, Effect } from "effect";
 
 declare const program: any;
 declare const error: { readonly message: string };
 declare const fallbackValue: string | undefined;
 declare class ValidationError extends Error {}
+
+// EXPECT: linteffect/no-empty-error-tag
+// QA: A tag-only domain error carries no operation context for recovery or diagnosis.
+type EmptyDomainError = { readonly _tag: "EmptyDomainError" };
+
+// EXPECT: linteffect/no-empty-error-tag
+// QA: Data.TaggedError should include structured payload fields when the error needs modeling.
+class EmptyTaggedDomainError extends Data.TaggedError("EmptyTaggedDomainError") {}
 
 // EXPECT: linteffect/no-throw-in-effect-logic
 // QA: Throwing inside Effect logic bypasses typed failure channels.

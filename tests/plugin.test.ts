@@ -6787,4 +6787,164 @@ describe("linteffect Oxlint plugin", () => {
 
     expect(reports).toHaveLength(0);
   });
+
+  describe("v1 roadmap completion rules", () => {
+    it("reports empty tagged error shapes but allows payloads", () => {
+      const emptyTag = {
+        type: "TSTypeAliasDeclaration",
+        id: identifier("EmptyError"),
+        typeAnnotation: {
+          type: "TSTypeLiteral",
+          members: [{ type: "TSPropertySignature", key: identifier("_tag") }],
+        },
+      };
+      const richTag = {
+        type: "TSTypeAliasDeclaration",
+        id: identifier("RichError"),
+        typeAnnotation: {
+          type: "TSTypeLiteral",
+          members: [
+            { type: "TSPropertySignature", key: identifier("_tag") },
+            { type: "TSPropertySignature", key: identifier("reason") },
+          ],
+        },
+      };
+
+      const reports = runRuleSequence("no-empty-error-tag", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "TSTypeAliasDeclaration", node: emptyTag },
+        { visitorName: "TSTypeAliasDeclaration", node: richTag },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(emptyTag);
+    });
+
+    it("reports business workflow inside pipe and deep pure call towers", () => {
+      const businessPipe = methodPipeCall(
+        effectCall("succeed", identifier("value")),
+        effectCall("flatMap", arrowCallback(blockStatement({
+          type: "IfStatement",
+          test: identifier("condition"),
+          consequent: blockStatement(),
+          alternate: null,
+        }))),
+      );
+      linkParents(businessPipe);
+      const businessReports = runRuleSequence("no-business-logic-in-pipe", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: businessPipe },
+      ]);
+
+      const pureTower = namedCall(
+        "toSummary",
+        namedCall("toLabel", namedCall("toDto", identifier("value"))),
+      );
+      linkParents(pureTower);
+      const pureReports = runRuleSequence("prefer-flow-for-pure-pipeline", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: pureTower },
+      ]);
+
+      expect(businessReports).toHaveLength(1);
+      expect(pureReports).toHaveLength(1);
+    });
+
+    it("reports unowned resource lifetimes and allows managed acquisition", () => {
+      const unowned = resourceAcquire("openConnection");
+      const unownedReports = runRuleSequence("no-resource-without-acquire-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: unowned },
+      ]);
+
+      const managed = effectCall(
+        "acquireRelease",
+        resourceAcquire("openConnection"),
+        arrowCallback(effectCall("void")),
+      );
+      const managedAcquisition = managed.arguments[0];
+      linkParents(managed);
+      const managedReports = runRuleSequence("no-resource-without-acquire-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: managedAcquisition },
+      ]);
+
+      expect(unownedReports).toHaveLength(1);
+      expect(managedReports).toHaveLength(0);
+    });
+
+    it("reports request-scoped resources, global resources, and open resources at run", () => {
+      const requestResource = resourceAcquire("connectClient");
+      const requestHandler = {
+        type: "FunctionDeclaration",
+        id: identifier("requestHandler"),
+        body: blockStatement(expressionStatement(requestResource)),
+      };
+      linkParents(requestHandler);
+      const requestReports = runRuleSequence("no-request-scoped-long-lived-resource", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "FunctionDeclaration", node: requestHandler },
+      ]);
+
+      const globalResource = {
+        type: "NewExpression",
+        callee: identifier("DatabasePool"),
+        arguments: [],
+      };
+      const globalReports = runRuleSequence("no-global-resource-singleton", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "NewExpression", node: globalResource },
+      ]);
+
+      const openResource = resourceAcquire("connectClient");
+      const runCall = effectCall("runPromise", effectCall("succeed", identifier("client")));
+      const runScope = {
+        type: "FunctionDeclaration",
+        id: identifier("runWithOpenResource"),
+        body: blockStatement(
+          variableDeclarationWithInit(openResource),
+          returnStatement(runCall),
+        ),
+      };
+      linkParents(runScope);
+      const runReports = runRuleSequence("no-run-with-open-resource", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: runCall },
+      ]);
+
+      expect(requestReports).toHaveLength(1);
+      expect(globalReports).toHaveLength(1);
+      expect(runReports).toHaveLength(1);
+    });
+
+    it("reports nested acquisition and missing layer provision", () => {
+      const nested = effectCall(
+        "acquireRelease",
+        effectCall(
+          "acquireRelease",
+          effectCall("acquireRelease", effectCall("succeed", identifier("resource"))),
+        ),
+      );
+      linkParents(nested);
+      const nestedReports = runRuleSequence("no-nested-acquire-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: nested },
+      ]);
+
+      const missingProvision = effectCall(
+        "runPromise",
+        effectCall(
+          "gen",
+          generatorCallback(blockStatement(yieldExpression(identifier("UserService"), true))),
+        ),
+      );
+      const provisionReports = runRuleSequence("no-missing-layer-provision-at-run", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: missingProvision },
+      ]);
+
+      expect(nestedReports).toHaveLength(1);
+      expect(provisionReports).toHaveLength(1);
+    });
+  });
 });

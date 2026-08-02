@@ -31,3 +31,14 @@ export const longSequencingPipeline = Effect.succeed(id).pipe(
   Effect.andThen(saveUser),
   Effect.tap(auditUser),
 );
+
+// EXPECT: linteffect/no-business-logic-in-pipe
+// QA: Branching and multiple Effect steps belong in Effect.gen, not a behavior pipe callback.
+export const businessLogicInPipe = Effect.succeed(id).pipe(
+  Effect.flatMap((userId) => {
+    if (userId.length > 0) {
+      return Effect.map(loadUser, auditUser);
+    }
+    return Effect.fail("missing user id");
+  }),
+);

@@ -64,11 +64,12 @@ diagnostics can be treated as implementation gaps.
   rules in `roadmap/01-correctness-core/README.md`.
 - `backend/concurrency-safety-anti-patterns.ts` mirrors the concurrency-safety
   rules in `roadmap/02-concurrency-safety/README.md`.
-- `backend/resource-lifetime-anti-patterns.ts` mirrors the Resource Lifetime
-  rules in `roadmap/03-resource-lifetime/README.md`.
+- `backend/resource-lifetime-anti-patterns.ts` mirrors the implemented Resource
+  Lifetime rules in `roadmap/03-resource-lifetime/README.md`; the deferred
+  `no-scope-global` candidate is intentionally absent from the plugin.
 - `backend/error-escapes-anti-patterns.ts` mirrors the correctness-core
   error-escape slice in `roadmap/01-correctness-core/README.md` and Error
-  Modeling Slices 2 and 3 in `roadmap/04-error-modeling/README.md`.
+  Modeling Slices 2, 3, and 4 in `roadmap/04-error-modeling/README.md`.
 - `backend/imperative-escape-hatches-anti-patterns.ts` mirrors the
   correctness-core promise and imperative escape-hatch slice in
   `roadmap/01-correctness-core/README.md`.
@@ -76,10 +77,10 @@ diagnostics can be treated as implementation gaps.
   correctness-core public error contract rule in
   `roadmap/01-correctness-core/README.md` and Error Modeling Slice 1 in
   `roadmap/04-error-modeling/README.md`.
-- `backend/effect-flow-anti-patterns.ts` mirrors the first Effect Flow slice in
+- `backend/effect-flow-anti-patterns.ts` mirrors both Effect Flow slices in
   `roadmap/09-effect-flow/README.md`.
-- `backend/pure-transformation-anti-patterns.ts` mirrors the first Pure
-  Transformation slice in `roadmap/10-pure-transformation/README.md`.
+- `backend/pure-transformation-anti-patterns.ts` mirrors both Pure
+  Transformation slices in `roadmap/10-pure-transformation/README.md`.
 - `backend/behavior-decoration-anti-patterns.ts` mirrors the Behavior
   Decoration slice in `roadmap/11-behavior-decoration/README.md`.
 - `backend/style-separation-anti-patterns.ts` mirrors the Style Separation
