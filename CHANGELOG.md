@@ -1,5 +1,11 @@
 # @opsydyn/oxlint-effect
 
+## 1.0.0
+
+### Major Changes
+
+- abc2f3b: Complete the actionable Effect Flow, Pure Transformation, Error Modeling, and Resource Lifetime roadmap rules for the v1 release.
+
 ## 0.10.0
 
 ### Minor Changes
