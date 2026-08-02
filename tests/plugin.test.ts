@@ -5361,6 +5361,41 @@ describe("linteffect Oxlint plugin", () => {
       expect(reports).toHaveLength(1);
     });
 
+    it("does not use a catch binding as release callback ownership evidence", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const catchScopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const owner = effectCall(
+        "acquireRelease",
+        scopeMake,
+        arrowCallbackWithParams(
+          [identifier("scope")],
+          blockStatement({
+            type: "TryStatement",
+            block: blockStatement(),
+            handler: {
+              type: "CatchClause",
+              param: identifier("scope"),
+              body: blockStatement(expressionStatement(yieldExpression(catchScopeClose, true))),
+            },
+            finalizer: null,
+          }),
+        ),
+      );
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
     it("does not treat Scope.addFinalizer as closing a created scope", () => {
       const scopeMake = objectMethodCall(identifier("Scope"), "make");
       const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));

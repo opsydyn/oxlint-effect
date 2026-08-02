@@ -8473,14 +8473,32 @@ function lexicalScopeDepth(scope: Node): number {
   return depth;
 }
 
-function variableDeclaratorsInFunction(functionNode: Node): Node[] {
+function lexicalBindingsInFunction(functionNode: Node): Node[] {
   return findNodes(functionNode.body, (candidate) => (
     typeof candidate === "object" &&
     candidate !== null &&
-    (candidate as Node).type === "VariableDeclarator" &&
-    isIdentifier((candidate as Node).id) &&
+    (
+      ((candidate as Node).type === "VariableDeclarator" && isIdentifier((candidate as Node).id)) ||
+      ((candidate as Node).type === "CatchClause" && isIdentifier((candidate as Node).param))
+    ) &&
     enclosingFunction(candidate) === functionNode
   )) as Node[];
+}
+
+function lexicalBindingIdentifier(binding: Node): Node | undefined {
+  if (binding.type === "VariableDeclarator") {
+    return isIdentifier(binding.id) ? binding.id : undefined;
+  }
+
+  return binding.type === "CatchClause" && isIdentifier(binding.param)
+    ? binding.param
+    : undefined;
+}
+
+function lexicalBindingScope(binding: Node): Node | undefined {
+  return binding.type === "CatchClause"
+    ? lexicalScopeNode(binding.param)
+    : lexicalScopeNode(binding);
 }
 
 function variableBindingForReference(reference: unknown, functionNode: Node): Node | undefined {
@@ -8489,15 +8507,15 @@ function variableBindingForReference(reference: unknown, functionNode: Node): No
   let best: Node | undefined;
   let bestDepth = -1;
 
-  for (const declaration of variableDeclaratorsInFunction(functionNode)) {
-    if (!isIdentifier(declaration.id, reference.name)) continue;
+  for (const binding of lexicalBindingsInFunction(functionNode)) {
+    if (!isIdentifier(lexicalBindingIdentifier(binding), reference.name)) continue;
 
-    const scope = lexicalScopeNode(declaration);
+    const scope = lexicalBindingScope(binding);
     if (scope === undefined || !isWithinLexicalScope(reference, scope)) continue;
 
     const depth = lexicalScopeDepth(scope);
     if (depth > bestDepth) {
-      best = declaration;
+      best = binding;
       bestDepth = depth;
     }
   }
