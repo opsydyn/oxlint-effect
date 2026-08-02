@@ -1,5 +1,11 @@
 # @opsydyn/oxlint-effect
 
+## 0.10.0
+
+### Minor Changes
+
+- 4f898d9: Add Error Modeling Slice 3 with rules for boundary-owned recovery, expected domain states, and typed exception handling inside Effect workflows.
+
 ## 0.9.0
 
 ### Minor Changes
