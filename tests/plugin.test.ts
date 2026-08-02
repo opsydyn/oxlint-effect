@@ -113,6 +113,13 @@ const memberAccess = (object: unknown, property: string) => ({
   computed: false,
 });
 
+const computedMemberAccess = (object: unknown, property: string) => ({
+  type: "MemberExpression",
+  object,
+  property: { type: "Literal", value: property },
+  computed: true,
+});
+
 const objectMethodCall = (object: unknown, propertyName: string, ...args: unknown[]) => (
   callExpression(memberAccess(object, propertyName), ...args)
 );
@@ -5202,6 +5209,19 @@ describe("linteffect Oxlint plugin", () => {
 
       expect(reports).toHaveLength(1);
     });
+
+    it("does not infer resource ownership from computed members", () => {
+      const cleanup = objectMethodCall(
+        computedMemberAccess(identifier("client"), "value"),
+        "close",
+      );
+      const reports = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: cleanup },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
   });
 
   describe("no-unbound-scope", () => {
@@ -5214,7 +5234,7 @@ describe("linteffect Oxlint plugin", () => {
 
       expect(reports).toHaveLength(1);
       expect(reports[0].node).toBe(scopeMake);
-      expect(reports[0].message).toContain("unbound scope");
+      expect(reports[0].message).toContain("bind Scope.make");
     });
 
     it("requires an Effect import and respects boundary paths", () => {
@@ -5334,6 +5354,75 @@ describe("linteffect Oxlint plugin", () => {
 
       expect(reports).toHaveLength(1);
     });
+
+    it("requires a direct Scope.make initializer for local close ownership", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeBinding = variableDeclaratorWithInit("scope", namedCall("wrap", scopeMake));
+      const scopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [scopeBinding],
+      };
+      const scopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(
+          scopeDeclaration,
+          expressionStatement(yieldExpression(scopeClose, true)),
+        )),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("does not use a shadowed close binding as ownership evidence", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const outerScopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true))],
+      };
+      const shadowedScopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [variableDeclaratorWithInit("scope", identifier("otherScope"))],
+      };
+      const shadowedScopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(
+          outerScopeDeclaration,
+          blockStatement(
+            shadowedScopeDeclaration,
+            expressionStatement(yieldExpression(shadowedScopeClose, true)),
+          ),
+        )),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
   });
 
   describe("no-resource-succeed-escape", () => {
@@ -5352,7 +5441,7 @@ describe("linteffect Oxlint plugin", () => {
 
         expect(reports).toHaveLength(1);
         expect(reports[0].node).toBe(node);
-        expect(reports[0].message).toContain("resource escape");
+        expect(reports[0].message).toContain("resources escape");
       }
     });
 
@@ -5371,6 +5460,19 @@ describe("linteffect Oxlint plugin", () => {
 
         expect(reports).toHaveLength(0);
       }
+    });
+
+    it("does not infer resource values from computed members", () => {
+      const escape = effectCall(
+        "succeed",
+        computedMemberAccess(identifier("client"), "value"),
+      );
+      const reports = runRuleSequence("no-resource-succeed-escape", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: escape },
+      ]);
+
+      expect(reports).toHaveLength(0);
     });
 
     it("requires an Effect import and respects boundary paths", () => {

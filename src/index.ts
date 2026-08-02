@@ -2736,8 +2736,12 @@ function isResourceLikeExpression(node: unknown): boolean {
   }
 
   const member = node as Node;
+  if (member.computed === true) {
+    return false;
+  }
+
   return (
-    (member.computed !== true && isIdentifier(member.property) && isResourceLikeName(member.property.name)) ||
+    (isIdentifier(member.property) && isResourceLikeName(member.property.name)) ||
     isResourceLikeExpression(member.object)
   );
 }
@@ -8410,6 +8414,109 @@ function isScopeCloseFor(node: unknown, bindingName: string): boolean {
   return isMemberCall(node, "Scope", "close") && isIdentifier(firstArgument(node as Node & { arguments: unknown[] }), bindingName);
 }
 
+const lexicalScopeNodeTypes = new Set([
+  "BlockStatement",
+  "CatchClause",
+  "ForInStatement",
+  "ForOfStatement",
+  "ForStatement",
+  "Program",
+  "SwitchStatement",
+]);
+
+function lexicalScopeNode(node: unknown): Node | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return undefined;
+    seen.add(current);
+
+    if (lexicalScopeNodeTypes.has((current as Node).type ?? "")) {
+      return current as Node;
+    }
+
+    if (isFunctionLike(current)) return current as Node;
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function isWithinLexicalScope(node: unknown, scope: Node): boolean {
+  let current = node;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if (current === scope) return true;
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
+function lexicalScopeDepth(scope: Node): number {
+  let depth = 0;
+  let current: unknown = scope;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return depth;
+    seen.add(current);
+    depth += 1;
+    current = (current as Node).parent;
+  }
+
+  return depth;
+}
+
+function variableDeclaratorsInFunction(functionNode: Node): Node[] {
+  return findNodes(functionNode.body, (candidate) => (
+    typeof candidate === "object" &&
+    candidate !== null &&
+    (candidate as Node).type === "VariableDeclarator" &&
+    isIdentifier((candidate as Node).id) &&
+    enclosingFunction(candidate) === functionNode
+  )) as Node[];
+}
+
+function variableBindingForReference(reference: unknown, functionNode: Node): Node | undefined {
+  if (!isIdentifier(reference)) return undefined;
+
+  let best: Node | undefined;
+  let bestDepth = -1;
+
+  for (const declaration of variableDeclaratorsInFunction(functionNode)) {
+    if (!isIdentifier(declaration.id, reference.name)) continue;
+
+    const scope = lexicalScopeNode(declaration);
+    if (scope === undefined || !isWithinLexicalScope(reference, scope)) continue;
+
+    const depth = lexicalScopeDepth(scope);
+    if (depth > bestDepth) {
+      best = declaration;
+      bestDepth = depth;
+    }
+  }
+
+  return best;
+}
+
+function directScopeMakeInitializer(init: unknown, scopeMake: unknown): boolean {
+  if (init === scopeMake) return true;
+
+  return (
+    typeof init === "object" &&
+    init !== null &&
+    (init as Node).type === "YieldExpression" &&
+    (init as Node).delegate === true &&
+    (init as Node).argument === scopeMake
+  );
+}
+
 function findLexicalNode(
   node: unknown,
   predicate: (candidate: unknown) => boolean,
@@ -8456,7 +8563,7 @@ function enclosingFunction(node: unknown): Node | undefined {
   return undefined;
 }
 
-function scopeMakeBindingName(node: unknown): string | undefined {
+function scopeMakeBindingDeclaration(node: unknown): Node | undefined {
   let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
 
@@ -8467,9 +8574,9 @@ function scopeMakeBindingName(node: unknown): string | undefined {
     if (
       (current as Node).type === "VariableDeclarator" &&
       isIdentifier((current as Node).id) &&
-      findNode((current as Node).init, (candidate) => candidate === node)
+      directScopeMakeInitializer((current as Node).init, node)
     ) {
-      return ((current as Node).id as Node & { name: string }).name;
+      return current as Node;
     }
 
     if (isFunctionLike(current)) return undefined;
@@ -8480,14 +8587,23 @@ function scopeMakeBindingName(node: unknown): string | undefined {
 }
 
 function hasMatchingScopeClose(node: unknown): boolean {
-  const bindingName = scopeMakeBindingName(node);
+  const declaration = scopeMakeBindingDeclaration(node);
   const functionNode = enclosingFunction(node);
-  if (bindingName === undefined || functionNode === undefined) return false;
+  if (declaration === undefined || functionNode === undefined) return false;
 
-  return findLexicalNode(
+  const bindingName = ((declaration.id as Node & { name: string }).name);
+
+  return findNodes(
     functionNode.body,
-    (candidate) => isScopeCloseFor(candidate, bindingName),
-  ) !== undefined;
+    (candidate) => (
+      isScopeCloseFor(candidate, bindingName) &&
+      enclosingFunction(candidate) === functionNode &&
+      variableBindingForReference(
+        firstArgument(candidate as Node & { arguments: unknown[] }),
+        functionNode,
+      ) === declaration
+    ),
+  ).length > 0;
 }
 
 function isScopeAcquireReleaseCall(node: unknown): node is Node & { arguments: unknown[] } {
@@ -8570,7 +8686,7 @@ const noUnboundScope = defineRule({
         report(
           context,
           node,
-          "Rule: avoid an unbound scope. Why: an unbound Scope can leak resources and finalizers. Fix: use Effect.scoped/Layer.scoped, close the scope explicitly, or acquire it with a matching release callback.",
+          "Rule: bind Scope.make to an owned lifecycle. Why: an unbound Scope can leak resources and finalizers. Fix: use Effect.scoped/Layer.scoped, close the scope explicitly, or acquire it with a matching release callback.",
         );
       },
     };
@@ -8602,7 +8718,7 @@ const noResourceSucceedEscape = defineRule({
         report(
           context,
           node,
-          "Rule: avoid resource escape through Effect.succeed. Why: ordinary success values do not express resource lifetime ownership. Fix: keep the resource inside Effect.acquireRelease, Scope, or a service layer.",
+          "Rule: do not let live resources escape through Effect.succeed. Why: ordinary success values do not express resource lifetime ownership. Fix: keep the resource inside Effect.acquireRelease, Scope, or a service layer.",
         );
       },
     };
