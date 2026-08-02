@@ -61,6 +61,23 @@ describe("linteffect oxlint integration", () => {
     ]);
   });
 
+  it("reports exactly the Error Modeling Slice 1 diagnostics", () => {
+    const result = runOxlint(
+      "error-modeling-slice-1.ts",
+      "oxlint.error-modeling-slice-1.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-error-as-public-effect-error",
+      "no-mixed-effect-error-shapes",
+      "no-unknown-public-error-channel",
+    ]);
+  });
+
   it("reports exactly the Slice 6 concurrency safety diagnostics", () => {
     const result = runOxlint(
       "concurrency-safety-slice-6.ts",

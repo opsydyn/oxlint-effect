@@ -28,8 +28,8 @@ type.
 ### Configure One Rule Group
 
 Every documented rule group is exported as a config-shaped preset with the same
-shape as `recommended`. For example, teams that only want the DDD/domain
-modeling rules can use `ddd`:
+shape as `recommended`. The `ddd` preset combines Domain Modeling and Error
+Modeling rules:
 
 ```ts
 import { defineConfig } from "oxlint";
@@ -55,7 +55,8 @@ Named group presets:
 | `optionMatchAndDataNormalization` | Option, Match, and Data Normalization |
 | `atomStateAndPlatformBoundaries` | Atom, State, and Platform Boundaries |
 | `domainModeling` | Domain Modeling |
-| `ddd` | Alias for `domainModeling` |
+| `errorModeling` | Error Modeling |
+| `ddd` | Domain Modeling and Error Modeling |
 | `effectFlow` | Effect Flow |
 | `pureTransformation` | Pure Transformation |
 | `behaviorDecoration` | Behavior Decoration |
@@ -72,6 +73,7 @@ import { defineConfig } from "oxlint";
 import {
   concurrencySafety,
   domainModelingRules,
+  errorModelingRules,
   effectCompositionRules,
 } from "@opsydyn/oxlint-effect";
 
@@ -81,6 +83,7 @@ export default defineConfig({
   rules: {
     ...concurrencySafety.rules,
     ...domainModelingRules,
+    ...errorModelingRules,
     ...effectCompositionRules,
   },
 });
@@ -374,3 +377,15 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 | `linteffect/no-implicit-state-machine-object` | Multiple boolean lifecycle flags on one object. | Models impossible states away with tagged unions. |
 | `linteffect/no-adhoc-domain-error` | `Effect.fail("...")` and `throw new Error("...")` in domain code. | Uses structured tagged errors for recovery and observability. |
 | `linteffect/no-domain-meaning-by-folder-only` | Admin/public/internal meaning encoded only in names around raw IDs. | Represents context in types, commands, policies, or services. |
+
+### Error Modeling
+
+Public Effect operations should expose one structured, recoverable error
+channel. The DDD preset includes these rules; they remain opt-in to keep
+`recommended` compatible with existing projects.
+
+| Rule | Catches | Why |
+| --- | --- | --- |
+| `linteffect/no-error-as-public-effect-error` | Exported functions returning `Effect.Effect<_, Error, _>`. | Generic `Error` hides recovery semantics and domain context. |
+| `linteffect/no-unknown-public-error-channel` | Exported functions returning `Effect.Effect<_, unknown, _>`. | Callers cannot recover by tag or type from an `unknown` channel. |
+| `linteffect/no-mixed-effect-error-shapes` | Public error unions mixing `Error`, `unknown`, string, number, or boolean shapes. | A single tagged error union keeps recovery and observability predictable. |

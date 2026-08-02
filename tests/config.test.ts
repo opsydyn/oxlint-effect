@@ -10,8 +10,11 @@ import plugin, {
   concurrencySafety,
   concurrencySafetyRules,
   ddd,
+  dddRules,
   domainModeling,
   domainModelingRules,
+  errorModeling,
+  errorModelingRules,
   effectFlow,
   effectFlowRules,
   effectComposition,
@@ -163,6 +166,11 @@ const groupExpectations = {
     "no-domain-meaning-by-folder-only",
     "no-new-date-in-domain-logic",
   ],
+  errorModeling: [
+    "no-error-as-public-effect-error",
+    "no-unknown-public-error-channel",
+    "no-mixed-effect-error-shapes",
+  ],
   effectFlow: [
     "no-piped-yield-in-gen",
     "no-gen-for-mapping",
@@ -226,6 +234,7 @@ const exportedRuleGroups = {
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
   atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
   domainModeling: domainModelingRules,
+  errorModeling: errorModelingRules,
   effectFlow: effectFlowRules,
   pureTransformation: pureTransformationRules,
   behaviorDecoration: behaviorDecorationRules,
@@ -245,6 +254,7 @@ const exportedPresets = {
   optionMatchAndDataNormalization,
   atomStateAndPlatformBoundaries,
   domainModeling,
+  errorModeling,
   effectFlow,
   pureTransformation,
   behaviorDecoration,
@@ -414,7 +424,7 @@ describe("linteffect config exports", () => {
 
     expect(ruleGroups).toEqual({
       ...exportedRuleGroups,
-      ddd: domainModelingRules,
+      ddd: dddRules,
     });
   });
 
@@ -426,11 +436,15 @@ describe("linteffect config exports", () => {
       );
     }
 
-    expect(ddd).toBe(domainModeling);
+    expect(ddd).not.toBe(domainModeling);
+    expect(ddd.rules as ComparableRules).toEqual({
+      ...domainModelingRules,
+      ...errorModelingRules,
+    });
     expect(presets).toEqual({
       recommended,
       ...exportedPresets,
-      ddd: domainModeling,
+      ddd,
     });
   });
 });

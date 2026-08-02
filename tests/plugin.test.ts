@@ -499,6 +499,11 @@ const tsUnknownKeyword = () => ({
   type: "TSUnknownKeyword",
 });
 
+const tsUnionType = (...types: unknown[]) => ({
+  type: "TSUnionType",
+  types,
+});
+
 const tsTypeAnnotation = (typeAnnotation: unknown) => ({
   type: "TSTypeAnnotation",
   typeAnnotation,
@@ -4956,6 +4961,103 @@ describe("linteffect Oxlint plugin", () => {
     ]);
 
     expect(reports).toHaveLength(0);
+  });
+
+  describe("error modeling public Effect channels", () => {
+    it("catches generic Error channels with the DDD rule", () => {
+      const reports = runRuleSequence("no-error-as-public-effect-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+            tsTypeReference("User"),
+            tsTypeReference("Error"),
+            tsTypeReference("UserRepository"),
+          )),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("model public errors as tagged Effect failures");
+    });
+
+    it("allows tagged error channels with the DDD rule", () => {
+      const reports = runRuleSequence("no-error-as-public-effect-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+            tsTypeReference("User"),
+            tsTypeReference("UserNotFound"),
+            tsTypeReference("UserRepository"),
+          )),
+        },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("catches unknown public error channels", () => {
+      const reports = runRuleSequence("no-unknown-public-error-channel", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+            tsTypeReference("User"),
+            tsUnknownKeyword(),
+            tsTypeReference("UserRepository"),
+          )),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("do not expose unknown as a public Effect error channel");
+    });
+
+    it("allows unknown outside public Effect error channels", () => {
+      const reports = runRuleSequence("no-unknown-public-error-channel", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "TSTypeReference",
+          node: tsTypeReference("unknown"),
+        },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("catches mixed primitive and Error error channels", () => {
+      const reports = runRuleSequence("no-mixed-effect-error-shapes", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+            tsTypeReference("User"),
+            tsUnionType(tsTypeReference("Error"), tsStringKeyword()),
+            tsTypeReference("UserRepository"),
+          )),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("keep the public Effect error channel structurally consistent");
+    });
+
+    it("allows a single tagged error shape in a public channel", () => {
+      const reports = runRuleSequence("no-mixed-effect-error-shapes", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ExportNamedDeclaration",
+          node: exportedFunctionDeclarationReturningType(effectEffectTypeReference(
+            tsTypeReference("User"),
+            tsUnionType(tsTypeReference("UserNotFound"), tsTypeReference("UserForbidden")),
+            tsTypeReference("UserRepository"),
+          )),
+        },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
   });
 
   it("catches unbounded Effect.all over mapped collections", () => {

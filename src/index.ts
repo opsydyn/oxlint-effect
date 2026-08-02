@@ -3322,18 +3322,33 @@ function serviceEffectOperationWithoutSpan(node: unknown): unknown | undefined {
 }
 
 function genericEffectErrorReturnType(node: unknown): unknown | undefined {
-  const annotation = returnTypeAnnotation(node);
+  const target = effectErrorChannelTarget(node);
+  return target && isGenericErrorType(target.errorChannel)
+    ? target.annotation
+    : undefined;
+}
+
+type PublicEffectErrorTarget = {
+  readonly annotation: unknown;
+  readonly errorChannel: unknown;
+};
+
+function effectErrorChannelTarget(
+  node: unknown,
+  declaredReturnType?: unknown,
+): PublicEffectErrorTarget | undefined {
+  const annotation = returnTypeAnnotation(node) ?? declaredReturnType;
   if (!isQualifiedTypeReference(annotation, "Effect", "Effect")) {
     return undefined;
   }
 
-  const [, error] = typeArguments(annotation);
-  return isGenericErrorType(error) ? annotation : undefined;
+  const [, errorChannel] = typeArguments(annotation);
+  return errorChannel === undefined ? undefined : { annotation, errorChannel };
 }
 
-function exportedGenericEffectErrorTarget(node: unknown): unknown | undefined {
+function exportedEffectErrorTargets(node: unknown): PublicEffectErrorTarget[] {
   if (typeof node !== "object" || node === null) {
-    return undefined;
+    return [];
   }
 
   const exportNode = node as Node;
@@ -3341,42 +3356,71 @@ function exportedGenericEffectErrorTarget(node: unknown): unknown | undefined {
     exportNode.type !== "ExportNamedDeclaration" &&
     exportNode.type !== "ExportDefaultDeclaration"
   ) {
-    return undefined;
+    return [];
   }
 
-  const declaration = exportNode.declaration;
-  if (typeof declaration !== "object" || declaration === null) {
-    return undefined;
+  return exportedFunctionValues(exportNode).flatMap(({ functionNode, declaredReturnType }) => {
+    const target = effectErrorChannelTarget(functionNode, declaredReturnType);
+    return target ? [target] : [];
+  });
+}
+
+function exportedGenericEffectErrorTarget(node: unknown): unknown | undefined {
+  return exportedEffectErrorTargets(node).find((target) => (
+    isGenericErrorType(target.errorChannel)
+  ))?.annotation;
+}
+
+type ErrorChannelShape = "Error" | "unknown" | "string" | "number" | "boolean";
+
+function unwrappedType(node: unknown): unknown {
+  let current = node;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return current;
+    seen.add(current);
+
+    if ((current as Node).type !== "TSParenthesizedType") return current;
+    current = (current as Node).typeAnnotation;
   }
 
-  if ((declaration as Node).type === "FunctionDeclaration") {
-    return genericEffectErrorReturnType(declaration);
+  return current;
+}
+
+function errorChannelShape(node: unknown): ErrorChannelShape | undefined {
+  const type = unwrappedType(node);
+  if (isGenericErrorType(type)) return "Error";
+
+  if (typeof type !== "object" || type === null) return undefined;
+
+  switch ((type as Node).type) {
+    case "TSUnknownKeyword":
+      return "unknown";
+    case "TSStringKeyword":
+      return "string";
+    case "TSNumberKeyword":
+      return "number";
+    case "TSBooleanKeyword":
+      return "boolean";
+    default:
+      return undefined;
+  }
+}
+
+function mixedErrorChannelShapes(node: unknown): Set<ErrorChannelShape> {
+  const type = unwrappedType(node);
+  if (typeof type !== "object" || type === null || (type as Node).type !== "TSUnionType") {
+    return new Set();
   }
 
-  if ((declaration as Node).type !== "VariableDeclaration") {
-    return undefined;
-  }
+  const types = (type as Node).types;
+  if (!Array.isArray(types)) return new Set();
 
-  for (const declarator of ((declaration as Node).declarations as unknown[] | undefined) ?? []) {
-    if (typeof declarator !== "object" || declarator === null) {
-      continue;
-    }
-
-    const init = (declarator as Node).init;
-    if (
-      typeof init === "object" &&
-      init !== null &&
-      ((init as Node).type === "ArrowFunctionExpression" ||
-        (init as Node).type === "FunctionExpression")
-    ) {
-      const target = genericEffectErrorReturnType(init);
-      if (target) {
-        return target;
-      }
-    }
-  }
-
-  return undefined;
+  return new Set(types.flatMap((member) => {
+    const shape = errorChannelShape(member);
+    return shape ? [shape] : [];
+  }));
 }
 
 function containsQualifiedTypeReference(
@@ -6755,6 +6799,65 @@ const noPublicGenericEffectError = defineRule({
   },
 });
 
+function createPublicEffectErrorChannelRule(
+  context: OxlintContext,
+  matches: (target: PublicEffectErrorTarget) => boolean,
+  message: string,
+) {
+  let hasEffectEcosystemImport = false;
+
+  const visitExport = (node: any) => {
+    if (!hasEffectEcosystemImport) return;
+
+    for (const target of exportedEffectErrorTargets(node)) {
+      if (matches(target)) {
+        report(context, target.annotation, message);
+      }
+    }
+  };
+
+  return {
+    ImportDeclaration(node: any) {
+      const source = getImportSource(node);
+      if (source && isEffectEcosystemImport(source)) {
+        hasEffectEcosystemImport = true;
+      }
+    },
+    ExportNamedDeclaration: visitExport,
+    ExportDefaultDeclaration: visitExport,
+  };
+}
+
+const noErrorAsPublicEffectError = defineRule({
+  create(context: OxlintContext) {
+    return createPublicEffectErrorChannelRule(
+      context,
+      ({ errorChannel }) => isGenericErrorType(errorChannel),
+      "Rule: model public errors as tagged Effect failures, not generic Error. Why: Error hides recovery semantics and domain context. Fix: return a domain-specific Data.TaggedError or tagged error union.",
+    );
+  },
+});
+
+const noUnknownPublicErrorChannel = defineRule({
+  create(context: OxlintContext) {
+    return createPublicEffectErrorChannelRule(
+      context,
+      ({ errorChannel }) => errorChannelShape(errorChannel) === "unknown",
+      "Rule: do not expose unknown as a public Effect error channel. Why: callers cannot recover by tag or type. Fix: return a tagged domain error union with operation-specific context.",
+    );
+  },
+});
+
+const noMixedEffectErrorShapes = defineRule({
+  create(context: OxlintContext) {
+    return createPublicEffectErrorChannelRule(
+      context,
+      ({ errorChannel }) => mixedErrorChannelShapes(errorChannel).size > 1,
+      "Rule: keep the public Effect error channel structurally consistent. Why: mixing Error, primitives, and unknown makes recovery ambiguous. Fix: map failures to one tagged error union.",
+    );
+  },
+});
+
 const noModelOverlayCast = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -8846,6 +8949,9 @@ const rules = {
   "no-effect-succeed-variable": noEffectSucceedVariable,
   "no-effect-type-alias": noEffectTypeAlias,
   "no-public-generic-effect-error": noPublicGenericEffectError,
+  "no-error-as-public-effect-error": noErrorAsPublicEffectError,
+  "no-unknown-public-error-channel": noUnknownPublicErrorChannel,
+  "no-mixed-effect-error-shapes": noMixedEffectErrorShapes,
   "no-model-overlay-cast": noModelOverlayCast,
   "no-unknown-boolean-coercion-helper": noUnknownBooleanCoercionHelper,
   "no-fromnullable-nullish-coalesce": noFromnullableNullishCoalesce,
@@ -9059,6 +9165,20 @@ export const domainModelingRules = rulesFromNames([
   "no-new-date-in-domain-logic",
 ] as const);
 
+const errorModelingRuleNames = [
+  "no-error-as-public-effect-error",
+  "no-unknown-public-error-channel",
+  "no-mixed-effect-error-shapes",
+] as const;
+type ErrorModelingRuleName = typeof errorModelingRuleNames[number];
+
+export const errorModelingRules = rulesFromNames(errorModelingRuleNames);
+
+export const dddRules = {
+  ...domainModelingRules,
+  ...errorModelingRules,
+} as const;
+
 export const effectFlowRules = rulesFromNames([
   "no-piped-yield-in-gen",
   "no-gen-for-mapping",
@@ -9119,10 +9239,14 @@ export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 const recommendedExcludedRuleNames = [
   ...strictTestingObservabilityAndQaRuleNames,
   ...strictConcurrencySafetyRuleNames,
+  ...errorModelingRuleNames,
   "no-resource-succeed-escape",
 ] as readonly RuleName[];
 const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
-  (ruleName): ruleName is Exclude<RuleName, StrictRuleName | "no-resource-succeed-escape"> => (
+  (ruleName): ruleName is Exclude<
+    RuleName,
+    StrictRuleName | ErrorModelingRuleName | "no-resource-succeed-escape"
+  > => (
     !recommendedExcludedRuleNames.includes(ruleName)
   ),
 );
@@ -9138,6 +9262,8 @@ export const ruleGroups = {
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
   atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
   domainModeling: domainModelingRules,
+  errorModeling: errorModelingRules,
+  ddd: dddRules,
   effectFlow: effectFlowRules,
   pureTransformation: pureTransformationRules,
   behaviorDecoration: behaviorDecorationRules,
@@ -9145,7 +9271,6 @@ export const ruleGroups = {
   serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
   platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
   testingObservabilityAndQa: testingObservabilityAndQaRules,
-  ddd: domainModelingRules,
 } as const;
 
 export const recommended = presetFor(recommendedRules);
@@ -9158,7 +9283,8 @@ export const branchingAndLocalControlFlow = presetFor(branchingAndLocalControlFl
 export const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNormalizationRules);
 export const atomStateAndPlatformBoundaries = presetFor(atomStateAndPlatformBoundariesRules);
 export const domainModeling = presetFor(domainModelingRules);
-export const ddd = domainModeling;
+export const errorModeling = presetFor(errorModelingRules);
+export const ddd = presetFor(dddRules);
 export const effectFlow = presetFor(effectFlowRules);
 export const pureTransformation = presetFor(pureTransformationRules);
 export const behaviorDecoration = presetFor(behaviorDecorationRules);
@@ -9178,6 +9304,7 @@ export const presets = {
   optionMatchAndDataNormalization,
   atomStateAndPlatformBoundaries,
   domainModeling,
+  errorModeling,
   ddd,
   effectFlow,
   pureTransformation,

@@ -73,7 +73,8 @@ diagnostics can be treated as implementation gaps.
   `roadmap/01-correctness-core/README.md`.
 - `backend/public-error-contract-anti-patterns.ts` mirrors the final
   correctness-core public error contract rule in
-  `roadmap/01-correctness-core/README.md`.
+  `roadmap/01-correctness-core/README.md` and Error Modeling Slice 1 in
+  `roadmap/04-error-modeling/README.md`.
 - `backend/effect-flow-anti-patterns.ts` mirrors the first Effect Flow slice in
   `roadmap/09-effect-flow/README.md`.
 - `backend/pure-transformation-anti-patterns.ts` mirrors the first Pure
