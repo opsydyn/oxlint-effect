@@ -288,6 +288,8 @@ export default defineConfig({
 | `linteffect/no-yield-with-held-semaphore-permit` | Direct semaphore `withPermit` / `withPermits` work whose effect contains sleep, await, Promise interop, queue waiting, or concurrent Effect work. | Strict-only protection against holding a permit while interruptible or concurrent work occupies the critical section. |
 | `linteffect/no-yield-with-held-mutable-ref` | Effectful `SynchronizedRef` modifiers (`modifyEffect`, `modifySomeEffect`, `updateEffect`, `updateAndGetEffect`) whose callback suspends or starts concurrent work. | Strict-only protection that keeps internal reference coordination short and synchronous. |
 | `linteffect/no-unscoped-background-fiber` | Direct `Effect.forkDaemon(...)` without a direct `Effect.supervised(...)` child-effect marker. | Strict-only protection that requires daemon work to expose supervision or use scoped ownership instead of silently outliving the caller. |
+| `linteffect/no-manual-deferred-coordination` | A local `Deferred.make(...)` / `Deferred.unsafeMake(...)` latch whose matching `Deferred.await(...)` has no timeout, race, interruption, scope, or finalizer protection. | Strict-only protection against unbounded waits and implicit completion ownership in ad hoc coordination. |
+| `linteffect/no-acquire-without-scoped-release` | Resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls for client, connection, pool, database, file, socket, stream, server, subscription, or handle values inside concurrent Effect work without scoped release evidence. | Keeps resources acquired by concurrent work tied to `acquireRelease`, `acquireUseRelease`, `Effect.scoped`, or a matching finalizer. |
 
 ### Pipeline Shape and Sequencing
 

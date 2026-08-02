@@ -67,6 +67,26 @@ const objectMethodCall = (object: unknown, propertyName: string, ...args: unknow
   callExpression(memberAccess(object, propertyName), ...args)
 );
 
+const deferredCall = (method: string, ...args: unknown[]) => (
+  objectMethodCall(identifier("Deferred"), method, ...args)
+);
+
+const deferredBinding = (name: string, method = "make") => (
+  variableDeclaratorWithInit(name, yieldExpression(deferredCall(method)))
+);
+
+const deferredAwait = (name: string) => deferredCall("await", identifier(name));
+
+const namedCall = (name: string, ...args: unknown[]) => (
+  callExpression(identifier(name), ...args)
+);
+
+const resourceAcquire = (name: string) => namedCall(name, stringLiteral("primary"));
+
+const concurrentWork = (propertyName: string, ...args: unknown[]) => (
+  effectCall(propertyName, ...args)
+);
+
 const curriedMethodCall = (
   object: unknown,
   propertyName: string,
@@ -4911,6 +4931,245 @@ describe("linteffect Oxlint plugin", () => {
     ]);
 
     expect(reports).toHaveLength(0);
+  });
+
+  it("reports an unbounded await of a locally created Deferred", () => {
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].message).toContain("manual Deferred coordination");
+  });
+
+  it("reports both supported unsafe Deferred constructor spellings", () => {
+    for (const method of ["unsafeMake", "makeUnsafe"]) {
+      const reports = runRuleSequence("no-manual-deferred-coordination", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "VariableDeclarator", node: deferredBinding("ready", method) },
+        { visitorName: "CallExpression", node: deferredAwait("ready") },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    }
+  });
+
+  it("allows Deferred awaits with explicit bounds and ownership", () => {
+    const protectedAwaitCases: Array<(awaitNode: unknown) => unknown> = [
+      (awaitNode) => effectCall("timeout", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutOption", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutFail", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutFailCause", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("timeoutTo", awaitNode, stringLiteral("1 second")),
+      (awaitNode) => effectCall("race", awaitNode, effectCall("sleep", stringLiteral("1 second"))),
+      (awaitNode) => effectCall("raceFirst", awaitNode, effectCall("sleep", stringLiteral("1 second"))),
+      (awaitNode) => effectCall("interruptible", awaitNode),
+      (awaitNode) => effectCall("scoped", awaitNode),
+      (awaitNode) => methodPipeCall(awaitNode, memberAccess(identifier("Effect"), "scoped")),
+    ];
+
+    for (const makeProtectedAwait of protectedAwaitCases) {
+      const awaitNode = deferredAwait("ready");
+      const protectedAwait = makeProtectedAwait(awaitNode);
+      Object.assign(awaitNode, { parent: protectedAwait });
+
+      const reports = runRuleSequence("no-manual-deferred-coordination", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+        { visitorName: "CallExpression", node: awaitNode },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    }
+  });
+
+  it("allows a Deferred await with a matching finalizer", () => {
+    const awaitNode = deferredAwait("ready");
+    const finalizer = effectCall(
+      "addFinalizer",
+      arrowCallback(deferredCall("succeed", identifier("ready"))),
+    );
+    const body = blockStatement(
+      expressionStatement(finalizer),
+      expressionStatement(awaitNode),
+    );
+    const generator = effectCall("gen", generatorCallback(body));
+    const functionNode = generator.arguments[0];
+    Object.assign(awaitNode, { parent: body.body[1] });
+    Object.assign(body.body[1] as object, { parent: body });
+    Object.assign(body, { parent: functionNode });
+    Object.assign(functionNode as object, { parent: generator });
+
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: awaitNode },
+      { visitorName: "CallExpression", node: generator },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("ignores unrelated Deferred bindings and separate function scopes", () => {
+    const functionNode = { type: "FunctionDeclaration" };
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("other") },
+      { visitorName: "FunctionDeclaration", node: functionNode },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+      { visitorName: "FunctionDeclaration:exit", node: functionNode },
+    ]);
+
+    expect(reports).toHaveLength(0);
+  });
+
+  it("requires an Effect ecosystem import and reports each unprotected await once", () => {
+    const awaitNode = deferredAwait("ready");
+    const reports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: awaitNode },
+      { visitorName: "CallExpression", node: awaitNode },
+    ]);
+    expect(reports).toHaveLength(0);
+
+    const importedReports = runRuleSequence("no-manual-deferred-coordination", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclarator", node: deferredBinding("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+      { visitorName: "CallExpression", node: deferredAwait("ready") },
+    ]);
+    expect(importedReports).toHaveLength(2);
+  });
+
+  it("reports resource-like acquisition inside concurrent Effect work", () => {
+    const positiveCases = [
+      concurrentWork("fork", resourceAcquire("openConnection")),
+      concurrentWork("forkScoped", resourceAcquire("createClient")),
+      concurrentWork("forkDaemon", resourceAcquire("connectToDatabase")),
+      concurrentWork("all", arrayLiteral(resourceAcquire("openFile"))),
+      concurrentWork("forEach", identifier("items"), arrowCallback(resourceAcquire("acquireHandle"))),
+      concurrentWork("race", resourceAcquire("listenServer"), identifier("fallback")),
+      concurrentWork("raceFirst", resourceAcquire("subscribeStream"), identifier("fallback")),
+      concurrentWork("raceAll", arrayLiteral(resourceAcquire("openSocket"))),
+      concurrentWork("fork", effectCall("promise", arrowCallback(resourceAcquire("openConnection")))),
+    ];
+
+    for (const work of positiveCases) {
+      const reports = runRuleSequence("no-acquire-without-scoped-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: work },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("scoped release");
+    }
+  });
+
+  it("reports the acquisition node rather than the concurrent combinator", () => {
+    const acquisition = resourceAcquire("openConnection");
+    const reports = runRuleSequence("no-acquire-without-scoped-release", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: concurrentWork("fork", acquisition) },
+    ]);
+
+    expect(reports).toHaveLength(1);
+    expect(reports[0].node).toBe(acquisition);
+  });
+
+  it("allows acquisition with scoped release evidence", () => {
+    const connectionBinding = variableDeclaratorWithInit(
+      "connection",
+      yieldExpression(resourceAcquire("openConnection")),
+    );
+    const connectionDeclaration = {
+      type: "VariableDeclaration",
+      kind: "const",
+      declarations: [connectionBinding],
+    };
+    const finalizer = effectCall(
+      "addFinalizer",
+      arrowCallback(objectMethodCall(identifier("connection"), "close")),
+    );
+    const generator = effectCall(
+      "gen",
+      generatorCallback(blockStatement(
+        connectionDeclaration,
+        expressionStatement(finalizer),
+        expressionStatement(objectMethodCall(identifier("connection"), "query", stringLiteral("select 1"))),
+      )),
+    );
+    const safeCases = [
+      concurrentWork(
+        "fork",
+        effectCall(
+          "acquireRelease",
+          resourceAcquire("openConnection"),
+          arrowCallback(effectCall("succeed", identifier("closed"))),
+        ),
+      ),
+      concurrentWork(
+        "fork",
+        effectCall(
+          "acquireUseRelease",
+          resourceAcquire("createClient"),
+          identifier("use"),
+          identifier("release"),
+        ),
+      ),
+      concurrentWork("fork", effectCall("scoped", resourceAcquire("openFile"))),
+      concurrentWork(
+        "fork",
+        methodPipeCall(resourceAcquire("openSocket"), memberAccess(identifier("Effect"), "scoped")),
+      ),
+      concurrentWork("fork", generator),
+    ];
+
+    for (const work of safeCases) {
+      const reports = runRuleSequence("no-acquire-without-scoped-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: work },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    }
+  });
+
+  it("ignores generic factories, existing resource methods, and non-concurrent acquisition", () => {
+    const cases = [
+      concurrentWork("fork", namedCall("makeClient")),
+      concurrentWork("fork", objectMethodCall(identifier("client"), "connect")),
+      resourceAcquire("openConnection"),
+    ];
+
+    for (const node of cases) {
+      const reports = runRuleSequence("no-acquire-without-scoped-release", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    }
+  });
+
+  it("requires an Effect ecosystem import and deduplicates nested concurrent roots", () => {
+    const acquisition = resourceAcquire("openConnection");
+    const inner = concurrentWork("fork", acquisition);
+    const outer = concurrentWork("all", arrayLiteral(inner));
+
+    const withoutImport = runRuleSequence("no-acquire-without-scoped-release", [
+      { visitorName: "CallExpression", node: outer },
+    ]);
+    expect(withoutImport).toHaveLength(0);
+
+    const reports = runRuleSequence("no-acquire-without-scoped-release", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: outer },
+      { visitorName: "CallExpression", node: inner },
+    ]);
+    expect(reports).toHaveLength(1);
   });
 
   it("catches high-risk work inside a held semaphore permit", () => {

@@ -2364,6 +2364,123 @@ function isSynchronizedRefNamespaceCall(node: unknown): boolean {
   return [...effectfulSynchronizedRefMembers].some((propertyName) => isMemberCall(node, "SynchronizedRef", propertyName));
 }
 
+const deferredConstructorMembers = new Set(["make", "unsafeMake", "makeUnsafe"]);
+const deferredTimeoutMembers = new Set([
+  "timeout",
+  "timeoutOption",
+  "timeoutFail",
+  "timeoutFailCause",
+  "timeoutTo",
+]);
+const deferredInterruptionMembers = new Set(["race", "raceFirst", "raceAll", "interruptible", "scoped"]);
+
+function isEffectMemberExpressionNamed(node: unknown, propertyName: string): boolean {
+  if (typeof node !== "object" || node === null) {
+    return false;
+  }
+
+  const member = node as Node;
+  return (
+    member.type === "MemberExpression" &&
+    member.computed !== true &&
+    isIdentifier(member.object, "Effect") &&
+    isIdentifier(member.property, propertyName)
+  );
+}
+
+function isDeferredConstructorCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const call = node as Node;
+  const callee = call.callee;
+  if (typeof callee !== "object" || callee === null || (callee as Node).type !== "MemberExpression") {
+    return false;
+  }
+
+  const member = callee as Node;
+  return (
+    member.computed !== true &&
+    isIdentifier(member.object, "Deferred") &&
+    isIdentifier(member.property) &&
+    deferredConstructorMembers.has(member.property.name)
+  );
+}
+
+function isDeferredAwaitCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return isMemberCall(node, "Deferred", "await") && Array.isArray((node as Node).arguments);
+}
+
+function deferredBindingName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclarator") {
+    return undefined;
+  }
+
+  const declaration = node as Node;
+  if (!isIdentifier(declaration.id) || !findNode(declaration.init, isDeferredConstructorCall)) {
+    return undefined;
+  }
+
+  return declaration.id.name;
+}
+
+function hasMatchingDeferredFinalizer(node: unknown, bindingName: string): boolean {
+  return Boolean(findNode(node, (candidate) => {
+    if (!isMemberCall(candidate, "Effect", "addFinalizer") && !isMemberCall(candidate, "Scope", "addFinalizer")) {
+      return false;
+    }
+
+    const arguments_ = (candidate as Node & { arguments?: unknown[] }).arguments;
+    return Array.isArray(arguments_) && arguments_.some((argument) => {
+      const body = callbackBody(argument);
+      return body !== undefined && containsIdentifierNamed(body, bindingName);
+    });
+  }));
+}
+
+function isEffectScopedPipeCall(node: unknown): boolean {
+  if (!isPipeCall(node)) {
+    return false;
+  }
+
+  const arguments_ = (node as Node & { arguments?: unknown[] }).arguments;
+  return Array.isArray(arguments_) && arguments_.some((argument) => isEffectMemberExpressionNamed(argument, "scoped"));
+}
+
+function isDeferredAwaitProtected(node: unknown, bindingName: string): boolean {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) {
+      return false;
+    }
+    seen.add(current);
+
+    if (
+      (isEffectMemberCall(current) && (() => {
+        const property = ((current as Node).callee as Node).property;
+        return isIdentifier(property) && (
+          deferredTimeoutMembers.has(property.name) ||
+          deferredInterruptionMembers.has(property.name)
+        );
+      })()) ||
+      isEffectScopedPipeCall(current)
+    ) {
+      return true;
+    }
+
+    if (isFunctionLike(current) && hasMatchingDeferredFinalizer(current, bindingName)) {
+      return true;
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
 const raceCleanupCalls = new Set([
   "acquireRelease",
   "acquireUseRelease",
@@ -2557,6 +2674,182 @@ function concurrentEffectWorkNode(node: unknown): unknown | undefined {
   }
 
   return undefined;
+}
+
+const concurrentWorkMembers = new Set([
+  "fork",
+  "forkScoped",
+  "forkDaemon",
+  "all",
+  "forEach",
+  "race",
+  "raceFirst",
+  "raceAll",
+]);
+
+const resourceAcquisitionVerbs = new Set([
+  "open",
+  "connect",
+  "create",
+  "start",
+  "listen",
+  "subscribe",
+  "acquire",
+]);
+
+const resourceLikeTerms = new Set([
+  "client",
+  "connection",
+  "conn",
+  "pool",
+  "db",
+  "database",
+  "file",
+  "socket",
+  "stream",
+  "server",
+  "subscription",
+  "handle",
+]);
+
+function concurrentWorkArguments(node: unknown): unknown[] | undefined {
+  if (!isEffectMemberCall(node)) {
+    return undefined;
+  }
+
+  const property = ((node as Node).callee as Node).property;
+  return isIdentifier(property) && concurrentWorkMembers.has(property.name)
+    ? (node as Node & { arguments: unknown[] }).arguments
+    : undefined;
+}
+
+function resourceAcquisitionCall(node: unknown): node is Node & { callee: Node } {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const call = node as Node;
+  const callee = call.callee;
+  let name: string | undefined;
+
+  if (isIdentifier(callee)) {
+    name = callee.name;
+  } else if (typeof callee === "object" && callee !== null && (callee as Node).type === "MemberExpression") {
+    const member = callee as Node;
+    if (member.computed !== true && isIdentifier(member.property)) {
+      name = member.property.name;
+    }
+  }
+
+  if (!name || name === "acquireRelease" || name === "acquireUseRelease") {
+    return false;
+  }
+
+  const tokens = name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((token) => token.toLowerCase());
+  return (
+    tokens.some((token) => resourceAcquisitionVerbs.has(token)) &&
+    tokens.some((token) => resourceLikeTerms.has(token))
+  );
+}
+
+function hasScopedReleaseEvidence(node: unknown, bindingName?: string): boolean {
+  if (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireUseRelease") ||
+    isEffectMemberCallNamed(node, "scoped") ||
+    isEffectScopedPipeCall(node)
+  ) {
+    return true;
+  }
+
+  return bindingName !== undefined && hasMatchingDeferredFinalizer(node, bindingName);
+}
+
+function matchingFinalizerBindingNames(node: unknown): Set<string> {
+  const bindingNames = new Set<string>();
+  for (const candidate of findNodes(node, (child) => (
+    typeof child === "object" && child !== null && (child as Node).type === "VariableDeclarator"
+  ))) {
+    const declaration = candidate as Node;
+    if (
+      isIdentifier(declaration.id) &&
+      findNode(declaration.init, resourceAcquisitionCall) &&
+      hasMatchingDeferredFinalizer(node, declaration.id.name)
+    ) {
+      bindingNames.add(declaration.id.name);
+    }
+  }
+  return bindingNames;
+}
+
+function collectUnscopedResourceAcquisitions(
+  node: unknown,
+  matches: unknown[],
+  seen = new WeakSet<object>(),
+  ownedBindings = new Set<string>(),
+  owned = false,
+): void {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      collectUnscopedResourceAcquisitions(child, matches, seen, ownedBindings, owned);
+    }
+    return;
+  }
+
+  if (typeof node !== "object" || node === null || seen.has(node)) {
+    return;
+  }
+  seen.add(node);
+
+  if (hasScopedReleaseEvidence(node)) {
+    return;
+  }
+
+  const nextOwnedBindings = new Set(ownedBindings);
+  if (isFunctionLike(node)) {
+    for (const name of matchingFinalizerBindingNames(node)) {
+      nextOwnedBindings.add(name);
+    }
+  }
+
+  const declaration = (node as Node).type === "VariableDeclarator" ? node as Node : undefined;
+  const declarationName = declaration && isIdentifier(declaration.id) ? declaration.id.name : undefined;
+  const declarationIsOwned = declarationName !== undefined && nextOwnedBindings.has(declarationName);
+
+  if (resourceAcquisitionCall(node) && !owned) {
+    matches.push(node);
+    return;
+  }
+
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") {
+      continue;
+    }
+
+    collectUnscopedResourceAcquisitions(
+      child,
+      matches,
+      seen,
+      nextOwnedBindings,
+      owned || declarationIsOwned,
+    );
+  }
+}
+
+function findUnscopedResourceAcquisition(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
+  const matches: unknown[] = [];
+  collectUnscopedResourceAcquisitions(node, matches, seen);
+  return matches[0];
+}
+
+function findUnscopedResourceAcquisitions(node: unknown): unknown[] {
+  const matches: unknown[] = [];
+  collectUnscopedResourceAcquisitions(node, matches);
+  return matches;
 }
 
 const concurrentEffectCalls = new Set(["all", "forEach", "fork", "race", "raceAll"]);
@@ -7772,6 +8065,107 @@ const noGlobalMutableConcurrencyState = defineRule({
   },
 });
 
+const noManualDeferredCoordination = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const deferredScopes = [new Set<string>()];
+    const reported = new WeakSet<object>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      FunctionDeclaration() {
+        deferredScopes.push(new Set());
+      },
+      "FunctionDeclaration:exit"() {
+        deferredScopes.pop();
+      },
+      FunctionExpression() {
+        deferredScopes.push(new Set());
+      },
+      "FunctionExpression:exit"() {
+        deferredScopes.pop();
+      },
+      ArrowFunctionExpression() {
+        deferredScopes.push(new Set());
+      },
+      "ArrowFunctionExpression:exit"() {
+        deferredScopes.pop();
+      },
+      VariableDeclarator(node: any) {
+        const name = deferredBindingName(node);
+        if (name) {
+          deferredScopes.at(-1)?.add(name);
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport || !isDeferredAwaitCall(node)) {
+          return;
+        }
+
+        const binding = firstArgument(node);
+        if (!isIdentifier(binding) || !deferredScopes.at(-1)?.has(binding.name)) {
+          return;
+        }
+
+        if (isDeferredAwaitProtected(node, binding.name) || reported.has(node)) {
+          return;
+        }
+
+        reported.add(node);
+        report(
+          context,
+          node,
+          "Rule: avoid unbounded manual Deferred coordination. Why: a local latch can wait forever and make shutdown or failure ownership implicit. Fix: bound the await with a timeout/race, keep it interruptible, or tie completion and cleanup to a scope finalizer.",
+        );
+      },
+    };
+  },
+});
+
+const noAcquireWithoutScopedRelease = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+    const reported = new WeakSet<object>();
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        const work = concurrentWorkArguments(node);
+        if (!work) {
+          return;
+        }
+
+        for (const acquisition of findUnscopedResourceAcquisitions(work)) {
+          if (typeof acquisition !== "object" || acquisition === null || reported.has(acquisition)) {
+            continue;
+          }
+
+          reported.add(acquisition);
+          report(
+            context,
+            acquisition,
+            "Rule: avoid resource acquisition without scoped release. Why: acquiring a client, connection, file, or handle inside concurrent work can outlive failures and interruption. Fix: wrap acquisition in acquireRelease/acquireUseRelease, use Effect.scoped, or register a matching finalizer.",
+          );
+        }
+      },
+    };
+  },
+});
+
 const noYieldWithHeldSemaphorePermit = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -7995,6 +8389,8 @@ const rules = {
   "no-uninterruptible-concurrent-region": noUninterruptibleConcurrentRegion,
   "no-unbounded-queue-or-pubsub": noUnboundedQueueOrPubSub,
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
+  "no-manual-deferred-coordination": noManualDeferredCoordination,
+  "no-acquire-without-scoped-release": noAcquireWithoutScopedRelease,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
@@ -8012,6 +8408,7 @@ type StrictTestingObservabilityAndQaRuleName =
   typeof strictTestingObservabilityAndQaRuleNames[number];
 
 const strictConcurrencySafetyRuleNames = [
+  "no-manual-deferred-coordination",
   "no-yield-with-held-semaphore-permit",
   "no-yield-with-held-mutable-ref",
   "no-unscoped-background-fiber",
@@ -8085,6 +8482,7 @@ export const concurrencySafetyRules = rulesFromNames([
   "no-unbounded-queue-or-pubsub",
   "no-global-mutable-concurrency-state",
   ...strictConcurrencySafetyRuleNames,
+  "no-acquire-without-scoped-release",
 ] as const);
 
 export const pipelineShapeAndSequencingRules = rulesFromNames([

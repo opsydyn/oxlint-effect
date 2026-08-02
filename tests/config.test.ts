@@ -97,6 +97,8 @@ const groupExpectations = {
     "no-yield-with-held-semaphore-permit",
     "no-yield-with-held-mutable-ref",
     "no-unscoped-background-fiber",
+    "no-manual-deferred-coordination",
+    "no-acquire-without-scoped-release",
   ],
   pipelineShapeAndSequencing: [
     "no-nested-effect-call",
@@ -249,6 +251,7 @@ describe("linteffect config exports", () => {
     expect(recommended.rules).toEqual(recommendedRules);
 
     for (const ruleName of [
+      "no-manual-deferred-coordination",
       "no-yield-with-held-semaphore-permit",
       "no-yield-with-held-mutable-ref",
       "no-unscoped-background-fiber",
@@ -343,6 +346,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-uninterruptible-concurrent-region": "error",
       "linteffect/no-unbounded-queue-or-pubsub": "error",
       "linteffect/no-global-mutable-concurrency-state": "error",
+      "linteffect/no-acquire-without-scoped-release": "error",
       "linteffect/no-piped-yield-in-gen": "error",
       "linteffect/no-gen-for-mapping": "error",
       "linteffect/prefer-gen-for-workflow": "error",

@@ -40,8 +40,8 @@ individual default preset remains `strict` or `runtime`.
 | [x] | `linteffect/no-yield-with-held-semaphore-permit` | lock-across-suspension discipline | strict | high | direct semaphore `withPermit` / `withPermits` coordination whose effect or callback contains supported high-risk Effect members, `Queue.take`, or `Deferred.await` |
 | [x] | `linteffect/no-yield-with-held-mutable-ref` | mutable-reference-across-suspension discipline | strict | high | direct or method-style `SynchronizedRef.modifyEffect`, `modifySomeEffect`, `updateEffect`, or `updateAndGetEffect` whose callback contains supported high-risk Effect members, `Queue.take`, or `Deferred.await` |
 | [x] | `linteffect/no-unscoped-background-fiber` | structured ownership / RAII | strict | medium | direct `Effect.forkDaemon` without a direct `Effect.supervised` marker in the child argument |
-| [ ] | `linteffect/no-manual-deferred-coordination` | ad hoc synchronization discipline | strict | high | `Deferred.make` / `Deferred.unsafeMake` used as a latch without timeout, interruption, or scoped ownership nearby |
-| [ ] | `linteffect/no-acquire-without-scoped-release` | scoped resource lifetime discipline | runtime | high | resource acquisition calls in concurrent work without `Effect.acquireRelease`, `Effect.scoped`, or finalizer evidence |
+| [x] | `linteffect/no-manual-deferred-coordination` | ad hoc synchronization discipline | strict | high | local `Deferred.make` / `Deferred.unsafeMake` binding awaited directly by `Deferred.await` without `Effect.timeout*`, `Effect.race*`, `Effect.interruptible`, `Effect.scoped`, or a matching finalizer |
+| [x] | `linteffect/no-acquire-without-scoped-release` | scoped resource lifetime discipline | runtime | high | resource-like acquisition names containing `open`, `connect`, `create`, `start`, `listen`, `subscribe`, or `acquire` plus a client/resource term inside `fork`, `forkScoped`, `forkDaemon`, `all`, `forEach`, or `race*` without bracketed, scoped, or finalizer evidence |
 
 ## Slice Plan
 
@@ -81,8 +81,8 @@ individual default preset remains `strict` or `runtime`.
 
 ### Slice 7: Coordination And Acquisition Discipline
 
-- [ ] `no-manual-deferred-coordination`
-- [ ] `no-acquire-without-scoped-release`
+- [x] `no-manual-deferred-coordination`
+- [x] `no-acquire-without-scoped-release`
 
 ## Safe Variants
 
@@ -95,5 +95,7 @@ Do not flag:
 - forked fibers followed by `Fiber.join`, `Fiber.await`, or `Fiber.interrupt`
 - `Effect.tryPromise({ try: (signal) => fetch(url, { signal }) })`
 - bounded `Queue.bounded(n)` / `PubSub.bounded(n)`
-- scoped acquisition with `Effect.acquireRelease`, `Effect.scoped`, or
-  `Effect.addFinalizer`
+- Deferred waits protected by `Effect.timeout*`, `Effect.race*`,
+  `Effect.interruptible`, `Effect.scoped`, or a matching finalizer
+- scoped acquisition with `Effect.acquireRelease`, `Effect.acquireUseRelease`,
+  `Effect.scoped`, a scoped pipe, or a matching finalizer
