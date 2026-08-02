@@ -8517,38 +8517,6 @@ function directScopeMakeInitializer(init: unknown, scopeMake: unknown): boolean 
   );
 }
 
-function findLexicalNode(
-  node: unknown,
-  predicate: (candidate: unknown) => boolean,
-  root = true,
-  seen = new WeakSet<object>(),
-): unknown | undefined {
-  if (predicate(node)) return node;
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findLexicalNode(child, predicate, root, seen);
-      if (match) return match;
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null || seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  if (!root && isFunctionLike(node)) return undefined;
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") continue;
-    const match = findLexicalNode(child, predicate, false, seen);
-    if (match) return match;
-  }
-
-  return undefined;
-}
-
 function enclosingFunction(node: unknown): Node | undefined {
   let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
@@ -8614,6 +8582,21 @@ function isScopeAcquireReleaseCall(node: unknown): node is Node & { arguments: u
   ) && Array.isArray((node as Node).arguments);
 }
 
+function scopeCloseUsesCallbackParameter(
+  node: unknown,
+  parameter: Node & { name: string },
+  callback: Node,
+): boolean {
+  const reference = firstArgument(node as Node & { arguments: unknown[] });
+  if (!isIdentifier(reference, parameter.name)) return false;
+
+  return (
+    variableBindingForReference(reference, callback) === undefined &&
+    Array.isArray(callback.params) &&
+    (callback.params as unknown[]).some((candidate) => candidate === parameter)
+  );
+}
+
 function hasMatchingScopeReleaseCallback(node: Node & { arguments: unknown[] }): boolean {
   const arguments_ = (node as Node & { arguments: unknown[] }).arguments;
   const callbacks = isEffectMemberCallNamed(node, "acquireUseRelease")
@@ -8625,10 +8608,14 @@ function hasMatchingScopeReleaseCallback(node: Node & { arguments: unknown[] }):
     const parameter = ((callback as Node).params as unknown[] | undefined)?.[0];
     if (!isIdentifier(parameter)) return false;
 
-    return findLexicalNode(
+    return findNodes(
       (callback as Node).body,
-      (candidate) => isScopeCloseFor(candidate, parameter.name),
-    ) !== undefined;
+      (candidate) => (
+        isScopeCloseFor(candidate, parameter.name) &&
+        enclosingFunction(candidate) === callback &&
+        scopeCloseUsesCallbackParameter(candidate, parameter, callback as Node)
+      ),
+    ).length > 0;
   });
 }
 

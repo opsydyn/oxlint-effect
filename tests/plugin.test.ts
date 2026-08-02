@@ -5327,6 +5327,40 @@ describe("linteffect Oxlint plugin", () => {
       expect(reports).toHaveLength(0);
     });
 
+    it("does not use a shadowed release callback binding as ownership evidence", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const shadowedScopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [variableDeclaratorWithInit("scope", identifier("otherScope"))],
+      };
+      const shadowedScopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const owner = effectCall(
+        "acquireRelease",
+        scopeMake,
+        arrowCallbackWithParams(
+          [identifier("scope")],
+          blockStatement(
+            shadowedScopeDeclaration,
+            expressionStatement(yieldExpression(shadowedScopeClose, true)),
+          ),
+        ),
+      );
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
     it("does not treat Scope.addFinalizer as closing a created scope", () => {
       const scopeMake = objectMethodCall(identifier("Scope"), "make");
       const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));
