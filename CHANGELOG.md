@@ -1,5 +1,12 @@
 # @opsydyn/oxlint-effect
 
+## 0.9.0
+
+### Minor Changes
+
+- ae96b9b: Add Error Modeling Slice 1 with public Effect error-channel rules for generic `Error`, `unknown`, and mixed primitive error shapes. Expose the `errorModeling` preset and include it in `ddd`.
+- ed0ef2f: Add Error Modeling Slice 2 with rules that preserve structured failures through `Effect.fail`, `catchAll`, and error logging handlers.
+
 ## 0.8.0
 
 ### Minor Changes
