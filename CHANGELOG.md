@@ -1,5 +1,16 @@
 # @opsydyn/oxlint-effect
 
+## 0.8.0
+
+### Minor Changes
+
+- fd6dea9: Add concurrency-safety diagnostics for unbounded local Deferred coordination
+  and resource acquisition inside concurrent Effect work without scoped release
+  ownership.
+- 444f694: Add Resource Lifetime diagnostics for manual resource cleanup, unbound scopes,
+  and live resources escaping through `Effect.succeed`, plus a focused
+  `resourceLifetime` preset.
+
 ## 0.7.0
 
 ### Minor Changes
