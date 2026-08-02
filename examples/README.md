@@ -64,6 +64,8 @@ diagnostics can be treated as implementation gaps.
   rules in `roadmap/01-correctness-core/README.md`.
 - `backend/concurrency-safety-anti-patterns.ts` mirrors the concurrency-safety
   rules in `roadmap/02-concurrency-safety/README.md`.
+- `backend/resource-lifetime-anti-patterns.ts` mirrors the Resource Lifetime
+  rules in `roadmap/03-resource-lifetime/README.md`.
 - `backend/error-escapes-anti-patterns.ts` mirrors the correctness-core
   error-escape slice in `roadmap/01-correctness-core/README.md`.
 - `backend/imperative-escape-hatches-anti-patterns.ts` mirrors the

@@ -46,6 +46,56 @@ function runRuleSequence(
 
 const identifier = (name: string) => ({ type: "Identifier", name });
 
+const linkParents = <T>(node: T): T => {
+  const visit = (value: unknown, parent?: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child, parent);
+      return;
+    }
+
+    if (typeof value !== "object" || value === null) return;
+
+    const object = value as Record<string, unknown>;
+    if (parent !== undefined) object.parent = parent;
+
+    for (const [key, child] of Object.entries(object)) {
+      if (key !== "parent") visit(child, value);
+    }
+  };
+
+  visit(node);
+  return node;
+};
+
+const findCallByMethod = (node: unknown, methodNames: readonly string[]): unknown => {
+  if (typeof node === "object" && node !== null) {
+    const candidate = node as Record<string, unknown>;
+    const callee = candidate.callee as Record<string, unknown> | undefined;
+    const property = callee?.property as Record<string, unknown> | undefined;
+    if (
+      candidate.type === "CallExpression" &&
+      callee?.type === "MemberExpression" &&
+      typeof property?.name === "string" &&
+      methodNames.includes(property.name)
+    ) {
+      return node;
+    }
+
+    for (const [key, child] of Object.entries(candidate)) {
+      if (key === "parent") continue;
+      const match = findCallByMethod(child, methodNames);
+      if (match !== undefined) return match;
+    }
+  } else if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findCallByMethod(child, methodNames);
+      if (match !== undefined) return match;
+    }
+  }
+
+  return undefined;
+};
+
 const memberCall = (object: string, property: string) => ({
   type: "CallExpression",
   callee: {
@@ -61,6 +111,13 @@ const memberAccess = (object: unknown, property: string) => ({
   object,
   property: identifier(property),
   computed: false,
+});
+
+const computedMemberAccess = (object: unknown, property: string) => ({
+  type: "MemberExpression",
+  object,
+  property: { type: "Literal", value: property },
+  computed: true,
 });
 
 const objectMethodCall = (object: unknown, propertyName: string, ...args: unknown[]) => (
@@ -5042,6 +5099,536 @@ describe("linteffect Oxlint plugin", () => {
       { visitorName: "CallExpression", node: deferredAwait("ready") },
     ]);
     expect(importedReports).toHaveLength(2);
+  });
+
+  describe("no-manual-resource-close", () => {
+    it("reports resource-like manual cleanup calls", () => {
+      const cases = [
+        objectMethodCall(identifier("client"), "close"),
+        objectMethodCall(identifier("fileHandle"), "dispose"),
+        objectMethodCall(identifier("database"), "destroy"),
+        objectMethodCall(identifier("connection"), "cleanup"),
+        objectMethodCall(memberAccess(identifier("client"), "connection"), "close"),
+      ];
+
+      for (const node of cases) {
+        const reports = runRuleSequence("no-manual-resource-close", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0].node).toBe(node);
+        expect(reports[0].message).toContain("manual resource cleanup");
+      }
+
+      const unrelated = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: objectMethodCall(identifier("logger"), "close") },
+      ]);
+
+      expect(unrelated).toHaveLength(0);
+    });
+
+    it("requires an Effect import and respects boundary paths", () => {
+      const cleanup = objectMethodCall(identifier("client"), "close");
+      const withoutImport = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "CallExpression", node: cleanup },
+      ]);
+      expect(withoutImport).toHaveLength(0);
+
+      const boundaryReports = runRuleSequence(
+        "no-manual-resource-close",
+        [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: cleanup },
+        ],
+        { filename: "/repo/server/route.ts" },
+      );
+      expect(boundaryReports).toHaveLength(0);
+    });
+
+    it("allows cleanup owned by release and finalizer callbacks", () => {
+      const cases = [
+        effectCall(
+          "acquireRelease",
+          identifier("acquireClient"),
+          arrowCallback(objectMethodCall(identifier("client"), "close")),
+        ),
+        effectCall(
+          "acquireUseRelease",
+          identifier("acquireClient"),
+          identifier("useClient"),
+          arrowCallback(objectMethodCall(identifier("client"), "dispose")),
+        ),
+        effectCall(
+          "acquireReleaseInterruptible",
+          identifier("acquireClient"),
+          arrowCallback(objectMethodCall(identifier("client"), "destroy")),
+        ),
+        effectCall(
+          "addFinalizer",
+          arrowCallback(objectMethodCall(identifier("client"), "cleanup")),
+        ),
+        objectMethodCall(
+          identifier("Scope"),
+          "addFinalizer",
+          identifier("scope"),
+          arrowCallback(objectMethodCall(identifier("client"), "close")),
+        ),
+        objectMethodCall(
+          identifier("Scope"),
+          "addFinalizerExit",
+          identifier("scope"),
+          arrowCallback(objectMethodCall(identifier("client"), "close")),
+        ),
+      ];
+
+      for (const owner of cases) {
+        const cleanup = findCallByMethod(owner, ["close", "destroy", "dispose", "cleanup"]);
+        linkParents(owner);
+
+        const reports = runRuleSequence("no-manual-resource-close", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: cleanup },
+        ]);
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("does not treat Effect.ensuring as release ownership", () => {
+      const cleanup = objectMethodCall(identifier("client"), "close");
+      const owner = effectCall("ensuring", identifier("program"), arrowCallback(cleanup));
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: cleanup },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("does not infer resource ownership from computed members", () => {
+      const cleanup = objectMethodCall(
+        computedMemberAccess(identifier("client"), "value"),
+        "close",
+      );
+      const reports = runRuleSequence("no-manual-resource-close", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: cleanup },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+  });
+
+  describe("no-unbound-scope", () => {
+    it("reports Scope.make without an Effect-owned lifecycle", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(scopeMake);
+      expect(reports[0].message).toContain("bind Scope.make");
+    });
+
+    it("requires an Effect import and respects boundary paths", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const withoutImport = runRuleSequence("no-unbound-scope", [
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+      expect(withoutImport).toHaveLength(0);
+
+      const boundaryReports = runRuleSequence(
+        "no-unbound-scope",
+        [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: scopeMake },
+        ],
+        { filename: "/repo/server/route.ts" },
+      );
+      expect(boundaryReports).toHaveLength(0);
+    });
+
+    it("allows scopes enclosed by Effect.scoped and Layer.scoped", () => {
+      const owners = [
+        effectCall("scoped", objectMethodCall(identifier("Scope"), "make")),
+        objectMethodCall(identifier("Layer"), "scoped", objectMethodCall(identifier("Scope"), "make")),
+      ];
+
+      for (const owner of owners) {
+        const scopeMake = findCallByMethod(owner, ["make"]);
+        linkParents(owner);
+        const reports = runRuleSequence("no-unbound-scope", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: scopeMake },
+        ]);
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("allows a local scope with a matching Scope.close", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));
+      const scopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [scopeBinding],
+      };
+      const scopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(
+          scopeDeclaration,
+          expressionStatement(yieldExpression(scopeClose, true)),
+        )),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("allows a direct acquire/release scope with a matching callback parameter", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const owner = effectCall(
+        "acquireRelease",
+        scopeMake,
+        arrowCallbackWithParams([identifier("scope")], scopeClose),
+      );
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("does not use a shadowed release callback binding as ownership evidence", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const shadowedScopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [variableDeclaratorWithInit("scope", identifier("otherScope"))],
+      };
+      const shadowedScopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const owner = effectCall(
+        "acquireRelease",
+        scopeMake,
+        arrowCallbackWithParams(
+          [identifier("scope")],
+          blockStatement(
+            shadowedScopeDeclaration,
+            expressionStatement(yieldExpression(shadowedScopeClose, true)),
+          ),
+        ),
+      );
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("does not use a catch binding as release callback ownership evidence", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const catchScopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const owner = effectCall(
+        "acquireRelease",
+        scopeMake,
+        arrowCallbackWithParams(
+          [identifier("scope")],
+          blockStatement({
+            type: "TryStatement",
+            block: blockStatement(),
+            handler: {
+              type: "CatchClause",
+              param: identifier("scope"),
+              body: blockStatement(expressionStatement(yieldExpression(catchScopeClose, true))),
+            },
+            finalizer: null,
+          }),
+        ),
+      );
+      linkParents(owner);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("does not use other block bindings as release callback ownership evidence", () => {
+      const shadowedDeclarations = [
+        {
+          type: "VariableDeclaration",
+          kind: "const",
+          declarations: [
+            {
+              type: "VariableDeclarator",
+              id: {
+                type: "ObjectPattern",
+                properties: [
+                  {
+                    type: "Property",
+                    key: identifier("scope"),
+                    value: identifier("scope"),
+                    computed: false,
+                    shorthand: true,
+                    kind: "init",
+                  },
+                ],
+              },
+              init: identifier("otherValue"),
+            },
+          ],
+        },
+        {
+          type: "ClassDeclaration",
+          id: identifier("scope"),
+          body: { type: "ClassBody", body: [] },
+        },
+        {
+          type: "FunctionDeclaration",
+          id: identifier("scope"),
+          params: [],
+          body: blockStatement(),
+        },
+      ];
+
+      for (const shadowedDeclaration of shadowedDeclarations) {
+        const scopeMake = objectMethodCall(identifier("Scope"), "make");
+        const scopeClose = objectMethodCall(
+          identifier("Scope"),
+          "close",
+          identifier("scope"),
+          memberAccess(identifier("Exit"), "void"),
+        );
+        const owner = effectCall(
+          "acquireRelease",
+          scopeMake,
+          arrowCallbackWithParams(
+            [identifier("scope")],
+            blockStatement(
+              shadowedDeclaration,
+              expressionStatement(yieldExpression(scopeClose, true)),
+            ),
+          ),
+        );
+        linkParents(owner);
+
+        const reports = runRuleSequence("no-unbound-scope", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: scopeMake },
+        ]);
+
+        expect(reports).toHaveLength(1);
+      }
+    });
+
+    it("does not treat Scope.addFinalizer as closing a created scope", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));
+      const scopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [scopeBinding],
+      };
+      const finalizer = objectMethodCall(
+        identifier("Scope"),
+        "addFinalizer",
+        identifier("scope"),
+        arrowCallback(identifier("finalizer")),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(scopeDeclaration, expressionStatement(finalizer))),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("requires a direct Scope.make initializer for local close ownership", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const scopeBinding = variableDeclaratorWithInit("scope", namedCall("wrap", scopeMake));
+      const scopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [scopeBinding],
+      };
+      const scopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(
+          scopeDeclaration,
+          expressionStatement(yieldExpression(scopeClose, true)),
+        )),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("does not use a shadowed close binding as ownership evidence", () => {
+      const scopeMake = objectMethodCall(identifier("Scope"), "make");
+      const outerScopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true))],
+      };
+      const shadowedScopeDeclaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [variableDeclaratorWithInit("scope", identifier("otherScope"))],
+      };
+      const shadowedScopeClose = objectMethodCall(
+        identifier("Scope"),
+        "close",
+        identifier("scope"),
+        memberAccess(identifier("Exit"), "void"),
+      );
+      const generator = effectCall(
+        "gen",
+        generatorCallback(blockStatement(
+          outerScopeDeclaration,
+          blockStatement(
+            shadowedScopeDeclaration,
+            expressionStatement(yieldExpression(shadowedScopeClose, true)),
+          ),
+        )),
+      );
+      linkParents(generator);
+
+      const reports = runRuleSequence("no-unbound-scope", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: scopeMake },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+  });
+
+  describe("no-resource-succeed-escape", () => {
+    it("reports resource-like values returned through Effect.succeed", () => {
+      const cases = [
+        effectCall("succeed", identifier("client")),
+        effectCall("succeed", memberAccess(identifier("database"), "pool")),
+        effectCall("succeed", identifier("fileHandle")),
+      ];
+
+      for (const node of cases) {
+        const reports = runRuleSequence("no-resource-succeed-escape", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node },
+        ]);
+
+        expect(reports).toHaveLength(1);
+        expect(reports[0].node).toBe(node);
+        expect(reports[0].message).toContain("resources escape");
+      }
+    });
+
+    it("allows ordinary success values and non-resource domains", () => {
+      const cases = [
+        effectCall("succeed", stringLiteral("ok")),
+        effectCall("succeed", identifier("order")),
+        effectCall("succeed", objectLiteral(property("client", booleanLiteral(true)))),
+      ];
+
+      for (const node of cases) {
+        const reports = runRuleSequence("no-resource-succeed-escape", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node },
+        ]);
+
+        expect(reports).toHaveLength(0);
+      }
+    });
+
+    it("does not infer resource values from computed members", () => {
+      const escape = effectCall(
+        "succeed",
+        computedMemberAccess(identifier("client"), "value"),
+      );
+      const reports = runRuleSequence("no-resource-succeed-escape", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: escape },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("requires an Effect import and respects boundary paths", () => {
+      const escaped = effectCall("succeed", identifier("client"));
+      const withoutImport = runRuleSequence("no-resource-succeed-escape", [
+        { visitorName: "CallExpression", node: escaped },
+      ]);
+      expect(withoutImport).toHaveLength(0);
+
+      const boundaryReports = runRuleSequence(
+        "no-resource-succeed-escape",
+        [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: escaped },
+        ],
+        { filename: "/repo/server/route.ts" },
+      );
+      expect(boundaryReports).toHaveLength(0);
+    });
   });
 
   it("reports resource-like acquisition inside concurrent Effect work", () => {

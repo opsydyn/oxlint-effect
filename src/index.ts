@@ -2712,6 +2712,64 @@ const resourceLikeTerms = new Set([
   "handle",
 ]);
 
+const resourceCleanupMethods = new Set(["close", "destroy", "dispose", "cleanup"]);
+
+function identifierNameTokens(name: string): string[] {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((token) => token.toLowerCase());
+}
+
+function isResourceLikeName(name: string): boolean {
+  return identifierNameTokens(name).some((token) => resourceLikeTerms.has(token));
+}
+
+function isResourceLikeExpression(node: unknown): boolean {
+  if (isIdentifier(node)) {
+    return isResourceLikeName(node.name);
+  }
+
+  if (!isMemberExpressionNode(node)) {
+    return false;
+  }
+
+  const member = node as Node;
+  if (member.computed === true) {
+    return false;
+  }
+
+  return (
+    (isIdentifier(member.property) && isResourceLikeName(member.property.name)) ||
+    isResourceLikeExpression(member.object)
+  );
+}
+
+function isResourceCleanupCall(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+    return false;
+  }
+
+  const call = node as Node;
+  const callee = call.callee;
+  if (
+    typeof callee !== "object" ||
+    callee === null ||
+    (callee as Node).type !== "MemberExpression" ||
+    (callee as Node).computed === true ||
+    !isIdentifier((callee as Node).property)
+  ) {
+    return false;
+  }
+
+  const member = callee as Node & { property: Node & { name: string } };
+  return (
+    resourceCleanupMethods.has(member.property.name) &&
+    isResourceLikeExpression(member.object)
+  );
+}
+
 function concurrentWorkArguments(node: unknown): unknown[] | undefined {
   if (!isEffectMemberCall(node)) {
     return undefined;
@@ -2745,14 +2803,10 @@ function resourceAcquisitionCall(node: unknown): node is Node & { callee: Node }
     return false;
   }
 
-  const tokens = name
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .split(/[^A-Za-z0-9]+/)
-    .filter(Boolean)
-    .map((token) => token.toLowerCase());
+  const tokens = identifierNameTokens(name);
   return (
     tokens.some((token) => resourceAcquisitionVerbs.has(token)) &&
-    tokens.some((token) => resourceLikeTerms.has(token))
+    isResourceLikeName(name)
   );
 }
 
@@ -8268,6 +8322,456 @@ const noUnscopedBackgroundFiber = defineRule({
   },
 });
 
+function resourceReleaseCallbackArguments(node: unknown): readonly unknown[] {
+  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).arguments)) {
+    return [];
+  }
+
+  const arguments_ = (node as Node & { arguments: unknown[] }).arguments;
+  if (isEffectMemberCallNamed(node, "acquireUseRelease")) {
+    return arguments_.slice(2);
+  }
+
+  if (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireReleaseInterruptible")
+  ) {
+    return arguments_.slice(1);
+  }
+
+  if (isEffectMemberCallNamed(node, "addFinalizer")) {
+    return arguments_.slice(0, 1);
+  }
+
+  if (
+    isMemberCall(node, "Scope", "addFinalizer") ||
+    isMemberCall(node, "Scope", "addFinalizerExit")
+  ) {
+    return arguments_.slice(1);
+  }
+
+  return [];
+}
+
+function hasReleaseOwnership(node: unknown): boolean {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if (isFunctionLike(current)) {
+      const owner = (current as Node).parent;
+      if (resourceReleaseCallbackArguments(owner).some((argument) => argument === current)) {
+        return true;
+      }
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
+const noManualResourceClose = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !isResourceCleanupCall(node) ||
+          hasReleaseOwnership(node)
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: avoid manual resource cleanup. Why: direct close/dispose calls can bypass Effect scope ownership. Fix: acquire the resource with Effect.acquireRelease or register cleanup with a Scope finalizer.",
+        );
+      },
+    };
+  },
+});
+
+function isScopeMakeCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return isMemberCall(node, "Scope", "make") && Array.isArray((node as Node).arguments);
+}
+
+function isScopeCloseFor(node: unknown, bindingName: string): boolean {
+  return isMemberCall(node, "Scope", "close") && isIdentifier(firstArgument(node as Node & { arguments: unknown[] }), bindingName);
+}
+
+const lexicalScopeNodeTypes = new Set([
+  "BlockStatement",
+  "CatchClause",
+  "ForInStatement",
+  "ForOfStatement",
+  "ForStatement",
+  "Program",
+  "SwitchStatement",
+]);
+
+function lexicalScopeNode(node: unknown): Node | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return undefined;
+    seen.add(current);
+
+    if (lexicalScopeNodeTypes.has((current as Node).type ?? "")) {
+      return current as Node;
+    }
+
+    if (isFunctionLike(current)) return current as Node;
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function isWithinLexicalScope(node: unknown, scope: Node): boolean {
+  let current = node;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if (current === scope) return true;
+    current = (current as Node).parent;
+  }
+
+  return false;
+}
+
+function lexicalScopeDepth(scope: Node): number {
+  let depth = 0;
+  let current: unknown = scope;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return depth;
+    seen.add(current);
+    depth += 1;
+    current = (current as Node).parent;
+  }
+
+  return depth;
+}
+
+function patternBindingIdentifiers(pattern: unknown): Node[] {
+  if (isIdentifier(pattern)) return [pattern];
+  if (typeof pattern !== "object" || pattern === null) return [];
+
+  const node = pattern as Node;
+  switch (node.type) {
+    case "ArrayPattern":
+      return Array.isArray(node.elements)
+        ? node.elements.flatMap((element) => patternBindingIdentifiers(element))
+        : [];
+    case "AssignmentPattern":
+      return patternBindingIdentifiers(node.left);
+    case "ObjectPattern":
+      return Array.isArray(node.properties)
+        ? node.properties.flatMap((property) => {
+          if (typeof property !== "object" || property === null) return [];
+
+          const propertyNode = property as Node;
+          if (propertyNode.type === "Property") {
+            return patternBindingIdentifiers(propertyNode.value);
+          }
+          if (propertyNode.type === "RestElement") {
+            return patternBindingIdentifiers(propertyNode.argument);
+          }
+          return [];
+        })
+        : [];
+    case "RestElement":
+      return patternBindingIdentifiers(node.argument);
+    case "TSParameterProperty":
+      return patternBindingIdentifiers(node.parameter);
+    default:
+      return [];
+  }
+}
+
+function lexicalBindingsInFunction(functionNode: Node): Node[] {
+  return findNodes(functionNode.body, (candidate) => (
+    typeof candidate === "object" &&
+    candidate !== null &&
+    lexicalBindingIdentifiers(candidate as Node).length > 0 &&
+    enclosingFunction(candidate) === functionNode
+  )) as Node[];
+}
+
+function lexicalBindingIdentifiers(binding: Node): Node[] {
+  if (binding.type === "VariableDeclarator") {
+    return patternBindingIdentifiers(binding.id);
+  }
+
+  if (binding.type === "CatchClause") {
+    return patternBindingIdentifiers(binding.param);
+  }
+
+  return (
+    (binding.type === "ClassDeclaration" || binding.type === "FunctionDeclaration") &&
+    isIdentifier(binding.id)
+  )
+    ? [binding.id]
+    : [];
+}
+
+function lexicalBindingScope(binding: Node): Node | undefined {
+  return binding.type === "CatchClause"
+    ? lexicalScopeNode(binding.param)
+    : lexicalScopeNode(binding);
+}
+
+function variableBindingForReference(reference: unknown, functionNode: Node): Node | undefined {
+  if (!isIdentifier(reference)) return undefined;
+
+  let best: Node | undefined;
+  let bestDepth = -1;
+
+  for (const binding of lexicalBindingsInFunction(functionNode)) {
+    if (!lexicalBindingIdentifiers(binding).some((identifier) => (
+      isIdentifier(identifier, reference.name)
+    ))) continue;
+
+    const scope = lexicalBindingScope(binding);
+    if (scope === undefined || !isWithinLexicalScope(reference, scope)) continue;
+
+    const depth = lexicalScopeDepth(scope);
+    if (depth > bestDepth) {
+      best = binding;
+      bestDepth = depth;
+    }
+  }
+
+  return best;
+}
+
+function directScopeMakeInitializer(init: unknown, scopeMake: unknown): boolean {
+  if (init === scopeMake) return true;
+
+  return (
+    typeof init === "object" &&
+    init !== null &&
+    (init as Node).type === "YieldExpression" &&
+    (init as Node).delegate === true &&
+    (init as Node).argument === scopeMake
+  );
+}
+
+function enclosingFunction(node: unknown): Node | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return undefined;
+    seen.add(current);
+    if (isFunctionLike(current)) return current as Node;
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function scopeMakeBindingDeclaration(node: unknown): Node | undefined {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return undefined;
+    seen.add(current);
+
+    if (
+      (current as Node).type === "VariableDeclarator" &&
+      isIdentifier((current as Node).id) &&
+      directScopeMakeInitializer((current as Node).init, node)
+    ) {
+      return current as Node;
+    }
+
+    if (isFunctionLike(current)) return undefined;
+    current = (current as Node).parent;
+  }
+
+  return undefined;
+}
+
+function hasMatchingScopeClose(node: unknown): boolean {
+  const declaration = scopeMakeBindingDeclaration(node);
+  const functionNode = enclosingFunction(node);
+  if (declaration === undefined || functionNode === undefined) return false;
+
+  const bindingName = ((declaration.id as Node & { name: string }).name);
+
+  return findNodes(
+    functionNode.body,
+    (candidate) => (
+      isScopeCloseFor(candidate, bindingName) &&
+      enclosingFunction(candidate) === functionNode &&
+      variableBindingForReference(
+        firstArgument(candidate as Node & { arguments: unknown[] }),
+        functionNode,
+      ) === declaration
+    ),
+  ).length > 0;
+}
+
+function isScopeAcquireReleaseCall(node: unknown): node is Node & { arguments: unknown[] } {
+  return (
+    isEffectMemberCallNamed(node, "acquireRelease") ||
+    isEffectMemberCallNamed(node, "acquireUseRelease") ||
+    isEffectMemberCallNamed(node, "acquireReleaseInterruptible")
+  ) && Array.isArray((node as Node).arguments);
+}
+
+function scopeCloseUsesCallbackParameter(
+  node: unknown,
+  parameter: Node & { name: string },
+  callback: Node,
+): boolean {
+  const reference = firstArgument(node as Node & { arguments: unknown[] });
+  if (!isIdentifier(reference, parameter.name)) return false;
+
+  return (
+    variableBindingForReference(reference, callback) === undefined &&
+    Array.isArray(callback.params) &&
+    (callback.params as unknown[]).some((candidate) => candidate === parameter)
+  );
+}
+
+function hasMatchingScopeReleaseCallback(node: Node & { arguments: unknown[] }): boolean {
+  const arguments_ = (node as Node & { arguments: unknown[] }).arguments;
+  const callbacks = isEffectMemberCallNamed(node, "acquireUseRelease")
+    ? arguments_.slice(2)
+    : arguments_.slice(1);
+
+  return callbacks.some((callback) => {
+    if (!isFunctionLike(callback)) return false;
+    const parameter = ((callback as Node).params as unknown[] | undefined)?.[0];
+    if (!isIdentifier(parameter)) return false;
+
+    return findNodes(
+      (callback as Node).body,
+      (candidate) => (
+        isScopeCloseFor(candidate, parameter.name) &&
+        enclosingFunction(candidate) === callback &&
+        scopeCloseUsesCallbackParameter(candidate, parameter, callback as Node)
+      ),
+    ).length > 0;
+  });
+}
+
+function hasScopeOwner(node: unknown): boolean {
+  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const seen = new WeakSet<object>();
+
+  while (typeof current === "object" && current !== null) {
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if (
+      isEffectMemberCallNamed(current, "scoped") ||
+      isMemberCall(current, "Layer", "scoped")
+    ) {
+      return true;
+    }
+
+    if (
+      isScopeAcquireReleaseCall(current) &&
+      firstArgument(current) === node &&
+      hasMatchingScopeReleaseCallback(current)
+    ) {
+      return true;
+    }
+
+    current = (current as Node).parent;
+  }
+
+  return hasMatchingScopeClose(node);
+}
+
+const noUnboundScope = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !isScopeMakeCall(node) ||
+          hasScopeOwner(node)
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: bind Scope.make to an owned lifecycle. Why: an unbound Scope can leak resources and finalizers. Fix: use Effect.scoped/Layer.scoped, close the scope explicitly, or acquire it with a matching release callback.",
+        );
+      },
+    };
+  },
+});
+
+const noResourceSucceedEscape = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (
+          !hasEffectEcosystemImport ||
+          isBoundaryPath(context) ||
+          !isEffectMemberCallNamed(node, "succeed") ||
+          !isResourceLikeExpression(firstArgument(node))
+        ) {
+          return;
+        }
+
+        report(
+          context,
+          node,
+          "Rule: do not let live resources escape through Effect.succeed. Why: ordinary success values do not express resource lifetime ownership. Fix: keep the resource inside Effect.acquireRelease, Scope, or a service layer.",
+        );
+      },
+    };
+  },
+});
+
 const rules = {
   "no-react-state": noReactState,
   "no-if-statement": noIfStatement,
@@ -8391,6 +8895,9 @@ const rules = {
   "no-global-mutable-concurrency-state": noGlobalMutableConcurrencyState,
   "no-manual-deferred-coordination": noManualDeferredCoordination,
   "no-acquire-without-scoped-release": noAcquireWithoutScopedRelease,
+  "no-manual-resource-close": noManualResourceClose,
+  "no-unbound-scope": noUnboundScope,
+  "no-resource-succeed-escape": noResourceSucceedEscape,
   "no-yield-with-held-semaphore-permit": noYieldWithHeldSemaphorePermit,
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
@@ -8483,6 +8990,12 @@ export const concurrencySafetyRules = rulesFromNames([
   "no-global-mutable-concurrency-state",
   ...strictConcurrencySafetyRuleNames,
   "no-acquire-without-scoped-release",
+] as const);
+
+export const resourceLifetimeRules = rulesFromNames([
+  "no-manual-resource-close",
+  "no-unbound-scope",
+  "no-resource-succeed-escape",
 ] as const);
 
 export const pipelineShapeAndSequencingRules = rulesFromNames([
@@ -8603,12 +9116,14 @@ export const testingObservabilityAndQaRules = rulesFromNames([
 ] as const);
 
 export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
+const recommendedExcludedRuleNames = [
+  ...strictTestingObservabilityAndQaRuleNames,
+  ...strictConcurrencySafetyRuleNames,
+  "no-resource-succeed-escape",
+] as readonly RuleName[];
 const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
-  (ruleName): ruleName is Exclude<RuleName, StrictRuleName> => (
-    !([
-      ...strictTestingObservabilityAndQaRuleNames,
-      ...strictConcurrencySafetyRuleNames,
-    ] as readonly RuleName[]).includes(ruleName)
+  (ruleName): ruleName is Exclude<RuleName, StrictRuleName | "no-resource-succeed-escape"> => (
+    !recommendedExcludedRuleNames.includes(ruleName)
   ),
 );
 export const recommendedRules = rulesFromNames(recommendedRuleNames);
@@ -8617,6 +9132,7 @@ export const ruleGroups = {
   reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
   effectComposition: effectCompositionRules,
   concurrencySafety: concurrencySafetyRules,
+  resourceLifetime: resourceLifetimeRules,
   pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
   branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
   optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
@@ -8636,6 +9152,7 @@ export const recommended = presetFor(recommendedRules);
 export const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
 export const effectComposition = presetFor(effectCompositionRules);
 export const concurrencySafety = presetFor(concurrencySafetyRules);
+export const resourceLifetime = presetFor(resourceLifetimeRules);
 export const pipelineShapeAndSequencing = presetFor(pipelineShapeAndSequencingRules);
 export const branchingAndLocalControlFlow = presetFor(branchingAndLocalControlFlowRules);
 export const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNormalizationRules);
@@ -8655,6 +9172,7 @@ export const presets = {
   reactAndRuntimeBoundaries,
   effectComposition,
   concurrencySafety,
+  resourceLifetime,
   pipelineShapeAndSequencing,
   branchingAndLocalControlFlow,
   optionMatchAndDataNormalization,
