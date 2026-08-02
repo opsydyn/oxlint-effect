@@ -14,7 +14,7 @@ Primary reference:
 | --- | --- | --- | --- | --- | --- |
 | [x] | `linteffect/no-piped-yield-in-gen` | styleguide-smell-2 | recommended | low | repeated `yield* service.pipe(...)` / `yield* effect.pipe(...)` inside one `Effect.gen` body |
 | [x] | `linteffect/no-gen-for-mapping` | styleguide-smell-5 | recommended | low | `Effect.gen(function* () { const x = yield* effect; return pureTransform(x); })` with no branching or additional effects |
-| [ ] | `linteffect/no-business-logic-in-pipe` | styleguide-smell-4 | strict | medium | `.pipe(Effect.flatMap(...))` callbacks containing branching, service retrieval, or multiple Effect steps |
+| [x] | `linteffect/no-business-logic-in-pipe` | styleguide-smell-4 | strict | medium | `.pipe(Effect.flatMap(...))` callbacks containing branching, service retrieval, or multiple Effect steps |
 | [x] | `linteffect/prefer-gen-for-workflow` | styleguide-smell-1 | recommended | medium | long `Effect.flatMap` / `Effect.andThen` / `Effect.tap` chains that model sequential workflow |
 
 ## Slice Plan
@@ -27,7 +27,7 @@ Primary reference:
 
 ### Slice 2: Semantic Workflow Boundaries
 
-- [ ] `no-business-logic-in-pipe`
+- [x] `no-business-logic-in-pipe`
 
 ## Detection Notes
 

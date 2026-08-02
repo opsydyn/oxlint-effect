@@ -19,7 +19,7 @@ Primary references:
 | [x] | `linteffect/no-early-catchall-null` | `catching-errors-too-early` | strict | medium | non-boundary `catchAll(() => Effect.succeed(null/undefined/fallback))` |
 | [x] | `linteffect/no-expected-state-as-error` | `expected-states-as-errors` | ddd | medium | `Effect.fail("NotFound" | "Missing" | "Empty" | "None")` |
 | [x] | `linteffect/no-exception-domain-error` | `exceptions-for-domain-errors` | recommended | low | `throw new *Error` inside Effect domain logic |
-| [ ] | `linteffect/no-empty-error-tag` | `error-tags-without-payloads` | strict | low | `_tag`-only error type or `Data.TaggedError` with empty payload |
+| [x] | `linteffect/no-empty-error-tag` | `error-tags-without-payloads` | strict | low | `_tag`-only error type or `Data.TaggedError` with empty payload |
 | [x] | `linteffect/no-unknown-public-error-channel` | `overusing-unknown-error-channel` | ddd | medium | exported `Effect.Effect<_, unknown>` return types |
 | [x] | `linteffect/no-log-only-error-handling` | `logging-instead-of-modeling-errors` | strict | medium | `tapError` or `catchAll` that logs but does not map/re-fail/model |
 
@@ -45,7 +45,7 @@ Primary references:
 
 ### Slice 4: Tagged Error Quality
 
-- [ ] `no-empty-error-tag`
+- [x] `no-empty-error-tag`
 
 ## DDD Guidance
 

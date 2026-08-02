@@ -12,7 +12,7 @@ Primary reference:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [ ] | `linteffect/prefer-flow-for-pure-pipeline` | styleguide-flow-pillar | strict | medium | nested pure call towers such as `toCard(withPrice(withImages(value)))` above a depth threshold |
+| [x] | `linteffect/prefer-flow-for-pure-pipeline` | styleguide-flow-pillar | strict | medium | nested pure call towers such as `toCard(withPrice(withImages(value)))` above a depth threshold |
 | [x] | `linteffect/no-large-anonymous-flow` | styleguide-smell-3 | recommended | low | `flow(...)` with many steps used inline or without a descriptive binding |
 | [x] | `linteffect/no-effect-in-flow` | styleguide-flow-boundary | recommended | low | `Effect.*`, `yield`, `async`, logging, retry, spans, or dependency access inside `flow(...)` arguments |
 | [x] | `linteffect/prefer-named-flow` | styleguide-flow-pillar | strict | medium | non-trivial `flow(...)` passed directly as a callback or combinator argument |
@@ -27,7 +27,7 @@ Primary reference:
 
 ### Slice 2: Pure Pipeline Discovery
 
-- [ ] `prefer-flow-for-pure-pipeline`
+- [x] `prefer-flow-for-pure-pipeline`
 
 ## Detection Notes
 

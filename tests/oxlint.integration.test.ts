@@ -117,6 +117,95 @@ describe("linteffect oxlint integration", () => {
     ]);
   });
 
+  it("reports exactly the Error Modeling Slice 4 diagnostics", () => {
+    const result = runOxlint(
+      "error-modeling-slice-4.ts",
+      "oxlint.error-modeling-slice-4.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-empty-error-tag",
+      "no-empty-error-tag",
+      "no-empty-error-tag",
+    ]);
+  });
+
+  it("reports exactly the Effect Flow Slice 2 diagnostics", () => {
+    const result = runOxlint(
+      "effect-flow-slice-2.ts",
+      "oxlint.effect-flow-slice-2.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual(["no-business-logic-in-pipe"]);
+  });
+
+  it("reports exactly the Pure Transformation Slice 2 diagnostics", () => {
+    const result = runOxlint(
+      "pure-transformation-slice-2.ts",
+      "oxlint.pure-transformation-slice-2.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual(["prefer-flow-for-pure-pipeline"]);
+  });
+
+  it("reports exactly the Resource Lifetime Slice 2 diagnostics", () => {
+    const result = runOxlint(
+      "resource-lifetime-slice-2.ts",
+      "oxlint.resource-lifetime-slice-2.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-nested-acquire-release",
+      "no-resource-without-acquire-release",
+    ]);
+  });
+
+  it("reports exactly the Resource Lifetime Slice 3 diagnostics", () => {
+    const result = runOxlint(
+      "resource-lifetime-slice-3.ts",
+      "oxlint.resource-lifetime-slice-3.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual([
+      "no-global-resource-singleton",
+      "no-request-scoped-long-lived-resource",
+      "no-run-with-open-resource",
+    ]);
+  });
+
+  it("reports exactly the Resource Lifetime Slice 4 diagnostics", () => {
+    const result = runOxlint(
+      "resource-lifetime-slice-4.ts",
+      "oxlint.resource-lifetime-slice-4.config.ts",
+    );
+    const ruleIds = [...result.output.matchAll(/linteffect\(([^)]+)\)/g)]
+      .map((match) => match[1])
+      .sort();
+
+    expect(result.status).toBe(1);
+    expect(ruleIds).toEqual(["no-missing-layer-provision-at-run"]);
+  });
+
   it("reports exactly the Slice 6 concurrency safety diagnostics", () => {
     const result = runOxlint(
       "concurrency-safety-slice-6.ts",

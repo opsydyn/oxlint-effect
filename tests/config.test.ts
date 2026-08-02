@@ -109,6 +109,12 @@ const groupExpectations = {
     "no-manual-resource-close",
     "no-unbound-scope",
     "no-resource-succeed-escape",
+    "no-resource-without-acquire-release",
+    "no-request-scoped-long-lived-resource",
+    "no-global-resource-singleton",
+    "no-nested-acquire-release",
+    "no-missing-layer-provision-at-run",
+    "no-run-with-open-resource",
   ],
   pipelineShapeAndSequencing: [
     "no-nested-effect-call",
@@ -173,6 +179,7 @@ const groupExpectations = {
     "no-expected-state-as-error",
     "no-early-catchall-null",
     "no-exception-domain-error",
+    "no-empty-error-tag",
     "no-effect-fail-error-message",
     "no-catchall-generic-rethrow",
     "no-log-only-error-handling",
@@ -181,11 +188,13 @@ const groupExpectations = {
     "no-piped-yield-in-gen",
     "no-gen-for-mapping",
     "prefer-gen-for-workflow",
+    "no-business-logic-in-pipe",
   ],
   pureTransformation: [
     "no-large-anonymous-flow",
     "no-effect-in-flow",
     "prefer-named-flow",
+    "prefer-flow-for-pure-pipeline",
   ],
   behaviorDecoration: [
     "prefer-pipe-for-behavior",
@@ -281,6 +290,13 @@ describe("linteffect config exports", () => {
       "no-yield-with-held-mutable-ref",
       "no-unscoped-background-fiber",
       "no-early-catchall-null",
+      "no-empty-error-tag",
+      "no-business-logic-in-pipe",
+      "prefer-flow-for-pure-pipeline",
+      "no-request-scoped-long-lived-resource",
+      "no-global-resource-singleton",
+      "no-nested-acquire-release",
+      "no-missing-layer-provision-at-run",
     ]) {
       expect(recommended.rules).not.toHaveProperty(`linteffect/${ruleName}`);
     }
@@ -289,6 +305,8 @@ describe("linteffect config exports", () => {
     expect(recommended.rules).not.toHaveProperty("linteffect/no-expected-state-as-error");
     expect(recommended.rules).toHaveProperty("linteffect/no-manual-resource-close", "error");
     expect(recommended.rules).toHaveProperty("linteffect/no-unbound-scope", "error");
+    expect(recommended.rules).toHaveProperty("linteffect/no-resource-without-acquire-release", "error");
+    expect(recommended.rules).toHaveProperty("linteffect/no-run-with-open-resource", "error");
     expect(recommended.rules).not.toHaveProperty("linteffect/no-resource-succeed-escape");
 
     expect(recommended.rules).toEqual({
@@ -385,6 +403,8 @@ describe("linteffect config exports", () => {
       "linteffect/no-acquire-without-scoped-release": "error",
       "linteffect/no-manual-resource-close": "error",
       "linteffect/no-unbound-scope": "error",
+      "linteffect/no-resource-without-acquire-release": "error",
+      "linteffect/no-run-with-open-resource": "error",
       "linteffect/no-piped-yield-in-gen": "error",
       "linteffect/no-gen-for-mapping": "error",
       "linteffect/prefer-gen-for-workflow": "error",

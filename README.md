@@ -150,6 +150,7 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-piped-yield-in-gen` | Two or more `yield* effect.pipe(...)` steps inside one `Effect.gen`. | Keeps decorated effects named before the workflow so generator bodies read as a clear story. |
 | `linteffect/no-gen-for-mapping` | Tiny `Effect.gen` blocks that yield once and return a pure transform. | Simple value mapping belongs in `Effect.map` or a named pure transformation, not workflow syntax. |
 | `linteffect/prefer-gen-for-workflow` | Pipelines with three or more sequencing combinators such as `Effect.flatMap`, `Effect.andThen`, `Effect.tap`, or `Effect.zipRight`. | Long sequencing pipelines read like imperative workflow; `Effect.gen` makes the happy path explicit. |
+| `linteffect/no-business-logic-in-pipe` | Strict: `.pipe(Effect.flatMap(...))` callbacks with branching, service retrieval, or multiple Effect steps. | Keeps workflow decisions in `Effect.gen` and reserves `pipe` for behavior around a completed effect. |
 
 ### Pure Transformation
 
@@ -158,6 +159,7 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-large-anonymous-flow` | `flow(...)` expressions with five or more transformation steps. | Large pure pipelines need a domain name so the transformation is reusable and reviewable. |
 | `linteffect/no-effect-in-flow` | `Effect.*`, `yield`, `await`, async callbacks, console calls, `Promise`, or runtime access inside `flow(...)`. | `flow()` should stay pure; effectful workflow, retries, logging, and dependency access belong in Effect code. |
 | `linteffect/prefer-named-flow` | Non-trivial `flow(...)` expressions passed inline as callback/combinator arguments. | Naming the transformation makes DTO mapping and business calculations explicit instead of anonymous callback logic. |
+| `linteffect/prefer-flow-for-pure-pipeline` | Strict: pure nested call towers three calls deep or more. | Names a reusable transformation pipeline instead of burying data flow in nested calls. |
 
 ### Behavior Decoration
 
@@ -307,6 +309,15 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 | `linteffect/no-manual-resource-close` | Resource-like `.close()`, `.destroy()`, `.dispose()`, or `.cleanup()` calls outside release or finalizer callbacks. | Keeps cleanup owned by Effect scopes instead of ad hoc imperative code. |
 | `linteffect/no-unbound-scope` | `Scope.make()` without `Effect.scoped`, `Layer.scoped`, explicit `Scope.close`, or a matching acquire/release callback. | Prevents scopes and their finalizers from being leaked. |
 | `linteffect/no-resource-succeed-escape` | `Effect.succeed(resourceLike)` for client, connection, pool, file, socket, stream, server, subscription, or handle-shaped values. | Keeps live resource lifetimes inside scoped Effect ownership; this heuristic is focused-only rather than recommended. |
+| `linteffect/no-resource-without-acquire-release` | Runtime: resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls without a release owner. | Makes resource ownership explicit across failure, interruption, and shutdown. |
+| `linteffect/no-request-scoped-long-lived-resource` | Strict: resource acquisition or construction inside request, route, endpoint, controller, or handler functions. | Keeps long-lived clients and pools in application Layers instead of multiplying them per request. |
+| `linteffect/no-global-resource-singleton` | Strict: module-level `new Client`, `new Pool`, `new Database`, and similar resource-like constructors. | Keeps construction, testing, and shutdown ownership in services and Layers. |
+| `linteffect/no-run-with-open-resource` | Runtime: `Effect.run*` in a lexical scope containing an unowned resource creation. | Prevents runtime execution from finishing while an imperative resource remains open. |
+| `linteffect/no-nested-acquire-release` | Strict: `Effect.acquireRelease` / `acquireUseRelease` nesting deeper than two levels. | Encourages named Layers and manageable release boundaries instead of opaque release stacks. |
+| `linteffect/no-missing-layer-provision-at-run` | Strict: `Effect.run*` on a program that yields a service tag without a local `Effect.provide` or `Layer.provide`. | Makes runtime dependency provisioning visible at the application boundary. |
+
+`Scope.global` remains a deferred candidate because the supported Effect API does
+not currently expose it; it is not part of the v1 export surface.
 
 ### Pipeline Shape and Sequencing
 
@@ -396,3 +407,4 @@ with existing projects.
 | `linteffect/no-early-catchall-null` | Non-boundary `catchAll` recovery with `Effect.succeed(null)`, `undefined`, or a fallback value. | Lets higher layers own recovery instead of leaking untyped absence from domain logic. |
 | `linteffect/no-expected-state-as-error` | `Effect.fail("NotFound")`, `"Missing"`, `"Empty"`, or `"None"`. | Models expected states as `Option`, `Either`, or tagged data instead of overloading failure. |
 | `linteffect/no-exception-domain-error` | `throw new *Error` inside Effect workflows. | Keeps domain failures in typed Effect channels with supervision and structured recovery. |
+| `linteffect/no-empty-error-tag` | Strict: `_tag`-only error types and `Data.TaggedError` classes with empty payloads. | Requires enough structured context for recovery, diagnosis, and domain-level observability. |

@@ -71,6 +71,11 @@ grouped by the engineering outcome each group protects.
 
 Total candidate rules: 100.
 
+The v1 completion slice implements every actionable candidate in these groups.
+`no-scope-global` remains intentionally deferred because the supported
+`effect@3.21.4` API does not expose `Scope.global`; it is excluded from the
+plugin export and does not block the v1 release.
+
 Some candidates intentionally overlap with EffectPatterns aliases. When
 implementing, prefer one public `linteffect/*` rule name and document any
 reference IDs as aliases.
