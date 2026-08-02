@@ -8473,26 +8473,66 @@ function lexicalScopeDepth(scope: Node): number {
   return depth;
 }
 
+function patternBindingIdentifiers(pattern: unknown): Node[] {
+  if (isIdentifier(pattern)) return [pattern];
+  if (typeof pattern !== "object" || pattern === null) return [];
+
+  const node = pattern as Node;
+  switch (node.type) {
+    case "ArrayPattern":
+      return Array.isArray(node.elements)
+        ? node.elements.flatMap((element) => patternBindingIdentifiers(element))
+        : [];
+    case "AssignmentPattern":
+      return patternBindingIdentifiers(node.left);
+    case "ObjectPattern":
+      return Array.isArray(node.properties)
+        ? node.properties.flatMap((property) => {
+          if (typeof property !== "object" || property === null) return [];
+
+          const propertyNode = property as Node;
+          if (propertyNode.type === "Property") {
+            return patternBindingIdentifiers(propertyNode.value);
+          }
+          if (propertyNode.type === "RestElement") {
+            return patternBindingIdentifiers(propertyNode.argument);
+          }
+          return [];
+        })
+        : [];
+    case "RestElement":
+      return patternBindingIdentifiers(node.argument);
+    case "TSParameterProperty":
+      return patternBindingIdentifiers(node.parameter);
+    default:
+      return [];
+  }
+}
+
 function lexicalBindingsInFunction(functionNode: Node): Node[] {
   return findNodes(functionNode.body, (candidate) => (
     typeof candidate === "object" &&
     candidate !== null &&
-    (
-      ((candidate as Node).type === "VariableDeclarator" && isIdentifier((candidate as Node).id)) ||
-      ((candidate as Node).type === "CatchClause" && isIdentifier((candidate as Node).param))
-    ) &&
+    lexicalBindingIdentifiers(candidate as Node).length > 0 &&
     enclosingFunction(candidate) === functionNode
   )) as Node[];
 }
 
-function lexicalBindingIdentifier(binding: Node): Node | undefined {
+function lexicalBindingIdentifiers(binding: Node): Node[] {
   if (binding.type === "VariableDeclarator") {
-    return isIdentifier(binding.id) ? binding.id : undefined;
+    return patternBindingIdentifiers(binding.id);
   }
 
-  return binding.type === "CatchClause" && isIdentifier(binding.param)
-    ? binding.param
-    : undefined;
+  if (binding.type === "CatchClause") {
+    return patternBindingIdentifiers(binding.param);
+  }
+
+  return (
+    (binding.type === "ClassDeclaration" || binding.type === "FunctionDeclaration") &&
+    isIdentifier(binding.id)
+  )
+    ? [binding.id]
+    : [];
 }
 
 function lexicalBindingScope(binding: Node): Node | undefined {
@@ -8508,7 +8548,9 @@ function variableBindingForReference(reference: unknown, functionNode: Node): No
   let bestDepth = -1;
 
   for (const binding of lexicalBindingsInFunction(functionNode)) {
-    if (!isIdentifier(lexicalBindingIdentifier(binding), reference.name)) continue;
+    if (!lexicalBindingIdentifiers(binding).some((identifier) => (
+      isIdentifier(identifier, reference.name)
+    ))) continue;
 
     const scope = lexicalBindingScope(binding);
     if (scope === undefined || !isWithinLexicalScope(reference, scope)) continue;

@@ -5396,6 +5396,74 @@ describe("linteffect Oxlint plugin", () => {
       expect(reports).toHaveLength(1);
     });
 
+    it("does not use other block bindings as release callback ownership evidence", () => {
+      const shadowedDeclarations = [
+        {
+          type: "VariableDeclaration",
+          kind: "const",
+          declarations: [
+            {
+              type: "VariableDeclarator",
+              id: {
+                type: "ObjectPattern",
+                properties: [
+                  {
+                    type: "Property",
+                    key: identifier("scope"),
+                    value: identifier("scope"),
+                    computed: false,
+                    shorthand: true,
+                    kind: "init",
+                  },
+                ],
+              },
+              init: identifier("otherValue"),
+            },
+          ],
+        },
+        {
+          type: "ClassDeclaration",
+          id: identifier("scope"),
+          body: { type: "ClassBody", body: [] },
+        },
+        {
+          type: "FunctionDeclaration",
+          id: identifier("scope"),
+          params: [],
+          body: blockStatement(),
+        },
+      ];
+
+      for (const shadowedDeclaration of shadowedDeclarations) {
+        const scopeMake = objectMethodCall(identifier("Scope"), "make");
+        const scopeClose = objectMethodCall(
+          identifier("Scope"),
+          "close",
+          identifier("scope"),
+          memberAccess(identifier("Exit"), "void"),
+        );
+        const owner = effectCall(
+          "acquireRelease",
+          scopeMake,
+          arrowCallbackWithParams(
+            [identifier("scope")],
+            blockStatement(
+              shadowedDeclaration,
+              expressionStatement(yieldExpression(scopeClose, true)),
+            ),
+          ),
+        );
+        linkParents(owner);
+
+        const reports = runRuleSequence("no-unbound-scope", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: scopeMake },
+        ]);
+
+        expect(reports).toHaveLength(1);
+      }
+    });
+
     it("does not treat Scope.addFinalizer as closing a created scope", () => {
       const scopeMake = objectMethodCall(identifier("Scope"), "make");
       const scopeBinding = variableDeclaratorWithInit("scope", yieldExpression(scopeMake, true));
