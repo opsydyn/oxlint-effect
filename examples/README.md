@@ -67,7 +67,8 @@ diagnostics can be treated as implementation gaps.
 - `backend/resource-lifetime-anti-patterns.ts` mirrors the Resource Lifetime
   rules in `roadmap/03-resource-lifetime/README.md`.
 - `backend/error-escapes-anti-patterns.ts` mirrors the correctness-core
-  error-escape slice in `roadmap/01-correctness-core/README.md`.
+  error-escape slice in `roadmap/01-correctness-core/README.md` and Error
+  Modeling Slice 2 in `roadmap/04-error-modeling/README.md`.
 - `backend/imperative-escape-hatches-anti-patterns.ts` mirrors the
   correctness-core promise and imperative escape-hatch slice in
   `roadmap/01-correctness-core/README.md`.

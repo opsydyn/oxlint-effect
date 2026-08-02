@@ -4537,6 +4537,107 @@ function isAdhocEffectFail(node: unknown): boolean {
   return isEffectMemberCallNamed(node, "fail") && isStringLiteral(firstArgument(node));
 }
 
+function isErrorLikeIdentifier(node: unknown): boolean {
+  return isIdentifier(node) && /(?:error|err|cause|failure|reason)/i.test(node.name);
+}
+
+function isErrorMessageReference(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "MemberExpression") {
+    return false;
+  }
+
+  const member = node as Node;
+  return (
+    member.computed !== true &&
+    isIdentifier(member.property, "message") &&
+    isErrorLikeIdentifier(member.object)
+  );
+}
+
+function isStringifiedErrorMessage(node: unknown): boolean {
+  if (isErrorMessageReference(node)) return true;
+  if (typeof node !== "object" || node === null) return false;
+
+  const expression = node as Node;
+  if (expression.type === "BinaryExpression" && expression.operator === "+") {
+    return isStringifiedErrorMessage(expression.left) || isStringifiedErrorMessage(expression.right);
+  }
+
+  return expression.type === "TemplateLiteral" && Array.isArray(expression.expressions) && (
+    expression.expressions as unknown[]
+  ).some((child) => isStringifiedErrorMessage(child));
+}
+
+function isEffectFailFromErrorMessage(node: unknown): boolean {
+  return isEffectMemberCallNamed(node, "fail") && isStringifiedErrorMessage(firstArgument(node));
+}
+
+function isGenericErrorConstruction(node: unknown): boolean {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    (node as Node).type === "NewExpression" &&
+    isIdentifier((node as Node).callee, "Error")
+  );
+}
+
+function isEffectFailWithGenericError(node: unknown): boolean {
+  return isEffectMemberCallNamed(node, "fail") && isGenericErrorConstruction(firstArgument(node));
+}
+
+function errorHandlerCallbacks(node: unknown, operators: ReadonlySet<string>): unknown[] {
+  if (!isEffectMemberCall(node)) return [];
+
+  const property = ((node as Node).callee as Node).property;
+  if (!isIdentifier(property) || !operators.has(property.name)) return [];
+
+  return (node as Node & { arguments: unknown[] }).arguments.filter(isFunctionLike);
+}
+
+function catchAllGenericRethrow(node: unknown): unknown | undefined {
+  for (const callback of errorHandlerCallbacks(node, new Set(["catchAll"]))) {
+    const body = callbackBody(callback);
+    if (isEffectFailWithGenericError(body)) return body;
+
+    for (const returnNode of findReturnStatements(body)) {
+      if (isEffectFailWithGenericError((returnNode as Node).argument)) {
+        return (returnNode as Node).argument;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+const modeledErrorOperators = new Set([
+  "catchSome",
+  "catchTag",
+  "catchTags",
+  "fail",
+  "mapBoth",
+  "mapError",
+]);
+
+function isModeledErrorOperation(node: unknown): boolean {
+  if (!isEffectMemberCall(node)) return false;
+
+  const property = ((node as Node).callee as Node).property;
+  return isIdentifier(property) && modeledErrorOperators.has(property.name);
+}
+
+function logOnlyErrorHandler(node: unknown): unknown | undefined {
+  for (const callback of errorHandlerCallbacks(node, new Set(["catchAll", "tapError"]))) {
+    const body = callbackBody(callback);
+    const log = findNode(body, isEffectLogCall);
+    if (!log) continue;
+
+    const modeled = findNode(body, isModeledErrorOperation);
+    if (!modeled) return log;
+  }
+
+  return undefined;
+}
+
 function isThrowNewStringError(node: unknown): boolean {
   if (typeof node !== "object" || node === null || (node as Node).type !== "ThrowStatement") {
     return false;
@@ -6413,6 +6514,84 @@ const noSwallowedCatchAll = defineRule({
             context,
             handlerBody,
             "Rule: avoid swallowing errors in catchAll. Why: succeed/void recovery can hide failures without telemetry or typed recovery. Fix: log, re-fail with a structured error, or recover through an explicit domain branch.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEffectFailErrorMessage = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isEffectFailFromErrorMessage(node)) {
+          report(
+            context,
+            node,
+            "Rule: preserve structured errors instead of strings. Why: converting error.message to a string loses the original tag, cause, and context. Fix: fail with the error or map it to a structured Data.TaggedError.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noCatchallGenericRethrow = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) return;
+
+        const target = catchAllGenericRethrow(node);
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: do not rethrow generic Error from catchAll. Why: catchAll should preserve or model the original failure instead of erasing its domain type. Fix: use mapError, catchTag, or Effect.fail with a structured tagged error and cause.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noLogOnlyErrorHandling = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) return;
+
+        const target = logOnlyErrorHandler(node);
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: do not stop at logging an Effect error. Why: logs alone do not preserve a typed failure or define recovery ownership. Fix: map or re-fail with a structured domain error after adding observability.",
           );
         }
       },
@@ -8949,6 +9128,9 @@ const rules = {
   "no-effect-succeed-variable": noEffectSucceedVariable,
   "no-effect-type-alias": noEffectTypeAlias,
   "no-public-generic-effect-error": noPublicGenericEffectError,
+  "no-effect-fail-error-message": noEffectFailErrorMessage,
+  "no-catchall-generic-rethrow": noCatchallGenericRethrow,
+  "no-log-only-error-handling": noLogOnlyErrorHandling,
   "no-error-as-public-effect-error": noErrorAsPublicEffectError,
   "no-unknown-public-error-channel": noUnknownPublicErrorChannel,
   "no-mixed-effect-error-shapes": noMixedEffectErrorShapes,
@@ -9165,12 +9347,19 @@ export const domainModelingRules = rulesFromNames([
   "no-new-date-in-domain-logic",
 ] as const);
 
-const errorModelingRuleNames = [
+const dddErrorModelingRuleNames = [
   "no-error-as-public-effect-error",
   "no-unknown-public-error-channel",
   "no-mixed-effect-error-shapes",
 ] as const;
-type ErrorModelingRuleName = typeof errorModelingRuleNames[number];
+type DddErrorModelingRuleName = typeof dddErrorModelingRuleNames[number];
+
+const errorModelingRuleNames = [
+  ...dddErrorModelingRuleNames,
+  "no-effect-fail-error-message",
+  "no-catchall-generic-rethrow",
+  "no-log-only-error-handling",
+] as const;
 
 export const errorModelingRules = rulesFromNames(errorModelingRuleNames);
 
@@ -9239,13 +9428,13 @@ export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 const recommendedExcludedRuleNames = [
   ...strictTestingObservabilityAndQaRuleNames,
   ...strictConcurrencySafetyRuleNames,
-  ...errorModelingRuleNames,
+  ...dddErrorModelingRuleNames,
   "no-resource-succeed-escape",
 ] as readonly RuleName[];
 const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
   (ruleName): ruleName is Exclude<
     RuleName,
-    StrictRuleName | ErrorModelingRuleName | "no-resource-succeed-escape"
+    StrictRuleName | DddErrorModelingRuleName | "no-resource-succeed-escape"
   > => (
     !recommendedExcludedRuleNames.includes(ruleName)
   ),

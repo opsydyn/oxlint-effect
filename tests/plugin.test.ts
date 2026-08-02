@@ -4843,6 +4843,138 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
+  describe("error modeling error preservation", () => {
+    it("catches Effect.fail(error.message)", () => {
+      const reports = runRuleSequence("no-effect-fail-error-message", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("fail", memberAccess(identifier("error"), "message")),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("preserve structured errors instead of strings");
+    });
+
+    it("catches string concatenation from error.message", () => {
+      const reports = runRuleSequence("no-effect-fail-error-message", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "fail",
+            binaryExpression(stringLiteral("load failed: "), "+", memberAccess(identifier("error"), "message")),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("allows structured Effect.fail values", () => {
+      const reports = runRuleSequence("no-effect-fail-error-message", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("fail", objectLiteral(
+            property("_tag", stringLiteral("UserNotFound")),
+            property("userId", identifier("userId")),
+          )),
+        },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("catches catchAll handlers that create a generic Error", () => {
+      const reports = runRuleSequence("no-catchall-generic-rethrow", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            arrowCallback(effectCall("fail", newExpression(identifier("Error"), stringLiteral("load failed")))),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("do not rethrow generic Error from catchAll");
+    });
+
+    it("allows catchAll handlers that re-fail a tagged error", () => {
+      const reports = runRuleSequence("no-catchall-generic-rethrow", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            arrowCallback(effectCall("fail", objectLiteral(
+              property("_tag", stringLiteral("UserLoadFailed")),
+              property("cause", identifier("error")),
+            ))),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("catches log-only catchAll handlers", () => {
+      const reports = runRuleSequence("no-log-only-error-handling", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            arrowCallback(effectCall("logError", identifier("error"))),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("do not stop at logging an Effect error");
+    });
+
+    it("catches log-only tapError handlers", () => {
+      const reports = runRuleSequence("no-log-only-error-handling", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "tapError",
+            identifier("program"),
+            arrowCallback(effectCall("logWarning", identifier("error"))),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+    });
+
+    it("allows logged errors that are mapped or re-failed", () => {
+      const reports = runRuleSequence("no-log-only-error-handling", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            arrowCallback(blockStatement(
+              expressionStatement(effectCall("logError", identifier("error"))),
+              returnStatement(effectCall("fail", objectLiteral(
+                property("_tag", stringLiteral("UserLoadFailed")),
+                property("cause", identifier("error")),
+              ))),
+            )),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(0);
+    });
+  });
+
   it("catches Effect.ignore on failable effects", () => {
     const reports = runRuleSequence("no-effect-ignore", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

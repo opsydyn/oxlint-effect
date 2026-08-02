@@ -389,3 +389,6 @@ channel. The DDD preset includes these rules; they remain opt-in to keep
 | `linteffect/no-error-as-public-effect-error` | Exported functions returning `Effect.Effect<_, Error, _>`. | Generic `Error` hides recovery semantics and domain context. |
 | `linteffect/no-unknown-public-error-channel` | Exported functions returning `Effect.Effect<_, unknown, _>`. | Callers cannot recover by tag or type from an `unknown` channel. |
 | `linteffect/no-mixed-effect-error-shapes` | Public error unions mixing `Error`, `unknown`, string, number, or boolean shapes. | A single tagged error union keeps recovery and observability predictable. |
+| `linteffect/no-effect-fail-error-message` | `Effect.fail(error.message)`, string concatenation, or templates that stringify an error. | Preserves the original error tag, cause, and context instead of collapsing it into a string. |
+| `linteffect/no-catchall-generic-rethrow` | `catchAll` handlers that create `new Error(...)` inside `Effect.fail(...)`. | Keeps recovery typed and prevents generic rethrows from erasing the original failure. |
+| `linteffect/no-log-only-error-handling` | `catchAll` or `tapError` handlers that only call `Effect.log*`. | Logging is observability, not failure ownership; map or re-fail after logging. |

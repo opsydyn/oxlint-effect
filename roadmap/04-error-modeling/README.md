@@ -14,14 +14,14 @@ Primary references:
 | --- | --- | --- | --- | --- | --- |
 | [x] | `linteffect/no-error-as-public-effect-error` | `error-as-public-type` | ddd | medium | exported `Effect.Effect<_, Error>` return types |
 | [x] | `linteffect/no-mixed-effect-error-shapes` | `mixed-error-shapes` | ddd | medium | error channel union mixing `Error`, string, number, boolean, unknown |
-| [ ] | `linteffect/no-effect-fail-error-message` | `convert-errors-to-strings-early` | recommended | low | `Effect.fail(error.message)` or string concatenation from error |
-| [ ] | `linteffect/no-catchall-generic-rethrow` | `catch-and-rethrow-generic` | recommended | low | `catchAll(() => Effect.fail(new Error(...)))` |
+| [x] | `linteffect/no-effect-fail-error-message` | `convert-errors-to-strings-early` | recommended | low | `Effect.fail(error.message)` or string concatenation from error |
+| [x] | `linteffect/no-catchall-generic-rethrow` | `catch-and-rethrow-generic` | recommended | low | `catchAll(() => Effect.fail(new Error(...)))` |
 | [ ] | `linteffect/no-early-catchall-null` | `catching-errors-too-early` | strict | medium | non-boundary `catchAll(() => Effect.succeed(null/undefined/fallback))` |
 | [ ] | `linteffect/no-expected-state-as-error` | `expected-states-as-errors` | ddd | medium | `Effect.fail("NotFound" | "Missing" | "Empty" | "None")` |
 | [ ] | `linteffect/no-exception-domain-error` | `exceptions-for-domain-errors` | recommended | low | `throw new *Error` inside Effect domain logic |
 | [ ] | `linteffect/no-empty-error-tag` | `error-tags-without-payloads` | strict | low | `_tag`-only error type or `Data.TaggedError` with empty payload |
 | [x] | `linteffect/no-unknown-public-error-channel` | `overusing-unknown-error-channel` | ddd | medium | exported `Effect.Effect<_, unknown>` return types |
-| [ ] | `linteffect/no-log-only-error-handling` | `logging-instead-of-modeling-errors` | strict | medium | `tapError` or `catchAll` that logs but does not map/re-fail/model |
+| [x] | `linteffect/no-log-only-error-handling` | `logging-instead-of-modeling-errors` | strict | medium | `tapError` or `catchAll` that logs but does not map/re-fail/model |
 
 ## Slice Plan
 
@@ -33,9 +33,9 @@ Primary references:
 
 ### Slice 2: Preserve Error Structure
 
-- [ ] `no-effect-fail-error-message`
-- [ ] `no-catchall-generic-rethrow`
-- [ ] `no-log-only-error-handling`
+- [x] `no-effect-fail-error-message`
+- [x] `no-catchall-generic-rethrow`
+- [x] `no-log-only-error-handling`
 
 ### Slice 3: Domain Error Semantics
 
