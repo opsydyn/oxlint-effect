@@ -4638,6 +4638,82 @@ function logOnlyErrorHandler(node: unknown): unknown | undefined {
   return undefined;
 }
 
+const catchAllOperators = new Set(["catchAll"]);
+const expectedDomainStateNames = new Set(["NotFound", "Missing", "Empty", "None"]);
+
+function isFallbackRecoveryValue(node: unknown): boolean {
+  return (
+    isNullLiteral(node) ||
+    isUndefinedIdentifier(node) ||
+    (isIdentifier(node) && /(?:fallback|default)/i.test(node.name))
+  );
+}
+
+function isFallbackRecoveryEffect(node: unknown): boolean {
+  return isEffectMemberCallNamed(node, "succeed") && isFallbackRecoveryValue(firstArgument(node));
+}
+
+function earlyCatchAllFallback(node: unknown): unknown | undefined {
+  for (const callback of errorHandlerCallbacks(node, catchAllOperators)) {
+    const body = callbackBody(callback);
+    if (isFallbackRecoveryEffect(body)) return body;
+
+    for (const returnNode of findReturnStatements(body)) {
+      if (isFallbackRecoveryEffect((returnNode as Node).argument)) {
+        return (returnNode as Node).argument;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function isExpectedDomainStateFailure(node: unknown): boolean {
+  if (!isEffectMemberCallNamed(node, "fail")) return false;
+
+  const argument = firstArgument(node);
+  return isStringLiteral(argument) && expectedDomainStateNames.has(String((argument as Node).value));
+}
+
+function isDomainErrorConstruction(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "NewExpression") {
+    return false;
+  }
+
+  const callee = (node as Node).callee;
+  return isIdentifier(callee) && /(?:Error|Exception)$/.test(callee.name);
+}
+
+function isDomainExceptionThrow(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "ThrowStatement") {
+    return false;
+  }
+
+  return isDomainErrorConstruction((node as Node).argument);
+}
+
+function findDomainExceptionInEffectLogic(node: unknown): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen");
+  if (generator) {
+    return findNode(generator.body, isDomainExceptionThrow);
+  }
+
+  if (!isEffectMemberCall(node)) return undefined;
+
+  const property = ((node.callee as Node).property as Node | undefined);
+  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
+    return undefined;
+  }
+
+  for (const argument of node.arguments) {
+    const body = callbackBody(argument);
+    const match = body ? findNode(body, isDomainExceptionThrow) : undefined;
+    if (match) return match;
+  }
+
+  return undefined;
+}
+
 function isThrowNewStringError(node: unknown): boolean {
   if (typeof node !== "object" || node === null || (node as Node).type !== "ThrowStatement") {
     return false;
@@ -6514,6 +6590,85 @@ const noSwallowedCatchAll = defineRule({
             context,
             handlerBody,
             "Rule: avoid swallowing errors in catchAll. Why: succeed/void recovery can hide failures without telemetry or typed recovery. Fix: log, re-fail with a structured error, or recover through an explicit domain branch.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noEarlyCatchallNull = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
+          const target = earlyCatchAllFallback(node);
+          if (target) {
+            report(
+              context,
+              target,
+              "Rule: avoid catching errors too early. Why: null, undefined, or fallback recovery inside domain logic forces higher layers to handle an untyped absence. Fix: let the typed error propagate and recover at a meaningful boundary with catchTag or an explicit Option result.",
+            );
+          }
+        }
+      },
+    };
+  },
+});
+
+const noExpectedStateAsError = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (hasEffectEcosystemImport && isExpectedDomainStateFailure(node)) {
+          report(
+            context,
+            node,
+            "Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel and encourages broad catchAll recovery. Fix: return Option, Either, or a tagged result for expected state and reserve Effect.fail for exceptional failures.",
+          );
+        }
+      },
+    };
+  },
+});
+
+const noExceptionDomainError = defineRule({
+  create(context: OxlintContext) {
+    let hasEffectEcosystemImport = false;
+
+    return {
+      ImportDeclaration(node: any) {
+        const source = getImportSource(node);
+        if (source && isEffectEcosystemImport(source)) {
+          hasEffectEcosystemImport = true;
+        }
+      },
+      CallExpression(node: any) {
+        if (!hasEffectEcosystemImport) return;
+
+        const target = findDomainExceptionInEffectLogic(node);
+        if (target) {
+          report(
+            context,
+            target,
+            "Rule: do not use exceptions for domain errors. Why: throw new *Error inside Effect logic bypasses typed failure channels, supervision, and structured recovery. Fix: return Effect.fail with a Data.TaggedError or structured domain error.",
           );
         }
       },
@@ -9128,6 +9283,9 @@ const rules = {
   "no-effect-succeed-variable": noEffectSucceedVariable,
   "no-effect-type-alias": noEffectTypeAlias,
   "no-public-generic-effect-error": noPublicGenericEffectError,
+  "no-early-catchall-null": noEarlyCatchallNull,
+  "no-expected-state-as-error": noExpectedStateAsError,
+  "no-exception-domain-error": noExceptionDomainError,
   "no-effect-fail-error-message": noEffectFailErrorMessage,
   "no-catchall-generic-rethrow": noCatchallGenericRethrow,
   "no-log-only-error-handling": noLogOnlyErrorHandling,
@@ -9209,8 +9367,13 @@ const strictConcurrencySafetyRuleNames = [
   "no-unscoped-background-fiber",
 ] as const satisfies readonly RuleName[];
 
+const strictErrorModelingRuleNames = [
+  "no-early-catchall-null",
+] as const satisfies readonly RuleName[];
+
 type StrictRuleName = StrictTestingObservabilityAndQaRuleName |
-  typeof strictConcurrencySafetyRuleNames[number];
+  typeof strictConcurrencySafetyRuleNames[number] |
+  typeof strictErrorModelingRuleNames[number];
 
 function rulesFromNames<const T extends readonly RuleName[]>(ruleNames: T) {
   return Object.fromEntries(
@@ -9351,11 +9514,14 @@ const dddErrorModelingRuleNames = [
   "no-error-as-public-effect-error",
   "no-unknown-public-error-channel",
   "no-mixed-effect-error-shapes",
+  "no-expected-state-as-error",
 ] as const;
 type DddErrorModelingRuleName = typeof dddErrorModelingRuleNames[number];
 
 const errorModelingRuleNames = [
   ...dddErrorModelingRuleNames,
+  "no-early-catchall-null",
+  "no-exception-domain-error",
   "no-effect-fail-error-message",
   "no-catchall-generic-rethrow",
   "no-log-only-error-handling",
@@ -9428,6 +9594,7 @@ export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
 const recommendedExcludedRuleNames = [
   ...strictTestingObservabilityAndQaRuleNames,
   ...strictConcurrencySafetyRuleNames,
+  ...strictErrorModelingRuleNames,
   ...dddErrorModelingRuleNames,
   "no-resource-succeed-escape",
 ] as readonly RuleName[];

@@ -381,8 +381,9 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 ### Error Modeling
 
 Public Effect operations should expose one structured, recoverable error
-channel. The DDD preset includes these rules; they remain opt-in to keep
-`recommended` compatible with existing projects.
+channel. The `ddd` preset includes the complete Domain Modeling and Error
+Modeling groups; DDD-only rules remain opt-in to keep `recommended` compatible
+with existing projects.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
@@ -392,3 +393,6 @@ channel. The DDD preset includes these rules; they remain opt-in to keep
 | `linteffect/no-effect-fail-error-message` | `Effect.fail(error.message)`, string concatenation, or templates that stringify an error. | Preserves the original error tag, cause, and context instead of collapsing it into a string. |
 | `linteffect/no-catchall-generic-rethrow` | `catchAll` handlers that create `new Error(...)` inside `Effect.fail(...)`. | Keeps recovery typed and prevents generic rethrows from erasing the original failure. |
 | `linteffect/no-log-only-error-handling` | `catchAll` or `tapError` handlers that only call `Effect.log*`. | Logging is observability, not failure ownership; map or re-fail after logging. |
+| `linteffect/no-early-catchall-null` | Non-boundary `catchAll` recovery with `Effect.succeed(null)`, `undefined`, or a fallback value. | Lets higher layers own recovery instead of leaking untyped absence from domain logic. |
+| `linteffect/no-expected-state-as-error` | `Effect.fail("NotFound")`, `"Missing"`, `"Empty"`, or `"None"`. | Models expected states as `Option`, `Either`, or tagged data instead of overloading failure. |
+| `linteffect/no-exception-domain-error` | `throw new *Error` inside Effect workflows. | Keeps domain failures in typed Effect channels with supervision and structured recovery. |

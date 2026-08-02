@@ -170,6 +170,9 @@ const groupExpectations = {
     "no-error-as-public-effect-error",
     "no-unknown-public-error-channel",
     "no-mixed-effect-error-shapes",
+    "no-expected-state-as-error",
+    "no-early-catchall-null",
+    "no-exception-domain-error",
     "no-effect-fail-error-message",
     "no-catchall-generic-rethrow",
     "no-log-only-error-handling",
@@ -277,10 +280,13 @@ describe("linteffect config exports", () => {
       "no-yield-with-held-semaphore-permit",
       "no-yield-with-held-mutable-ref",
       "no-unscoped-background-fiber",
+      "no-early-catchall-null",
     ]) {
       expect(recommended.rules).not.toHaveProperty(`linteffect/${ruleName}`);
     }
 
+    expect(recommended.rules).toHaveProperty("linteffect/no-exception-domain-error", "error");
+    expect(recommended.rules).not.toHaveProperty("linteffect/no-expected-state-as-error");
     expect(recommended.rules).toHaveProperty("linteffect/no-manual-resource-close", "error");
     expect(recommended.rules).toHaveProperty("linteffect/no-unbound-scope", "error");
     expect(recommended.rules).not.toHaveProperty("linteffect/no-resource-succeed-escape");
@@ -323,6 +329,7 @@ describe("linteffect config exports", () => {
       "linteffect/no-effect-all-step-sequencing": "error",
       "linteffect/no-try-catch": "error",
       "linteffect/no-effect-wrapper-alias": "error",
+      "linteffect/no-exception-domain-error": "error",
       "linteffect/no-effect-fail-error-message": "error",
       "linteffect/no-catchall-generic-rethrow": "error",
       "linteffect/no-log-only-error-handling": "error",

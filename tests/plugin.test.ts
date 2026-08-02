@@ -4975,6 +4975,138 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
+  describe("error modeling domain semantics", () => {
+    it("catches null recovery in a non-boundary catchAll", () => {
+      const reports = runRuleSequence("no-early-catchall-null", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            identifier("program"),
+            arrowCallback(effectCall("succeed", nullLiteral())),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("catching errors too early");
+    });
+
+    it("catches undefined and named fallback recovery", () => {
+      for (const value of [identifier("undefined"), identifier("fallbackValue")]) {
+        const reports = runRuleSequence("no-early-catchall-null", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          {
+            visitorName: "CallExpression",
+            node: effectCall(
+              "catchAll",
+              arrowCallback(effectCall("succeed", value)),
+            ),
+          },
+        ]);
+
+        expect(reports).toHaveLength(1);
+      }
+    });
+
+    it("allows catchAll recovery at configured boundaries", () => {
+      const reports = runRuleSequence("no-early-catchall-null", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "catchAll",
+            identifier("program"),
+            arrowCallback(effectCall("succeed", nullLiteral())),
+          ),
+        },
+      ], { filename: "/repo/server/http.ts" });
+
+      expect(reports).toHaveLength(0);
+    });
+
+    it("catches expected domain states encoded as string failures", () => {
+      for (const state of ["NotFound", "Missing", "Empty", "None"]) {
+        const reports = runRuleSequence("no-expected-state-as-error", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          {
+            visitorName: "CallExpression",
+            node: effectCall("fail", stringLiteral(state)),
+          },
+        ]);
+
+        expect(reports).toHaveLength(1);
+      }
+    });
+
+    it("allows structured failures and non-state error strings", () => {
+      const structuredReports = runRuleSequence("no-expected-state-as-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("fail", objectLiteral(
+            property("_tag", stringLiteral("UserNotFound")),
+            property("userId", identifier("userId")),
+          )),
+        },
+      ]);
+      const genericStringReports = runRuleSequence("no-expected-state-as-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall("fail", stringLiteral("DatabaseUnavailable")),
+        },
+      ]);
+
+      expect(structuredReports).toHaveLength(0);
+      expect(genericStringReports).toHaveLength(0);
+    });
+
+    it("catches domain exceptions thrown inside Effect.gen", () => {
+      const reports = runRuleSequence("no-exception-domain-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "gen",
+            generatorCallback(blockStatement(
+              throwStatement(newExpression(identifier("ValidationError"), stringLiteral("invalid"))),
+            )),
+          ),
+        },
+      ]);
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].message).toContain("exceptions for domain errors");
+    });
+
+    it("allows typed Effect failures and throws outside Effect logic", () => {
+      const typedReports = runRuleSequence("no-exception-domain-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "CallExpression",
+          node: effectCall(
+            "gen",
+            generatorCallback(blockStatement(
+              returnStatement(effectCall("fail", newExpression(identifier("ValidationError"), stringLiteral("invalid")))),
+            )),
+          ),
+        },
+      ]);
+      const outsideReports = runRuleSequence("no-exception-domain-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        {
+          visitorName: "ThrowStatement",
+          node: throwStatement(newExpression(identifier("ValidationError"), stringLiteral("invalid"))),
+        },
+      ]);
+
+      expect(typedReports).toHaveLength(0);
+      expect(outsideReports).toHaveLength(0);
+    });
+  });
+
   it("catches Effect.ignore on failable effects", () => {
     const reports = runRuleSequence("no-effect-ignore", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },

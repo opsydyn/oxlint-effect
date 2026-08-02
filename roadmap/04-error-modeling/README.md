@@ -16,9 +16,9 @@ Primary references:
 | [x] | `linteffect/no-mixed-effect-error-shapes` | `mixed-error-shapes` | ddd | medium | error channel union mixing `Error`, string, number, boolean, unknown |
 | [x] | `linteffect/no-effect-fail-error-message` | `convert-errors-to-strings-early` | recommended | low | `Effect.fail(error.message)` or string concatenation from error |
 | [x] | `linteffect/no-catchall-generic-rethrow` | `catch-and-rethrow-generic` | recommended | low | `catchAll(() => Effect.fail(new Error(...)))` |
-| [ ] | `linteffect/no-early-catchall-null` | `catching-errors-too-early` | strict | medium | non-boundary `catchAll(() => Effect.succeed(null/undefined/fallback))` |
-| [ ] | `linteffect/no-expected-state-as-error` | `expected-states-as-errors` | ddd | medium | `Effect.fail("NotFound" | "Missing" | "Empty" | "None")` |
-| [ ] | `linteffect/no-exception-domain-error` | `exceptions-for-domain-errors` | recommended | low | `throw new *Error` inside Effect domain logic |
+| [x] | `linteffect/no-early-catchall-null` | `catching-errors-too-early` | strict | medium | non-boundary `catchAll(() => Effect.succeed(null/undefined/fallback))` |
+| [x] | `linteffect/no-expected-state-as-error` | `expected-states-as-errors` | ddd | medium | `Effect.fail("NotFound" | "Missing" | "Empty" | "None")` |
+| [x] | `linteffect/no-exception-domain-error` | `exceptions-for-domain-errors` | recommended | low | `throw new *Error` inside Effect domain logic |
 | [ ] | `linteffect/no-empty-error-tag` | `error-tags-without-payloads` | strict | low | `_tag`-only error type or `Data.TaggedError` with empty payload |
 | [x] | `linteffect/no-unknown-public-error-channel` | `overusing-unknown-error-channel` | ddd | medium | exported `Effect.Effect<_, unknown>` return types |
 | [x] | `linteffect/no-log-only-error-handling` | `logging-instead-of-modeling-errors` | strict | medium | `tapError` or `catchAll` that logs but does not map/re-fail/model |
@@ -39,9 +39,9 @@ Primary references:
 
 ### Slice 3: Domain Error Semantics
 
-- [ ] `no-early-catchall-null`
-- [ ] `no-expected-state-as-error`
-- [ ] `no-exception-domain-error`
+- [x] `no-early-catchall-null`
+- [x] `no-expected-state-as-error`
+- [x] `no-exception-domain-error`
 
 ### Slice 4: Tagged Error Quality
 

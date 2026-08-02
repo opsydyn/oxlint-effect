@@ -2,6 +2,8 @@ import { Effect } from "effect";
 
 declare const program: any;
 declare const error: { readonly message: string };
+declare const fallbackValue: string | undefined;
+declare class ValidationError extends Error {}
 
 // EXPECT: linteffect/no-throw-in-effect-logic
 // QA: Throwing inside Effect logic bypasses typed failure channels.
@@ -34,3 +36,23 @@ export const logOnlyRecovery = Effect.catchAll(
   program,
   (caught) => Effect.logError(caught),
 );
+
+// EXPECT: linteffect/no-early-catchall-null
+// QA: Domain logic should not convert failures into untyped null recovery.
+export const earlyNullRecovery = Effect.catchAll(
+  program,
+  () => Effect.succeed(null),
+);
+
+// EXPECT: linteffect/no-expected-state-as-error
+// QA: Expected absence should be modeled as data, not as a string failure.
+export const expectedStateFailure = Effect.fail("NotFound");
+
+// EXPECT: linteffect/no-exception-domain-error
+// QA: Domain exceptions should remain in the typed Effect error channel.
+export const thrownDomainError = Effect.gen(function* () {
+  if (fallbackValue === undefined) {
+    throw new ValidationError("missing value");
+  }
+  return fallbackValue;
+});
