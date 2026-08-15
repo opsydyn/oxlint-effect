@@ -88,7 +88,7 @@
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
 
-    "@opsydyn/oxlint-effect": ["@opsydyn/oxlint-effect@file:../..", { "devDependencies": { "@changesets/cli": "^2.31.0", "@effect-atom/atom-react": "^0.5.0", "@oxlint/plugins": "^1.71.0", "@size-limit/file": "^12.1.0", "@types/react": "^19.2.17", "bun-types": "^1.3.14", "effect": "^3.21.4", "oxlint": "^1.71.0", "publint": "^0.3.21", "react": "^19.2.7", "size-limit": "^12.1.0", "tsdown": "^0.22.3", "typedoc": "^0.28.19", "typescript": "^5.9.3" } }],
+    "@opsydyn/oxlint-effect": ["@opsydyn/oxlint-effect@file:../..", { "dependencies": { "@oxlint/plugins": "^1.71.0" }, "devDependencies": { "@changesets/cli": "^2.31.0", "@effect-atom/atom-react": "^0.5.0", "@size-limit/file": "^12.1.0", "@types/react": "^19.2.17", "bun-types": "^1.3.14", "effect": "^3.21.4", "oxlint": "^1.71.0", "publint": "^0.3.21", "react": "^19.2.7", "size-limit": "^12.1.0", "tsdown": "^0.22.3", "typedoc": "^0.28.19", "typescript": "^5.9.3" } }],
 
     "@oxc-project/types": ["@oxc-project/types@0.144.0", "", {}, "sha512-nuhZIOLuI6TFQ32I/WnUx+SCPY7SdSKwgnFHydAuoS1+Z4BRcaP+RRJmGzl9lw+0OFF7UmaESf7KQRXaNLHypg=="],
 

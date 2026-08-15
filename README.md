@@ -52,13 +52,18 @@ export default defineConfig({
   options: typeAware.options,
   jsPlugins: [...typeAware.jsPlugins],
   plugins: ["typescript", "unicorn", "oxc"],
-  rules: typeAware.rules,
+  rules: {
+    ...typeAware.rules,
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+  },
 });
 ```
 
 `options.typeAware` must be at the root of the resolved Oxlint configuration;
 do not place it in an override or nested configuration object. The package
-uses only that option. Consumers choose built-in `typescript/*` rules and may
+uses only that option. The two `typescript/*` entries above are selected by the
+consumer; `typeAware.rules` itself does not include them. Consumers may also
 separately opt into compiler diagnostics:
 
 ```bash

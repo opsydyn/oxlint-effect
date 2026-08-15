@@ -20,8 +20,8 @@ does not add an initial lint rule, so it has no entry in
   and clean controls.
 - [x] Verify packed-package consumption and exact expected diagnostics.
 - [x] Document public configuration variants, controls, and failure classes.
-- [ ] Add a dedicated CI gate for the pack-backed typed consumer after Task 5
-  lands.
+- [x] Add a dedicated CI gate for the pack-backed typed consumer through the
+  delivered Task 5 gate.
 - [ ] Obtain supported Oxc custom typed-plugin access before implementing
   semantic `linteffect/*` rules.
 
