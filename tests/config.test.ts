@@ -41,6 +41,7 @@ import plugin, {
   styleSeparationRules,
   testingObservabilityAndQa,
   testingObservabilityAndQaRules,
+  typeAware,
 } from "../src/index";
 
 const expectedJsPlugins = [
@@ -439,6 +440,13 @@ describe("linteffect config exports", () => {
     });
   });
 
+  it("exports an opt-in type-aware config without compiler diagnostics", () => {
+    expect(typeAware.options).toEqual({ typeAware: true });
+    expect(typeAware.options).not.toHaveProperty("typeCheck");
+    expect(typeAware.jsPlugins as unknown).toEqual(expectedJsPlugins);
+    expect(typeAware.rules).toEqual(recommendedRules);
+  });
+
   it("keeps the allRules export aligned with plugin rules", () => {
     expect(Object.keys(allRules).sort()).toEqual(
       Object.keys(plugin.rules)
@@ -476,6 +484,7 @@ describe("linteffect config exports", () => {
     });
     expect(presets).toEqual({
       recommended,
+      typeAware,
       ...exportedPresets,
       ddd,
     });

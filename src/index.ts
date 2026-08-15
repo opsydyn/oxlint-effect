@@ -10334,6 +10334,13 @@ export const ruleGroups = {
 } as const;
 
 export const recommended = presetFor(recommendedRules);
+export const typeAware = {
+  options: {
+    typeAware: true,
+  },
+  jsPlugins,
+  rules: recommended.rules,
+} as const;
 export const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
 export const effectComposition = presetFor(effectCompositionRules);
 export const concurrencySafety = presetFor(concurrencySafetyRules);
@@ -10355,6 +10362,7 @@ export const testingObservabilityAndQa = presetFor(testingObservabilityAndQaRule
 
 export const presets = {
   recommended,
+  typeAware,
   reactAndRuntimeBoundaries,
   effectComposition,
   concurrencySafety,
