@@ -15,6 +15,7 @@
 - The new `typeAware` preset sets `options.typeAware: true` and does not set `options.typeCheck`.
 - The new `typeAware` preset does not enable any `typescript/*` rules; the consumer fixture selects `typescript/no-floating-promises` and `typescript/no-misused-promises` explicitly.
 - `oxlint-tsgolint` is consumer-owned and is not added to the root package dependencies or peer dependencies.
+- `@oxlint/plugins` is a package runtime dependency because the published ESM and declaration outputs externalize and import it; a packed consumer must resolve it without relying on the repository's development graph.
 - The readonly `jsPlugins` tuple is always spread when passed to Oxlint's mutable `ExternalPluginEntry[]` configuration field.
 - Valid controls run under the complete `typeAware` ruleset without file-local overrides; a pipe/map control is an expression statement rather than an exported Effect wrapper alias because `no-effect-wrapper-alias` intentionally rejects that alias shape.
 - Custom type-aware Effect rules are out of scope until Oxlint exposes resolved TypeScript types/symbols to custom JavaScript plugin rules through a supported API.
@@ -471,6 +472,11 @@ Require exit code 0 and assert the output contains neither `linteffect(` nor
 false positive.
 
 - [ ] **Step 6: Add the package script and run the isolated gate**
+
+Before adding the script, move `@oxlint/plugins` from `devDependencies` to
+`dependencies`. The built package externalizes this runtime import, and the
+packed consumer's typecheck must resolve the emitted declaration without the
+root repository's development dependencies.
 
 Add this root script:
 
