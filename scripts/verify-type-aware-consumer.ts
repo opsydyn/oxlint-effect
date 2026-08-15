@@ -5,6 +5,8 @@ import { join, resolve } from "node:path";
 
 type CommandResult = {
   status: number;
+  stdout: string;
+  stderr: string;
   output: string;
 };
 
@@ -29,9 +31,14 @@ function run(command: string, args: string[], cwd: string): CommandResult {
     throw new Error(`Failed to run ${command} ${args.join(" ")}: terminated by ${result.signal ?? "an unknown signal"}`);
   }
 
+  const stdout = result.stdout;
+  const stderr = result.stderr;
+
   return {
     status: result.status,
-    output: `${result.stdout}${result.stderr}`,
+    stdout,
+    stderr,
+    output: `${stdout}${stderr}`,
   };
 }
 
@@ -92,12 +99,16 @@ function assertSuccess(result: CommandResult, command: string): void {
 }
 
 const repoRoot = resolve(import.meta.dir, "..");
-const packRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-pack-"));
-const npmCacheRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-npm-cache-"));
-const consumerTempRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-type-aware-consumer-"));
-const consumerRoot = join(consumerTempRoot, "consumer");
+let packRoot: string | undefined;
+let npmCacheRoot: string | undefined;
+let consumerTempRoot: string | undefined;
 
 try {
+  packRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-pack-"));
+  npmCacheRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-npm-cache-"));
+  consumerTempRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-type-aware-consumer-"));
+  const consumerRoot = join(consumerTempRoot, "consumer");
+
   const packResult = run(
     "npm",
     ["pack", "--json", "--pack-destination", packRoot],
@@ -106,9 +117,15 @@ try {
   if (packResult.status !== 0) {
     throw new Error(`npm pack failed:\n${packResult.output}`);
   }
-  const [{ filename }] = JSON.parse(packResult.output) as Array<{
-    filename: string;
-  }>;
+  let filename: string;
+  try {
+    [{ filename }] = JSON.parse(packResult.stdout) as Array<{ filename: string }>;
+  } catch (error) {
+    throw new Error(
+      `npm pack returned invalid JSON:\nstdout:\n${packResult.stdout}\nstderr:\n${packResult.stderr}`,
+      { cause: error },
+    );
+  }
   const tarball = join(packRoot, filename);
 
   await cp(join(repoRoot, "examples/type-aware-consumer"), consumerRoot, { recursive: true });
@@ -133,9 +150,9 @@ try {
     throw new Error(`Valid control reported a type-aware diagnostic:\n${validControl.output}`);
   }
 } finally {
-  await Promise.all([
-    rm(packRoot, { recursive: true, force: true }),
-    rm(npmCacheRoot, { recursive: true, force: true }),
-    rm(consumerTempRoot, { recursive: true, force: true }),
-  ]);
+  await Promise.all(
+    [packRoot, npmCacheRoot, consumerTempRoot]
+      .filter((directory): directory is string => directory !== undefined)
+      .map((directory) => rm(directory, { recursive: true, force: true })),
+  );
 }
