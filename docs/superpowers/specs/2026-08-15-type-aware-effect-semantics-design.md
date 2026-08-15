@@ -75,8 +75,10 @@ import { defineConfig } from "oxlint";
 import { typeAware } from "@opsydyn/oxlint-effect";
 
 export default defineConfig({
-  ...typeAware,
+  options: typeAware.options,
+  jsPlugins: [...typeAware.jsPlugins],
   plugins: ["typescript", "unicorn", "oxc"],
+  rules: typeAware.rules,
 });
 ```
 
