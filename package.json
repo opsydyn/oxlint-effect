@@ -32,6 +32,7 @@
     "release": "bun run build && changeset publish",
     "size": "size-limit",
     "test": "bun test ./tests/*.test.ts",
+    "test:type-aware": "bun run build && bun scripts/verify-type-aware-consumer.ts",
     "typecheck": "tsc --noEmit",
     "version": "changeset version"
   },
