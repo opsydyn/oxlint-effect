@@ -16,6 +16,7 @@
 - The new `typeAware` preset does not enable any `typescript/*` rules; the consumer fixture selects `typescript/no-floating-promises` and `typescript/no-misused-promises` explicitly.
 - `oxlint-tsgolint` is consumer-owned and is not added to the root package dependencies or peer dependencies.
 - The readonly `jsPlugins` tuple is always spread when passed to Oxlint's mutable `ExternalPluginEntry[]` configuration field.
+- Valid controls run under the complete `typeAware` ruleset without file-local overrides; a pipe/map control is an expression statement rather than an exported Effect wrapper alias because `no-effect-wrapper-alias` intentionally rejects that alias shape.
 - Custom type-aware Effect rules are out of scope until Oxlint exposes resolved TypeScript types/symbols to custom JavaScript plugin rules through a supported API.
 - Intentional anti-pattern examples remain unfixed and are validated by expected-versus-observed diagnostic IDs.
 - Type-aware setup failures are documented by failure class; tests must not depend on unstable diagnostic wording.
@@ -286,7 +287,11 @@ supported trigger shape; do not remove the expected diagnostic.
 
 - [ ] **Step 6: Add valid controls**
 
-Create `src/valid-controls.ts` with no expected diagnostics:
+Create `src/valid-controls.ts` with no expected diagnostics. Keep the pipe/map
+control as an expression statement rather than assigning it to an exported
+constant: the existing recommended `no-effect-wrapper-alias` rule intentionally
+reports exported Effect pipe aliases, and this control must run under the full
+preset without a file-local override.
 
 ```ts
 import { Effect } from "effect";
@@ -294,7 +299,7 @@ import { Effect } from "effect";
 const loadValue = async (): Promise<number> => 1;
 
 export const awaited = async () => await loadValue();
-export const effect = Effect.succeed(1).pipe(Effect.map((value) => value + 1));
+Effect.succeed(1).pipe(Effect.map((value) => value + 1));
 ```
 
 The file must remain free of `EXPECT` annotations and must pass the fixture's
