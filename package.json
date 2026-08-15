@@ -76,6 +76,6 @@
     "provenance": true
   },
   "dependencies": {
-    "@oxlint/plugins": "1.71.0"
+    "@oxlint/plugins": "^1.71.0"
   }
 }
