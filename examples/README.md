@@ -98,3 +98,34 @@ diagnostics can be treated as implementation gaps.
 `@opsydyn/oxlint-effect@0.2.0` from npm instead of using the local source plugin.
 It verifies the user-land `jsPlugins: [...recommended.jsPlugins]` workaround for
 Oxlint's mutable config type and gives us a production-package smoke test.
+
+## Type-Aware Consumer
+
+`type-aware-consumer` is an isolated TypeScript 7 fixture for the opt-in
+`typeAware` preset. It combines the existing syntax-only `linteffect/*` rules
+with consumer-selected Oxc built-in `typescript/*` rules; it is not a clean
+application.
+
+For local development, build the root package and run the fixture commands:
+
+```bash
+bun run build
+cd examples/type-aware-consumer
+bun install
+bun run typecheck
+bun run lint
+bun run lint:valid
+```
+
+`lint` intentionally exits non-zero against the annotated
+[failure corpus](./type-aware-consumer/src/), while
+[valid controls](./type-aware-consumer/src/valid-controls.ts) must remain
+clean. The root [pack-backed gate](../package.json) runs the temporary consumer
+against the packed package:
+
+```bash
+bun run test:type-aware
+```
+
+For missing-engine, project, declaration, and configuration-scope failures,
+see the [type-aware setup failure modes](./type-aware-consumer/failure-modes/README.md).

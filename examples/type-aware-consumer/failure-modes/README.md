@@ -13,6 +13,12 @@ fix or suppress the annotated diagnostics in `../src`.
 dependencies and reinstall there. It is intentionally not a dependency of
 `@opsydyn/oxlint-effect`.
 
+```bash
+bun add -d oxlint oxlint-tsgolint @opsydyn/oxlint-effect
+```
+
+Keep the consumer's Oxlint and `oxlint-tsgolint` releases aligned.
+
 ## Invalid TypeScript Project
 
 **Class:** malformed or TypeScript-incompatible `tsconfig.json`.
@@ -22,8 +28,9 @@ project, or reports configuration diagnostics instead of the intended rule
 IDs.
 
 **Remediation:** correct the project configuration for the consumer's installed
-TypeScript version. Keep module and module-resolution settings compatible, and
-include only the intended consumer sources.
+TypeScript version. The current engine requires TypeScript 7; keep module and
+module-resolution settings compatible, and include only the intended consumer
+sources.
 
 ## Missing Monorepo Declarations
 
@@ -58,8 +65,27 @@ from compiler semantics or project setup.
 run `bun run lint` to inspect type-aware policy violations. The deliberate
 failure files make the latter command exit non-zero.
 
+The package preset sets `typeAware: true` only. Enabling `typeCheck` is an
+independent consumer decision and is not a remediation for a missing
+type-aware engine or an intentional lint failure.
+
 ## Valid Controls
 
 `../src/valid-controls.ts` has no `EXPECT` annotations and should report no
 expected IDs. Verify it separately with `bun run lint:valid`; a diagnostic there
 is a regression in the configuration, rule selection, or control code.
+
+## Unsupported Custom Semantic Rules
+
+**Class:** unsupported custom typed-rule API.
+
+**Symptom:** a custom `linteffect/*` rule cannot resolve TypeScript symbols,
+aliases, inferred Effect channels, or cross-file types merely because
+`options.typeAware` is enabled.
+
+**Remediation:** use the existing syntax-only Effect rules and select Oxc's
+built-in `typescript/*` rules where appropriate. Defer custom semantic Effect
+rules until Oxc provides supported typed-plugin access; its [type-aware
+guide](https://oxc.rs/docs/guide/usage/linter/type-aware.html) and [JavaScript
+plugin API documentation](https://oxc.rs/docs/guide/usage/linter/js-plugins.html)
+describe the current boundary.
