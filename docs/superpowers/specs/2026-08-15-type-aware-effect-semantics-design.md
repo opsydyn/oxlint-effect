@@ -151,6 +151,9 @@ Create an isolated `examples/type-aware-consumer/` fixture. It will contain:
 - a README explaining installation, root-only configuration, and the
   intentional absence of `typeCheck`.
 
+The fixture will keep the problematic source intact. It is an observation and
+regression corpus, not a cleaned sample application.
+
 The fixture is a QA corpus, not an application that must lint cleanly. Its
 verification compares expected and observed diagnostic IDs and exits
 successfully only when the expected warnings are present and no unexpected
@@ -199,6 +202,57 @@ job that:
 A failure to resolve the typed engine, project configuration, or declarations
 must fail this dedicated job rather than being silently treated as a skipped
 typed check.
+
+## Documentation and Failure-Example Contract
+
+Documentation must cover every public configuration variant, not only the
+happy-path `typeAware` import. The examples and README will show runnable
+configurations for:
+
+1. `recommended` as the unchanged syntax-only baseline;
+2. `typeAware` as a direct config spread;
+3. `typeAware` composed with the existing named group presets and rule-only
+   exports;
+4. CLI `--type-aware` used without the package preset;
+5. `typeAware` with consumer-selected `typescript/*` rules;
+6. the deliberate separation between `typeAware` and `typeCheck`;
+7. a published package install and a local packed-artifact install;
+8. editor/LSP configuration where the current Oxc integration supports the
+   root `typeAware` option.
+
+The failure corpus will include unfixed, annotated examples for these
+observable outcomes:
+
+- Effect syntax anti-patterns still report `linteffect/*` rules in type-aware
+  mode;
+- selected built-in typed rules report Promise/callback misuse;
+- the typed engine cannot start when `oxlint-tsgolint` is absent;
+- type-aware analysis cannot resolve a malformed or incompatible project
+  configuration;
+- a monorepo fixture fails closed when dependent declarations are unavailable;
+- a nested config cannot be used to activate the root-only `typeAware` option;
+- `typeAware` alone does not emit TypeScript compiler diagnostics;
+- explicit `typeCheck` activation reports compiler diagnostics separately;
+- valid Effect and TypeScript controls do not produce expected failure IDs.
+
+Each lint failure example must include:
+
+- the exact expected rule ID in a `// EXPECT:` annotation where a rule
+  diagnostic is expected;
+- a short comment linking the example to the relevant README rule entry;
+- a valid control example beside the invalid example;
+- the command used to observe the result and the expected exit/report shape;
+- no autofix or inline suppression that hides the anti-pattern.
+
+Configuration and dependency failures do not have lint rule IDs, so their
+examples will document the expected setup failure class and the corrective
+installation/configuration boundary without relying on an unstable diagnostic
+wording.
+
+Every future semantic rule slice inherits the same matrix: explicit and
+inferred types, aliases, re-exports, cross-file use where claimed, valid
+boundary cases, and a syntax-only comparison. A rule is not release-ready
+until both its failure examples and its non-failure controls are present.
 
 ## Semantic Effect Rule Roadmap
 
@@ -285,7 +339,12 @@ Oxc APIs. Documentation will distinguish clearly between:
 The implementation slice will update:
 
 - `README.md` with installation and configuration for `typeAware`;
-- `examples/README.md` with the typed consumer QA workflow;
+- `README.md` with every public preset/configuration variant and its
+  limitations;
+- `examples/README.md` with the typed consumer QA workflow and failure-mode
+  index;
+- `examples/type-aware-consumer/README.md` with runnable setup, lint failure,
+  and dependency/configuration failure examples;
 - `roadmap/13-type-aware-effect-semantics/README.md` with the opt-in
   checklist, API gate, and semantic slices;
 - generated API documentation through the existing TypeDoc gate;
@@ -321,4 +380,7 @@ The initial slice is complete when:
 - the dedicated typed QA job fails closed on missing or malformed typed
   analysis;
 - documentation and roadmap entries explain the boundary accurately;
+- every public configuration variant has a runnable documentation example;
+- the fixture contains unfixed examples for every supported lint and setup
+  failure class, plus valid controls;
 - all standard package gates and the dedicated typed QA gate pass.
