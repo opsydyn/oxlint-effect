@@ -20,7 +20,8 @@ bun run lint:valid
 ```
 
 `lint` is expected to exit non-zero and report the annotated
-`linteffect/no-effect-as`, `typescript/no-floating-promises`, and
+`linteffect/prefer-pipe-for-behavior`, `linteffect/no-effect-as`,
+`linteffect/no-call-tower`, `typescript/no-floating-promises`, and
 `typescript/no-misused-promises` diagnostics. `typecheck` and `lint:valid`
 must exit zero.
 
