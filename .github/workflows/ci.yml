@@ -47,3 +47,26 @@ jobs:
 
       - name: Pack Dry Run
         run: bun run pack:dry-run
+
+  type-aware:
+    name: Type-aware consumer QA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install root dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify packed type-aware consumer
+        run: bun run test:type-aware

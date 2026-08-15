@@ -25,10 +25,73 @@ export default defineConfig({
 the mutable array shape expected by Oxlint's `ExternalPluginEntry[]` config
 type.
 
+### Configure Type-Aware Linting
+
+`typeAware` is an opt-in configuration bridge to [Oxc's type-aware
+linting](https://oxc.rs/docs/guide/usage/linter/type-aware.html). It preserves
+the package's recommended syntax-only `linteffect/*` rules and enables Oxc's
+type-aware engine, but it does not select any `typescript/*` rules or enable
+`typeCheck` compiler diagnostics.
+
+Install the type-aware engine in the consuming project:
+
+```bash
+bun add -d oxlint oxlint-tsgolint @opsydyn/oxlint-effect
+```
+
+The current engine requires TypeScript 7. Keep `oxlint`, `oxlint-tsgolint`,
+TypeScript, and the consumer's project configuration compatible. In a
+monorepo, build dependent packages so their declarations can be resolved
+before type-aware linting runs.
+
+```ts
+import { defineConfig } from "oxlint";
+import { typeAware } from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  options: typeAware.options,
+  jsPlugins: [...typeAware.jsPlugins],
+  plugins: ["typescript", "unicorn", "oxc"],
+  rules: {
+    ...typeAware.rules,
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+  },
+});
+```
+
+`options.typeAware` must be at the root of the resolved Oxlint configuration;
+do not place it in an override or nested configuration object. The package
+uses only that option. The two `typescript/*` entries above are selected by the
+consumer; `typeAware.rules` itself does not include them. Consumers may also
+separately opt into compiler diagnostics:
+
+```bash
+oxlint --type-aware
+```
+
+```ts
+export default defineConfig({
+  options: {
+    typeAware: true,
+    typeCheck: true,
+  },
+});
+```
+
+The CLI enables the same type-aware engine without this package preset. The
+second configuration is consumer-owned and is not part of `typeAware`.
+
+The package's custom Effect rules remain syntax-only. Oxc's [JavaScript plugin
+API](https://oxc.rs/docs/guide/usage/linter/js-plugins.html) does not support
+custom type-aware rules, so semantic Effect rules remain deferred until Oxc
+provides supported typed-plugin access.
+
 ### Configure One Rule Group
 
-Every documented rule group is exported as a config-shaped preset with the same
-shape as `recommended`. The `ddd` preset combines Domain Modeling and Error
+Every named preset in the following table is exported as a config-shaped preset
+with the same shape as `recommended`; use the same mutable-array workaround
+for each one. For example, the `ddd` preset combines Domain Modeling and Error
 Modeling rules:
 
 ```ts
@@ -66,25 +129,26 @@ Named group presets:
 | `testingObservabilityAndQa` | Testing, Observability, and QA |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
-you want to compose multiple groups:
+you want to compose multiple groups. `typeAware` is the only new mode in this
+slice; compose it with rule-only exports when a type-aware configuration needs
+additional Effect policy:
 
 ```ts
 import { defineConfig } from "oxlint";
 import {
-  concurrencySafety,
+  typeAware,
   domainModelingRules,
   errorModelingRules,
-  effectCompositionRules,
 } from "@opsydyn/oxlint-effect";
 
 export default defineConfig({
-  plugins: ["typescript"],
-  jsPlugins: [...concurrencySafety.jsPlugins],
+  options: typeAware.options,
+  jsPlugins: [...typeAware.jsPlugins],
+  plugins: ["typescript", "unicorn", "oxc"],
   rules: {
-    ...concurrencySafety.rules,
+    ...typeAware.rules,
     ...domainModelingRules,
     ...errorModelingRules,
-    ...effectCompositionRules,
   },
 });
 ```

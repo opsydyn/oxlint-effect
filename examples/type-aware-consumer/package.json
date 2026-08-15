@@ -1,0 +1,20 @@
+{
+  "name": "@opsydyn/oxlint-effect-type-aware-consumer-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint --config oxlint.config.ts src",
+    "lint:valid": "oxlint --config oxlint.config.ts src/valid-controls.ts"
+  },
+  "dependencies": {
+    "@opsydyn/oxlint-effect": "file:../..",
+    "effect": "^3.21.4"
+  },
+  "devDependencies": {
+    "oxlint": "^1.78.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2"
+  }
+}
