@@ -1,6 +1,7 @@
 # npm Consumer Example
 
-This example verifies the published `@opsydyn/oxlint-effect@0.2.0` package from npm instead of the local source plugin.
+This example verifies the published 1.x `@opsydyn/oxlint-effect` package from
+npm instead of the local source plugin.
 
 It also documents the user-land fix for Oxlint's mutable `jsPlugins` config type:
 

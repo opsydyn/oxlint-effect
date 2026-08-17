@@ -8,14 +8,14 @@
         "effect": "^3.21.4",
       },
       "devDependencies": {
-        "@opsydyn/oxlint-effect": "0.2.0",
+        "@opsydyn/oxlint-effect": "^1.0.0",
         "oxlint": "^1.72.0",
         "typescript": "^5.9.3",
       },
     },
   },
   "packages": {
-    "@opsydyn/oxlint-effect": ["@opsydyn/oxlint-effect@0.2.0", "", {}, "sha512-KlDEHG2pxAWrb8RLxaFWagRBM4p2sfpTNaS7/Xes2YSZM+M334sZFcqRhMyv3JBHD/CztCwES6GWzfTSLPwRnQ=="],
+    "@opsydyn/oxlint-effect": ["@opsydyn/oxlint-effect@1.0.0", "", {}, "sha512-P9j5UPTu6fvl4m5yyw4/5Z/N28u2jRbB0Nw7p1LTT8pz5Tb7xbSF4ZejnM5QrA4medvc1juu16ohsZ/5TW+VPg=="],
 
     "@oxlint/binding-android-arm-eabi": ["@oxlint/binding-android-arm-eabi@1.72.0", "", { "os": "android", "cpu": "arm" }, "sha512-zhCmvn+1Mj3UchAc/90i99S0t7jJUsHmFVSPg4UWrjO8b8eaSGwscgO6QAUtvHBstkjQwBttQNswEnAF1mIQdA=="],
 

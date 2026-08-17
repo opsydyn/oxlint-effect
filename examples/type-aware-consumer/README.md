@@ -36,12 +36,13 @@ the temporary consumer's manifest:
 ```json
 {
   "dependencies": {
-    "@opsydyn/oxlint-effect": "file:../../opsydyn-oxlint-effect-0.10.0.tgz"
+    "@opsydyn/oxlint-effect": "file:../../opsydyn-oxlint-effect-<version>.tgz"
   }
 }
 ```
 
-The tarball path is owned by the Task 3 harness; do not commit that temporary
+Replace `<version>` with the package version in the generated tarball. The
+tarball path is owned by the Task 3 harness; do not commit that temporary
 dependency change to this fixture.
 
 ## Configuration Variants

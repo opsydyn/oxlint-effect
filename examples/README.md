@@ -95,7 +95,8 @@ diagnostics can be treated as implementation gaps.
 ## npm Consumer Example
 
 `npm-consumer` is a tiny standalone consumer that installs
-`@opsydyn/oxlint-effect@0.2.0` from npm instead of using the local source plugin.
+the published 1.x `@opsydyn/oxlint-effect` package from npm instead of using
+the local source plugin.
 It verifies the user-land `jsPlugins: [...recommended.jsPlugins]` workaround for
 Oxlint's mutable config type and gives us a production-package smoke test.
 
