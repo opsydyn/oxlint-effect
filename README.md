@@ -166,6 +166,32 @@ export default defineConfig({
 });
 ```
 
+## Agent Skill
+
+The companion `oxlint-effect` skill helps coding agents configure the npm
+plugin, diagnose DDD warnings, and repair domain models when requested.
+
+```bash
+npx skills add opsydyn/oxlint-effect --skill oxlint-effect
+```
+
+Ask your agent to configure a selected group, explain a `linteffect` warning,
+or repair a domain-modeling issue. The skill preserves existing configuration
+and uses the installed package's APIs and rules. Type-aware linting is opt-in.
+Intentional `EXPECT`/`QA` failures are retained as diagnostic controls.
+
+The [skill](./skills/oxlint-effect/SKILL.md), its focused references, and
+paired [failures](./skills/oxlint-effect/assets/domain.bad.ts) and
+[repairs](./skills/oxlint-effect/assets/domain.good.ts) are also included in the
+npm package under `skills/oxlint-effect`. Skill installation is separate from
+npm installation; installing the plugin alone does not activate agent guidance.
+
+The initial examples cover branded IDs, explicit notification modes, and
+structured transfer errors. CI checks referenced rules and presets, relative
+links, npm inclusion, TypeScript contracts, intentional diagnostics, and clean
+DDD repairs. This validates the examples and package contract, not the quality
+of every agent-generated repair.
+
 ## Rule Groups
 
 The recommended config enables the broadly applicable rules as errors. Strict

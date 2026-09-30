@@ -1,5 +1,12 @@
 # linteffect QA Examples
 
+The companion agent skill has paired [DDD failures](../skills/oxlint-effect/assets/domain.bad.ts)
+and [passing repairs](../skills/oxlint-effect/assets/domain.good.ts). They cover
+branded IDs, notification modes, and structured errors.
+`bun test tests/agent-skill.test.ts` checks exact failure diagnostics, a clean full-DDD
+control, TypeScript contracts, and representative behaviour. The existing
+anti-pattern corpus below remains intentionally invalid.
+
 This folder is a lint-only QA corpus. It is intentionally full of anti-patterns and is not meant to be built, run, or fixed.
 
 Each problematic snippet has an annotation:
