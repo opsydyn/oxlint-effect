@@ -65,6 +65,10 @@ For generic, unknown, or mixed public Effect error channels, read
 original failure details, migrate callers with the error representation, and
 keep defects and interruptions distinct from typed failures.
 
+For message-only failures, generic rethrows, or log-only handlers, read
+[error preservation](references/error-preservation.md). Establish recovery
+ownership and distinguish `catchAll` from `tapError` before changing semantics.
+
 ## Verify And Report
 
 Run the consumer's lint and typecheck commands plus relevant behavioural tests.

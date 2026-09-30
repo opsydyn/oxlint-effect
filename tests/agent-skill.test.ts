@@ -41,6 +41,7 @@ const skillFiles = [
   `${skillRoot}/references/domain-decisions.md`,
   `${skillRoot}/references/domain-context.md`,
   `${skillRoot}/references/public-errors.md`,
+  `${skillRoot}/references/error-preservation.md`,
   `${skillRoot}/assets/domain.bad.ts`,
   `${skillRoot}/assets/domain.good.ts`,
   `${skillRoot}/assets/domain-shapes.bad.ts`,
@@ -51,6 +52,8 @@ const skillFiles = [
   `${skillRoot}/assets/domain-context.good.ts`,
   `${skillRoot}/assets/public-errors.bad.ts`,
   `${skillRoot}/assets/public-errors.good.ts`,
+  `${skillRoot}/assets/error-preservation.bad.ts`,
+  `${skillRoot}/assets/error-preservation.good.ts`,
 ];
 
 describe("agent skill contract", () => {
@@ -96,7 +99,7 @@ describe("agent skill contract", () => {
   });
 
   it("reports every annotated failure and leaves the DDD repair clean", async () => {
-    for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors"]) {
+    for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation"]) {
       const badPath = `${skillRoot}/assets/${pair}.bad.ts`;
       const bad = await Bun.file(badPath).text();
       const expected = [...bad.matchAll(/EXPECT: linteffect\/([a-z0-9-]+)/g)]
@@ -123,10 +126,12 @@ describe("agent skill contract", () => {
       `${skillRoot}/assets/domain-decisions.bad.ts`, `${skillRoot}/assets/domain-decisions.good.ts`,
       `${skillRoot}/assets/domain-context.bad.ts`, `${skillRoot}/assets/domain-context.good.ts`,
       `${skillRoot}/assets/public-errors.bad.ts`, `${skillRoot}/assets/public-errors.good.ts`,
+      `${skillRoot}/assets/error-preservation.bad.ts`, `${skillRoot}/assets/error-preservation.good.ts`,
       "tests/fixtures/agent-skill-domain-types.ts",
       "tests/fixtures/agent-skill-domain-decisions-types.ts",
       "tests/fixtures/agent-skill-domain-context-types.ts",
       "tests/fixtures/agent-skill-public-errors-types.ts",
+      "tests/fixtures/agent-skill-error-preservation-types.ts",
     ], { cwd: root, encoding: "utf8" });
     expect(`${result.stdout}${result.stderr}`).toBe("");
     expect(result.status).toBe(0);
@@ -346,5 +351,34 @@ describe("agent skill contract", () => {
       if (!Exit.isFailure(exit)) throw new Error("expected interruption");
       expect(Cause.isInterruptedOnly(exit.cause)).toBe(true);
     }
+  });
+
+  it("retains the original structured failure instead of its message or a generic rethrow", async () => {
+    const { rejectProfile, rethrowProfile } = await import("../skills/oxlint-effect/assets/error-preservation.good");
+    const { ProfileUnavailable } = await import("../skills/oxlint-effect/assets/public-errors.good");
+    const cause = new Error("storage offline");
+    const failure = new ProfileUnavailable({ cause });
+    expect(Effect.runSync(Effect.flip(rejectProfile(failure)))).toBe(failure);
+    const propagated = Effect.runSync(Effect.flip(rethrowProfile(Effect.fail(failure))));
+    expect(propagated).toBe(failure);
+    expect(propagated.cause).toBe(cause);
+    expect(propagated._tag).toBe("ProfileUnavailable");
+    expect(Effect.runSync(rethrowProfile(Effect.succeed("profile-1")))).toBe("profile-1");
+  });
+
+  it("logs once and preserves failure while leaving successful operations unlogged", async () => {
+    const { Logger } = await import("effect");
+    const { observeProfile } = await import("../skills/oxlint-effect/assets/error-preservation.good");
+    const { ProfileUnavailable } = await import("../skills/oxlint-effect/assets/public-errors.good");
+    const entries: Array<unknown> = [];
+    const logger = Logger.make(({ message }) => entries.push(message));
+    const logging = Logger.replace(Logger.defaultLogger, logger);
+    const failure = new ProfileUnavailable({ cause: new Error("offline") });
+    const observed = Effect.provide(observeProfile(Effect.fail(failure)), logging);
+    expect(Effect.runSync(Effect.flip(observed))).toBe(failure);
+    expect(entries).toEqual([[failure]]);
+    entries.length = 0;
+    expect(Effect.runSync(Effect.provide(observeProfile(Effect.succeed("profile-1")), logging))).toBe("profile-1");
+    expect(entries).toEqual([]);
   });
 });

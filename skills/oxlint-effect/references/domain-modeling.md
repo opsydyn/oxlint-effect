@@ -115,6 +115,10 @@ instead of reducing it to text. For `linteffect/no-catchall-generic-rethrow`,
 must remain observable. Prefer selective tagged recovery where supported by
 the installed Effect version. Logging alone does not establish recovery.
 
+Read [error preservation](error-preservation.md) for paired message-loss,
+generic-rethrow and log-only failures, with identity and executed-logging tests.
+It also documents the heuristic's legitimate `tapError` observation case.
+
 ## Verification Boundaries
 
 Test decoding failures, identifier interchange, both behaviour modes, every

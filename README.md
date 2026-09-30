@@ -207,6 +207,11 @@ and [repairs](./skills/oxlint-effect/assets/public-errors.good.ts) cover generic
 unknown, and mixed public error channels. The
 [public error guide](./skills/oxlint-effect/references/public-errors.md) explains
 cause preservation, selective recovery, caller migration and defect ownership.
+Paired [error preservation failures](./skills/oxlint-effect/assets/error-preservation.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/error-preservation.good.ts) cover
+message-only failures, generic rethrows and log-only handlers. The
+[preservation guide](./skills/oxlint-effect/references/error-preservation.md)
+explains recovery ownership and the `catchAll`/`tapError` distinction.
 CI checks referenced rules and presets, relative
 links, npm inclusion, TypeScript contracts, intentional diagnostics, and clean
 DDD repairs. This validates the examples and package contract, not the quality

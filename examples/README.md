@@ -33,6 +33,13 @@ original failure details, selective tagged recovery, defects and interruptions.
 The [public error guide](../skills/oxlint-effect/references/public-errors.md)
 explains the required caller migration and adapter-specific failure semantics.
 
+The [error preservation failures](../skills/oxlint-effect/assets/error-preservation.bad.ts)
+and [repairs](../skills/oxlint-effect/assets/error-preservation.good.ts) demonstrate
+message loss, generic rethrows and log-only recovery. Tests check original error
+identity, executed logging, successful values and failure propagation. The
+[preservation guide](../skills/oxlint-effect/references/error-preservation.md)
+distinguishes recovery ownership from legitimate `tapError` observation.
+
 This folder is a lint-only QA corpus. It is intentionally full of anti-patterns and is not meant to be built, run, or fixed.
 
 Each problematic snippet has an annotation:

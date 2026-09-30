@@ -15,3 +15,5 @@ Add explicit-context, clock-ownership, and structured-error pairs with policy
 denial propagation, deterministic expiry checks, and negative type contracts.
 Add public error-channel pairs for generic, unknown and mixed failures, with
 cause preservation, selective recovery and defect/interruption checks.
+Add error-preservation pairs for message loss, generic rethrows and log-only
+handlers, with failure-identity and executed-logging checks and ownership guidance.
