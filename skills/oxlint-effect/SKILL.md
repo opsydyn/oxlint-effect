@@ -45,6 +45,26 @@ cover identifiers, behaviour modes, and structured failures. They are examples,
 not replacements to copy over a consumer's model. Verify APIs against the
 consumer's Effect version before adapting them.
 
+For primitive-heavy commands, time fields, and overloaded options, read the
+[domain shapes failures](assets/domain-shapes.bad.ts) with their
+[repairs](assets/domain-shapes.good.ts). Keep wire units, optional-field
+semantics, and boundary validation policy explicit.
+
+For status vocabulary, business predicates, and lifecycle flags, read
+[domain decisions](references/domain-decisions.md) and its paired examples.
+Establish valid states and transitions from the consumer's contract before
+replacing flags with a tagged union.
+
+For explicit policy context, clock ownership, and empty error payloads, read
+[domain context](references/domain-context.md) and its paired examples. Distinguish
+typed identity from authority, time conversion from clock reads, and expected
+state from failure before changing a consumer's contract.
+
+For generic, unknown, or mixed public Effect error channels, read
+[public errors](references/public-errors.md) and its paired examples. Preserve
+original failure details, migrate callers with the error representation, and
+keep defects and interruptions distinct from typed failures.
+
 ## Verify And Report
 
 Run the consumer's lint and typecheck commands plus relevant behavioural tests.

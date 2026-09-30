@@ -187,7 +187,27 @@ npm package under `skills/oxlint-effect`. Skill installation is separate from
 npm installation; installing the plugin alone does not activate agent guidance.
 
 The initial examples cover branded IDs, explicit notification modes, and
-structured transfer errors. CI checks referenced rules and presets, relative
+structured transfer errors. Additional paired [domain shape failures](./skills/oxlint-effect/assets/domain-shapes.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/domain-shapes.good.ts) cover typed
+commands, epoch-millisecond time values, and schema-backed options. Their tests
+check wire roundtrips, optional fields, invalid inputs, and rejected type misuse.
+Paired [domain decision failures](./skills/oxlint-effect/assets/domain-decisions.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/domain-decisions.good.ts) cover status
+variants, business predicates, and explicit lifecycle states. Their tests check
+the original decision results, legacy flag roundtrips, and valid/invalid
+transitions. The [decision guide](./skills/oxlint-effect/references/domain-decisions.md)
+documents the example's boundary and lifecycle policies.
+Paired [domain context failures](./skills/oxlint-effect/assets/domain-context.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/domain-context.good.ts) cover explicit
+policy requirements, modelled time inputs, and meaningful error payloads. The
+[context guide](./skills/oxlint-effect/references/domain-context.md) distinguishes
+typed identity from authority and time conversion from clock reads.
+Paired [public error failures](./skills/oxlint-effect/assets/public-errors.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/public-errors.good.ts) cover generic,
+unknown, and mixed public error channels. The
+[public error guide](./skills/oxlint-effect/references/public-errors.md) explains
+cause preservation, selective recovery, caller migration and defect ownership.
+CI checks referenced rules and presets, relative
 links, npm inclusion, TypeScript contracts, intentional diagnostics, and clean
 DDD repairs. This validates the examples and package contract, not the quality
 of every agent-generated repair.

@@ -7,6 +7,32 @@ branded IDs, notification modes, and structured errors.
 control, TypeScript contracts, and representative behaviour. The existing
 anti-pattern corpus below remains intentionally invalid.
 
+The [domain shape failures](../skills/oxlint-effect/assets/domain-shapes.bad.ts)
+and [repairs](../skills/oxlint-effect/assets/domain-shapes.good.ts) add primitive-heavy
+parameters, raw time fields, and overloaded options. The same test suite checks
+exact warnings, clean repairs, compile-time misuse, roundtrips, and optional
+memo semantics.
+
+The [domain decision failures](../skills/oxlint-effect/assets/domain-decisions.bad.ts)
+and [repairs](../skills/oxlint-effect/assets/domain-decisions.good.ts) add raw
+status strings, combined business comparisons, and conflicting lifecycle flags.
+Tests cover decision equivalence, supported flag roundtrips, invalid boundary
+inputs, and allowed/forbidden transitions at runtime and compile time.
+
+The [domain context failures](../skills/oxlint-effect/assets/domain-context.bad.ts)
+and [repairs](../skills/oxlint-effect/assets/domain-context.good.ts) demonstrate
+explicit deletion-policy requirements, deterministic time inputs, and structured
+denials. Tests check policy invocation, failure identity, expiry thresholds and
+rejected type misuse. The [context guide](../skills/oxlint-effect/references/domain-context.md)
+states the deliberately chosen policies and the limits of these examples.
+
+The [public error failures](../skills/oxlint-effect/assets/public-errors.bad.ts)
+and [repairs](../skills/oxlint-effect/assets/public-errors.good.ts) demonstrate
+generic, unknown, and mixed public error channels. Tests cover successful values,
+original failure details, selective tagged recovery, defects and interruptions.
+The [public error guide](../skills/oxlint-effect/references/public-errors.md)
+explains the required caller migration and adapter-specific failure semantics.
+
 This folder is a lint-only QA corpus. It is intentionally full of anti-patterns and is not meant to be built, run, or fixed.
 
 Each problematic snippet has an annotation:

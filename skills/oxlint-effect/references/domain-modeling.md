@@ -41,7 +41,60 @@ Branding prevents accidental type interchange; it does not validate input at
 runtime. A schema decoder validates at the point where untrusted data enters.
 Do not manufacture branded values with type assertions.
 
+For paired examples of status variants, composed predicates, and explicit
+lifecycle states, read [domain decisions](domain-decisions.md). That guide
+separates preserved decisions from boundary and transition policy changes.
+
+## Commands, Time, And Options
+
+Read [domain-shapes.bad.ts](../assets/domain-shapes.bad.ts) and
+[domain-shapes.good.ts](../assets/domain-shapes.good.ts) together. These add
+three intentional warnings and a full-DDD clean control:
+
+1. `linteffect/no-raw-domain-primitive-params`: positional transfer arguments
+   become a schema-backed `TransferCommand` with named fields and branded
+   accounts/amount. The decoder and encoder keep the existing field names and
+   numeric values. The example does not invent positive-amount or non-empty-ID
+   rules. Both accounts share a brand, so this does not prove that the caller
+   selected the correct source and destination. Check caller intent as well as
+   typechecking. Update existing positional callers to construct the command.
+2. `linteffect/no-raw-time-domain-field`: `expiresAt` uses an `EpochMillis`
+   brand and a schema codec. This example's wire contract is milliseconds since
+   the Unix epoch, including fractional values. Encoding preserves the value;
+   it does not read the clock or convert to seconds. A brand expresses the unit
+   but cannot detect a caller sending seconds as an ordinary number. For elapsed
+   time or timeouts use the project's `Duration` model instead. Never substitute
+   a duration for an absolute instant. Choose range/precision constraints only
+   when they are part of the consumer's existing contract.
+3. `linteffect/no-overloaded-options-object`: `PaymentIntent` names invoice ID,
+   amount, and optional memo. Omitted, explicitly undefined, empty, and populated
+   memos are covered by tests. The example decoder rejects extra properties
+   explicitly so that accidental fields are not silently discarded. This is a
+   chosen example policy, not equivalent to accepting arbitrary `any` values.
+   Confirm required fields, nullable versus optional fields, and extension-field
+   behaviour before applying a schema to a consumer. Preserve supported
+   extensions explicitly when required.
+
+The synchronous decoders here make fixture validation observable as thrown
+parse errors. In Effect application boundaries, use `Schema.decodeUnknown` and
+map parse errors through the consumer's existing error contract as appropriate.
+Do not move throwing decoders into Effect domain logic without owning that
+failure path.
+
+The tests also compile negative type examples: raw primitives cannot bypass the
+transfer command, an account ID cannot fill the time field, and payment options
+cannot omit the required amount. Runtime roundtrips cover zero, negative and
+fractional numbers; business limits must still be decided by the application.
+
 ## Error Modeling Within DDD
+
+Read [public errors](public-errors.md) for paired public-channel failures and
+repairs, cause preservation, and selective recovery tests.
+
+Read [domain context](domain-context.md) for paired examples of explicit policy
+requirements, modelled clock input, and meaningful tagged failure payloads.
+The guide distinguishes detector acceptance from authorisation and makes the
+example's deliberate policy changes explicit.
 
 For `linteffect/no-error-as-public-effect-error`,
 `linteffect/no-unknown-public-error-channel`, and
