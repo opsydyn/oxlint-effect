@@ -40,6 +40,13 @@ identity, executed logging, successful values and failure propagation. The
 [preservation guide](../skills/oxlint-effect/references/error-preservation.md)
 distinguishes recovery ownership from legitimate `tapError` observation.
 
+The [expected-state failures](../skills/oxlint-effect/assets/expected-state.bad.ts)
+and [repairs](../skills/oxlint-effect/assets/expected-state.good.ts) complete the
+companion DDD corpus with ordinary absence, broad null recovery and thrown
+expected rejection. Tests compare annotation coverage against every DDD rule,
+preserve empty selections, and distinguish defects from typed rejections. The
+[guide](../skills/oxlint-effect/references/expected-state.md) explains caller migration.
+
 This folder is a lint-only QA corpus. It is intentionally full of anti-patterns and is not meant to be built, run, or fixed.
 
 Each problematic snippet has an annotation:

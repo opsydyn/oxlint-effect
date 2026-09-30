@@ -69,6 +69,13 @@ For message-only failures, generic rethrows, or log-only handlers, read
 [error preservation](references/error-preservation.md). Establish recovery
 ownership and distinguish `catchAll` from `tapError` before changing semantics.
 
+For ordinary absence, broad null fallback, or thrown expected rejection, read
+[expected state](references/expected-state.md). Classify the outcome with its
+owner and migrate callers whenever the success or failure channel changes.
+
+The paired corpus covers all exported DDD rules with representative failures
+and passing controls; it does not prove every detection variant or agent repair.
+
 ## Verify And Report
 
 Run the consumer's lint and typecheck commands plus relevant behavioural tests.

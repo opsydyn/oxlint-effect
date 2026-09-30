@@ -212,6 +212,12 @@ and [repairs](./skills/oxlint-effect/assets/error-preservation.good.ts) cover
 message-only failures, generic rethrows and log-only handlers. The
 [preservation guide](./skills/oxlint-effect/references/error-preservation.md)
 explains recovery ownership and the `catchAll`/`tapError` distinction.
+Paired [expected-state failures](./skills/oxlint-effect/assets/expected-state.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/expected-state.good.ts) cover ordinary
+absence, broad null recovery and thrown expected rejection. Their
+[guide](./skills/oxlint-effect/references/expected-state.md) explains the required
+caller changes. The corpus now covers all 21 exported DDD rules with representative
+annotated failures, full-DDD clean controls and tested contracts.
 CI checks referenced rules and presets, relative
 links, npm inclusion, TypeScript contracts, intentional diagnostics, and clean
 DDD repairs. This validates the examples and package contract, not the quality

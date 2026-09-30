@@ -2,18 +2,18 @@
 "@opsydyn/oxlint-effect": minor
 ---
 
-Ship an `oxlint-effect` agent skill for configuring the installed plugin,
-diagnosing DDD warnings, and performing requested domain-model repairs.
-Include focused configuration and domain-modeling references with verified
-failing/passing examples for identifiers, behaviour modes, and structured errors.
-Add paired DDD examples for primitive-heavy commands, time values, and options,
-with boundary roundtrips, optional-field checks, and negative type contracts.
-Add domain variant, predicate, and state-machine pairs with decision-equivalence
-checks, legacy state adapters, and verified transition contracts.
-Preserve consumer policy and intentional QA diagnostics.
-Add explicit-context, clock-ownership, and structured-error pairs with policy
-denial propagation, deterministic expiry checks, and negative type contracts.
-Add public error-channel pairs for generic, unknown and mixed failures, with
-cause preservation, selective recovery and defect/interruption checks.
-Add error-preservation pairs for message loss, generic rethrows and log-only
-handlers, with failure-identity and executed-logging checks and ownership guidance.
+Ship an installable `oxlint-effect` companion agent skill for configuring the
+installed plugin, diagnosing DDD warnings, and performing requested repairs.
+
+- Include configuration guidance and paired failure/repair examples covering all
+  21 existing DDD rules: domain identity, commands, states, predicates, time,
+  policy context, structured errors, recovery ownership and expected outcomes.
+- Verify exact diagnostics, full-DDD clean controls, negative TypeScript
+  contracts, wire roundtrips, error identity, executed logging and failure channels.
+- Document caller migration, intentional QA failures, syntax-detector limitations,
+  `catchAll` versus `tapError`, and the opt-in type-aware configuration boundary.
+- Include the skill, references and examples in the npm package; document separate
+  skill installation through `npx skills add opsydyn/oxlint-effect --skill oxlint-effect`.
+
+Existing lint rules and preset behaviour are unchanged. Fixture checks validate
+the companion examples, not the correctness of every agent-generated repair.

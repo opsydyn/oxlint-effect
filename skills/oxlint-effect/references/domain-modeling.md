@@ -108,6 +108,9 @@ placeholder payloads. For `linteffect/no-expected-state-as-error`, distinguish
 ordinary absence/state from a failed operation before choosing `Option`, a
 variant, or an error.
 
+Read [expected state](expected-state.md) for absence, broad null-recovery and
+thrown-rejection pairs, including explicit caller and failure-channel changes.
+
 For `linteffect/no-effect-fail-error-message`, retain the structured failure
 instead of reducing it to text. For `linteffect/no-catchall-generic-rethrow`,
 `linteffect/no-log-only-error-handling`, `linteffect/no-early-catchall-null`, and

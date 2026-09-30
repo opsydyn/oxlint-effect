@@ -42,6 +42,7 @@ const skillFiles = [
   `${skillRoot}/references/domain-context.md`,
   `${skillRoot}/references/public-errors.md`,
   `${skillRoot}/references/error-preservation.md`,
+  `${skillRoot}/references/expected-state.md`,
   `${skillRoot}/assets/domain.bad.ts`,
   `${skillRoot}/assets/domain.good.ts`,
   `${skillRoot}/assets/domain-shapes.bad.ts`,
@@ -54,6 +55,8 @@ const skillFiles = [
   `${skillRoot}/assets/public-errors.good.ts`,
   `${skillRoot}/assets/error-preservation.bad.ts`,
   `${skillRoot}/assets/error-preservation.good.ts`,
+  `${skillRoot}/assets/expected-state.bad.ts`,
+  `${skillRoot}/assets/expected-state.good.ts`,
 ];
 
 describe("agent skill contract", () => {
@@ -99,12 +102,12 @@ describe("agent skill contract", () => {
   });
 
   it("reports every annotated failure and leaves the DDD repair clean", async () => {
-    for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation"]) {
+    for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation", "expected-state"]) {
       const badPath = `${skillRoot}/assets/${pair}.bad.ts`;
       const bad = await Bun.file(badPath).text();
       const expected = [...bad.matchAll(/EXPECT: linteffect\/([a-z0-9-]+)/g)]
         .map((match) => match[1]!).sort();
-      expect(expected).toHaveLength(3);
+      expect(expected).toHaveLength(pair === "expected-state" ? 4 : 3);
       for (const file of [badPath, `${skillRoot}/assets/${pair}.good.ts`]) {
         const result = spawnSync(path.join(root, "node_modules/.bin/oxlint"), [
           "--config", "tests/fixtures/oxlint/oxlint.agent-skill.config.ts", file,
@@ -127,11 +130,13 @@ describe("agent skill contract", () => {
       `${skillRoot}/assets/domain-context.bad.ts`, `${skillRoot}/assets/domain-context.good.ts`,
       `${skillRoot}/assets/public-errors.bad.ts`, `${skillRoot}/assets/public-errors.good.ts`,
       `${skillRoot}/assets/error-preservation.bad.ts`, `${skillRoot}/assets/error-preservation.good.ts`,
+      `${skillRoot}/assets/expected-state.bad.ts`, `${skillRoot}/assets/expected-state.good.ts`,
       "tests/fixtures/agent-skill-domain-types.ts",
       "tests/fixtures/agent-skill-domain-decisions-types.ts",
       "tests/fixtures/agent-skill-domain-context-types.ts",
       "tests/fixtures/agent-skill-public-errors-types.ts",
       "tests/fixtures/agent-skill-error-preservation-types.ts",
+      "tests/fixtures/agent-skill-expected-state-types.ts",
     ], { cwd: root, encoding: "utf8" });
     expect(`${result.stdout}${result.stderr}`).toBe("");
     expect(result.status).toBe(0);
@@ -380,5 +385,50 @@ describe("agent skill contract", () => {
     entries.length = 0;
     expect(Effect.runSync(Effect.provide(observeProfile(Effect.succeed("profile-1")), logging))).toBe("profile-1");
     expect(entries).toEqual([]);
+  });
+
+  it("covers every DDD rule with an annotated companion failure", async () => {
+    const annotated = new Set<string>();
+    for (const file of skillFiles.filter((file) => file.endsWith(".bad.ts"))) {
+      const source = await Bun.file(file).text();
+      for (const match of source.matchAll(/EXPECT: (linteffect\/[a-z0-9-]+)/g)) annotated.add(match[1]!);
+    }
+    expect([...annotated].sort()).toEqual(Object.keys(exports.dddRules).sort());
+  });
+
+  it("models absence as data without discarding present empty selections", async () => {
+    const { Option } = await import("effect");
+    const { lookupSelection } = await import("../skills/oxlint-effect/assets/expected-state.good");
+    expect(Option.isNone(Effect.runSync(lookupSelection(undefined)))).toBe(true);
+    for (const selection of ["", "selection-1"]) {
+      expect(Option.getOrThrow(Effect.runSync(lookupSelection(selection)))).toBe(selection);
+    }
+  });
+
+  it("preserves profile failure instead of recovering every failure to null", async () => {
+    const { recoverProfile } = await import("../skills/oxlint-effect/assets/expected-state.good");
+    const { ProfileUnavailable } = await import("../skills/oxlint-effect/assets/public-errors.good");
+    const failure = new ProfileUnavailable({ cause: new Error("offline") });
+    expect(Effect.runSync(Effect.flip(recoverProfile(Effect.fail(failure))))).toBe(failure);
+    expect(Effect.runSync(recoverProfile(Effect.succeed("profile-1")))).toBe("profile-1");
+  });
+
+  it("moves the specified checkout rejection from a defect to a structured typed failure", async () => {
+    const { Cause, Exit, Option } = await import("effect");
+    const { rejectCheckout, CheckoutRejectedError } = await import("../skills/oxlint-effect/assets/expected-state.good");
+    const { rejectCheckout: throwingCheckout } = await import("../skills/oxlint-effect/assets/expected-state.bad");
+    const thrown = Effect.runSyncExit(throwingCheckout("closed"));
+    expect(Exit.isFailure(thrown)).toBe(true);
+    if (!Exit.isFailure(thrown)) throw new Error("expected original defect");
+    expect(Option.isSome(Cause.dieOption(thrown.cause))).toBe(true);
+    const failure = Effect.runSync(Effect.flip(rejectCheckout("closed")));
+    expect(failure).toBeInstanceOf(CheckoutRejectedError);
+    expect(failure._tag).toBe("CheckoutRejectedError");
+    expect(failure.reason).toBe("closed");
+    const result = Effect.runSyncExit(rejectCheckout("closed"));
+    expect(Exit.isFailure(result)).toBe(true);
+    if (!Exit.isFailure(result)) throw new Error("expected typed failure");
+    expect(Option.isNone(Cause.dieOption(result.cause))).toBe(true);
+    expect(Option.isSome(Cause.failureOption(result.cause))).toBe(true);
   });
 });
