@@ -1140,7 +1140,8 @@
       "src/index.ts: per-context effectVersionFor; tests/plugin.test.ts: versioned recovery and versioned runners.",
       "scripts/verify-effect-version-consumers.ts; examples/effect3-consumer/src/recovery-runtime and examples/effect4-consumer/src/recovery-runtime; literal per-file diagnostic counts and clean controls; Effect 3.21.4 / 4.0.0.",
       "Plain catchAll (3) / catch (4), direct and piped, expression/block returns, null/undefined/named fallback; nested unrelated callbacks excluded; default/custom/empty boundary policy and mixed-major overrides. Runtime boundary fallback and original failure preservation checked.",
-      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant."
+      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant.",
+      "Q03: catchEager data-first/piped regression added to v4 packed fixtures; v3 catchEager remains outside its operator policy."
     ]
   },
   "no-empty-error-tag": {
@@ -1217,7 +1218,8 @@
       "src/index.ts: per-context effectVersionFor; tests/plugin.test.ts: versioned recovery and versioned runners.",
       "scripts/verify-effect-version-consumers.ts; examples/effect3-consumer/src/recovery-runtime and examples/effect4-consumer/src/recovery-runtime; literal per-file diagnostic counts and clean controls; Effect 3.21.4 / 4.0.0.",
       "Plain catchAll (3) / catch (4), direct and piped, expression/block generic Error rethrows; original/tagged failures clean; nested unrelated callbacks excluded, distinct recovery operators excluded. Runtime identity/cause checks preserve structured failures.",
-      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant."
+      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant.",
+      "Q03: catchEager data-first/piped regression added to v4 packed fixtures; v3 catchEager remains outside its operator policy."
     ]
   },
   "no-log-only-error-handling": {
@@ -1227,12 +1229,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noLogOnlyErrorHandling; transitive helpers: noLogOnlyErrorHandling, getImportSource, isEffectEcosystemImport, logOnlyErrorHandler, errorHandlerCallbacks, isEffectMemberCall, isIdentifier, isFunctionLike, callbackBody, findNode, isEffectLogCall, isModeledErrorOperation, modeledErrorOperators",
-      "Recognition tokens: Effect, catchAll, catchSome, catchTag, catchTags; API and repair controls still require packed qualification."
+      "Q03: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/errorModeling/no-log-only-error-handling.{bad,good}.ts; logging.contracts.ts.",
+      "3 legacy and 14 v4 parsed warnings. V4 plain/eager/Cause/defect/predicate/filter/tag/reason/map recovery recognised; observers and unused nested callbacks excluded. Legacy tapError policy retained. Typed failure/source identity and defect channel preserved at runtime.",
+      "Syntax-local recognition: directly named Effect APIs and inline callbacks; no interprocedural recovery proof."
     ]
   },
   "no-error-as-public-effect-error": {

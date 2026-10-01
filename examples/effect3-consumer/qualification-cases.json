@@ -221,5 +221,27 @@
       }
     },
     "runtime": "src/qualification/errorModeling/domain-errors.contracts.ts"
+  },
+  {
+    "rule": "no-log-only-error-handling",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "plain expression",
+      "piped block",
+      "legacy observer policy"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-log-only-error-handling.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-log-only-error-handling.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-log-only-error-handling.bad.ts": {
+        "linteffect/no-log-only-error-handling": 3
+      }
+    },
+    "runtime": "src/qualification/errorModeling/logging.contracts.ts"
   }
 ]

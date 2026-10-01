@@ -7,3 +7,5 @@ export const block = source.pipe(Effect.catch(() => {
   // EXPECT: linteffect/no-catchall-generic-rethrow (piped block return)
   return Effect.fail(new Error("lost"));
 }));
+// EXPECT: linteffect/no-catchall-generic-rethrow (eager data-first)
+export const eager = Effect.catchEager(source, () => Effect.fail(new Error("lost")));

@@ -109,8 +109,8 @@ try {
     }
     verifyLint(root, "oxlint.recovery-runtime.config.ts", ["src/recovery-runtime/valid.ts", "src/recovery-runtime/main.ts", "src/recovery-runtime/custom-entry.ts", "src/recovery-runtime/mixed-other.ts", "src/recovery-runtime/contracts.ts"], {}, 0);
     verifyLint(root, "oxlint.recovery-runtime.config.ts", ["src/recovery-runtime"], {
-      "linteffect/no-catchall-generic-rethrow": 4,
-      "linteffect/no-early-catchall-null": 6,
+      "linteffect/no-catchall-generic-rethrow": major === 3 ? 4 : 5,
+      "linteffect/no-early-catchall-null": major === 3 ? 6 : 7,
       "linteffect/no-run-effect-outside-boundary": major === 3 ? 6 : 12,
     }, 1, batchExpected);
     verifyLint(root, "oxlint.recovery-runtime.config.ts", ["src/recovery-runtime/mixed-matching.ts", "src/recovery-runtime/mixed-other.ts"], batchExpected["src/recovery-runtime/mixed-matching.ts"], 1, {

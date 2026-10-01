@@ -172,6 +172,32 @@ describe("versioned recovery", () => {
     ...calls.map((node) => ({ visitorName: "CallExpression", node })),
   ], { filename, options: [{ effectVersion: version, ...(boundaryPaths === undefined ? {} : { boundaryPaths }) }] });
 
+  it("Effect qualification Q03 recognises v4 log-only recovery without flagging observers", () => {
+    const log = effectCall("logError", identifier("error"));
+    const names = ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchTag", "catchReason"];
+    for (const name of names) {
+      const reports = inspect("no-log-only-error-handling", [effectCall(name, arrowCallback(log))], 4);
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(log);
+    }
+    for (const name of ["catchTags", "catchReasons"]) {
+      expect(inspect("no-log-only-error-handling", [effectCall(name, objectLiteral(property("DomainError", arrowCallback(log))))], 4)).toHaveLength(1);
+    }
+    expect(inspect("no-log-only-error-handling", [effectCall("tapError", arrowCallback(log)), effectCall("tapCause", arrowCallback(log)), effectCall("tapDefect", arrowCallback(log))], 4)).toHaveLength(0);
+    expect(inspect("no-log-only-error-handling", [effectCall("tapError", arrowCallback(log))], 3)).toHaveLength(1);
+    const body = blockStatement(expressionStatement(arrowCallback(blockStatement(expressionStatement(effectCall("fail", identifier("error")))))), returnStatement(log));
+    expect(inspect("no-log-only-error-handling", [effectCall("catch", arrowCallback(body))], 4)).toHaveLength(1);
+    expect(inspect("no-log-only-error-handling", [effectCall("catch", arrowCallback(blockStatement(expressionStatement(arrowCallback(log)), returnStatement(effectCall("succeed", identifier("value"))))))], 4)).toHaveLength(0);
+  });
+
+  it("Effect qualification Q03 includes eager plain recovery in prior qualified policies", () => {
+    for (const rule of ["no-catchall-generic-rethrow", "no-early-catchall-null"]) {
+      const bad = rule === "no-catchall-generic-rethrow" ? effectCall("fail", newExpression(identifier("Error"))) : effectCall("succeed", nullLiteral());
+      expect(inspect(rule, [effectCall("catchEager", arrowCallback(bad))], 4)).toHaveLength(1);
+      expect(inspect(rule, [effectCall("catchEager", arrowCallback(bad))], 3)).toHaveLength(0);
+    }
+  });
+
   it("plain recovery selects its configured major", () => {
     for (const version of [3, 4] as const) {
       const name = version === 3 ? "catchAll" : "catch";

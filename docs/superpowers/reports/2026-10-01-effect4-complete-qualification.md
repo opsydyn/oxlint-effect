@@ -35,6 +35,15 @@ root types and both packed majors pass; build is 26.82 KB brotlied (27 KB cap).
 
 The plan's Q01-Q52 table is the progress checklist. Wider groups remain open.
 
+Q03: log-only recovery has 3 parsed legacy and 14 v4 warnings; v4 recovery
+families and maps warn while failure-preserving observers stay clean. Runtime
+contracts retain typed error identity and distinguish defects from failures.
+Earlier plain recovery rules now cover catchEager in their packed v4 probes.
+472 tests, both packed majors and root types pass; size remains under 27 KB.
+
 ## Rulings
 
-None so far. Existing documented syntax limits remain in force.
+V4 log-only policy excludes observers because the installed API preserves the
+original failure; legacy tapError reporting is retained for compatibility.
+This is a deliberate major-version policy distinction. Existing syntax-local
+limits remain in force; this is not interprocedural recovery verification.

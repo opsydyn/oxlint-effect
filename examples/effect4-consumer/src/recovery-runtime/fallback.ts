@@ -10,3 +10,5 @@ export const undefinedRecovery = source.pipe(Effect.catch(() => {
 }));
 // EXPECT: linteffect/no-early-catchall-null
 export const namedRecovery = source.pipe(Effect.catch(() => Effect.succeed(fallbackValue)));
+// EXPECT: linteffect/no-early-catchall-null (eager piped)
+export const eager = source.pipe(Effect.catchEager(() => Effect.succeed(null)));

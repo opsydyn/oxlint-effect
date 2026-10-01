@@ -4864,13 +4864,21 @@ function isModeledErrorOperation(node: unknown): boolean {
   return isIdentifier(property) && modeledErrorOperators.has(property.name);
 }
 
-function logOnlyErrorHandler(node: unknown): unknown | undefined {
-  for (const callback of errorHandlerCallbacks(node, new Set(["catchAll", "tapError"]))) {
+const legacyLogOnlyOperators = new Set(["catchAll", "tapError"]);
+
+function logOnlyErrorHandler(node: unknown, version: EffectVersion): unknown | undefined {
+  const callbacks = version === 3
+    ? errorHandlerCallbacks(node, legacyLogOnlyOperators)
+    : effectLogicCallbacks(node, version).filter(() =>
+      /^catch/.test(String((((node as Node).callee as Node).property as Node).name)));
+  for (const callback of callbacks) {
     const body = callbackBody(callback);
-    const log = findNode(body, isEffectLogCall);
+    const search = version === 3 ? findNode : findOwnCallbackNode;
+    const log = search(body, isEffectLogCall);
     if (!log) continue;
 
-    const modeled = findNode(body, isModeledErrorOperation);
+    const modeled = search(body, (child) => isModeledErrorOperation(child) ||
+      (version === 4 && (isEffectMemberCallNamed(child, "failCause") || isEffectMemberCallNamed(child, "die"))));
     if (!modeled) return log;
   }
 
@@ -4878,7 +4886,7 @@ function logOnlyErrorHandler(node: unknown): unknown | undefined {
 }
 
 const catchAllOperators = new Set(["catchAll"]);
-const catchOperators = new Set(["catch"]);
+const catchOperators = new Set(["catch", "catchEager"]);
 const expectedDomainStateNames = new Set(["NotFound", "Missing", "Empty", "None"]);
 
 function isFallbackRecoveryValue(node: unknown): boolean {
@@ -7068,6 +7076,7 @@ const noCatchallGenericRethrow = defineRule({
 
 const noLogOnlyErrorHandling = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -7080,7 +7089,7 @@ const noLogOnlyErrorHandling = defineRule({
       CallExpression(node: any) {
         if (!hasEffectEcosystemImport) return;
 
-        const target = logOnlyErrorHandler(node);
+        const target = logOnlyErrorHandler(node, version);
         if (target) {
           report(
             context,

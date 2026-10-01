@@ -24,7 +24,8 @@
     "classification": "adapted",
     "variants": [
       "data-first expression",
-      "piped block return"
+      "piped block return",
+      "eager plain recovery"
     ],
     "bad": [
       "src/recovery-runtime/rethrow.ts"
@@ -34,7 +35,7 @@
     ],
     "expectedByFile": {
       "src/recovery-runtime/rethrow.ts": {
-        "linteffect/no-catchall-generic-rethrow": 2
+        "linteffect/no-catchall-generic-rethrow": 3
       }
     },
     "runtime": "src/recovery-runtime/contracts.ts"
@@ -46,7 +47,8 @@
     "variants": [
       "null expression",
       "undefined block",
-      "named fallback"
+      "named fallback",
+      "eager plain recovery"
     ],
     "bad": [
       "src/recovery-runtime/fallback.ts"
@@ -57,7 +59,7 @@
     ],
     "expectedByFile": {
       "src/recovery-runtime/fallback.ts": {
-        "linteffect/no-early-catchall-null": 3
+        "linteffect/no-early-catchall-null": 4
       }
     },
     "runtime": "src/recovery-runtime/contracts.ts"
@@ -234,5 +236,38 @@
       }
     },
     "runtime": "src/qualification/errorModeling/domain-errors.contracts.ts"
+  },
+  {
+    "rule": "no-log-only-error-handling",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "plain expression",
+      "piped block",
+      "eager",
+      "cause",
+      "defect",
+      "predicate",
+      "filter",
+      "cause predicate",
+      "cause filter",
+      "tag",
+      "tag map",
+      "reason",
+      "reason map",
+      "unused nested failure"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-log-only-error-handling.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-log-only-error-handling.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-log-only-error-handling.bad.ts": {
+        "linteffect/no-log-only-error-handling": 14
+      }
+    },
+    "runtime": "src/qualification/errorModeling/logging.contracts.ts"
   }
 ]
