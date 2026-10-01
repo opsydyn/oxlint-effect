@@ -571,5 +571,50 @@
       }
     },
     "runtime": "src/qualification/effectComposition/interop.contracts.ts"
+  },
+  {
+    "rule": "no-effect-type-alias",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct alias",
+      "nested alias"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-type-alias.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-type-alias.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-type-alias.bad.ts": {
+        "linteffect/no-effect-type-alias": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/type-surfaces.contracts.ts"
+  },
+  {
+    "rule": "no-public-generic-effect-error",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "named function",
+      "default function",
+      "arrow export",
+      "typed callable",
+      "function expression"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-public-generic-effect-error.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-public-generic-effect-error.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-public-generic-effect-error.bad.ts": {
+        "linteffect/no-public-generic-effect-error": 5
+      }
+    },
+    "runtime": "src/qualification/effectComposition/type-surfaces.contracts.ts"
   }
 ]

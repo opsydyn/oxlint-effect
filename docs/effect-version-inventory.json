@@ -1112,12 +1112,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectTypeAlias; transitive helpers: noEffectTypeAlias, getImportSource, isEffectEcosystemImport, containsQualifiedTypeReference, isQualifiedTypeReference, isIdentifier",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q09: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-type-alias.{bad,good}.ts; type-surfaces.contracts.ts.",
+      "Direct and nested alias warnings per major; inferred aliases and interface method Effect contracts stay clean. Exact report-node assertion retained.",
+      "Installed Effect channel parameter contracts are unchanged. No detector change needed; inferred value and tagged error payloads retained at runtime."
     ]
   },
   "no-public-generic-effect-error": {
@@ -1127,12 +1128,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noPublicGenericEffectError; transitive helpers: noPublicGenericEffectError, getImportSource, isEffectEcosystemImport, exportedGenericEffectErrorTarget, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, isGenericErrorType, isIdentifierTypeReference",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q09: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-public-generic-effect-error.{bad,good}.ts; type-surfaces.contracts.ts.",
+      "Five explicit function/callable export forms warn per major; tagged payload repairs/private/non-Effect controls stay clean. Exact report target and runtime UserNotFound/userId verified.",
+      "Installed Effect channel parameter contracts are unchanged. No detector change needed; inferred value and tagged error payloads retained at runtime."
     ]
   },
   "no-early-catchall-null": {

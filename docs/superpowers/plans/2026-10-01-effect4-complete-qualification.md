@@ -162,7 +162,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q06 | `effectComposition` | `no-effect-fn-generator`, `no-nested-effect-gen`, `no-yield-without-star-in-effect-gen` |
 | [x] | Q07 | `effectComposition` | `no-async-effect-combinator-callback`, `no-throw-in-effect-logic`, `no-try-catch-in-effect-logic` |
 | [x] | Q08 | `effectComposition` | `no-promise-api-in-effect-logic`, `no-swallowed-catch-all`, `no-manual-effect-channels` |
-| [ ] | Q09 | `effectComposition` | `no-effect-type-alias`, `no-public-generic-effect-error` |
+| [x] | Q09 | `effectComposition` | `no-effect-type-alias`, `no-public-generic-effect-error` |
 | [ ] | Q10 | `behaviorDecoration` | `prefer-pipe-for-behavior`, `prefer-decorated-effect-before-gen`, `no-workflow-in-behavior-pipe` |
 | [ ] | Q11 | `styleSeparation` | `no-mixed-pillar-function`, `no-clever-effect-expression`, `prefer-extracted-concept` |
 | [ ] | Q12 | `serviceAndLayerArchitecture` | `prefer-effect-service`, `no-layer-provide-in-service-definition`, `require-service-accessors` |

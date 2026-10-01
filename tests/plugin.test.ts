@@ -50,6 +50,18 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q09 covers explicit type surfaces in both majors", async () => {
+    for (const version of [3, 4] as const) {
+      const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-effect-type-alias", "no-public-generic-effect-error"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+      const annotation = effectEffectTypeReference(tsStringKeyword(), tsTypeReference("Error"), tsTypeReference("never"));
+      const reports = runRuleSequence("no-public-generic-effect-error", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ExportNamedDeclaration", node: exportedFunctionDeclarationReturningType(annotation) }]);
+      expect(reports[0].node).toBe(annotation);
+      const alias = typeAliasDeclaration(annotation);
+      const aliases = runRuleSequence("no-effect-type-alias", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "TSTypeAliasDeclaration", node: alias }]);
+      expect(aliases[0].node).toBe(alias.typeAnnotation);
+    }
+  });
   it("Effect qualification Q08 separates Promise chains from v4 recovery and qualifies plain swallowing", () => {
     const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
     const body = effectCall("succeed", nullLiteral());

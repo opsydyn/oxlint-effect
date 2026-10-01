@@ -64,14 +64,19 @@ callback contracts distinguish valid legacy Promise overloads from v4's stricter
 Effect callbacks. The Q02 self-bound generator gap has its own RED/GREEN and
 packed regression. 477 tests, root types, both packed majors and 26.97 KB pass.
 
-## Rulings
-
 Q08: 13 legacy/25 v4 Promise cases, 4 legacy/16 v4 swallowed-recovery cases
 and two channel-type cases per major pass. V4 visible Promise sources exclude
 Effect.catch and unrelated receivers; stored aliases are outside this syntactic
 scope. asVoid of re-failure stays clean and retains original failure identity.
 Shared visitors and scope walkers have full prior-owner regression coverage.
 478 tests, root types, both packed majors and the unchanged 27 KB size gate pass.
+
+Q09: two alias forms and five explicit public export forms per major warn;
+inferred/interface contracts and structured error repairs stay clean. Runtime
+values and tagged payloads retained. 479 tests, root types, both packed majors
+and the 27 KB size gate pass. No detector change needed.
+
+## Rulings
 
 ## Q08 Decisions
 
