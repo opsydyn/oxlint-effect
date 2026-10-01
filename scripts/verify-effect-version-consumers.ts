@@ -101,6 +101,7 @@ try {
     for (const path of runtimeChecks) assertCommandSuccess(run("bun", [path], root), `Effect ${major} runtime contract ${path}`);
     if (major === 4) {
       verifyLint(root, "oxlint.legacy-accessors.config.ts", ["src/qualification/serviceAndLayerArchitecture/legacy-accessors-exclusion.ts"], {}, 0);
+      verifyLint(root, "oxlint.legacy-dependencies.config.ts", ["src/qualification/serviceAndLayerArchitecture/legacy-dependencies-exclusion.ts"], {}, 0);
     }
     const expected: unknown = await Bun.file(join(root, "expected-diagnostics.json")).json();
     verifyLint(root, "oxlint.config.ts", ["src/failures.ts"], expected, 1);

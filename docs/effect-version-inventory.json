@@ -595,12 +595,12 @@
       "4": false
     },
     "qualification": {
-      "3": "baseline",
+      "3": "qualified",
       "4": "not-applicable"
     },
     "evidence": [
       "src/index.ts: requireServiceDependencies; transitive helpers: requireServiceDependencies, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, serviceDependencyWithoutDeclaration, objectPropertyValue, findNode, isYieldedServiceDependency",
-      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification.",
+      "Q13: pinned legacy serviceAndLayerArchitecture corpus reports effect/scoped delegated Service dependencies twice. Declared Default layers and presence-only empty-array controls compile and preserve value 42 with actual provision. Packed manual v4 policy is a no-op on compiler-negative legacy classes and valid Context.Service make; checked negatives reject removed dependency options. This is declaration presence/name recognition, not inferred graph completeness.",
       "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
     ]
   },
@@ -611,12 +611,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNamespaceEffectImport; transitive helpers: noNamespaceEffectImport, namespaceEffectImport, isEffectEcosystemImport, getImportSource",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q13: unchanged import syntax policy; three root/Effect/Function namespace warnings per pinned major, with named/subpath imports and unrelated local namespace controls clean. Runtime result remains 42. Atom ecosystem API compatibility remains separately allocated; import recognition alone does not qualify it."
     ]
   },
   "no-manual-service-object-export": {
@@ -626,12 +626,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noManualServiceObjectExport; transitive helpers: noManualServiceObjectExport, getImportSource, isEffectEcosystemImport, manualServiceObjectExport, isIdentifier, objectHasServiceMethod, isFunctionLike, isEffectMemberCallNamed, isEffectMemberCall",
-      "Recognition tokens: Service, Effect; API and repair controls still require packed qualification."
+      "Q13: unchanged detector; four literal exports per major warn: arrow, method, direct Effect.fn and pure function members. Valid Effect.Service (v3) and Context.Service with explicit layers (v4), data-only/differently named/private/aliased objects compile and stay clean. Runtime repairs preserve result 42. Scope is suffix/literal-based, not inferred API or alias resolution."
     ]
   },
   "no-layer-merge-in-request-handler": {

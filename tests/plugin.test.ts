@@ -50,6 +50,27 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q13 excludes legacy dependency options from v4", () => {
+    const dependency = yieldExpression(identifier("DatabaseService"), true);
+    const node = serviceClassDeclaration(objectLiteral(property("effect", effectCall("gen", generatorCallback(blockStatement(expressionStatement(dependency)))))));
+    const visits = [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ClassDeclaration", node }];
+    const legacy = runRuleSequence("require-service-dependencies", visits, { options: [{ effectVersion: 3 }] });
+    expect(legacy[0].node).toBe(dependency);
+    expect(runRuleSequence("require-service-dependencies", visits, { options: [{ effectVersion: 4 }] })).toHaveLength(0);
+  });
+  it("Effect qualification Q13 has packed evidence for import and export heuristics", async () => {
+    for (const version of [3, 4] as const) {
+      const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-namespace-effect-import", "no-manual-service-object-export"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+      const namespace = namespaceImportFrom("effect/Effect", "Effects");
+      expect(runRule("no-namespace-effect-import", "ImportDeclaration", namespace)[0].node).toBe(namespace.specifiers[0]);
+      expect(runRule("no-namespace-effect-import", "ImportDeclaration", namespaceImportFrom("./local", "Local"))).toHaveLength(0);
+      const declarator = variableDeclaratorWithInit("PublicService", objectLiteral(property("load", arrowCallback(effectCall("succeed", identifier("value"))))));
+      const node = { type: "ExportNamedDeclaration", declaration: { type: "VariableDeclaration", declarations: [declarator] } };
+      const reports = runRuleSequence("no-manual-service-object-export", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ExportNamedDeclaration", node }], { options: [{ effectVersion: version }] });
+      expect(reports[0].node).toBe(declarator);
+    }
+  });
   it("Effect qualification Q12 gives version-correct service migration advice", () => {
     const inspect = (node: unknown, version: 3 | 4) => runRuleSequence("prefer-effect-service", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
     for (const name of ["Tag", "GenericTag"]) {

@@ -6087,6 +6087,7 @@ const requireServiceAccessors = defineRule({
 
 const requireServiceDependencies = defineRule({
   create(context: OxlintContext) {
+    if (effectVersionFor(context.options) === 4) return {};
     let hasEffectEcosystemImport = false;
 
     return {

@@ -879,5 +879,54 @@
       }
     },
     "runtime": "src/qualification/serviceAndLayerArchitecture/services.contracts.ts"
+  },
+  {
+    "rule": "no-namespace-effect-import",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "root namespace",
+      "Effect subpath",
+      "Function subpath",
+      "named repair",
+      "local namespace"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-namespace-effect-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-namespace-effect-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-namespace-effect-import.bad.ts": {
+        "linteffect/no-namespace-effect-import": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/service-exports.contracts.ts"
+  },
+  {
+    "rule": "no-manual-service-object-export",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "arrow member",
+      "method member",
+      "Effect.fn member",
+      "pure suffix heuristic",
+      "service repair",
+      "shape/name/private/alias controls"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-manual-service-object-export.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-manual-service-object-export.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-manual-service-object-export.bad.ts": {
+        "linteffect/no-manual-service-object-export": 4
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/service-exports.contracts.ts"
   }
 ]

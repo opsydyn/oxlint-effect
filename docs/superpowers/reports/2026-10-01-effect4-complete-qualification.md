@@ -134,6 +134,28 @@ by this batch; Q13-Q52 and cross-group closure remain open.
 Fresh gates: 483 tests, root typecheck, both packed majors (including manual
 v4 accessor exclusion), build, size 27.38 KB under 30 KB and diff check pass.
 
+## Q13 Dependencies And Exports
+
+Q13: dependency checks are legacy-only and explicitly inactive under manual
+v4 policy. RED reproduced a v4 legacy dependency warning and missing packed
+evidence; GREEN confirms report targets and isolated major policy. Import and
+manual-export detectors needed no changes. The packed corpus reports two v3
+effect/scoped dependency cases, three root/subpath namespace imports and four
+manual literal service exports per major. Controls include named/local imports,
+data-only/differently named/private/aliased objects and actual version-correct
+services. Runtime repairs preserve value 42, including explicit v4 make-layer
+dependency provision. Compiler-negative controls reject removed v4 options;
+the parsed legacy probe is never executed. Empty dependency arrays pass the
+existing option-presence policy and still require contextual provision.
+
+Ruling: preserve existing suffix/literal/declaration-presence heuristics rather
+than introduce inferred dependency graphs or broaden export resolution during
+compatibility work. Pure function members in matching literals can warn;
+separately exported aliases are not resolved. These limits are now documented
+and exercised by typed/runtime controls. Fresh 485 tests, root typecheck,
+both packed majors, build, 27.39 KB under 30 KB and diff check pass.
+Q14-Q52 and cross-group closure remain open.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
