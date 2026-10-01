@@ -1867,12 +1867,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noRaceWithoutCleanup; transitive helpers: noRaceWithoutCleanup, getImportSource, isEffectEcosystemImport, isEffectRaceWithoutCleanup, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallInSet, raceCleanupCalls",
-      "Recognition tokens: Effect, race, raceAll, acquireRelease, acquireUseRelease, ensuring, forkIn, forkScoped; API and repair controls still require packed qualification."
+      "src/index.ts: noRaceWithoutCleanup; transitive helpers: noRaceWithoutCleanup, getImportSource, isEffectEcosystemImport, isEffectRaceWithoutCleanup, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallInSet, raceCleanupCalls; Q17: v4RaceMembers, isV4RaceMember, v4RaceConstruction, getEffectGeneratorArgument, findNode, isPipeCall",
+      "Q17: legacy race/raceAll marker contract retained (two parsed warnings); v4 adds raceFirst/raceAllFirst, curried and terminal-pipe forms (seven), with inner constructors reported once and local enclosing scope/finalizer recognition through plain/self-bound gen and named generator fn. Curried cleanup arguments and winner-observer options typecheck. Opposite-policy counts preserve two common race warnings. Runtime distinguishes success/first completion, demonstrates bare loser resource leakage despite interruption, and verifies explicit repair releases once. Markers are not proof that every branch owns release; named task/cleanup aliases remain opaque."
     ]
   },
   "no-unobserved-fiber": {
@@ -1882,12 +1882,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noUnobservedFiber; transitive helpers: noUnobservedFiber, getImportSource, isEffectEcosystemImport, forkedFiberVariableName, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, observedFiberVariableName, fiberObservationCalls",
-      "Recognition tokens: Effect, fork, Fiber; API and repair controls still require packed qualification."
+      "src/index.ts: noUnobservedFiber; transitive helpers: noUnobservedFiber, getImportSource, isEffectEcosystemImport, forkedFiberVariableName, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, observedFiberVariableName, fiberObservationCalls; Q17: v4ForkConstruction, v4FiberObservedReference, sourceCode.getDeclaredVariables",
+      "Q17: legacy direct lazy Effect.fork initializer/file-wide-name contract retained (three parsed warnings). V4 tracks yielded child/detached direct/curried/terminal-pipe handles (six) and uses installed Oxlint 1.71 getDeclaredVariables references, preventing same-name and block-shadow joins from hiding unrelated unobserved bindings. Scalar join/await/interrupt, reference pipes, returned ownership, scoped forks and lazy Effects stay clean. Actual join/await failure identity, detached transfer value and observed interruption/acquireRelease teardown pass. Reference syntax is not execution or path proof; aliases, aggregates and arbitrary wrapped initializers are not inferred."
     ]
   },
   "no-unbounded-concurrent-retry": {
@@ -1897,12 +1897,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noUnboundedConcurrentRetry; transitive helpers: noUnboundedConcurrentRetry, getImportSource, isEffectEcosystemImport, isUnboundedConcurrentRetry, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption, isUnboundedEffectForEach, containsEffectMemberCallInSet, retryCalls",
-      "Recognition tokens: Effect, all, forEach; API and repair controls still require packed qualification."
+      "src/index.ts: noUnboundedConcurrentRetry; transitive helpers: noUnboundedConcurrentRetry, getImportSource, isEffectEcosystemImport, isUnboundedConcurrentRetry, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption, isUnboundedEffectForEach, containsEffectMemberCallInSet, retryCalls; Q17: unchanged recognition",
+      "Q17: unchanged immediate mapped-all/forEach inline retry plus option-presence contract; four parsed warnings per pinned major cover direct and piped retry, absent and opaque named options. Explicit options, stored inputs and explicit unbounded values stay clean by existing scope, not boundedness proof. Installed/runtime defaults are sequential; corrected message does not claim absent options launch unlimited work. Repairs retain ordered results, original exhausted failure and two attempts per job. Deferred handshake proves at most two active retry jobs with teardown at zero."
     ]
   },
   "no-blocking-call-in-effect": {

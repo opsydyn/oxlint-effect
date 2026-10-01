@@ -105,6 +105,10 @@ try {
       assertCommandSuccess(run("bun", ["-e", script], root, 60_000), `Effect ${major} runtime contract ${path}`, marker);
     }
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
+    verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
+      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },
+      "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts": {},
+    });
     if (major === 4) {
       verifyLint(root, "oxlint.legacy-accessors.config.ts", ["src/qualification/serviceAndLayerArchitecture/legacy-accessors-exclusion.ts"], {}, 0);
       verifyLint(root, "oxlint.legacy-dependencies.config.ts", ["src/qualification/serviceAndLayerArchitecture/legacy-dependencies-exclusion.ts"], {}, 0);

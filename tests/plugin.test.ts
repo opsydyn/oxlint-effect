@@ -50,6 +50,55 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q17 recognises first-completion races and enclosing cleanup", () => {
+    const inspect = (node: unknown, major: 3 | 4) => runRuleSequence("no-race-without-cleanup", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
+    for (const name of ["race", "raceAll", "raceFirst", "raceAllFirst"]) {
+      const node = effectCall(name, identifier("left"), identifier("right"));
+      expect(inspect(node, 4)[0]?.node).toBe(node);
+      const enclosing = effectCall("scoped", node);
+      Object.assign(node, { parent: enclosing });
+      expect(inspect(node, 4)).toHaveLength(0);
+    }
+    expect(inspect(effectCall("raceFirst", identifier("left"), identifier("right")), 3)).toHaveLength(0);
+    const inner = effectCall("raceFirst", identifier("right"));
+    const outer = callExpression(inner, identifier("left"));
+    Object.assign(inner, { parent: outer });
+    expect(inspect(inner, 4)).toHaveLength(0);
+    expect(inspect(outer, 4)[0]?.node).toBe(outer);
+    const cleanedInner = effectCall("raceFirst", effectCall("ensuring", identifier("right"), identifier("release")));
+    expect(inspect(callExpression(cleanedInner, identifier("left")), 4)).toHaveLength(0);
+    const operator = memberExpression("Effect", "raceAllFirst");
+    expect(inspect(pipeCall(identifier("effects"), operator), 4)).toHaveLength(1);
+    const nested = effectCall("raceFirst", identifier("left"), identifier("right"));
+    const generator = generatorCallback(blockStatement());
+    const gen = effectCall("gen", generator);
+    const scoped = effectCall("scoped", gen);
+    Object.assign(nested, { parent: generator });
+    Object.assign(generator, { parent: gen });
+    Object.assign(gen, { parent: scoped });
+    expect(inspect(nested, 4)).toHaveLength(0);
+    const useRace = effectCall("raceFirst", identifier("left"), identifier("right"));
+    const use = arrowCallback(useRace);
+    const owner = effectCall("acquireUseRelease", identifier("acquire"), use, identifier("release"));
+    Object.assign(useRace, { parent: use });
+    Object.assign(use, { parent: owner });
+    expect(inspect(useRace, 4)).toHaveLength(0);
+  });
+  it("Effect qualification Q17 recognises yielded v4 fiber bindings, not stored effects", () => {
+    const inspect = (node: unknown, major: 3 | 4) => runRuleSequence("no-unobserved-fiber", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "VariableDeclarator", node }, { visitorName: "Program:exit", node: { type: "Program" } }], { options: [{ effectVersion: major }] });
+    for (const name of ["forkChild", "forkDetach"]) {
+      const binding = variableDeclaratorWithInit("fiber", yieldExpression(effectCall(name, identifier("task")), true));
+      expect(inspect(binding, 4)[0]?.node).toBe(binding);
+      expect(inspect(variableDeclaratorWithInit("lazy", effectCall(name, identifier("task"))), 4)).toHaveLength(0);
+      expect(inspect(binding, 3)).toHaveLength(0);
+    }
+  });
+  it("Effect qualification Q17 supplies packed evidence for all three contracts", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-race-without-cleanup", "no-unobserved-fiber", "no-unbounded-concurrent-retry"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q16 diagnoses v4 discarded fork constructors and handles", () => {
     const inspect = (expression: unknown, major: 3 | 4) => runRuleSequence("no-fire-and-forget-fork", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ExpressionStatement", node: expressionStatement(expression) }], { options: [{ effectVersion: major }] });
     for (const name of ["forkChild", "forkDetach"]) {

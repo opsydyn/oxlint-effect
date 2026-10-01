@@ -2481,7 +2481,42 @@ const raceCleanupCalls = new Set([
   "scoped",
 ]);
 
-function isEffectRaceWithoutCleanup(node: unknown): boolean {
+const v4RaceMembers = new Set(["race", "raceAll", "raceFirst", "raceAllFirst"]);
+
+function isV4RaceMember(node: unknown): boolean {
+  return [...v4RaceMembers].some(name => isEffectMemberCallNamed(node, name) || isEffectMemberExpressionNamed(node, name));
+}
+
+function v4RaceConstruction(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") return false;
+  return isV4RaceMember(node) || isV4RaceMember((node as Node).callee) ||
+    (isPipeCall(node) && isV4RaceMember(((node as Node).arguments as unknown[] | undefined)?.at(-1)));
+}
+
+function isEffectRaceWithoutCleanup(node: unknown, version: EffectVersion = 3): boolean {
+  if (version === 4) {
+    if (!v4RaceConstruction(node)) return false;
+    const parent = (node as Node).parent;
+    if (typeof parent === "object" && parent !== null && v4RaceConstruction(parent) &&
+      ((parent as Node).callee === node || (isPipeCall(parent) && ((parent as Node).arguments as unknown[] | undefined)?.at(-1) === node))) return false;
+    const hasCleanup = (value: unknown) => findNode(value, candidate => [...raceCleanupCalls].some(name =>
+      isEffectMemberCallNamed(candidate, name) || isEffectMemberExpressionNamed(candidate, name))) !== undefined;
+    if (hasCleanup((node as Node).arguments) || hasCleanup(((node as Node).callee as Node | undefined)?.arguments)) return false;
+    let current = parent;
+    const seen = new WeakSet<object>();
+    while (typeof current === "object" && current !== null && !seen.has(current)) {
+      seen.add(current);
+      if (isFunctionLike(current) &&
+        getEffectGeneratorArgument((current as Node).parent, "gen", 4) !== current &&
+        getEffectGeneratorArgument((current as Node).parent, "fn", 4) !== current &&
+        !(isEffectMemberCallNamed((current as Node).parent, "acquireUseRelease") &&
+          (((current as Node).parent as Node).arguments as unknown[] | undefined)?.[1] === current)) break;
+      if (isEffectMemberCall(current) && raceCleanupCalls.has(((current.callee as Node).property as Node).name as string)) return false;
+      if (isPipeCall(current) && hasCleanup((current as Node).arguments)) return false;
+      current = (current as Node).parent;
+    }
+    return true;
+  }
   if (!isEffectMemberCallNamed(node, "race") && !isEffectMemberCallNamed(node, "raceAll")) {
     return false;
   }
@@ -3013,6 +3048,17 @@ function observedFiberVariableName(node: unknown): string | undefined {
 
   const [fiber] = call.arguments;
   return isIdentifier(fiber) ? fiber.name : undefined;
+}
+
+function v4FiberObservedReference(reference: unknown): boolean {
+  if (!isIdentifier(reference)) return false;
+  const parent = reference.parent as Node | undefined;
+  if (!parent) return false;
+  if (parent.type === "ReturnStatement" && parent.argument === reference) return true;
+  if (observedFiberVariableName(parent) === reference.name && firstArgument(parent as Node & { arguments: unknown[] }) === reference) return true;
+  const pipe = parent.type === "MemberExpression" && parent.object === reference ? parent.parent : parent;
+  return isPipeCall(pipe) && findNode((pipe as Node).arguments, candidate =>
+    [...fiberObservationCalls].some(name => isMemberExpression(candidate, "Fiber", name))) !== undefined;
 }
 
 function isEffectAsVoidPipeArgument(node: unknown): boolean {
@@ -8179,11 +8225,14 @@ const noRaceWithoutCleanup = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isEffectRaceWithoutCleanup(node)) {
+        const version = effectVersionFor(context.options);
+        if (hasEffectEcosystemImport && isEffectRaceWithoutCleanup(node, version)) {
           report(
             context,
             node,
-            "Rule: avoid Effect.race without loser cleanup. Why: racing effects without ensuring/scoped cleanup can leak losing work or resources. Fix: wrap raced effects with Effect.ensuring/acquireRelease or use a scoped race boundary.",
+            version === 3
+              ? "Rule: avoid Effect.race without loser cleanup. Why: racing effects without ensuring/scoped cleanup can leak losing work or resources. Fix: wrap raced effects with Effect.ensuring/acquireRelease or use a scoped race boundary."
+              : "Rule: require visible cleanup ownership around Effect races. Why: race operators interrupt losers, but resource release still needs a finalizer or scope. Fix: expose ensuring/acquireRelease or a scoped race boundary; race/raceAll select success, raceFirst/raceAllFirst select first completion.",
           );
         }
       },
@@ -8196,6 +8245,7 @@ const noUnobservedFiber = defineRule({
     let hasEffectEcosystemImport = false;
     const forkedFibers = new Map<string, unknown>();
     const observedFibers = new Set<string>();
+    const v4Bindings = new Set<any>();
 
     return {
       ImportDeclaration(node: any) {
@@ -8205,12 +8255,17 @@ const noUnobservedFiber = defineRule({
         }
       },
       VariableDeclarator(node: any) {
+        if (effectVersionFor(context.options) === 4) {
+          if (isIdentifier(node.id) && node.init?.type === "YieldExpression" && v4ForkConstruction(node.init.argument)) v4Bindings.add(node);
+          return;
+        }
         const name = forkedFiberVariableName(node);
         if (name) {
           forkedFibers.set(name, node);
         }
       },
       CallExpression(node: any) {
+        if (effectVersionFor(context.options) === 4) return;
         const name = observedFiberVariableName(node);
         if (name) {
           observedFibers.add(name);
@@ -8218,6 +8273,16 @@ const noUnobservedFiber = defineRule({
       },
       "Program:exit"() {
         if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        if (effectVersionFor(context.options) === 4) {
+          for (const node of v4Bindings) {
+            const variables = context.sourceCode?.getDeclaredVariables(node) ?? [];
+            if (!variables.some(variable => variable.references.some(reference => v4FiberObservedReference(reference.identifier)))) {
+              report(context, node, "Rule: avoid unobserved forked fibers. Why: yielded child/detached handles need explicit observation or ownership transfer. Fix: join/await/interrupt the same lexical binding, return it to its owner, or use scoped fork APIs. This checks reference syntax, not whether observation executes.");
+            }
+          }
           return;
         }
 
@@ -8251,7 +8316,7 @@ const noUnboundedConcurrentRetry = defineRule({
           report(
             context,
             node,
-            "Rule: avoid unbounded concurrent retry. Why: retry inside unbounded parallel collection effects can amplify load and create retry storms. Fix: add an explicit concurrency limit or move retry behind a bounded queue/backoff policy.",
+            "Rule: avoid unbounded concurrent retry policies. Why: inline retries need an explicit collection scheduling policy; omitted concurrency defaults to sequential execution, not unlimited parallelism. Fix: add an explicit concurrency limit and a bounded retry/backoff policy. This heuristic checks option presence, not its bound or retry count.",
           );
         }
       },

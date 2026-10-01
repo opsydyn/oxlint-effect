@@ -1157,5 +1157,85 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/contracts.ts"
+  },
+  {
+    "rule": "no-race-without-cleanup",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "first success race and raceAll",
+      "explicit loser ensuring",
+      "resource scope marker",
+      "raceFirst and raceAllFirst",
+      "curried construction once",
+      "pipe forms",
+      "enclosing scope and finalizer",
+      "plain self-bound and named fn scoped boundaries",
+      "acquireUseRelease use callback ownership",
+      "winner observer option"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-race-without-cleanup.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": {
+        "linteffect/no-race-without-cleanup": 7
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
+  },
+  {
+    "rule": "no-unobserved-fiber",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "yielded child and detached handles",
+      "pipe and curried startup",
+      "lexical same-name and shadow controls",
+      "join await interrupt",
+      "method and functional pipe observations",
+      "returned ownership transfer",
+      "lazy Effects and scoped forks clean"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unobserved-fiber.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts": {
+        "linteffect/no-unobserved-fiber": 6
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
+  },
+  {
+    "rule": "no-unbounded-concurrent-retry",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "mapped all",
+      "forEach",
+      "piped retry",
+      "named options limit",
+      "explicit collection and retry budgets",
+      "option-presence and stored input limits"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.bad.ts": {
+        "linteffect/no-unbounded-concurrent-retry": 4
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
   }
 ]

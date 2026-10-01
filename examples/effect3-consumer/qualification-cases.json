@@ -1114,5 +1114,74 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/contracts.ts"
+  },
+  {
+    "rule": "no-race-without-cleanup",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "first success race and raceAll",
+      "explicit loser ensuring",
+      "resource scope marker"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-race-without-cleanup.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": {
+        "linteffect/no-race-without-cleanup": 2
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
+  },
+  {
+    "rule": "no-unobserved-fiber",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct lazy initializer heuristic",
+      "yielded joined handles",
+      "scoped forks clean"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unobserved-fiber.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts": {
+        "linteffect/no-unobserved-fiber": 3
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
+  },
+  {
+    "rule": "no-unbounded-concurrent-retry",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "mapped all",
+      "forEach",
+      "piped retry",
+      "named options limit",
+      "explicit collection and retry budgets",
+      "option-presence and stored input limits"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.bad.ts": {
+        "linteffect/no-unbounded-concurrent-retry": 4
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
   }
 ]

@@ -235,6 +235,50 @@ Fresh 493 tests, root types, both packed majors with completion evidence, build,
 size 27.92 KB under 30 KB and diff check pass. Q17-Q52 and cross-group closure
 remain open; 97 rules retain an unqualified applicable version.
 
+## Q17 Races, Observations And Retry Budgets
+
+RED exposed enclosing race cleanup, first-completion forms, yielded v4 fiber
+initializers and missing packed cases. Parsed clean controls then exposed
+curried cleanup arguments and scoped generator ownership; focused regressions
+went RED before both fixes. GREEN covers direct/curried/terminal-pipe races,
+plain/self-bound gen and named generator fn boundaries, winner options, and
+yielded child/detached handles with native Oxlint lexical references.
+Final boundary review added a RED regression for an inline acquireUseRelease
+use callback; GREEN follows that exact ownership callback and verifies its
+resource release once, without inheriting ownership through unrelated functions.
+Same-name functions and block-shadow joins cannot hide another v4 binding.
+Legacy race argument markers and direct lazy fork initializer/name semantics
+are retained, including the documented legacy raceFirst recognition gap.
+
+Parsed counts: races two legacy/seven v4, fibers three legacy/six v4, inline
+retry scheduling four per major. Opposite-policy parsing retains two common
+race warnings and no foreign fork-initializer warnings. Compiler-negative
+fixtures verify raceAllFirst is v4-only and raceWith is removed in v4.
+Clean join/await/interrupt, reference pipes, lazy storage, explicit return
+ownership and scoped controls typecheck without casts or warning suppression.
+
+Runtime proves first-success versus first-completion outcomes, winner observer
+index, original join/await/exhausted-retry failure identity, returned detached
+values, and acquired-resource release exactly once under observed interruption.
+Deferred-gated winners demonstrate that interrupting a bare resource-owning
+loser does not release it, while the explicit ensuring repair does. The retry
+repair retains ordered values and two attempts per job while a handshake proves
+the two-worker maximum and final active count zero. All manifest runtime
+contracts still require post-import completion evidence and a deadlock watchdog.
+
+Ruling: native lexical scope metadata is available in the pinned Oxlint 1.71
+plugin API and is not compiler type analysis. Use it for v4 observation instead
+of expanding hand-written scope lookup or retaining global-name suppression.
+Reference presence is not execution/path proof; stored aliases, aggregate
+observers and arbitrary wrappers remain outside scope. Race cleanup remains
+a marker heuristic, not per-branch release proof. Preserve the retry
+option-presence contract but correct its false description of serial defaults;
+explicit unbounded values remain a documented pre-existing gap.
+
+Fresh 496 tests, root types, both packed majors with completion evidence, build,
+size 28.46 KB under 30 KB and diff check pass. Q18-Q52 and cross-group closure
+remain open; 94 rules retain an unqualified applicable version.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
