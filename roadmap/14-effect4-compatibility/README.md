@@ -43,6 +43,12 @@ even when they are not the three headline rules.
 See the [completed batch allocation](./recovery-runtime-batch.md) and
 [qualification report](../../docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md).
 
+The [wider qualification completion plan](../../docs/superpowers/plans/2026-10-01-effect4-complete-qualification.md)
+allocates the remaining 142 rule work items into 52 group-owned batches of at
+most three. Its [machine-readable allocation](./completion-batches.json) records
+the baseline, not completed qualification. The plan awaits review; no wider
+batch has advanced from planning to verified implementation yet.
+
 - [x] Qualify plain recovery for `no-catchall-generic-rethrow` and `no-early-catchall-null` across majors.
 - [x] Qualify ordinary and immediate context-aware runners for `no-run-effect-outside-boundary`.
 - [x] Repair runner boundary options and add transitive runner regressions.

@@ -1,0 +1,461 @@
+{
+  "baseline": "e8f93de",
+  "ruleCount": 142,
+  "batchCount": 52,
+  "batches": [
+    {
+      "id": "Q01",
+      "group": "errorModeling",
+      "rules": [
+        "no-error-as-public-effect-error",
+        "no-unknown-public-error-channel",
+        "no-mixed-effect-error-shapes"
+      ]
+    },
+    {
+      "id": "Q02",
+      "group": "errorModeling",
+      "rules": [
+        "no-expected-state-as-error",
+        "no-empty-error-tag",
+        "no-exception-domain-error"
+      ]
+    },
+    {
+      "id": "Q03",
+      "group": "errorModeling",
+      "rules": [
+        "no-log-only-error-handling"
+      ]
+    },
+    {
+      "id": "Q04",
+      "group": "effectComposition",
+      "rules": [
+        "no-effect-as",
+        "no-effect-do",
+        "no-effect-bind"
+      ]
+    },
+    {
+      "id": "Q05",
+      "group": "effectComposition",
+      "rules": [
+        "no-effect-async",
+        "no-effect-ignore",
+        "no-effect-never"
+      ]
+    },
+    {
+      "id": "Q06",
+      "group": "effectComposition",
+      "rules": [
+        "no-effect-fn-generator",
+        "no-nested-effect-gen",
+        "no-yield-without-star-in-effect-gen"
+      ]
+    },
+    {
+      "id": "Q07",
+      "group": "effectComposition",
+      "rules": [
+        "no-async-effect-combinator-callback",
+        "no-throw-in-effect-logic",
+        "no-try-catch-in-effect-logic"
+      ]
+    },
+    {
+      "id": "Q08",
+      "group": "effectComposition",
+      "rules": [
+        "no-promise-api-in-effect-logic",
+        "no-swallowed-catch-all",
+        "no-manual-effect-channels"
+      ]
+    },
+    {
+      "id": "Q09",
+      "group": "effectComposition",
+      "rules": [
+        "no-effect-type-alias",
+        "no-public-generic-effect-error"
+      ]
+    },
+    {
+      "id": "Q10",
+      "group": "behaviorDecoration",
+      "rules": [
+        "prefer-pipe-for-behavior",
+        "prefer-decorated-effect-before-gen",
+        "no-workflow-in-behavior-pipe"
+      ]
+    },
+    {
+      "id": "Q11",
+      "group": "styleSeparation",
+      "rules": [
+        "no-mixed-pillar-function",
+        "no-clever-effect-expression",
+        "prefer-extracted-concept"
+      ]
+    },
+    {
+      "id": "Q12",
+      "group": "serviceAndLayerArchitecture",
+      "rules": [
+        "prefer-effect-service",
+        "no-layer-provide-in-service-definition",
+        "require-service-accessors"
+      ]
+    },
+    {
+      "id": "Q13",
+      "group": "serviceAndLayerArchitecture",
+      "rules": [
+        "require-service-dependencies",
+        "no-namespace-effect-import",
+        "no-manual-service-object-export"
+      ]
+    },
+    {
+      "id": "Q14",
+      "group": "serviceAndLayerArchitecture",
+      "rules": [
+        "no-layer-merge-in-request-handler",
+        "no-service-method-returning-promise",
+        "prefer-layer-pipe"
+      ]
+    },
+    {
+      "id": "Q15",
+      "group": "serviceAndLayerArchitecture",
+      "rules": [
+        "no-inline-layer-provide-in-program",
+        "prefer-layer-mergeall-for-infrastructure",
+        "no-service-layer-scatter"
+      ]
+    },
+    {
+      "id": "Q16",
+      "group": "concurrencySafety",
+      "rules": [
+        "no-unbounded-effect-all",
+        "no-fire-and-forget-fork",
+        "no-fork-in-loop"
+      ]
+    },
+    {
+      "id": "Q17",
+      "group": "concurrencySafety",
+      "rules": [
+        "no-race-without-cleanup",
+        "no-unobserved-fiber",
+        "no-unbounded-concurrent-retry"
+      ]
+    },
+    {
+      "id": "Q18",
+      "group": "concurrencySafety",
+      "rules": [
+        "no-blocking-call-in-effect",
+        "no-promise-concurrency-in-effect",
+        "no-shared-mutable-state-across-fibers"
+      ]
+    },
+    {
+      "id": "Q19",
+      "group": "concurrencySafety",
+      "rules": [
+        "no-timeout-with-noninterruptible-promise",
+        "no-uninterruptible-concurrent-region",
+        "no-unbounded-queue-or-pubsub"
+      ]
+    },
+    {
+      "id": "Q20",
+      "group": "concurrencySafety",
+      "rules": [
+        "no-global-mutable-concurrency-state",
+        "no-manual-deferred-coordination",
+        "no-yield-with-held-semaphore-permit"
+      ]
+    },
+    {
+      "id": "Q21",
+      "group": "concurrencySafety",
+      "rules": [
+        "no-yield-with-held-mutable-ref",
+        "no-unscoped-background-fiber",
+        "no-acquire-without-scoped-release"
+      ]
+    },
+    {
+      "id": "Q22",
+      "group": "resourceLifetime",
+      "rules": [
+        "no-manual-resource-close",
+        "no-unbound-scope",
+        "no-resource-succeed-escape"
+      ]
+    },
+    {
+      "id": "Q23",
+      "group": "resourceLifetime",
+      "rules": [
+        "no-resource-without-acquire-release",
+        "no-request-scoped-long-lived-resource",
+        "no-global-resource-singleton"
+      ]
+    },
+    {
+      "id": "Q24",
+      "group": "resourceLifetime",
+      "rules": [
+        "no-nested-acquire-release",
+        "no-missing-layer-provision-at-run",
+        "no-run-with-open-resource"
+      ]
+    },
+    {
+      "id": "Q25",
+      "group": "platformAndBoundaryHygiene",
+      "rules": [
+        "no-hidden-effect-execution",
+        "no-boundary-try-catch-without-effect-map",
+        "no-node-fs-in-effect-code"
+      ]
+    },
+    {
+      "id": "Q26",
+      "group": "platformAndBoundaryHygiene",
+      "rules": [
+        "no-json-parse-without-schema",
+        "no-date-now-in-effect",
+        "no-node-platform-in-shared-code"
+      ]
+    },
+    {
+      "id": "Q27",
+      "group": "platformAndBoundaryHygiene",
+      "rules": [
+        "no-process-env-direct-read"
+      ]
+    },
+    {
+      "id": "Q28",
+      "group": "testingObservabilityAndQa",
+      "rules": [
+        "no-console-in-effect-flow",
+        "no-effect-log-without-structured-context",
+        "require-span-on-public-service-method"
+      ]
+    },
+    {
+      "id": "Q29",
+      "group": "testingObservabilityAndQa",
+      "rules": [
+        "no-runpromise-in-non-async-test-body",
+        "require-effect-flip-for-error-test",
+        "no-test-mock-layer-when-default-available"
+      ]
+    },
+    {
+      "id": "Q30",
+      "group": "domainModeling",
+      "rules": [
+        "no-raw-domain-id-alias",
+        "no-boolean-domain-flag",
+        "no-magic-domain-string"
+      ]
+    },
+    {
+      "id": "Q31",
+      "group": "domainModeling",
+      "rules": [
+        "no-raw-domain-primitive-params",
+        "no-raw-time-domain-field",
+        "no-overloaded-options-object"
+      ]
+    },
+    {
+      "id": "Q32",
+      "group": "domainModeling",
+      "rules": [
+        "no-domain-logic-in-conditional",
+        "no-implicit-state-machine-object",
+        "no-adhoc-domain-error"
+      ]
+    },
+    {
+      "id": "Q33",
+      "group": "domainModeling",
+      "rules": [
+        "no-domain-meaning-by-folder-only",
+        "no-new-date-in-domain-logic"
+      ]
+    },
+    {
+      "id": "Q34",
+      "group": "optionMatchAndDataNormalization",
+      "rules": [
+        "no-option-as",
+        "no-match-void-branch",
+        "no-match-effect-branch"
+      ]
+    },
+    {
+      "id": "Q35",
+      "group": "optionMatchAndDataNormalization",
+      "rules": [
+        "no-model-overlay-cast",
+        "no-unknown-boolean-coercion-helper",
+        "no-fromnullable-nullish-coalesce"
+      ]
+    },
+    {
+      "id": "Q36",
+      "group": "optionMatchAndDataNormalization",
+      "rules": [
+        "no-option-boolean-normalization",
+        "no-string-sentinel-return",
+        "no-string-sentinel-const"
+      ]
+    },
+    {
+      "id": "Q37",
+      "group": "effectFlow",
+      "rules": [
+        "no-piped-yield-in-gen",
+        "no-gen-for-mapping",
+        "prefer-gen-for-workflow"
+      ]
+    },
+    {
+      "id": "Q38",
+      "group": "effectFlow",
+      "rules": [
+        "no-business-logic-in-pipe"
+      ]
+    },
+    {
+      "id": "Q39",
+      "group": "pureTransformation",
+      "rules": [
+        "no-large-anonymous-flow",
+        "no-effect-in-flow",
+        "prefer-named-flow"
+      ]
+    },
+    {
+      "id": "Q40",
+      "group": "pureTransformation",
+      "rules": [
+        "prefer-flow-for-pure-pipeline"
+      ]
+    },
+    {
+      "id": "Q41",
+      "group": "pipelineShapeAndSequencing",
+      "rules": [
+        "no-nested-effect-call",
+        "no-effect-ladder",
+        "no-flatmap-ladder"
+      ]
+    },
+    {
+      "id": "Q42",
+      "group": "pipelineShapeAndSequencing",
+      "rules": [
+        "no-pipe-ladder",
+        "no-call-tower",
+        "no-effect-orElse-ladder"
+      ]
+    },
+    {
+      "id": "Q43",
+      "group": "pipelineShapeAndSequencing",
+      "rules": [
+        "no-effect-wrapper-alias",
+        "warn-effect-sync-wrapper",
+        "no-effect-side-effect-wrapper"
+      ]
+    },
+    {
+      "id": "Q44",
+      "group": "pipelineShapeAndSequencing",
+      "rules": [
+        "no-effect-all-step-sequencing",
+        "no-effect-succeed-variable"
+      ]
+    },
+    {
+      "id": "Q45",
+      "group": "branchingAndLocalControlFlow",
+      "rules": [
+        "no-if-statement",
+        "no-switch-statement",
+        "no-ternary"
+      ]
+    },
+    {
+      "id": "Q46",
+      "group": "branchingAndLocalControlFlow",
+      "rules": [
+        "no-try-catch",
+        "no-arrow-ladder",
+        "no-iife-wrapper"
+      ]
+    },
+    {
+      "id": "Q47",
+      "group": "branchingAndLocalControlFlow",
+      "rules": [
+        "no-return-in-arrow",
+        "no-return-in-callback",
+        "no-return-null"
+      ]
+    },
+    {
+      "id": "Q48",
+      "group": "branchingAndLocalControlFlow",
+      "rules": [
+        "no-branch-in-object"
+      ]
+    },
+    {
+      "id": "Q49",
+      "group": "reactAndRuntimeBoundaries",
+      "rules": [
+        "no-react-state",
+        "no-runtime-runfork",
+        "no-or-die-outside-boundary"
+      ]
+    },
+    {
+      "id": "Q50",
+      "group": "reactAndRuntimeBoundaries",
+      "rules": [
+        "prevent-dynamic-imports",
+        "no-render-side-effects",
+        "no-inline-runtime-provide"
+      ]
+    },
+    {
+      "id": "Q51",
+      "group": "atomStateAndPlatformBoundaries",
+      "rules": [
+        "no-effect-sync-console",
+        "no-atom-registry-effect-sync",
+        "no-family-collection-read"
+      ]
+    },
+    {
+      "id": "Q52",
+      "group": "atomStateAndPlatformBoundaries",
+      "rules": [
+        "no-naked-object-state-update",
+        "no-wrapgraphql-catchall"
+      ]
+    }
+  ]
+}
