@@ -80,7 +80,7 @@ describe("versioned recovery", () => {
     for (const version of [3, 4] as const) {
       for (const rule of ["no-catchall-generic-rethrow", "no-early-catchall-null"]) {
         const body = rule === "no-early-catchall-null" ? effectCall("succeed", nullLiteral()) : effectCall("fail", newExpression(identifier("Error")));
-        const calls = ["catchCause", "catchDefect", "catchAllCause", "catchAllDefect", "catchFilter", "catchReason", "catchTag", "catchTags", "catchIf"].map((name) => effectCall(name, arrowCallback(body)));
+        const calls: unknown[] = ["catchCause", "catchDefect", "catchAllCause", "catchAllDefect", "catchFilter", "catchReason", "catchTag", "catchTags", "catchIf"].map((name) => effectCall(name, arrowCallback(body)));
         calls.push(objectMethodCall(identifier("Other"), version === 3 ? "catchAll" : "catch", arrowCallback(body)));
         expect(inspect(rule, calls, version)).toHaveLength(0);
       }
