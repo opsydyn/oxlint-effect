@@ -1,0 +1,2197 @@
+{
+  "no-react-state": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noReactState; transitive helpers: noReactState, isIdentifier, reactStateHooks",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-if-statement": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noIfStatement; transitive helpers: noIfStatement, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-switch-statement": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noSwitchStatement; transitive helpers: noSwitchStatement, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-ternary": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noTernary; transitive helpers: noTernary, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-return-null": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noReturnNull; transitive helpers: noReturnNull, getImportSource, isEffectEcosystemImport, isNullLiteral",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-option-as": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noOptionAs; transitive helpers: noOptionAs, getImportSource, isEffectEcosystemImport, isMemberExpression, isIdentifier",
+      "Recognition tokens: Option; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-never": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectNever; transitive helpers: noEffectNever, getImportSource, isEffectEcosystemImport, isMemberExpression, isIdentifier",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-arrow-ladder": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noArrowLadder; transitive helpers: noArrowLadder, getImportSource, isEffectEcosystemImport, isArrowIifeCall, findArrowIifeCall",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-branch-in-object": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noBranchInObject; transitive helpers: noBranchInObject, objectPropertyValues, containsObjectBranchCall, isObjectBranchCall, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression",
+      "Recognition tokens: Match, Option, Either; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-iife-wrapper": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noIifeWrapper; transitive helpers: noIifeWrapper, getImportSource, isEffectEcosystemImport, isInlineFunctionIifeCall",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-return-in-arrow": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noReturnInArrow; transitive helpers: noReturnInArrow, directArrowCallbackReturns, isSchemaFilterCall, isMemberExpression, isIdentifier, findReturnStatements",
+      "Recognition tokens: Schema; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-return-in-callback": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noReturnInCallback; transitive helpers: noReturnInCallback, directFunctionCallbackReturns, findReturnStatements",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-effect-fn-generator": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectFnGenerator; transitive helpers: noEffectFnGenerator, getImportSource, isEffectEcosystemImport, isEffectGeneratorCall, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-sync-console": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectSyncConsole; transitive helpers: noEffectSyncConsole, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsConsoleCall, isConsoleCall, firstArgument",
+      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-console-in-effect-flow": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noConsoleInEffectFlow; transitive helpers: noConsoleInEffectFlow, consoleCallsInEffectFlow, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findNodes, isConsoleCall, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, objectPropertyValue, getImportSource, isEffectEcosystemImport",
+      "Recognition tokens: Effect, sync, try, tryPromise, Service; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-log-without-structured-context": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectLogWithoutStructuredContext; transitive helpers: noEffectLogWithoutStructuredContext, contextlessErrorLogs, findNodes, isEffectErrorLogCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStaticLogMessage, isStringLiteral, firstArgument, hasStructuredLogContext, findNode, isObjectExpression, getImportSource, isEffectEcosystemImport, errorHandlerBodies, errorHandlingOperators, callbackBody, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, objectPropertyValue",
+      "Recognition tokens: Effect, catchAll, catchTag, catchTags, Service; API and repair controls still require packed qualification."
+    ]
+  },
+  "require-span-on-public-service-method": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: requireSpanOnPublicServiceMethod; transitive helpers: requireSpanOnPublicServiceMethod, getImportSource, isEffectEcosystemImport, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, publicEffectOperationWithoutSpan, hasExplicitEffectReturnType, isQualifiedTypeReference, isIdentifier, returnedEffectExpressions, operationReturnExpressions, isEffectMemberCall, isPipeStartingWithEffect, pipeParts, isPipeCall, containsEffectMemberCall, containsDirectEffectSpan, isEffectMemberCallNamed, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, serviceMethodFunctions, objectPropertyValue, getEffectGeneratorArgument, firstArgument, isGeneratorFunctionExpression, isObjectExpression, serviceEffectOperationWithoutSpan",
+      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-runpromise-in-non-async-test-body": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRunpromiseInNonAsyncTestBody; transitive helpers: noRunpromiseInNonAsyncTestBody, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, directTestCallback, isIdentifierCall, isIdentifier, isFunctionLike, discardedRunPromiseInTestCallback, isEffectMemberCallNamed, isEffectMemberCall",
+      "Recognition tokens: Effect, runPromise; API and repair controls still require packed qualification."
+    ]
+  },
+  "require-effect-flip-for-error-test": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: requireEffectFlipForErrorTest; transitive helpers: requireEffectFlipForErrorTest, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, directTestCallback, isIdentifierCall, isIdentifier, isFunctionLike, nodesInDirectTestCallback, isEffectRunPromiseRejectsMember, isEffectMemberCallNamed, isEffectMemberCall",
+      "Recognition tokens: Effect, runPromise; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-test-mock-layer-when-default-available": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noTestMockLayerWhenDefaultAvailable; transitive helpers: noTestMockLayerWhenDefaultAvailable, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, manualLayersNextToServiceDefault, isMemberCall, isIdentifier, isServiceDefaultReference, isManualTestLayer",
+      "Recognition tokens: Layer, provide; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-nested-effect-gen": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNestedEffectGen; transitive helpers: noNestedEffectGen, getImportSource, isEffectEcosystemImport, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findEffectGenCall",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-yield-without-star-in-effect-gen": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noYieldWithoutStarInEffectGen; transitive helpers: noYieldWithoutStarInEffectGen, getImportSource, isEffectEcosystemImport, findYieldWithoutStarInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findYieldWithoutStar",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-piped-yield-in-gen": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noPipedYieldInGen; transitive helpers: noPipedYieldInGen, getImportSource, isEffectEcosystemImport, repeatedPipedYieldInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPipedYields, isPipeCall",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-gen-for-mapping": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noGenForMapping; transitive helpers: noGenForMapping, getImportSource, isEffectEcosystemImport, genForMappingNode, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, singleYieldVariableName, isPureMappingReturn, containsNodeType, containsEffectMemberCall, containsIdentifierNamed",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-gen-for-workflow": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferGenForWorkflow; transitive helpers: preferGenForWorkflow, getImportSource, isEffectEcosystemImport, workflowSequencingPipeline, isPipeCall, isIdentifier, pipeOperatorArguments, isWorkflowSequencingOperator, isEffectMemberCall, workflowSequencingCombinators",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-business-logic-in-pipe": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noBusinessLogicInPipe; transitive helpers: noBusinessLogicInPipe, getImportSource, isEffectEcosystemImport, businessLogicInPipeCallback, isPipeCall, isIdentifier, pipeOperatorArguments, isEffectMemberCallNamed, isEffectMemberCall, isFunctionLike, containsNodeType, findNode, isYieldedServiceDependency, findNodes",
+      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-large-anonymous-flow": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noLargeAnonymousFlow; transitive helpers: noLargeAnonymousFlow, getImportSource, isEffectEcosystemImport, isLargeFlowCall, isFlowCall, isIdentifier",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-effect-in-flow": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectInFlow; transitive helpers: noEffectInFlow, getImportSource, isEffectEcosystemImport, effectfulFlowArgument, isFlowCall, isIdentifier, isEffectfulFlowArgument, containsEffectMemberCall, isEffectMemberCall, containsNodeType, containsAsyncFunction, containsConsoleCall, isConsoleCall, containsIdentifierNamed",
+      "Recognition tokens: Effect, Runtime; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-named-flow": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferNamedFlow; transitive helpers: preferNamedFlow, getImportSource, isEffectEcosystemImport, inlineNonTrivialFlowArgument, isFlowCall, isIdentifier",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "prefer-flow-for-pure-pipeline": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferFlowForPurePipeline; transitive helpers: preferFlowForPurePipeline, getImportSource, isEffectEcosystemImport, preferFlowForPurePipelineNode, pureTransformationCallDepth, isPureTransformationCall, pureTransformationCallName, isIdentifier, containsEffectMemberCall, isEffectMemberCall, containsNodeType, containsIdentifierNamed, containsConsoleCall, isConsoleCall, pureTransformationImpureNames, isFunctionLike",
+      "Recognition tokens: Effect, Runtime; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-pipe-for-behavior": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferPipeForBehavior; transitive helpers: preferPipeForBehavior, getImportSource, isEffectEcosystemImport, staticBehaviorCall, isBehaviorDecorationOperator, isEffectMemberCall, isIdentifier, behaviorDecorationOperators, isExistingEffectExpression, isPipeCall",
+      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-decorated-effect-before-gen": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferDecoratedEffectBeforeGen; transitive helpers: preferDecoratedEffectBeforeGen, getImportSource, isEffectEcosystemImport, repeatedDecoratedYieldInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findBehaviorDecoratedYields, isBehaviorDecoratedYield, isPipeCall, pipeOperatorArguments, isBehaviorDecorationOperator, behaviorDecorationOperators",
+      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-workflow-in-behavior-pipe": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noWorkflowInBehaviorPipe; transitive helpers: noWorkflowInBehaviorPipe, getImportSource, isEffectEcosystemImport, workflowInBehaviorPipe, isPipeCall, isIdentifier, pipeOperatorArguments, isBehaviorDecorationOperator, isEffectMemberCall, behaviorDecorationOperators, isWorkflowSequencingOperator, workflowSequencingCombinators, containsNodeType",
+      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-mixed-pillar-function": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noMixedPillarFunction; transitive helpers: noMixedPillarFunction, mixedPillarFunctionNode, isFunctionLike, stylePillarsInNode, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isWorkflowSequencingOperator, workflowSequencingCombinators, isFlowCall, isBehaviorDecorationOperator, behaviorDecorationOperators, isMemberCall, isMemberExpression, getImportSource, isEffectEcosystemImport",
+      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-clever-effect-expression": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noCleverEffectExpression; transitive helpers: noCleverEffectExpression, getImportSource, isEffectEcosystemImport, cleverEffectExpressionNode, stylePillarsInNode, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isWorkflowSequencingOperator, workflowSequencingCombinators, isFlowCall, isBehaviorDecorationOperator, behaviorDecorationOperators, isMemberCall, isMemberExpression, isInlineFunctionIifeCall, findArrowIifeCall, isArrowIifeCall, callExpressionDepth",
+      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-extracted-concept": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferExtractedConcept; transitive helpers: preferExtractedConcept, getImportSource, isEffectEcosystemImport, oversizedAnonymousConceptNode, isFunctionLike",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "prefer-effect-service": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferEffectService; transitive helpers: preferEffectService, getImportSource, isEffectEcosystemImport, isContextTagCall, isMemberCall, isIdentifier",
+      "Recognition tokens: Context, Tag; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-layer-provide-in-service-definition": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noLayerProvideInServiceDefinition; transitive helpers: noLayerProvideInServiceDefinition, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, containsLayerProvideCall, isMemberCall",
+      "Recognition tokens: Effect, Service, Layer, provide; API and repair controls still require packed qualification."
+    ]
+  },
+  "require-service-accessors": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": false
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "not-applicable"
+    },
+    "evidence": [
+      "src/index.ts: requireServiceAccessors; transitive helpers: requireServiceAccessors, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, hasAccessorsTrue, isBooleanLiteral, objectPropertyValue",
+      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification.",
+      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+    ]
+  },
+  "require-service-dependencies": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": false
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "not-applicable"
+    },
+    "evidence": [
+      "src/index.ts: requireServiceDependencies; transitive helpers: requireServiceDependencies, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, serviceDependencyWithoutDeclaration, objectPropertyValue, findNode, isYieldedServiceDependency",
+      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification.",
+      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+    ]
+  },
+  "no-namespace-effect-import": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNamespaceEffectImport; transitive helpers: noNamespaceEffectImport, namespaceEffectImport, isEffectEcosystemImport, getImportSource",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-manual-service-object-export": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noManualServiceObjectExport; transitive helpers: noManualServiceObjectExport, getImportSource, isEffectEcosystemImport, manualServiceObjectExport, isIdentifier, objectHasServiceMethod, isFunctionLike, isEffectMemberCallNamed, isEffectMemberCall",
+      "Recognition tokens: Service, Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-layer-merge-in-request-handler": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noLayerMergeInRequestHandler; transitive helpers: noLayerMergeInRequestHandler, getImportSource, isEffectEcosystemImport, layerCompositionInRequestHandler, isRequestHandler, isIdentifier, findNode, isLayerCompositionCall, isMemberCall",
+      "Recognition tokens: Layer, provide; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-service-method-returning-promise": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noServiceMethodReturningPromise; transitive helpers: noServiceMethodReturningPromise, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, promiseReturningServiceMethod, findNode, isPromiseReturningProperty, functionReturnsPromise, isFunctionLike, isIdentifierTypeReference, returnTypeAnnotation, findPromiseApiCall, isPromiseStaticApiCall, isMemberCall, isPromiseChainCall",
+      "Recognition tokens: Effect, Service, all, allSettled, race, catch; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-layer-pipe": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferLayerPipe; transitive helpers: preferLayerPipe, getImportSource, isEffectEcosystemImport, layerProvideCallTower, isMemberCall, isIdentifier, findNode, firstArgument",
+      "Recognition tokens: Layer, provide; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-inline-layer-provide-in-program": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noInlineLayerProvideInProgram; transitive helpers: noInlineLayerProvideInProgram, getImportSource, isEffectEcosystemImport, inlineLayerProvideInProgram, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findNode, isEffectOrLayerProvideCall, isMemberCall",
+      "Recognition tokens: Effect, provide, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "prefer-layer-mergeall-for-infrastructure": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preferLayerMergeallForInfrastructure; transitive helpers: preferLayerMergeallForInfrastructure, getImportSource, isEffectEcosystemImport, layerMergeChain, isMemberCall, isIdentifier, findNode",
+      "Recognition tokens: Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-service-layer-scatter": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noServiceLayerScatter; transitive helpers: noServiceLayerScatter, getImportSource, isEffectEcosystemImport, scatteredLayerProvideDeclaration, isLayerLikeDeclarationName, isIdentifier, findNode, isEffectOrLayerProvideCall, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall",
+      "Recognition tokens: Effect, provide, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-match-void-branch": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noMatchVoidBranch; transitive helpers: noMatchVoidBranch, getImportSource, isEffectEcosystemImport, isVoidMatchBranch, isMatchBranchCall, isIdentifier, isBooleanLiteral, isEffectVoidMember, isMemberExpression, arrowCallbackBody",
+      "Recognition tokens: orElse, Match, Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-json-parse-without-schema": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noJsonParseWithoutSchema; transitive helpers: noJsonParseWithoutSchema, getImportSource, isEffectEcosystemImport, importsEffectSchema, isIdentifier, isMemberExpression",
+      "Recognition tokens: Schema; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-date-now-in-effect": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noDateNowInEffect; transitive helpers: noDateNowInEffect, getImportSource, isEffectEcosystemImport, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findDateNowCalls, isDateNowCall, isMemberExpression",
+      "Recognition tokens: Effect, sync, try, tryPromise; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-new-date-in-domain-logic": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNewDateInDomainLogic; transitive helpers: noNewDateInDomainLogic, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isIdentifier, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-match-effect-branch": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noMatchEffectBranch; transitive helpers: noMatchEffectBranch, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression, containsSequencingMatchBranch, isMatchBranchCall, arrowCallbackBody, isSequencingBranchBody, containsEffectMemberCall, isEffectMemberCall, containsBranchSequencingCall, branchSequencingEffectCalls, isEffectMemberCallNamed, isStreamMemberCall, isOptionMatchCall",
+      "Recognition tokens: Match, orElse, Effect, Option; API and repair controls still require packed qualification."
+    ]
+  },
+  "warn-effect-sync-wrapper": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: warnEffectSyncWrapper; transitive helpers: warnEffectSyncWrapper, getImportSource, isEffectEcosystemImport, firstArgument, arrowCallbackBody, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isExpressionBodiedArrowCall, isConsoleCall",
+      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-side-effect-wrapper": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectSideEffectWrapper; transitive helpers: noEffectSideEffectWrapper, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsWrapperSideEffect, isIdentifierCall, isMemberCall, isEffectLogCall, isConsoleCall, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-all-step-sequencing": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectAllStepSequencing; transitive helpers: noEffectAllStepSequencing, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsAllStepSideEffect, isMemberCall, isEffectLogCall, hasConcurrencyOne, isEffectAllAsVoidPipe, isEffectAsVoidPipeArgument, isMemberExpression, firstArgument",
+      "Recognition tokens: Effect, all, Ref, Fiber; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-async-effect-combinator-callback": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noAsyncEffectCombinatorCallback; transitive helpers: noAsyncEffectCombinatorCallback, getImportSource, isEffectEcosystemImport, findAsyncEffectCombinatorCallback, isEffectMemberCall, isIdentifier, effectAsyncCallbackCombinators, isAsyncFunctionCallback",
+      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-throw-in-effect-logic": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noThrowInEffectLogic; transitive helpers: noThrowInEffectLogic, getImportSource, isEffectEcosystemImport, findThrowInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findThrowStatement, effectAsyncCallbackCombinators, callbackBody",
+      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-or-die-outside-boundary": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noOrDieOutsideBoundary; transitive helpers: noOrDieOutsideBoundary, getImportSource, isEffectEcosystemImport, findEffectOrDieOutsideBoundary, isEffectOrDieReference, isMemberExpression, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, isPipeCall, pipeParts",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-swallowed-catch-all": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noSwallowedCatchAll; transitive helpers: noSwallowedCatchAll, getImportSource, isEffectEcosystemImport, getSwallowedCatchAllHandler, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, callbackBody, isSwallowedCatchAllBody, isEffectVoidMember, isMemberExpression",
+      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-ignore": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectIgnore; transitive helpers: noEffectIgnore, getImportSource, isEffectEcosystemImport, findEffectIgnore, isEffectIgnoreReference, isMemberExpression, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, isPipeCall, pipeParts",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-try-catch-in-effect-logic": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noTryCatchInEffectLogic; transitive helpers: noTryCatchInEffectLogic, getImportSource, isEffectEcosystemImport, findTryCatchInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findTryStatement, effectAsyncCallbackCombinators, callbackBody",
+      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-promise-api-in-effect-logic": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noPromiseApiInEffectLogic; transitive helpers: noPromiseApiInEffectLogic, getImportSource, isEffectEcosystemImport, findPromiseApiInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPromiseApiCall, isPromiseStaticApiCall, isMemberCall, isPromiseChainCall, effectAsyncCallbackCombinators, callbackBody",
+      "Recognition tokens: Effect, all, allSettled, race, catch, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-try-catch": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noTryCatch; transitive helpers: noTryCatch",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-effect-wrapper-alias": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectWrapperAlias; transitive helpers: noEffectWrapperAlias, isEffectWrapperAliasExpression, isPipeStartingWithEffect, pipeParts, isPipeCall, isIdentifier, containsEffectMemberCall, isEffectMemberCall, hasEffectWrapperAliasReturn, findReturnStatements",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-manual-effect-channels": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noManualEffectChannels; transitive helpers: noManualEffectChannels, isQualifiedTypeReference, isIdentifier",
+      "Recognition tokens: Effect, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-wrapgraphql-catchall": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noWrapgraphqlCatchall; transitive helpers: noWrapgraphqlCatchall, getImportSource, isEffectEcosystemImport, getWrapGraphqlCatchAll, pipeParts, isPipeCall, isIdentifier, findEffectCatchAll, isEffectMemberCallNamed, isEffectMemberCall, containsWrapGraphqlCall, isIdentifierCall, containsApplyResponseFlatMap, isApplyResponseFlatMap, firstArgument",
+      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-render-side-effects": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRenderSideEffects; transitive helpers: noRenderSideEffects, getImportSource, isEffectEcosystemImport, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression, containsMatchBranchCall, isMatchBranchCall",
+      "Recognition tokens: Match, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-atom-registry-effect-sync": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noAtomRegistryEffectSync; transitive helpers: noAtomRegistryEffectSync, getImportSource, isEffectEcosystemImport, findAtomOperationInsideEffectSync, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, callbackBody, firstArgument, findAtomOperationCall, isAtomOperationCall, atomOperationMethods",
+      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-family-collection-read": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noFamilyCollectionRead; transitive helpers: noFamilyCollectionRead, isMemberCall, isIdentifier, findFamilyCollectionRead, getCollectionAtomReadTarget, isMemberExpression, isCollectionAtomIdentifier",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-inline-runtime-provide": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noInlineRuntimeProvide; transitive helpers: noInlineRuntimeProvide, getImportSource, isEffectEcosystemImport, findInlineRuntimeProvide, isPipeCall, isIdentifier, pipeParts, isEffectProvideWithSingleArgument, isEffectMemberCallNamed, isEffectMemberCall",
+      "Recognition tokens: Effect, provide; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-naked-object-state-update": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNakedObjectStateUpdate; transitive helpers: noNakedObjectStateUpdate, isNakedObjectStateUpdate, isRefStateUpdateWithSpread, isMemberCall, isIdentifier, callbackBody, hasObjectSpread, isEmptyObjectExpression, containsObjectEntriesCall",
+      "Recognition tokens: Ref; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-succeed-variable": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectSucceedVariable; transitive helpers: noEffectSucceedVariable, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isEffectSucceedVariableArgument, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-type-alias": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectTypeAlias; transitive helpers: noEffectTypeAlias, getImportSource, isEffectEcosystemImport, containsQualifiedTypeReference, isQualifiedTypeReference, isIdentifier",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-public-generic-effect-error": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noPublicGenericEffectError; transitive helpers: noPublicGenericEffectError, getImportSource, isEffectEcosystemImport, exportedGenericEffectErrorTarget, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, isGenericErrorType, isIdentifierTypeReference",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-early-catchall-null": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEarlyCatchallNull; transitive helpers: noEarlyCatchallNull, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, earlyCatchAllFallback, errorHandlerCallbacks, isEffectMemberCall, isIdentifier, isFunctionLike, catchAllOperators, callbackBody, isFallbackRecoveryEffect, isEffectMemberCallNamed, isFallbackRecoveryValue, isNullLiteral, isUndefinedIdentifier, firstArgument, findReturnStatements",
+      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-empty-error-tag": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEmptyErrorTag; transitive helpers: noEmptyErrorTag, getImportSource, isEffectEcosystemImport, emptyErrorTagNode, isErrorLikeTypeName, isIdentifier, isTagOnlyTypeShape, typeMembers, getPropertyName, isMemberCall, isEmptyTaggedErrorPayload, typeArguments",
+      "Recognition tokens: TaggedError; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-expected-state-as-error": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noExpectedStateAsError; transitive helpers: noExpectedStateAsError, getImportSource, isEffectEcosystemImport, isExpectedDomainStateFailure, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isStringLiteral, expectedDomainStateNames",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-exception-domain-error": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noExceptionDomainError; transitive helpers: noExceptionDomainError, getImportSource, isEffectEcosystemImport, findDomainExceptionInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findNode, isDomainExceptionThrow, isDomainErrorConstruction, effectAsyncCallbackCombinators, callbackBody",
+      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-fail-error-message": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectFailErrorMessage; transitive helpers: noEffectFailErrorMessage, getImportSource, isEffectEcosystemImport, isEffectFailFromErrorMessage, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringifiedErrorMessage, isErrorMessageReference, isErrorLikeIdentifier, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-catchall-generic-rethrow": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noCatchallGenericRethrow; transitive helpers: noCatchallGenericRethrow, getImportSource, isEffectEcosystemImport, catchAllGenericRethrow, errorHandlerCallbacks, isEffectMemberCall, isIdentifier, isFunctionLike, callbackBody, isEffectFailWithGenericError, isEffectMemberCallNamed, isGenericErrorConstruction, firstArgument, findReturnStatements",
+      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-log-only-error-handling": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noLogOnlyErrorHandling; transitive helpers: noLogOnlyErrorHandling, getImportSource, isEffectEcosystemImport, logOnlyErrorHandler, errorHandlerCallbacks, isEffectMemberCall, isIdentifier, isFunctionLike, callbackBody, findNode, isEffectLogCall, isModeledErrorOperation, modeledErrorOperators",
+      "Recognition tokens: Effect, catchAll, catchSome, catchTag, catchTags; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-error-as-public-effect-error": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noErrorAsPublicEffectError; transitive helpers: noErrorAsPublicEffectError, createPublicEffectErrorChannelRule, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, getImportSource, isEffectEcosystemImport, isGenericErrorType, isIdentifierTypeReference",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-unknown-public-error-channel": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnknownPublicErrorChannel; transitive helpers: noUnknownPublicErrorChannel, createPublicEffectErrorChannelRule, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, getImportSource, isEffectEcosystemImport, errorChannelShape, unwrappedType, isGenericErrorType, isIdentifierTypeReference",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-mixed-effect-error-shapes": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noMixedEffectErrorShapes; transitive helpers: noMixedEffectErrorShapes, createPublicEffectErrorChannelRule, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, getImportSource, isEffectEcosystemImport, mixedErrorChannelShapes, unwrappedType, errorChannelShape, isGenericErrorType, isIdentifierTypeReference",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-model-overlay-cast": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noModelOverlayCast; transitive helpers: noModelOverlayCast, getImportSource, isEffectEcosystemImport, isVariableAsAssertion",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-unknown-boolean-coercion-helper": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnknownBooleanCoercionHelper; transitive helpers: noUnknownBooleanCoercionHelper, getImportSource, isEffectEcosystemImport, isTypeofBooleanCheck, isMatchOrElseNullCall, isMatchBranchCall, isIdentifier, isNullLiteral, arrowCallbackBody",
+      "Recognition tokens: orElse, Match; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-fromnullable-nullish-coalesce": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": false
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "not-applicable"
+    },
+    "evidence": [
+      "src/index.ts: noFromnullableNullishCoalesce; transitive helpers: noFromnullableNullishCoalesce, getImportSource, isEffectEcosystemImport, isOptionFromNullableNullishCoalesce, isMemberCall, isIdentifier, isNullishRewrap, isNullLiteral, isUndefinedIdentifier",
+      "Recognition tokens: Option, fromNullable; API and repair controls still require packed qualification.",
+      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+    ]
+  },
+  "no-option-boolean-normalization": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noOptionBooleanNormalization; transitive helpers: noOptionBooleanNormalization, getImportSource, isEffectEcosystemImport, isOptionBooleanNormalization, isMemberCall, isIdentifier, objectPropertyValue, isBooleanTrueComparison, isBooleanLiteral, arrowCallbackBody",
+      "Recognition tokens: Option; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-string-sentinel-return": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noStringSentinelReturn; transitive helpers: noStringSentinelReturn, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringLiteral, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-string-sentinel-const": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noStringSentinelConst; transitive helpers: noStringSentinelConst, isStringSentinelConst, isStringLiteral",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-raw-domain-id-alias": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRawDomainIdAlias; transitive helpers: noRawDomainIdAlias, getImportSource, isEffectEcosystemImport, isRawDomainIdAlias, isIdentifier",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-boolean-domain-flag": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noBooleanDomainFlag; transitive helpers: noBooleanDomainFlag, functionBooleanDomainFlagParameters, isBooleanDomainFlagParameter, isIdentifier, isBooleanTypeAnnotation, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-magic-domain-string": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noMagicDomainString; transitive helpers: noMagicDomainString, getImportSource, isEffectEcosystemImport, isStringLiteralComparison, isStringLiteral, isTypeofBooleanCheck",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-raw-domain-primitive-params": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRawDomainPrimitiveParams; transitive helpers: noRawDomainPrimitiveParams, hasPrimitiveHeavyDomainParameters, primitiveDomainParameters, isIdentifier, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-raw-time-domain-field": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRawTimeDomainField; transitive helpers: noRawTimeDomainField, rawTimeDomainFields, typeMembers, isRawTimeDomainField, getPropertyName, isIdentifier, isRawTimeFieldName, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation, isDateTypeAnnotation, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-hidden-effect-execution": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noHiddenEffectExecution; transitive helpers: noHiddenEffectExecution, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
+      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-boundary-try-catch-without-effect-map": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noBoundaryTryCatchWithoutEffectMap; transitive helpers: noBoundaryTryCatchWithoutEffectMap, boundaryPathOptionsSchema, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, containsBoundaryEffectHandling, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, boundaryEffectHandlingMethods",
+      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit, try, tryPromise, catchAll, catchTag, catchTags; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-node-fs-in-effect-code": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNodeFsInEffectCode; transitive helpers: noNodeFsInEffectCode, getImportSource, isEffectEcosystemImport, nodeFsImportSources, getNodeFsRequireSource, isIdentifier, isStringLiteral",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-node-platform-in-shared-code": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNodePlatformInSharedCode; transitive helpers: noNodePlatformInSharedCode, boundaryPathOptionsSchema, getImportSource, isNodeBuiltinImport, nodeBuiltinImportSources, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
+      "Recognition tokens: async_hooks; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-process-env-direct-read": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noProcessEnvDirectRead; transitive helpers: noProcessEnvDirectRead, processEnvPathOptionsSchema, isProcessEnvRead, isMemberExpressionNode, isProcessEnvMember, isIdentifier, isNamedMemberProperty, isStringLiteral, isProcessEnvWriteTarget, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isConfigPath, configPathsFor, defaultConfigPaths",
+      "Recognition tokens: OptionalMemberExpression; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-overloaded-options-object": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noOverloadedOptionsObject; transitive helpers: noOverloadedOptionsObject, overloadedOptionsParameters, isOverloadedOptionsParameter, isIdentifier, isAnyOrObjectTypeAnnotation, unwrapTypeAnnotation, getImportSource, isEffectEcosystemImport",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-domain-logic-in-conditional": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noDomainLogicInConditional; transitive helpers: noDomainLogicInConditional, getImportSource, isEffectEcosystemImport, isDomainLogicConditional, comparisonCount, comparisonOperators",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-implicit-state-machine-object": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noImplicitStateMachineObject; transitive helpers: noImplicitStateMachineObject, getImportSource, isEffectEcosystemImport, isImplicitStateMachineObject, collectStateFlagMembers, stateFlagMember, isIdentifier",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-adhoc-domain-error": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noAdhocDomainError; transitive helpers: noAdhocDomainError, getImportSource, isEffectEcosystemImport, isAdhocEffectFail, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringLiteral, firstArgument, isThrowNewStringError",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-domain-meaning-by-folder-only": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noDomainMeaningByFolderOnly; transitive helpers: noDomainMeaningByFolderOnly, getImportSource, isEffectEcosystemImport, isContextEncodedDomainFunction, isIdentifier, hasRawDomainIdParameter, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-effect-as": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectAs; transitive helpers: noEffectAs, isMemberExpression, isIdentifier",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-do": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectDo; transitive helpers: noEffectDo, isMemberExpression, isIdentifier",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-bind": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectBind; transitive helpers: noEffectBind, createForbiddenMemberCallRule, isMemberExpression, isIdentifier",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-runtime-runfork": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRuntimeRunFork; transitive helpers: noRuntimeRunFork, createForbiddenMemberCallRule, isMemberExpression, isIdentifier",
+      "Recognition tokens: Runtime, runFork; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-run-effect-outside-boundary": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRunEffectOutsideBoundary; transitive helpers: noRunEffectOutsideBoundary, getImportSource, isEffectEcosystemImport, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods",
+      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-async": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": false
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "not-applicable"
+    },
+    "evidence": [
+      "src/index.ts: noEffectAsync; transitive helpers: noEffectAsync, createForbiddenMemberCallRule, isMemberExpression, isIdentifier",
+      "Recognition tokens: Effect, async; API and repair controls still require packed qualification.",
+      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+    ]
+  },
+  "prevent-dynamic-imports": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: preventDynamicImports; transitive helpers: preventDynamicImports",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-nested-effect-call": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNestedEffectCall; transitive helpers: noNestedEffectCall, hasDeepNestedEffectFirstArgument, isEffectMemberCall, isIdentifier, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-ladder": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noEffectLadder; transitive helpers: noEffectLadder, hasDeepNestedEffectFirstArgument, isEffectMemberCall, isIdentifier, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-flatmap-ladder": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noFlatMapLadder; transitive helpers: noFlatMapLadder, getFlatMapLadderMessage, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallNamed, firstArgument",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-pipe-ladder": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noPipeLadder; transitive helpers: noPipeLadder, isPipeCall, isIdentifier, containsPipeCall",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-call-tower": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noCallTower; transitive helpers: noCallTower, hasNestedEffectCallArgument, isEffectMemberCall, isIdentifier",
+      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-effect-orElse-ladder": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": false
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "not-applicable"
+    },
+    "evidence": [
+      "src/index.ts: noEffectOrElseLadder; transitive helpers: noEffectOrElseLadder, hasOrElseSequencingFirstArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, orElseSequencingCalls, containsEffectMemberCallNamed",
+      "Recognition tokens: Effect, orElse; API and repair controls still require packed qualification.",
+      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+    ]
+  },
+  "no-unbounded-effect-all": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnboundedEffectAll; transitive helpers: noUnboundedEffectAll, getImportSource, isEffectEcosystemImport, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption",
+      "Recognition tokens: Effect, all; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-fire-and-forget-fork": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noFireAndForgetFork; transitive helpers: noFireAndForgetFork, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier",
+      "Recognition tokens: Effect, fork; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-fork-in-loop": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noForkInLoop; transitive helpers: noForkInLoop, containsEffectForkCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, getImportSource, isEffectEcosystemImport",
+      "Recognition tokens: Effect, fork; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-race-without-cleanup": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRaceWithoutCleanup; transitive helpers: noRaceWithoutCleanup, getImportSource, isEffectEcosystemImport, isEffectRaceWithoutCleanup, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallInSet, raceCleanupCalls",
+      "Recognition tokens: Effect, race, raceAll, acquireRelease, acquireUseRelease, ensuring, forkIn, forkScoped; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-unobserved-fiber": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnobservedFiber; transitive helpers: noUnobservedFiber, getImportSource, isEffectEcosystemImport, forkedFiberVariableName, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, observedFiberVariableName, fiberObservationCalls",
+      "Recognition tokens: Effect, fork, Fiber; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-unbounded-concurrent-retry": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnboundedConcurrentRetry; transitive helpers: noUnboundedConcurrentRetry, getImportSource, isEffectEcosystemImport, isUnboundedConcurrentRetry, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption, isUnboundedEffectForEach, containsEffectMemberCallInSet, retryCalls",
+      "Recognition tokens: Effect, all, forEach; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-blocking-call-in-effect": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noBlockingCallInEffect; transitive helpers: noBlockingCallInEffect, getImportSource, isEffectEcosystemImport, findBlockingSyncCallInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findBlockingSyncCall, isBlockingSyncCall, blockingSyncObjectNames, callbackBody",
+      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-promise-concurrency-in-effect": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noPromiseConcurrencyInEffect; transitive helpers: noPromiseConcurrencyInEffect, getImportSource, isEffectEcosystemImport, findPromiseConcurrencyInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPromiseConcurrencyCall, isPromiseConcurrencyCall, promiseConcurrencyMethods, callbackBody, effectAsyncCallbackCombinators",
+      "Recognition tokens: Effect, all, allSettled, race, sync, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-shared-mutable-state-across-fibers": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noSharedMutableStateAcrossFibers; transitive helpers: noSharedMutableStateAcrossFibers, getImportSource, isEffectEcosystemImport, variableDeclarationIdentifierNames, isIdentifier, concurrentEffectWorkNode, isEffectMemberCallNamed, isEffectMemberCall, findSharedMutableStateMutation, collectDeclaredIdentifierNames, mutatedIdentifierName, mutatingCollectionMethods",
+      "Recognition tokens: Effect, fork, all, forEach; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-timeout-with-noninterruptible-promise": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noTimeoutWithNoninterruptiblePromise; transitive helpers: noTimeoutWithNoninterruptiblePromise, getImportSource, isEffectEcosystemImport, noninterruptiblePromiseTimeoutNode, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isNoninterruptiblePromiseEffect, isCancellationAwareTryPromise, callbackHasParameter, objectPropertyValue",
+      "Recognition tokens: Effect, timeout, promise, tryPromise, try; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-uninterruptible-concurrent-region": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUninterruptibleConcurrentRegion; transitive helpers: noUninterruptibleConcurrentRegion, getImportSource, isEffectEcosystemImport, isUninterruptibleConcurrentRegion, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsConcurrentOperation, containsEffectMemberCallInSet, concurrentEffectCalls, isMemberCall",
+      "Recognition tokens: Effect, all, forEach, fork, race, raceAll, Queue; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-unbounded-queue-or-pubsub": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnboundedQueueOrPubSub; transitive helpers: noUnboundedQueueOrPubSub, getImportSource, isEffectEcosystemImport, isUnboundedQueueOrPubSub, isMemberCall, isIdentifier",
+      "Recognition tokens: Queue, unbounded, PubSub; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-global-mutable-concurrency-state": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noGlobalMutableConcurrencyState; transitive helpers: noGlobalMutableConcurrencyState, getImportSource, isEffectEcosystemImport, mutableGlobalDeclarationNames, variableDeclarationIdentifierNames, isIdentifier, isMutableContainerInit, concurrentEffectWorkNode, isEffectMemberCallNamed, isEffectMemberCall, findSharedMutableStateMutation, collectDeclaredIdentifierNames, mutatedIdentifierName, mutatingCollectionMethods",
+      "Recognition tokens: Effect, fork, all, forEach; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-manual-deferred-coordination": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noManualDeferredCoordination; transitive helpers: noManualDeferredCoordination, getImportSource, isEffectEcosystemImport, deferredBindingName, isIdentifier, findNode, isDeferredConstructorCall, deferredConstructorMembers, isDeferredAwaitCall, isMemberCall, firstArgument, isDeferredAwaitProtected, isEffectMemberCall, deferredTimeoutMembers, deferredInterruptionMembers, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, isFunctionLike, hasMatchingDeferredFinalizer, callbackBody, containsIdentifierNamed",
+      "Recognition tokens: Deferred, Effect, timeout, timeoutOption, timeoutFail, timeoutFailCause, timeoutTo, race, raceFirst, raceAll, Scope; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-acquire-without-scoped-release": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noAcquireWithoutScopedRelease; transitive helpers: noAcquireWithoutScopedRelease, getImportSource, isEffectEcosystemImport, concurrentWorkArguments, isEffectMemberCall, isIdentifier, concurrentWorkMembers, findUnscopedResourceAcquisitions, collectUnscopedResourceAcquisitions, hasScopedReleaseEvidence, isEffectMemberCallNamed, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, hasMatchingDeferredFinalizer, findNode, isMemberCall, callbackBody, containsIdentifierNamed, isFunctionLike, matchingFinalizerBindingNames, findNodes, resourceAcquisitionCall, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms",
+      "Recognition tokens: Effect, fork, forkScoped, forkDaemon, all, forEach, race, raceFirst, raceAll, acquireRelease, acquireUseRelease, Scope, acquire; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-manual-resource-close": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noManualResourceClose; transitive helpers: noManualResourceClose, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isResourceCleanupCall, isIdentifier, resourceCleanupMethods, isResourceLikeExpression, isResourceLikeName, identifierNameTokens, resourceLikeTerms, isMemberExpressionNode, hasReleaseOwnership, isFunctionLike, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall",
+      "Recognition tokens: OptionalMemberExpression, Effect, acquireUseRelease, acquireRelease, acquireReleaseInterruptible, Scope; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-unbound-scope": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnboundScope; transitive helpers: noUnboundScope, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isScopeMakeCall, isMemberCall, isIdentifier, hasScopeOwner, isEffectMemberCallNamed, isEffectMemberCall, isScopeAcquireReleaseCall, firstArgument, hasMatchingScopeReleaseCallback, isFunctionLike, findNodes, isScopeCloseFor, enclosingFunction, scopeCloseUsesCallbackParameter, variableBindingForReference, lexicalBindingsInFunction, lexicalBindingIdentifiers, patternBindingIdentifiers, lexicalBindingScope, lexicalScopeNode, lexicalScopeNodeTypes, isWithinLexicalScope, lexicalScopeDepth, hasMatchingScopeClose, scopeMakeBindingDeclaration, directScopeMakeInitializer",
+      "Recognition tokens: Scope, Effect, Layer, acquireRelease, acquireUseRelease, acquireReleaseInterruptible; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-resource-succeed-escape": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noResourceSucceedEscape; transitive helpers: noResourceSucceedEscape, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isResourceLikeExpression, isResourceLikeName, identifierNameTokens, resourceLikeTerms, isMemberExpressionNode, firstArgument",
+      "Recognition tokens: Effect, OptionalMemberExpression; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-resource-without-acquire-release": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noResourceWithoutAcquireRelease; transitive helpers: noResourceWithoutAcquireRelease, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, resourceAcquisitionCall, isIdentifier, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, hasResourceLifecycleOwner, hasReleaseOwnership, isFunctionLike, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall, isResourceAcquireReleaseCall, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed",
+      "Recognition tokens: acquireRelease, acquireUseRelease, acquire, Effect, acquireReleaseInterruptible, Scope, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-request-scoped-long-lived-resource": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRequestScopedLongLivedResource; transitive helpers: noRequestScopedLongLivedResource, boundaryPathOptionsSchema, requestScopedResourceNodes, isRequestLifecycleFunction, requestLifecycleFunctionName, isFunctionLike, isIdentifier, findNodes, isResourceLifecycleCandidate, resourceAcquisitionCall, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, isResourceLikeConstruction, enclosingFunction, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
+      "Recognition tokens: acquireRelease, acquireUseRelease, acquire; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-global-resource-singleton": {
+    "sensitive": false,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noGlobalResourceSingleton; transitive helpers: noGlobalResourceSingleton, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, enclosingFunction, isFunctionLike, isResourceLikeConstruction, isIdentifier, isResourceLikeName, identifierNameTokens, resourceLikeTerms",
+      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+    ]
+  },
+  "no-run-with-open-resource": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noRunWithOpenResource; transitive helpers: noRunWithOpenResource, getImportSource, isEffectEcosystemImport, openResourceInRunScope, resourceLexicalScope, isFunctionLike, unownedResourcesInScope, findNodes, isResourceLifecycleCandidate, resourceAcquisitionCall, isIdentifier, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, isResourceLikeConstruction, hasResourceLifecycleOwner, hasReleaseOwnership, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall, isResourceAcquireReleaseCall, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, isEffectRunCall, effectRunMethods",
+      "Recognition tokens: acquireRelease, acquireUseRelease, acquire, Effect, acquireReleaseInterruptible, Scope, Layer, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-nested-acquire-release": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noNestedAcquireRelease; transitive helpers: noNestedAcquireRelease, getImportSource, isEffectEcosystemImport, nestedAcquireReleaseNode, isResourceAcquireReleaseCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, findNodes",
+      "Recognition tokens: Effect, acquireRelease, acquireReleaseInterruptible, acquireUseRelease; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-missing-layer-provision-at-run": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noMissingLayerProvisionAtRun; transitive helpers: noMissingLayerProvisionAtRun, getImportSource, isEffectEcosystemImport, effectRunMissingLayerProvision, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, firstArgument, findNode, isYieldedServiceDependency, programInitializerForReference, enclosingFunction, isFunctionLike, isEffectOrLayerProvideCall, isEffectMemberCallNamed, isMemberCall",
+      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit, Service, provide, Layer; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-yield-with-held-semaphore-permit": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noYieldWithHeldSemaphorePermit; transitive helpers: noYieldWithHeldSemaphorePermit, getImportSource, isEffectEcosystemImport, heldSemaphoreWork, isAnyObjectMemberCallNamed, isIdentifier, isMemberCall, containsHighRiskSuspension, isEffectMemberCall, highRiskEffectMembers",
+      "Recognition tokens: withPermits, Effect, promise, tryPromise, fork, forkDaemon, forkScoped, all, forEach, race, raceAll, Queue, Deferred; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-yield-with-held-mutable-ref": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noYieldWithHeldMutableRef; transitive helpers: noYieldWithHeldMutableRef, getImportSource, isEffectEcosystemImport, synchronizedRefModifierWork, isEffectfulSynchronizedRefCall, effectfulSynchronizedRefMembers, isMemberCall, isIdentifier, isAnyEffectfulSynchronizedRefCall, isAnyObjectMemberCallNamed, isSynchronizedRefNamespaceCall, containsHighRiskSuspension, isEffectMemberCall, highRiskEffectMembers",
+      "Recognition tokens: Effect, promise, tryPromise, fork, forkDaemon, forkScoped, all, forEach, race, raceAll, Queue, Deferred; API and repair controls still require packed qualification."
+    ]
+  },
+  "no-unscoped-background-fiber": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "baseline",
+      "4": "pending"
+    },
+    "evidence": [
+      "src/index.ts: noUnscopedBackgroundFiber; transitive helpers: noUnscopedBackgroundFiber, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallNamed, firstArgument",
+      "Recognition tokens: Effect, forkDaemon; API and repair controls still require packed qualification."
+    ]
+  }
+}

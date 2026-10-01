@@ -1,4 +1,6 @@
 import { definePlugin, defineRule } from "@oxlint/plugins";
+import { versionSensitiveRules, withEffectVersionSchema } from "./effect-version.ts";
+import type { RuleOptionsSchema } from "@oxlint/plugins";
 import type { Context as OxlintContext, ESTree } from "@oxlint/plugins";
 
 type Node = {
@@ -10024,6 +10026,14 @@ const rules = {
   "no-yield-with-held-mutable-ref": noYieldWithHeldMutableRef,
   "no-unscoped-background-fiber": noUnscopedBackgroundFiber,
 };
+
+for (const ruleName of versionSensitiveRules) {
+  const rule = rules[ruleName];
+  rule.meta = {
+    ...rule.meta,
+    schema: withEffectVersionSchema(Array.isArray(rule.meta?.schema) ? rule.meta.schema : []) as RuleOptionsSchema,
+  };
+}
 
 type RuleName = keyof typeof rules;
 
