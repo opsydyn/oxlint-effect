@@ -160,7 +160,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q04 | `effectComposition` | `no-effect-as`, `no-effect-do`, `no-effect-bind` |
 | [x] | Q05 | `effectComposition` | `no-effect-async`, `no-effect-ignore`, `no-effect-never` |
 | [x] | Q06 | `effectComposition` | `no-effect-fn-generator`, `no-nested-effect-gen`, `no-yield-without-star-in-effect-gen` |
-| [ ] | Q07 | `effectComposition` | `no-async-effect-combinator-callback`, `no-throw-in-effect-logic`, `no-try-catch-in-effect-logic` |
+| [x] | Q07 | `effectComposition` | `no-async-effect-combinator-callback`, `no-throw-in-effect-logic`, `no-try-catch-in-effect-logic` |
 | [ ] | Q08 | `effectComposition` | `no-promise-api-in-effect-logic`, `no-swallowed-catch-all`, `no-manual-effect-channels` |
 | [ ] | Q09 | `effectComposition` | `no-effect-type-alias`, `no-public-generic-effect-error` |
 | [ ] | Q10 | `behaviorDecoration` | `prefer-pipe-for-behavior`, `prefer-decorated-effect-before-gen`, `no-workflow-in-behavior-pipe` |

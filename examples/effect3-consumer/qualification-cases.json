@@ -429,5 +429,78 @@
       }
     },
     "runtime": "src/qualification/effectComposition/generators.contracts.ts"
+  },
+  {
+    "rule": "no-async-effect-combinator-callback",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "map data-first",
+      "map piped",
+      "andThen",
+      "catchAll",
+      "catchTag",
+      "filterOrFail",
+      "flatMap",
+      "forEach",
+      "orElse",
+      "tap"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-async-effect-combinator-callback.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-async-effect-combinator-callback.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-async-effect-combinator-callback.bad.ts": {
+        "linteffect/no-async-effect-combinator-callback": 10
+      }
+    },
+    "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
+  },
+  {
+    "rule": "no-throw-in-effect-logic",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "generator",
+      "map",
+      "plain recovery"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-throw-in-effect-logic.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-throw-in-effect-logic.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-throw-in-effect-logic.bad.ts": {
+        "linteffect/no-throw-in-effect-logic": 3
+      }
+    },
+    "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
+  },
+  {
+    "rule": "no-try-catch-in-effect-logic",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "generator",
+      "map",
+      "plain recovery"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-try-catch-in-effect-logic.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-try-catch-in-effect-logic.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-try-catch-in-effect-logic.bad.ts": {
+        "linteffect/no-try-catch-in-effect-logic": 3
+      }
+    },
+    "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
   }
 ]

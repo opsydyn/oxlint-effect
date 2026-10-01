@@ -222,7 +222,8 @@
       "tag",
       "tag map",
       "reason",
-      "reason map"
+      "reason map",
+      "self-bound generator"
     ],
     "bad": [
       "src/qualification/errorModeling/no-exception-domain-error.bad.ts"
@@ -232,7 +233,7 @@
     ],
     "expectedByFile": {
       "src/qualification/errorModeling/no-exception-domain-error.bad.ts": {
-        "linteffect/no-exception-domain-error": 14
+        "linteffect/no-exception-domain-error": 15
       }
     },
     "runtime": "src/qualification/errorModeling/domain-errors.contracts.ts"
@@ -437,5 +438,111 @@
       }
     },
     "runtime": "src/qualification/effectComposition/generators.contracts.ts"
+  },
+  {
+    "rule": "no-async-effect-combinator-callback",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "map data-first",
+      "map piped",
+      "andThen",
+      "catch",
+      "catchEager",
+      "catchCause",
+      "catchDefect",
+      "catchIf",
+      "catchFilter",
+      "catchCauseIf",
+      "catchCauseFilter",
+      "catchTag",
+      "catchTags",
+      "catchReason",
+      "catchReasons",
+      "filterOrFail",
+      "flatMap",
+      "forEach",
+      "tap"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-async-effect-combinator-callback.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-async-effect-combinator-callback.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-async-effect-combinator-callback.bad.ts": {
+        "linteffect/no-async-effect-combinator-callback": 19
+      }
+    },
+    "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
+  },
+  {
+    "rule": "no-throw-in-effect-logic",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "generator",
+      "map",
+      "plain recovery",
+      "eager",
+      "cause",
+      "defect",
+      "predicate",
+      "filter",
+      "cause predicate",
+      "cause filter",
+      "tag",
+      "tag map",
+      "reason",
+      "reason map",
+      "self-bound generator"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-throw-in-effect-logic.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-throw-in-effect-logic.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-throw-in-effect-logic.bad.ts": {
+        "linteffect/no-throw-in-effect-logic": 15
+      }
+    },
+    "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
+  },
+  {
+    "rule": "no-try-catch-in-effect-logic",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "generator",
+      "map",
+      "plain recovery",
+      "eager",
+      "cause",
+      "defect",
+      "predicate",
+      "filter",
+      "cause predicate",
+      "cause filter",
+      "tag",
+      "tag map",
+      "reason",
+      "reason map",
+      "self-bound generator"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-try-catch-in-effect-logic.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-try-catch-in-effect-logic.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-try-catch-in-effect-logic.bad.ts": {
+        "linteffect/no-try-catch-in-effect-logic": 15
+      }
+    },
+    "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
   }
 ]

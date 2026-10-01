@@ -51,13 +51,24 @@ compiler-negative removed-API contract. Two legacy async warnings and adapter
 repair, two ignore and never warnings per major and finite scoped teardown
 controls pass. 474 tests, root types, both packed majors and size 26.84 KB pass.
 
-## Rulings
-
 Q06: v4 named fn/self-bound gen and own-workflow boundaries qualified, retaining
 legacy first-generator behaviour. V4 runtime proves plain yield executes;
 diagnostic now accurately explains delegation typing/style. Flat/delegated
 repairs preserve results. 475 tests, root types, both packed majors and size
 26.98 KB pass. Shared helper owners not explicitly versioned remain pending.
+
+Q07: callback ownership uses the audited version-selected recovery table.
+Async cases have 10 legacy/19 v4 parsed warnings; throwing/try-catch cases have
+3 legacy/15 v4 warnings each, with typed payload/cause repairs. Checked-negative
+callback contracts distinguish valid legacy Promise overloads from v4's stricter
+Effect callbacks. The Q02 self-bound generator gap has its own RED/GREEN and
+packed regression. 477 tests, root types, both packed majors and 26.97 KB pass.
+
+## Rulings
+
+The Q07 build exceeded 27 KB. Deduplicating the changed scope/yield/exception
+walkers through the existing cycle-safe findNode reduced it below the unchanged
+cap. Legacy traversal and all prior qualified callback controls are retained.
 
 V4 log-only policy excludes observers because the installed API preserves the
 original failure; legacy tapError reporting is retained for compatibility.

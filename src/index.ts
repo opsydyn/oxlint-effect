@@ -425,48 +425,9 @@ function findDateNowCalls(node: unknown, seen = new WeakSet<object>()): unknown[
   ));
 }
 
-function findYieldWithoutStar(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findYieldWithoutStar(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  if ((node as Node).type === "YieldExpression" && (node as Node).delegate !== true) {
-    return node;
-  }
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findYieldWithoutStar(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-}
-
 function findYieldWithoutStarInEffectGen(node: unknown, version: EffectVersion): unknown | undefined {
   const generator = getEffectGeneratorArgument(node, "gen", version);
-  return generator ? version === 3 ? findYieldWithoutStar(generator.body)
-    : findOwnCallbackNode(generator.body, (child) => (child as Node).type === "YieldExpression" && (child as Node).delegate !== true) : undefined;
+  return generator ? findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === "YieldExpression" && (child as Node).delegate !== true) : undefined;
 }
 
 function findPipedYields(node: unknown, seen = new WeakSet<object>()): unknown[] {
@@ -1213,14 +1174,17 @@ function findNode(
   node: unknown,
   predicate: (node: unknown) => boolean,
   seen = new WeakSet<object>(),
+  ownScope = false,
 ): unknown | undefined {
+  if (ownScope && (typeof node !== "object" || node === null || seen.has(node) || isFunctionLike(node) ||
+    (node as Node).type === "ClassDeclaration" || (node as Node).type === "ClassExpression")) return undefined;
   if (predicate(node)) {
     return node;
   }
 
   if (Array.isArray(node)) {
     for (const child of node) {
-      const match = findNode(child, predicate, seen);
+      const match = findNode(child, predicate, seen, ownScope);
       if (match) {
         return match;
       }
@@ -1242,7 +1206,7 @@ function findNode(
       continue;
     }
 
-    const match = findNode(child, predicate, seen);
+    const match = findNode(child, predicate, seen, ownScope);
     if (match) {
       return match;
     }
@@ -1477,168 +1441,31 @@ function effectLogicCallbacks(node: unknown, version: EffectVersion): unknown[] 
   });
 }
 
-function findOwnCallbackNode(node: unknown, predicate: (node: unknown) => boolean, seen = new WeakSet<object>()): unknown | undefined {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findOwnCallbackNode(child, predicate, seen);
-      if (match) return match;
-    }
-    return undefined;
-  }
-  if (typeof node !== "object" || node === null || seen.has(node) || isFunctionLike(node)
-    || (node as Node).type === "ClassDeclaration" || (node as Node).type === "ClassExpression") return undefined;
-  seen.add(node);
-  if (predicate(node)) return node;
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") continue;
-    const match = findOwnCallbackNode(child, predicate, seen);
+function findOwnCallbackNode(node: unknown, predicate: (node: unknown) => boolean): unknown | undefined {
+  return findNode(node, predicate, new WeakSet<object>(), true);
+}
+
+function findAsyncEffectCombinatorCallback(node: unknown, version: EffectVersion): unknown | undefined {
+  return effectLogicCallbacks(node, version).find(isAsyncFunctionCallback);
+}
+
+function findEffectLogicNode(node: unknown, version: EffectVersion, predicate: (child: unknown) => boolean): unknown | undefined {
+  const search = version === 3 ? findNode : findOwnCallbackNode;
+  const generator = getEffectGeneratorArgument(node, "gen", version);
+  if (generator) return search(generator.body, predicate);
+  for (const callback of effectLogicCallbacks(node, version)) {
+    const match = search(callbackBody(callback), predicate);
     if (match) return match;
   }
   return undefined;
 }
 
-function findAsyncEffectCombinatorCallback(node: unknown): unknown | undefined {
-  if (!isEffectMemberCall(node)) {
-    return undefined;
-  }
-
-  const callee = node.callee as Node;
-  const property = callee.property;
-  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
-    return undefined;
-  }
-
-  return node.arguments.find((argument) => isAsyncFunctionCallback(argument));
+function findThrowInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
+  return findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === "ThrowStatement");
 }
 
-function findThrowStatement(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findThrowStatement(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  if ((node as Node).type === "ThrowStatement") {
-    return node;
-  }
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findThrowStatement(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-}
-
-function findThrowInEffectLogic(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
-  if (generator) {
-    return findThrowStatement(generator.body);
-  }
-
-  if (!isEffectMemberCall(node)) {
-    return undefined;
-  }
-
-  const callee = node.callee as Node;
-  const property = callee.property;
-  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
-    return undefined;
-  }
-
-  for (const argument of node.arguments) {
-    const body = callbackBody(argument);
-    const match = body ? findThrowStatement(body) : undefined;
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-}
-
-function findTryStatement(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findTryStatement(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  if ((node as Node).type === "TryStatement") {
-    return node;
-  }
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findTryStatement(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-}
-
-function findTryCatchInEffectLogic(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
-  if (generator) {
-    return findTryStatement(generator.body);
-  }
-
-  if (!isEffectMemberCall(node)) {
-    return undefined;
-  }
-
-  const callee = node.callee as Node;
-  const property = callee.property;
-  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
-    return undefined;
-  }
-
-  for (const argument of node.arguments) {
-    const body = callbackBody(argument);
-    const match = body ? findTryStatement(body) : undefined;
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+function findTryCatchInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
+  return findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === "TryStatement");
 }
 
 function isPromiseStaticApiCall(node: unknown): boolean {
@@ -4945,18 +4772,7 @@ function isDomainExceptionThrow(node: unknown): boolean {
 }
 
 function findDomainExceptionInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
-  if (generator) {
-    return version === 3 ? findNode(generator.body, isDomainExceptionThrow) : findOwnCallbackNode(generator.body, isDomainExceptionThrow);
-  }
-
-  for (const argument of effectLogicCallbacks(node, version)) {
-    const body = callbackBody(argument);
-    const match = body ? version === 3 ? findNode(body, isDomainExceptionThrow) : findOwnCallbackNode(body, isDomainExceptionThrow) : undefined;
-    if (match) return match;
-  }
-
-  return undefined;
+  return findEffectLogicNode(node, version, isDomainExceptionThrow);
 }
 
 function isThrowNewStringError(node: unknown): boolean {
@@ -6792,6 +6608,7 @@ const noEffectAllStepSequencing = defineRule({
 
 const noAsyncEffectCombinatorCallback = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6806,12 +6623,14 @@ const noAsyncEffectCombinatorCallback = defineRule({
           return;
         }
 
-        const callback = findAsyncEffectCombinatorCallback(node);
+        const callback = findAsyncEffectCombinatorCallback(node, version);
         if (callback) {
           report(
             context,
             callback,
-            "Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: return an Effect and compose with Effect.flatMap/fromPromise at the boundary.",
+            version === 3
+              ? "Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: return an Effect and compose with Effect.flatMap/fromPromise at the boundary."
+              : "Rule: avoid async callbacks in Effect combinators. Why: a Promise is not an Effect workflow step or typed recovery. Fix: return an Effect, compose with flatMap, and adapt Promise APIs with Effect.tryPromise at the boundary.",
           );
         }
       },
@@ -6821,6 +6640,7 @@ const noAsyncEffectCombinatorCallback = defineRule({
 
 const noThrowInEffectLogic = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6835,12 +6655,14 @@ const noThrowInEffectLogic = defineRule({
           return;
         }
 
-        const throwNode = findThrowInEffectLogic(node);
+        const throwNode = findThrowInEffectLogic(node, version);
         if (throwNode) {
           report(
             context,
             throwNode,
-            "Rule: avoid throw inside Effect logic. Why: thrown exceptions bypass typed Effect error channels and interruption semantics. Fix: return Effect.fail with a structured tagged error.",
+            version === 3
+              ? "Rule: avoid throw inside Effect logic. Why: thrown exceptions bypass typed Effect error channels and interruption semantics. Fix: return Effect.fail with a structured tagged error."
+              : "Rule: avoid throw inside Effect logic. Why: thrown exceptions become defects rather than typed domain failures. Fix: return Effect.fail with a structured tagged error.",
           );
         }
       },
@@ -7143,6 +6965,7 @@ const noEffectIgnore = defineRule({
 
 const noTryCatchInEffectLogic = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -7157,12 +6980,14 @@ const noTryCatchInEffectLogic = defineRule({
           return;
         }
 
-        const tryNode = findTryCatchInEffectLogic(node);
+        const tryNode = findTryCatchInEffectLogic(node, version);
         if (tryNode) {
           report(
             context,
             tryNode,
-            "Rule: avoid try/catch inside Effect logic. Why: it bypasses typed error channels and can miss interruption/cause semantics. Fix: use Effect.try, Effect.catchAll, Effect.catchTag, or typed error combinators.",
+            version === 3
+              ? "Rule: avoid try/catch inside Effect logic. Why: it bypasses typed error channels and can miss interruption/cause semantics. Fix: use Effect.try, Effect.catchAll, Effect.catchTag, or typed error combinators."
+              : "Rule: avoid try/catch inside Effect logic. Why: it separates exception recovery from the typed failure channel. Fix: use Effect.try for throwing APIs and Effect.catch or Effect.catchTag for typed failures.",
           );
         }
       },

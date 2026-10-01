@@ -50,6 +50,21 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q07 selects callback maps and own scope", () => {
+    for (const [rule, body] of [
+      ["no-throw-in-effect-logic", blockStatement(throwStatement(stringLiteral("invalid")))],
+      ["no-try-catch-in-effect-logic", blockStatement(tryStatement(expressionStatement(identifier("work"))))],
+    ] as const) {
+      for (const name of ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchTag", "catchReason"]) {
+        const reports = runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: effectCall(name, arrowCallback(body)) }], { options: [{ effectVersion: 4 }] });
+        expect(reports).toHaveLength(1);
+      }
+      const nested = effectCall("catch", arrowCallback(blockStatement(expressionStatement(arrowCallback(body)), returnStatement(effectCall("fail", identifier("error"))))));
+      expect(runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: nested }], { options: [{ effectVersion: 4 }] })).toHaveLength(0);
+    }
+    const asynchronous = { ...arrowCallback(effectCall("succeed", stringLiteral("ready"))), async: true };
+    expect(runRuleSequence("no-async-effect-combinator-callback", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: effectCall("catchTags", objectLiteral(property("DomainError", asynchronous))) }], { options: [{ effectVersion: 4 }] })).toHaveLength(1);
+  });
   it("Effect qualification Q06 recognises named fn and self gen forms in v4", () => {
     const generator = generatorCallback(blockStatement(returnStatement(stringLiteral("ready"))));
     const named = callExpression(effectCall("fn", stringLiteral("operation")), generator);
@@ -120,6 +135,13 @@ describe("versioned runners", () => {
       ], { options: [{ effectVersion: version }] });
       expect(unrelated).toHaveLength(0);
     }
+  });
+  it("Effect qualification Q02 retains domain ownership for v4 self-bound generators", () => {
+    const target = throwStatement(newExpression(identifier("ValidationError")));
+    const node = effectCall("gen", objectLiteral(property("self", identifier("owner"))), generatorCallback(blockStatement(target)));
+    const reports = runRuleSequence("no-exception-domain-error", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });
+    expect(reports).toHaveLength(1);
+    expect(reports[0].node).toBe(target);
   });
   it("Effect qualification Q02 distinguishes v4 handler maps from nested unrelated functions", () => {
     const target = throwStatement(newExpression(identifier("ValidationError")));

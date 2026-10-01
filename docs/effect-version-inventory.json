@@ -851,12 +851,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noAsyncEffectCombinatorCallback; transitive helpers: noAsyncEffectCombinatorCallback, getImportSource, isEffectEcosystemImport, findAsyncEffectCombinatorCallback, isEffectMemberCall, isIdentifier, effectAsyncCallbackCombinators, isAsyncFunctionCallback",
-      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+      "Q07: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-async-effect-combinator-callback.{bad,good}.ts; callbacks.contracts.ts.",
+      "10 legacy and 19 v4 parsed warnings across audited combinator/recovery forms; explicit compiler-negative Promise-return contracts wherever incompatible. Legacy andThen/tap accept Promise callbacks but retain style warnings; v4 rejects those shapes. Synchronous/tryPromise/flatMap repairs preserve values.",
+      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only."
     ]
   },
   "no-throw-in-effect-logic": {
@@ -866,12 +867,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noThrowInEffectLogic; transitive helpers: noThrowInEffectLogic, getImportSource, isEffectEcosystemImport, findThrowInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findThrowStatement, effectAsyncCallbackCombinators, callbackBody",
-      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+      "Q07: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-throw-in-effect-logic.{bad,good}.ts; callbacks.contracts.ts.",
+      "3 legacy and 15 v4 parsed warnings including self-bound gen and recovery maps. Own-callback traversal excludes nested unrelated functions. Effect.try/fail repairs preserve payload and original source identity at runtime.",
+      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only."
     ]
   },
   "no-or-die-outside-boundary": {
@@ -926,12 +928,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noTryCatchInEffectLogic; transitive helpers: noTryCatchInEffectLogic, getImportSource, isEffectEcosystemImport, findTryCatchInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findTryStatement, effectAsyncCallbackCombinators, callbackBody",
-      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+      "Q07: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-try-catch-in-effect-logic.{bad,good}.ts; callbacks.contracts.ts.",
+      "3 legacy and 15 v4 parsed warnings including self-bound gen and recovery maps. Own-callback traversal excludes nested unrelated functions. Effect.try/fail repairs preserve payload and original source identity at runtime.",
+      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only."
     ]
   },
   "no-promise-api-in-effect-logic": {
@@ -1189,7 +1192,8 @@
     },
     "evidence": [
       "Q02: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/errorModeling/no-exception-domain-error.{bad,good}.ts; domain-errors.contracts.ts.",
-      "Parsed 3 legacy and 14 v4 generator/combinator variants; v4 handler maps recognised, unused nested functions excluded. Ordinary throws stay clean. Tagged failure payload and source cause retained."
+      "Parsed 3 legacy and 14 v4 generator/combinator variants; v4 handler maps recognised, unused nested functions excluded. Ordinary throws stay clean. Tagged failure payload and source cause retained.",
+      "Q07 shared-helper regression: v4 self-bound generator adds fifteenth parsed warning and explicit target assertion; earlier direct and nested-function controls retained."
     ]
   },
   "no-effect-fail-error-message": {
