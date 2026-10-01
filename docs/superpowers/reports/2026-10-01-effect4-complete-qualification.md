@@ -18,7 +18,15 @@ Baseline: b159eb8. Approved inline execution on main; no push or publish.
 
 ## Batch Evidence
 
-No wider batch complete yet. The plan's Q01-Q52 table is the progress checklist.
+Q01: public error contracts qualified unchanged for both majors. Each rule has
+five parsed warnings (named/default functions, arrow, typed callable, function
+expression) and clean tagged unions/private/non-Effect controls. Tagged repairs
+retain tag/userId at runtime and support catchTag recovery; a checked negative
+type fixture rejects generic Error in the tagged public contract. No detector
+change was necessary. Evidence is in each consumer's errorModeling group and
+qualification manifest; synthetic report nodes are asserted too.
+
+The plan's Q01-Q52 table is the progress checklist. Wider groups remain open.
 
 ## Rulings
 

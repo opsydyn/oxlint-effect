@@ -1242,12 +1242,14 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noErrorAsPublicEffectError; transitive helpers: noErrorAsPublicEffectError, createPublicEffectErrorChannelRule, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, getImportSource, isEffectEcosystemImport, isGenericErrorType, isIdentifierTypeReference",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q01: unchanged public Effect error-channel syntax. src/index.ts: exportedEffectErrorTargets / createPublicEffectErrorChannelRule; Effect<A,E,R> and Data.TaggedError audited against pinned Effect 3.21.4 / 4.0.0.",
+      "examples/effect3-consumer/src/qualification/errorModeling/no-error-as-public-effect-error.bad.ts and .good.ts; matching Effect 4 consumer; five literal warnings per major: named/default functions, arrow export, typed callable, function expression. Private and non-Effect controls clean.",
+      "qualification-cases.json; scripts/verify-effect-version-consumers.ts; contracts.ts preserves tag/payload and catchTag recovery; public-errors.types.ts rejects generic Error as a tagged public contract.",
+      "tests/plugin.test.ts: Effect qualification Q01; docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md. Scope: explicit Effect.Effect annotations and supported direct export forms; not inferred or re-exported contracts."
     ]
   },
   "no-unknown-public-error-channel": {
@@ -1257,12 +1259,14 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noUnknownPublicErrorChannel; transitive helpers: noUnknownPublicErrorChannel, createPublicEffectErrorChannelRule, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, getImportSource, isEffectEcosystemImport, errorChannelShape, unwrappedType, isGenericErrorType, isIdentifierTypeReference",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q01: unchanged public Effect error-channel syntax. src/index.ts: exportedEffectErrorTargets / createPublicEffectErrorChannelRule; Effect<A,E,R> and Data.TaggedError audited against pinned Effect 3.21.4 / 4.0.0.",
+      "examples/effect3-consumer/src/qualification/errorModeling/no-unknown-public-error-channel.bad.ts and .good.ts; matching Effect 4 consumer; five literal warnings per major: named/default functions, arrow export, typed callable, function expression. Private and non-Effect controls clean.",
+      "qualification-cases.json; scripts/verify-effect-version-consumers.ts; contracts.ts preserves tag/payload and catchTag recovery; public-errors.types.ts rejects generic Error as a tagged public contract.",
+      "tests/plugin.test.ts: Effect qualification Q01; docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md. Scope: explicit Effect.Effect annotations and supported direct export forms; not inferred or re-exported contracts."
     ]
   },
   "no-mixed-effect-error-shapes": {
@@ -1272,12 +1276,14 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noMixedEffectErrorShapes; transitive helpers: noMixedEffectErrorShapes, createPublicEffectErrorChannelRule, exportedEffectErrorTargets, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, effectErrorChannelTarget, isQualifiedTypeReference, isIdentifier, typeArguments, getImportSource, isEffectEcosystemImport, mixedErrorChannelShapes, unwrappedType, errorChannelShape, isGenericErrorType, isIdentifierTypeReference",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q01: unchanged public Effect error-channel syntax. src/index.ts: exportedEffectErrorTargets / createPublicEffectErrorChannelRule; Effect<A,E,R> and Data.TaggedError audited against pinned Effect 3.21.4 / 4.0.0.",
+      "examples/effect3-consumer/src/qualification/errorModeling/no-mixed-effect-error-shapes.bad.ts and .good.ts; matching Effect 4 consumer; five literal warnings per major: named/default functions, arrow export, typed callable, function expression. Private and non-Effect controls clean.",
+      "qualification-cases.json; scripts/verify-effect-version-consumers.ts; contracts.ts preserves tag/payload and catchTag recovery; public-errors.types.ts rejects generic Error as a tagged public contract.",
+      "tests/plugin.test.ts: Effect qualification Q01; docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md. Scope: explicit Effect.Effect annotations and supported direct export forms; not inferred or re-exported contracts."
     ]
   },
   "no-model-overlay-cast": {

@@ -84,5 +84,77 @@
         "linteffect/no-run-effect-outside-boundary": 12
       }
     }
+  },
+  {
+    "rule": "no-error-as-public-effect-error",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "named function",
+      "default function",
+      "arrow export",
+      "typed callable",
+      "function expression"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-error-as-public-effect-error.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-error-as-public-effect-error.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-error-as-public-effect-error.bad.ts": {
+        "linteffect/no-error-as-public-effect-error": 5
+      }
+    },
+    "runtime": "src/qualification/errorModeling/contracts.ts"
+  },
+  {
+    "rule": "no-unknown-public-error-channel",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "named function",
+      "default function",
+      "arrow export",
+      "typed callable",
+      "function expression"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-unknown-public-error-channel.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-unknown-public-error-channel.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-unknown-public-error-channel.bad.ts": {
+        "linteffect/no-unknown-public-error-channel": 5
+      }
+    },
+    "runtime": "src/qualification/errorModeling/contracts.ts"
+  },
+  {
+    "rule": "no-mixed-effect-error-shapes",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "named function",
+      "default function",
+      "arrow export",
+      "typed callable",
+      "function expression"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-mixed-effect-error-shapes.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-mixed-effect-error-shapes.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-mixed-effect-error-shapes.bad.ts": {
+        "linteffect/no-mixed-effect-error-shapes": 5
+      }
+    },
+    "runtime": "src/qualification/errorModeling/contracts.ts"
   }
 ]

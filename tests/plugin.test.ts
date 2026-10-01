@@ -50,6 +50,23 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q01 covers public error contracts for both majors", async () => {
+    for (const version of [3, 4] as const) {
+      const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();
+      for (const id of ["no-error-as-public-effect-error", "no-unknown-public-error-channel", "no-mixed-effect-error-shapes"]) {
+        const entry = cases.find((candidate: { rule: string }) => candidate.rule === id);
+        expect(entry?.variants).toEqual(["named function", "default function", "arrow export", "typed callable", "function expression"]);
+        const error = id === "no-error-as-public-effect-error" ? tsTypeReference("Error") : id === "no-unknown-public-error-channel" ? tsUnknownKeyword() : tsUnionType(tsTypeReference("Error"), tsStringKeyword());
+        const target = effectEffectTypeReference(tsStringKeyword(), error, tsTypeReference("never"));
+        const reports = runRuleSequence(id, [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "ExportNamedDeclaration", node: exportedFunctionDeclarationReturningType(target) },
+        ], { options: [{ effectVersion: version }] });
+        expect(reports).toHaveLength(1);
+        expect(reports[0].node).toBe(target);
+      }
+    }
+  });
   const methods = ["runCallback", "runFork", "runPromise", "runPromiseExit", "runSync", "runSyncExit"];
   const inspect = (rule: string, calls: unknown[], version: 3 | 4, filename = "/repo/src/domain.ts", boundaryPaths?: string[]) => runRuleSequence(rule, [
     { visitorName: "ImportDeclaration", node: importFrom("effect") },

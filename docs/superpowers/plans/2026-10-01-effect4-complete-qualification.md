@@ -154,7 +154,7 @@ For every row, use this same ordered TDD contract:
 
 | Complete | Batch | Group | Rules |
 | --- | --- | --- | --- |
-| [ ] | Q01 | `errorModeling` | `no-error-as-public-effect-error`, `no-unknown-public-error-channel`, `no-mixed-effect-error-shapes` |
+| [x] | Q01 | `errorModeling` | `no-error-as-public-effect-error`, `no-unknown-public-error-channel`, `no-mixed-effect-error-shapes` |
 | [ ] | Q02 | `errorModeling` | `no-expected-state-as-error`, `no-empty-error-tag`, `no-exception-domain-error` |
 | [ ] | Q03 | `errorModeling` | `no-log-only-error-handling` |
 | [ ] | Q04 | `effectComposition` | `no-effect-as`, `no-effect-do`, `no-effect-bind` |

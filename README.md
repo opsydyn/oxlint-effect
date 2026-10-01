@@ -13,11 +13,19 @@ and [per-rule audit](docs/effect-version-inventory.json) before using this check
 
 `bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
-The current probes qualify documented variants of `no-effect-fail-error-message`,
+The initial probes qualify documented variants of `no-effect-fail-error-message`,
 `no-catchall-generic-rethrow`, `no-early-catchall-null` and
 `no-run-effect-outside-boundary`; accepting a version option is not proof that a
 pending detector has been adapted. `release` and `prepublishOnly` are blocked until a major bump and
 all applicable major-specific inventory entries qualify.
+
+Additional group-by-group evidence is tracked in the
+[wider qualification report](docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md)
+and both consumers' `qualification-cases.json`. Each case requires annotated bad
+sources, passing clean controls and literal per-file diagnostic counts. Run
+`bun scripts/verify-effect-version-consumers.ts --require-complete` after a build
+to reject any remaining unqualified applicable rule; it currently rejects this
+unfinished campaign.
 
 ## Install
 
