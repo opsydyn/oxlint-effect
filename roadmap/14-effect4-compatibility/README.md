@@ -1,6 +1,6 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: foundation implemented and locally verified; detector adaptation remains outstanding.
+Status: foundation and first recovery/runtime batch locally verified; wider detector adaptation remains outstanding.
 
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
@@ -22,7 +22,8 @@ or design completion.
 Qualification scope: `no-effect-fail-error-message` has pinned packed failure
 and clean controls for both majors. The mixed-major boundary probe proves
 configuration isolation with common runner syntax, not all v4 runner variants.
-All other applicable v4 inventory entries remain pending. Presets accepting
+The three headline recovery/runtime rules now also have scoped qualification;
+137 other applicable v4 inventory entries remain pending. Presets accepting
 `effectVersion` does not imply that pending detectors already branch on it.
 The release/prepublish guard blocks this checkout until a major bump and
 all applicable major-specific qualifications are complete.
@@ -39,7 +40,18 @@ for local evidence, review fixes and limits.
 First targeted batch: `no-catchall-generic-rethrow`, `no-early-catchall-null`,
 `no-run-effect-outside-boundary`. Shared-helper consumers need regression coverage
 even when they are not the three headline rules.
-See the [next batch allocation](./recovery-runtime-batch.md).
+See the [completed batch allocation](./recovery-runtime-batch.md) and
+[qualification report](../../docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md).
+
+- [x] Qualify plain recovery for `no-catchall-generic-rethrow` and `no-early-catchall-null` across majors.
+- [x] Qualify ordinary and immediate context-aware runners for `no-run-effect-outside-boundary`.
+- [x] Repair runner boundary options and add transitive runner regressions.
+- [x] Add typed packed failures, clean controls, runtime contracts and documentation for this batch.
+
+Slice 2 remains open: logging, async callbacks, Cause/defect/filter/reason
+recovery and behaviour-decoration owners still need their own qualification.
+Stored runner aliases and testing-group `runPromiseWith` shapes remain follow-on
+coverage; neither is implied by the headline runner qualification.
 
 ## Slice 3: Concurrency Safety
 

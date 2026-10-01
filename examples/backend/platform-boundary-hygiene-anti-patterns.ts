@@ -36,8 +36,13 @@ try {
 }
 
 // EXPECT: linteffect/no-hidden-effect-execution
-// QA: Runtime execution stays at configured application boundaries.
+// EXPECT: linteffect/no-run-effect-outside-boundary
+// QA: examples/backend is not server/** and is not a default runner boundary.
+// Packed consumers demonstrate both warning and clean configurations.
 const result = Effect.runPromise(Effect.succeed("started"));
+
+// CLEAN: reusable domain functions return an Effect instead of running it.
+export const startProgram = () => Effect.succeed("started");
 
 void join;
 void readFile;

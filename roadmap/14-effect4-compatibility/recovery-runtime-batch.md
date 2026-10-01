@@ -1,7 +1,9 @@
 # Next Batch: Recovery And Runtime Boundaries
 
-Status: allocated, not implemented. Create and review its implementation plan
-before changing detectors. This batch starts from the compatibility foundation.
+Status: implemented and locally qualified on 2026-10-01. See the
+[implementation plan](../../docs/superpowers/plans/2026-10-01-effect4-recovery-runtime.md)
+and [qualification report](../../docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md).
+This batch starts from the compatibility foundation; wider recovery qualification remains open.
 
 ## Three Headline Rules
 
@@ -56,10 +58,15 @@ Stable 4.0.0 exports identify `runCallbackWith`, `runForkWith`, `runPromiseWith`
 and execution signatures against the pinned package before encoding triggers.
 Use actual required context values, not casts hiding invalid examples.
 
-The existing runner rule currently has no configurable boundary exemption,
-despite its diagnostic wording. Add schema/path handling using the existing
-shared conservative boundary defaults, document the repaired contract and
-test it explicitly. This is an intentional correction, not an assumed baseline.
+The pre-batch runner rule had no configurable boundary exemption despite its
+diagnostic wording. It now uses the shared conservative defaults/schema and
+supports replacement/empty boundary paths for both majors. This is an intentional
+contract correction, not a claim that legacy releases already exempted boundaries.
+
+Qualified With detection covers immediate curried execution, not stored runner
+aliases, renamed imports or computed properties. Shared consumers have runner
+regressions but are not fully qualified. Context-supplied runners do not trigger
+missing Layer provision: environment completeness cannot be proven from syntax.
 
 ## Completion Gate
 

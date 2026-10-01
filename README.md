@@ -13,9 +13,10 @@ and [per-rule audit](docs/effect-version-inventory.json) before using this check
 
 `bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
-The current probe qualifies only its documented `no-effect-fail-error-message`
-variants; accepting a version option is not proof that a pending detector has
-been adapted. `release` and `prepublishOnly` are blocked until a major bump and
+The current probes qualify documented variants of `no-effect-fail-error-message`,
+`no-catchall-generic-rethrow`, `no-early-catchall-null` and
+`no-run-effect-outside-boundary`; accepting a version option is not proof that a
+pending detector has been adapted. `release` and `prepublishOnly` are blocked until a major bump and
 all applicable major-specific inventory entries qualify.
 
 ## Install
@@ -86,6 +87,42 @@ registered rule. The five currently identified v3-only rules remain registered
 and available in `effect3`: `require-service-accessors`,
 `require-service-dependencies`, `no-effect-async`, `no-effect-orElse-ladder` and
 `no-fromnullable-nullish-coalesce`. The audit may identify further restrictions.
+
+### Recovery And Runtime Across Majors
+
+In the unreleased 2.0 checkout, the plain-recovery rules recognise `Effect.catch`
+for Effect 4 and `Effect.catchAll` under `effectVersion: 3`. IDs retain `catchall`
+for configuration stability. Both direct and piped operators, expression
+callbacks and block returns are covered. Original structured errors and explicit
+tagged mappings remain clean; Cause, defect, filtered and reason handlers are
+not treated as plain recovery. A legacy spelling under v4 is not a migration
+warning.
+
+`no-run-effect-outside-boundary` covers `runCallback`, `runFork`, `runPromise`,
+`runPromiseExit`, `runSync` and `runSyncExit`. Effect 4 additionally covers their
+six `With` forms at execution: `Effect.runPromiseWith(context)(program)`.
+`Effect.runPromiseWith(context)` alone creates a runner and does not warn.
+Stored runner aliases, renamed imports and computed properties are not covered.
+
+The runner rule now honours `boundaryPaths` for both majors, correcting its old
+behaviour of warning even at boundaries. It shares these conservative defaults
+with early fallback recovery: `bin/**`, `scripts/**`, `cli/**`, `**/main.ts`,
+`app/api/**/route.ts`, `server/**`, `*.test.ts`, `*.spec.ts`. Custom paths **replace**
+defaults; `[]` exempts nothing. Keep `effectVersion` in custom option tuples:
+
+```ts
+"linteffect/no-run-effect-outside-boundary": [
+  "warn",
+  { effectVersion: 3, boundaryPaths: ["src/http/**", "test/**"] },
+],
+```
+
+Return an Effect from domain logic, preserve structured failures, and execute or
+recover at your configured boundary. A context-supplied runner is not evidence
+of missing Layer provision; syntax cannot prove context completeness.
+See annotated [Effect 4 failures](examples/effect4-consumer/src/recovery-runtime/runners.ts),
+[legacy recovery failures](examples/effect3-consumer/src/recovery-runtime/rethrow.ts)
+and the [qualification report](docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md).
 
 ### Configure Type-Aware Linting
 
@@ -300,7 +337,7 @@ Effect flow, domain meaning, or runtime boundaries.
 | --- | --- | --- |
 | `linteffect/no-react-state` | React state hooks such as `useState`, `useReducer`, and `useEffect`. | Keeps React UI state in the atom/runtime model instead of bypassing it. |
 | `linteffect/no-runtime-runfork` | `Runtime.runFork(...)`. | Detached fibers hide ownership, interruption, and lifecycle boundaries. |
-| `linteffect/no-run-effect-outside-boundary` | Direct `Effect.runPromise`, `Effect.runSync`, `Effect.runFork`, and related `Effect.run*` calls. | Keeps Effect execution owned by app, CLI, worker, route, or test boundaries. |
+| `linteffect/no-run-effect-outside-boundary` | Six direct `Effect.run*` calls and, in v4, immediate curried `run*With(context)(program)` execution outside configured boundaries. | Keeps runtime ownership at recognised boundaries; context factory creation is clean. |
 | `linteffect/no-or-die-outside-boundary` | `Effect.orDie(...)`, `Effect.orDieWith(...)`, and pipe arguments such as `Effect.orDie`. | Prevents recoverable typed failures from being converted to defects inside domain logic. |
 | `linteffect/prevent-dynamic-imports` | Dynamic `import(...)`. | Static imports keep dependency boundaries visible. |
 | `linteffect/no-render-side-effects` | `Match.value(...).pipe(...)` used as a render-time statement. | Prevents side effects from running during render. |
@@ -587,9 +624,9 @@ with existing projects.
 | `linteffect/no-unknown-public-error-channel` | Exported functions returning `Effect.Effect<_, unknown, _>`. | Callers cannot recover by tag or type from an `unknown` channel. |
 | `linteffect/no-mixed-effect-error-shapes` | Public error unions mixing `Error`, `unknown`, string, number, or boolean shapes. | A single tagged error union keeps recovery and observability predictable. |
 | `linteffect/no-effect-fail-error-message` | `Effect.fail(error.message)`, string concatenation, or templates that stringify an error. | Preserves the original error tag, cause, and context instead of collapsing it into a string. |
-| `linteffect/no-catchall-generic-rethrow` | `catchAll` handlers that create `new Error(...)` inside `Effect.fail(...)`. | Keeps recovery typed and prevents generic rethrows from erasing the original failure. |
+| `linteffect/no-catchall-generic-rethrow` | Plain `catch` (v4) or `catchAll` (v3) handlers returning `Effect.fail(new Error(...))`. | Preserve the original error or explicitly map to a structured tagged error with its cause. |
 | `linteffect/no-log-only-error-handling` | `catchAll` or `tapError` handlers that only call `Effect.log*`. | Logging is observability, not failure ownership; map or re-fail after logging. |
-| `linteffect/no-early-catchall-null` | Non-boundary `catchAll` recovery with `Effect.succeed(null)`, `undefined`, or a fallback value. | Lets higher layers own recovery instead of leaking untyped absence from domain logic. |
+| `linteffect/no-early-catchall-null` | Non-boundary `catch` (v4) or `catchAll` (v3) recovery with `Effect.succeed(null)`, `undefined`, or an identifier containing fallback/default. | Propagate typed failures or recover at a configured boundary instead of leaking untyped absence. |
 | `linteffect/no-expected-state-as-error` | `Effect.fail("NotFound")`, `"Missing"`, `"Empty"`, or `"None"`. | Models expected states as `Option`, `Either`, or tagged data instead of overloading failure. |
 | `linteffect/no-exception-domain-error` | `throw new *Error` inside Effect workflows. | Keeps domain failures in typed Effect channels with supervision and structured recovery. |
 | `linteffect/no-empty-error-tag` | Strict: `_tag`-only error types and `Data.TaggedError` classes with empty payloads. | Requires enough structured context for recovery, diagnosis, and domain-level observability. |

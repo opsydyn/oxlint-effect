@@ -37,12 +37,14 @@ describe("Effect version policy", () => {
 });
 
 describe("Effect version audit inventory", () => {
-  it("records only the packed probe as qualified and keeps other v4 rules pending", async () => {
+  it("records scoped packed qualifications and keeps other v4 rules pending", async () => {
     const inventory = await Bun.file(inventoryPath).json();
     expect(inventory["no-effect-fail-error-message"].qualification).toEqual({ "3": "qualified", "4": "qualified" });
     expect(inventory["no-hidden-effect-execution"].qualification[4]).toBe("pending");
-    expect(inventory["no-catchall-generic-rethrow"].qualification[4]).toBe("pending");
-    expect(inventory["no-run-effect-outside-boundary"].qualification[4]).toBe("pending");
+    for (const id of ["no-catchall-generic-rethrow", "no-early-catchall-null", "no-run-effect-outside-boundary"]) {
+      expect(inventory[id].qualification).toEqual({ "3": "qualified", "4": "qualified" });
+      expect(inventory[id].evidence.join("\n")).toContain("recovery-runtime");
+    }
   });
   it("keeps group applicability distinct from registration and qualification", async () => {
     const inventory = await Bun.file(inventoryPath).json();

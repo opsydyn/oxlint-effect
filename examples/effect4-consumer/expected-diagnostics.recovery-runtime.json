@@ -1,0 +1,15 @@
+{
+  "src/recovery-runtime/rethrow.ts": {
+    "linteffect/no-catchall-generic-rethrow": 2
+  },
+  "src/recovery-runtime/fallback.ts": {
+    "linteffect/no-early-catchall-null": 3
+  },
+  "src/recovery-runtime/runners.ts": {
+    "linteffect/no-run-effect-outside-boundary": 12
+  },
+  "src/recovery-runtime/mixed-matching.ts": {
+    "linteffect/no-catchall-generic-rethrow": 2,
+    "linteffect/no-early-catchall-null": 3
+  }
+}

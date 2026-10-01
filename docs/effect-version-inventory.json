@@ -1133,12 +1133,14 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEarlyCatchallNull; transitive helpers: noEarlyCatchallNull, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, earlyCatchAllFallback, errorHandlerCallbacks, isEffectMemberCall, isIdentifier, isFunctionLike, catchAllOperators, callbackBody, isFallbackRecoveryEffect, isEffectMemberCallNamed, isFallbackRecoveryValue, isNullLiteral, isUndefinedIdentifier, firstArgument, findReturnStatements",
-      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+      "src/index.ts: per-context effectVersionFor; tests/plugin.test.ts: versioned recovery and versioned runners.",
+      "scripts/verify-effect-version-consumers.ts; examples/effect3-consumer/src/recovery-runtime and examples/effect4-consumer/src/recovery-runtime; literal per-file diagnostic counts and clean controls; Effect 3.21.4 / 4.0.0.",
+      "Plain catchAll (3) / catch (4), direct and piped, expression/block returns, null/undefined/named fallback; nested unrelated callbacks excluded; default/custom/empty boundary policy and mixed-major overrides. Runtime boundary fallback and original failure preservation checked.",
+      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant."
     ]
   },
   "no-empty-error-tag": {
@@ -1208,12 +1210,14 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noCatchallGenericRethrow; transitive helpers: noCatchallGenericRethrow, getImportSource, isEffectEcosystemImport, catchAllGenericRethrow, errorHandlerCallbacks, isEffectMemberCall, isIdentifier, isFunctionLike, callbackBody, isEffectFailWithGenericError, isEffectMemberCallNamed, isGenericErrorConstruction, firstArgument, findReturnStatements",
-      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+      "src/index.ts: per-context effectVersionFor; tests/plugin.test.ts: versioned recovery and versioned runners.",
+      "scripts/verify-effect-version-consumers.ts; examples/effect3-consumer/src/recovery-runtime and examples/effect4-consumer/src/recovery-runtime; literal per-file diagnostic counts and clean controls; Effect 3.21.4 / 4.0.0.",
+      "Plain catchAll (3) / catch (4), direct and piped, expression/block generic Error rethrows; original/tagged failures clean; nested unrelated callbacks excluded, distinct recovery operators excluded. Runtime identity/cause checks preserve structured failures.",
+      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant."
     ]
   },
   "no-log-only-error-handling": {
@@ -1659,12 +1663,14 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noRunEffectOutsideBoundary; transitive helpers: noRunEffectOutsideBoundary, getImportSource, isEffectEcosystemImport, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods",
-      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit; API and repair controls still require packed qualification."
+      "src/index.ts: per-context effectVersionFor; tests/plugin.test.ts: versioned recovery and versioned runners.",
+      "scripts/verify-effect-version-consumers.ts; examples/effect3-consumer/src/recovery-runtime and examples/effect4-consumer/src/recovery-runtime; literal per-file diagnostic counts and clean controls; Effect 3.21.4 / 4.0.0.",
+      "Six ordinary runners per major, six immediate curried With executions for v4; factories do not execute; default/custom/empty boundary paths. Stored aliases, renamed imports and computed properties remain outside qualified scope.",
+      "docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md; scoped qualification, not every syntax alias or inference variant."
     ]
   },
   "no-effect-async": {

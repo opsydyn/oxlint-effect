@@ -77,6 +77,26 @@ try {
     const expected: unknown = await Bun.file(join(root, "expected-diagnostics.json")).json();
     verifyLint(root, "oxlint.config.ts", ["src/failures.ts"], expected, 1);
     verifyLint(root, "oxlint.config.ts", ["src/valid.ts", "src/config-contract.ts"], {}, 0);
+    const batchExpected = await Bun.file(join(root, "expected-diagnostics.recovery-runtime.json")).json() as Record<string, Record<string, number>>;
+    for (const file of ["rethrow", "fallback", "runners"]) {
+      const path = `src/recovery-runtime/${file}.ts`;
+      verifyLint(root, "oxlint.recovery-runtime.config.ts", [path], batchExpected[path], 1, { [path]: batchExpected[path] });
+    }
+    verifyLint(root, "oxlint.recovery-runtime.config.ts", ["src/recovery-runtime/valid.ts", "src/recovery-runtime/main.ts", "src/recovery-runtime/custom-entry.ts", "src/recovery-runtime/mixed-other.ts", "src/recovery-runtime/contracts.ts"], {}, 0);
+    verifyLint(root, "oxlint.recovery-runtime.config.ts", ["src/recovery-runtime"], {
+      "linteffect/no-catchall-generic-rethrow": 4,
+      "linteffect/no-early-catchall-null": 6,
+      "linteffect/no-run-effect-outside-boundary": major === 3 ? 6 : 12,
+    }, 1, batchExpected);
+    verifyLint(root, "oxlint.recovery-runtime.config.ts", ["src/recovery-runtime/mixed-matching.ts", "src/recovery-runtime/mixed-other.ts"], batchExpected["src/recovery-runtime/mixed-matching.ts"], 1, {
+      "src/recovery-runtime/mixed-matching.ts": batchExpected["src/recovery-runtime/mixed-matching.ts"],
+    });
+    verifyLint(root, "oxlint.recovery-runtime.custom.config.ts", ["src/recovery-runtime/main.ts", "src/recovery-runtime/custom-entry.ts"], {
+      "linteffect/no-early-catchall-null": 1, "linteffect/no-run-effect-outside-boundary": 1,
+    }, 1, {
+      "src/recovery-runtime/main.ts": { "linteffect/no-early-catchall-null": 1, "linteffect/no-run-effect-outside-boundary": 1 },
+    });
+    assertCommandSuccess(run("bun", ["src/recovery-runtime/contracts.ts"], root), `Effect ${major} recovery runtime contracts`);
     verifyLint(root, "oxlint.mixed.config.ts", ["src/mixed"], { "linteffect/no-hidden-effect-execution": 4 }, 1, {
       "src/mixed/effect3.ts": { "linteffect/no-hidden-effect-execution": 1 },
       "src/mixed/effect4.ts": { "linteffect/no-hidden-effect-execution": 1 },
@@ -85,6 +105,6 @@ try {
     });
     const invalid = run(join(root, "node_modules/.bin/oxlint"), ["--config", "oxlint.invalid.config.json", "src/valid.ts"], root);
     if (invalid.status === 0 || !invalid.output.includes("effectVersion")) throw new Error(`Invalid version unexpectedly accepted:\n${invalid.output}`);
-    console.log(`Effect ${major}: packed declarations, exact warning counts, clean controls, mixed-major paths and invalid options passed`);
+    console.log(`Effect ${major}: packed declarations, recovery/runtime counts and contracts, clean controls, mixed-major paths and invalid options passed`);
   }
 } finally { await rm(workspace, { recursive: true, force: true }); }
