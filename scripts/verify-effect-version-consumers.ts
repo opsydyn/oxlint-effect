@@ -1,11 +1,16 @@
 import { spawnSync } from "node:child_process";
-import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
-import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, selectedEffectVersions } from "./effect-version-consumer.ts";
+import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, qualificationSelection } from "./effect-version-consumer.ts";
+import { assertQualificationCoverage, resolveQualificationPath, validateQualificationCases } from "./effect-version-qualification.ts";
+import { assertEffectVersionReleaseReady } from "./effect-version-release.ts";
+import plugin from "../src/index.ts";
 
-const majors = selectedEffectVersions(process.argv.slice(2));
+const { majors, requireComplete } = qualificationSelection(process.argv.slice(2));
 const repoRoot = resolve(import.meta.dir, "..");
+const inventory = await Bun.file(join(repoRoot, "docs/effect-version-inventory.json")).json();
+if (requireComplete) assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "2.0.0");
 const workspace = await mkdtemp(join(tmpdir(), "oxlint-effect-versions-"));
 
 function run(command: string, args: string[], cwd: string) {
@@ -71,9 +76,29 @@ try {
       const installed = await Bun.file(join(root, "node_modules", name, "package.json")).json();
       if (installed.version !== version) throw new Error(`Expected ${name}@${version}, installed ${installed.version}`);
     }
-    const plugin = await Bun.file(join(root, "node_modules/@opsydyn/oxlint-effect/package.json")).json();
-    if (plugin.version !== rootPackage.version || plugin.name !== rootPackage.name) throw new Error("Consumer did not install the packed plugin version");
+    const installedPlugin = await Bun.file(join(root, "node_modules/@opsydyn/oxlint-effect/package.json")).json();
+    if (installedPlugin.version !== rootPackage.version || installedPlugin.name !== rootPackage.name) throw new Error("Consumer did not install the packed plugin version");
     assertCommandSuccess(run("bun", ["run", "typecheck"], root), `Effect ${major} typecheck`);
+    const cases = validateQualificationCases(await Bun.file(join(root, "qualification-cases.json")).json(), major, Object.keys(plugin.rules));
+    assertQualificationCoverage(cases, inventory, major);
+    const runtimeChecks = new Set<string>();
+    for (const entry of cases) {
+      for (const path of [...entry.bad, ...entry.good, ...(entry.runtime ? [entry.runtime] : [])]) await resolveQualificationPath(root, path);
+      const config = "oxlint.qualification.generated.json";
+      await writeFile(join(root, config), JSON.stringify({
+        categories: { correctness: "off" },
+        jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }],
+        rules: { [`linteffect/${entry.rule}`]: inventory[entry.rule].sensitive ? ["error", { effectVersion: major }] : "error" },
+      }));
+      const expected: Record<string, number> = {};
+      for (const counts of Object.values(entry.expectedByFile)) {
+        for (const [id, count] of Object.entries(counts)) expected[id] = (expected[id] ?? 0) + count;
+      }
+      verifyLint(root, config, entry.bad, expected, 1, entry.expectedByFile);
+      verifyLint(root, config, entry.good, {}, 0);
+      if (entry.runtime) runtimeChecks.add(entry.runtime);
+    }
+    for (const path of runtimeChecks) assertCommandSuccess(run("bun", [path], root), `Effect ${major} runtime contract ${path}`);
     const expected: unknown = await Bun.file(join(root, "expected-diagnostics.json")).json();
     verifyLint(root, "oxlint.config.ts", ["src/failures.ts"], expected, 1);
     verifyLint(root, "oxlint.config.ts", ["src/valid.ts", "src/config-contract.ts"], {}, 0);

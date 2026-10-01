@@ -111,12 +111,12 @@ second independently editable list of registered rules.
 both major consumer manifests/configs; `tests/effect-version.test.ts`;
 `tests/effect-version-release.test.ts`.
 
-- [ ] Write tests `qualification rejects incomplete or fabricated evidence` and `qualification covers every applicable qualified rule`. Assert unknown/duplicate/wrong-major cases reject; missing clean control, empty variants, zero/negative count, another rule ID, unsafe/missing paths and qualified-without-case reject.
-- [ ] Run `bun test tests/effect-version-qualification.test.ts`; observe the expected missing validation implementation, then implement the stated interfaces and run GREEN.
-- [ ] Migrate the four already qualified rules' existing evidence into each manifest without changing detectors or dropping recovery/mixed-boundary probes. Keep baseline/probe files where useful; do not duplicate installation code.
-- [ ] Add `--require-complete` to the packed verifier, composed with existing `--effect-version 3|4`. Partial mode verifies completed cases; complete mode rejects any applicable missing/unqualified row. Add CLI tests and verify complete mode fails on this baseline inventory before further qualification.
-- [ ] Extend the existing copied-consumer verifier to typecheck all fixtures, execute each isolated rule case with literal per-file counts, lint all case clean files with that rule only, and run typed runtime control scripts. Keep mixed policies in one Oxlint process and verify clean files have zero diagnostics.
-- [ ] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions` and `bun run test:type-aware`; commit `test: establish exhaustive Effect qualification cases`.
+- [x] Write tests `qualification rejects incomplete or fabricated evidence` and `qualification covers every applicable qualified rule`. Assert unknown/duplicate/wrong-major cases reject; missing clean control, empty variants, zero/negative count, another rule ID, unsafe/missing paths and qualified-without-case reject.
+- [x] Run `bun test tests/effect-version-qualification.test.ts`; observe the expected missing validation implementation, then implement the stated interfaces and run GREEN.
+- [x] Migrate the four already qualified rules' existing evidence into each manifest without changing detectors or dropping recovery/mixed-boundary probes. Keep baseline/probe files where useful; do not duplicate installation code.
+- [x] Add `--require-complete` to the packed verifier, composed with existing `--effect-version 3|4`. Partial mode verifies completed cases; complete mode rejects any applicable missing/unqualified row. Add CLI tests and verify complete mode fails on this baseline inventory before further qualification.
+- [x] Extend the existing copied-consumer verifier to typecheck all fixtures, execute each isolated rule case with literal per-file counts, lint all case clean files with that rule only, and run typed runtime control scripts. Keep mixed policies in one Oxlint process and verify clean files have zero diagnostics.
+- [x] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions` and `bun run test:type-aware`; commit `test: establish exhaustive Effect qualification cases`.
 
 ## Task 2: Group-By-Group Rule Qualification
 

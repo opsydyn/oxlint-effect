@@ -55,3 +55,11 @@ export function selectedEffectVersions(args: readonly string[]): readonly (3 | 4
   if (args.length === 2 && args[0] === "--effect-version" && (args[1] === "3" || args[1] === "4")) return [Number(args[1]) as 3 | 4];
   throw new Error("Usage: verify-effect-version-consumers.ts [--effect-version 3|4]");
 }
+
+export function qualificationSelection(args: readonly string[]): { majors: readonly (3 | 4)[]; requireComplete: boolean } {
+  const count = args.filter((argument) => argument === "--require-complete").length;
+  if (count > 1) throw new Error("Usage: [--effect-version 3|4] [--require-complete]");
+  const offset = args.indexOf("--require-complete");
+  if (offset !== -1 && offset !== 0 && offset !== args.length - 1) throw new Error("Usage: [--effect-version 3|4] [--require-complete]");
+  return { majors: selectedEffectVersions(args.filter((argument) => argument !== "--require-complete")), requireComplete: count === 1 };
+}

@@ -1,0 +1,88 @@
+[
+  {
+    "rule": "no-effect-fail-error-message",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "direct structured error.message"
+    ],
+    "bad": [
+      "src/failures.ts"
+    ],
+    "good": [
+      "src/valid.ts"
+    ],
+    "expectedByFile": {
+      "src/failures.ts": {
+        "linteffect/no-effect-fail-error-message": 2
+      }
+    }
+  },
+  {
+    "rule": "no-catchall-generic-rethrow",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "data-first expression",
+      "piped block return"
+    ],
+    "bad": [
+      "src/recovery-runtime/rethrow.ts"
+    ],
+    "good": [
+      "src/recovery-runtime/valid.ts"
+    ],
+    "expectedByFile": {
+      "src/recovery-runtime/rethrow.ts": {
+        "linteffect/no-catchall-generic-rethrow": 2
+      }
+    },
+    "runtime": "src/recovery-runtime/contracts.ts"
+  },
+  {
+    "rule": "no-early-catchall-null",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "null expression",
+      "undefined block",
+      "named fallback"
+    ],
+    "bad": [
+      "src/recovery-runtime/fallback.ts"
+    ],
+    "good": [
+      "src/recovery-runtime/valid.ts",
+      "src/recovery-runtime/main.ts"
+    ],
+    "expectedByFile": {
+      "src/recovery-runtime/fallback.ts": {
+        "linteffect/no-early-catchall-null": 3
+      }
+    },
+    "runtime": "src/recovery-runtime/contracts.ts"
+  },
+  {
+    "rule": "no-run-effect-outside-boundary",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "six ordinary executions",
+      "six immediate With executions",
+      "factory controls",
+      "boundary controls"
+    ],
+    "bad": [
+      "src/recovery-runtime/runners.ts"
+    ],
+    "good": [
+      "src/recovery-runtime/valid.ts",
+      "src/recovery-runtime/main.ts"
+    ],
+    "expectedByFile": {
+      "src/recovery-runtime/runners.ts": {
+        "linteffect/no-run-effect-outside-boundary": 12
+      }
+    }
+  }
+]

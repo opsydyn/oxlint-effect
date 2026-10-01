@@ -46,8 +46,9 @@ See the [completed batch allocation](./recovery-runtime-batch.md) and
 The [wider qualification completion plan](../../docs/superpowers/plans/2026-10-01-effect4-complete-qualification.md)
 allocates the remaining 142 rule work items into 52 group-owned batches of at
 most three. Its [machine-readable allocation](./completion-batches.json) records
-the baseline, not completed qualification. The plan awaits review; no wider
-batch has advanced from planning to verified implementation yet.
+the baseline, not completed qualification. The plan is approved and its
+fail-closed qualification harness is implemented; wider rule batches advance
+only after their packed warning and clean-control gates pass.
 
 - [x] Qualify plain recovery for `no-catchall-generic-rethrow` and `no-early-catchall-null` across majors.
 - [x] Qualify ordinary and immediate context-aware runners for `no-run-effect-outside-boundary`.

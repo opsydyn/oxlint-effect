@@ -1,8 +1,15 @@
 import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, selectedEffectVersions } from "../scripts/effect-version-consumer";
+import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, selectedEffectVersions, qualificationSelection } from "../scripts/effect-version-consumer";
 
 describe("Effect consumer diagnostics", () => {
+  it("composes complete qualification with either major selection", () => {
+    expect(qualificationSelection([])).toEqual({ majors: [3, 4], requireComplete: false });
+    expect(qualificationSelection(["--require-complete"])).toEqual({ majors: [3, 4], requireComplete: true });
+    expect(qualificationSelection(["--effect-version", "3", "--require-complete"])).toEqual({ majors: [3], requireComplete: true });
+    expect(qualificationSelection(["--require-complete", "--effect-version", "4"])).toEqual({ majors: [4], requireComplete: true });
+    for (const args of [["--require-complete", "--require-complete"], ["--unknown"], ["--effect-version", "--require-complete", "4"]]) expect(() => qualificationSelection(args)).toThrow("Usage");
+  });
   it("counts repeated warnings rather than deduplicating IDs", () => {
     expect(diagnosticCounts(JSON.stringify({ diagnostics: [
       { code: "linteffect(no-effect-fail-error-message)", filename: "src/failures.ts" },
