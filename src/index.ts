@@ -8345,9 +8345,10 @@ const noEffectDo = defineRule({
   },
 });
 
-function createForbiddenMemberCallRule(objectName: string, propertyName: string, message: string) {
+function createForbiddenMemberCallRule(objectName: string, propertyName: string, message: string, legacyOnly = false) {
   return defineRule({
     create(context: OxlintContext) {
+      if (legacyOnly && effectVersionFor(context.options) === 4) return {};
       return {
         CallExpression(node: any) {
           if (isMemberExpression(node.callee, objectName, propertyName)) {
@@ -8401,6 +8402,7 @@ const noEffectAsync = createForbiddenMemberCallRule(
   "Effect",
   "async",
   "Rule: avoid Effect.async. Why: manual callback bridges are easy to leak or resume incorrectly. Fix: use scoped Effect APIs or a dedicated platform adapter.",
+  true,
 );
 
 const noNestedEffectCall = defineRule({

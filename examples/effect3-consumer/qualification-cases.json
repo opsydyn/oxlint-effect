@@ -306,5 +306,68 @@
       }
     },
     "runtime": "src/qualification/effectComposition/builders.contracts.ts"
+  },
+  {
+    "rule": "no-effect-ignore",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct",
+      "piped reference"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-ignore.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-ignore.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-ignore.bad.ts": {
+        "linteffect/no-effect-ignore": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/lifecycle.contracts.ts"
+  },
+  {
+    "rule": "no-effect-never",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct reference",
+      "scoped reference"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-never.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-never.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-never.bad.ts": {
+        "linteffect/no-effect-never": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/lifecycle.contracts.ts"
+  },
+  {
+    "rule": "no-effect-async",
+    "version": 3,
+    "classification": "legacy-only",
+    "variants": [
+      "callback bridge",
+      "cleanup registration"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-async.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-async.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-async.bad.ts": {
+        "linteffect/no-effect-async": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/adapter.contracts.ts"
   }
 ]

@@ -50,6 +50,15 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q05 keeps async legacy-only and qualifies lifecycle repairs", async () => {
+    for (const version of [3, 4] as const) {
+      const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-effect-ignore", "no-effect-never", ...(version === 3 ? ["no-effect-async"] : [])]) {
+        expect(cases.some((candidate: { rule: string }) => candidate.rule === rule)).toBe(true);
+      }
+      expect(runRule("no-effect-async", "CallExpression", effectCall("async", arrowCallback(effectCall("void"))), { options: [{ effectVersion: version }] })).toHaveLength(version === 3 ? 1 : 0);
+    }
+  });
   it("Effect qualification Q04 covers builder operators and parsed repairs", async () => {
     for (const version of [3, 4] as const) {
       const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();

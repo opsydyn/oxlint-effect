@@ -96,12 +96,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectNever; transitive helpers: noEffectNever, getImportSource, isEffectEcosystemImport, isMemberExpression, isIdentifier",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q05: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-never.{bad,good}.ts; lifecycle.contracts.ts.",
+      "Two parsed direct/piped or scoped-reference warnings; unrelated receivers clean. Typed recovery retains original failure identity; finite acquireRelease scoped repair releases exactly once. Syntax policy retained."
     ]
   },
   "no-arrow-ladder": {
@@ -908,12 +908,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectIgnore; transitive helpers: noEffectIgnore, getImportSource, isEffectEcosystemImport, findEffectIgnore, isEffectIgnoreReference, isMemberExpression, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, isPipeCall, pipeParts",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q05: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-ignore.{bad,good}.ts; lifecycle.contracts.ts.",
+      "Two parsed direct/piped or scoped-reference warnings; unrelated receivers clean. Typed recovery retains original failure identity; finite acquireRelease scoped repair releases exactly once. Syntax policy retained."
     ]
   },
   "no-try-catch-in-effect-logic": {
@@ -1689,13 +1689,12 @@
       "4": false
     },
     "qualification": {
-      "3": "baseline",
+      "3": "qualified",
       "4": "not-applicable"
     },
     "evidence": [
-      "src/index.ts: noEffectAsync; transitive helpers: noEffectAsync, createForbiddenMemberCallRule, isMemberExpression, isIdentifier",
-      "Recognition tokens: Effect, async; API and repair controls still require packed qualification.",
-      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+      "Q05: legacy v3 callback and cleanup-registration parsed warnings and typed Promise-adapter runtime repair. v4 legacy-async-exclusion.ts compiler-negative API contract confirms async removal; callback API typechecks.",
+      "Default v4 and explicit effectVersion:4 manual detector return no visitors; versioned presets omit this rule. Effect 3 retains recognition and diagnostic unchanged."
     ]
   },
   "prevent-dynamic-imports": {

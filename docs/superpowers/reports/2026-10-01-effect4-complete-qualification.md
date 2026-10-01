@@ -41,12 +41,17 @@ contracts retain typed error identity and distinguish defects from failures.
 Earlier plain recovery rules now cover catchEager in their packed v4 probes.
 472 tests, both packed majors and root types pass; size remains under 27 KB.
 
-## Rulings
-
 Q04: as/Do/bind remain unchanged APIs in both majors. Two parsed warnings per
 rule/major, unrelated receivers and typechecked map/gen repairs pass; runtime
 controls preserve mapped values and bound object shapes. 473 tests, root types,
 both packed majors and size 26.8 KB pass. No detector changes.
+
+Q05: async stays legacy-only, including explicit v4 manual-policy no-op and a
+compiler-negative removed-API contract. Two legacy async warnings and adapter
+repair, two ignore and never warnings per major and finite scoped teardown
+controls pass. 474 tests, root types, both packed majors and size 26.84 KB pass.
+
+## Rulings
 
 V4 log-only policy excludes observers because the installed API preserves the
 original failure; legacy tapError reporting is retained for compatibility.
