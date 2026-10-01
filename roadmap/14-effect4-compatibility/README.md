@@ -1,6 +1,6 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: design approved; implementation not started.
+Status: foundation implemented and locally verified; detector adaptation remains outstanding.
 
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
@@ -13,11 +13,19 @@ or design completion.
 
 ## Slice 1: Version Contract And Consumer Gates
 
-- [ ] Add default-v4 policy and complete `effect3` preset/rules namespace.
-- [ ] Validate per-rule `effectVersion` with existing option composition.
-- [ ] Add isolated, pinned v3/v4 packed consumers and CI gates.
-- [ ] Establish a version audit inventory for every rule and group.
-- [ ] Test mixed-major overrides and manual-rule configuration.
+- [x] Add default-v4 policy and complete `effect3` preset/rules namespace.
+- [x] Validate per-rule `effectVersion` with existing option composition.
+- [x] Add isolated, pinned v3/v4 packed consumers and CI gates.
+- [x] Establish a version audit inventory for every rule and group.
+- [x] Test mixed-major overrides and manual-rule configuration.
+
+Qualification scope: `no-effect-fail-error-message` has pinned packed failure
+and clean controls for both majors. The mixed-major boundary probe proves
+configuration isolation with common runner syntax, not all v4 runner variants.
+All other applicable v4 inventory entries remain pending. Presets accepting
+`effectVersion` does not imply that pending detectors already branch on it.
+The release/prepublish guard blocks this checkout until a major bump and
+all applicable major-specific qualifications are complete.
 
 ## Slice 2: Recovery And Runtime Boundaries
 
@@ -29,6 +37,7 @@ or design completion.
 First targeted batch: `no-catchall-generic-rethrow`, `no-early-catchall-null`,
 `no-run-effect-outside-boundary`. Shared-helper consumers need regression coverage
 even when they are not the three headline rules.
+See the [next batch allocation](./recovery-runtime-batch.md).
 
 ## Slice 3: Concurrency Safety
 

@@ -1,6 +1,6 @@
 # Effect 4 First-Class Compatibility
 
-Status: approved by the user on 2026-10-01; implementation not started.
+Status: approved by the user on 2026-10-01; foundation implemented, adaptation and release qualification pending.
 
 ## Intent
 

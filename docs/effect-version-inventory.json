@@ -1193,12 +1193,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectFailErrorMessage; transitive helpers: noEffectFailErrorMessage, getImportSource, isEffectEcosystemImport, isEffectFailFromErrorMessage, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringifiedErrorMessage, isErrorMessageReference, isErrorLikeIdentifier, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Packed Effect 3.21.4 and 4.0.0 consumers: sourceError.message failures (two diagnostics), typed error and success clean controls; bun run test:effect-versions. Scope: direct Effect.fail member calls and error-like identifier names; no claim of all detector variants or inferred types."
     ]
   },
   "no-catchall-generic-rethrow": {

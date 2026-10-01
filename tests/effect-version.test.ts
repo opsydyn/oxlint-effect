@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import plugin from "../src/index";
+import { allRules, effect3, ruleGroups } from "../src/index";
 import { effectVersionFor, withEffectVersionSchema, versionSensitiveRules, legacyOnlyRules } from "../src/effect-version";
 
 const inventoryPath = "docs/effect-version-inventory.json";
@@ -36,6 +37,25 @@ describe("Effect version policy", () => {
 });
 
 describe("Effect version audit inventory", () => {
+  it("records only the packed probe as qualified and keeps other v4 rules pending", async () => {
+    const inventory = await Bun.file(inventoryPath).json();
+    expect(inventory["no-effect-fail-error-message"].qualification).toEqual({ "3": "qualified", "4": "qualified" });
+    expect(inventory["no-hidden-effect-execution"].qualification[4]).toBe("pending");
+    expect(inventory["no-catchall-generic-rethrow"].qualification[4]).toBe("pending");
+    expect(inventory["no-run-effect-outside-boundary"].qualification[4]).toBe("pending");
+  });
+  it("keeps group applicability distinct from registration and qualification", async () => {
+    const inventory = await Bun.file(inventoryPath).json();
+    for (const groups of [ruleGroups, effect3.ruleGroups]) {
+      for (const group of Object.values(groups)) {
+        for (const id of Object.keys(group)) expect(inventory).toHaveProperty(id.slice(11));
+      }
+    }
+    for (const [name, entry] of Object.entries(inventory) as Array<[string, any]>) {
+      expect(Object.hasOwn(allRules, `linteffect/${name}`)).toBe(entry.applicability[4]);
+      expect(Object.hasOwn(effect3.allRules, `linteffect/${name}`)).toBe(entry.applicability[3]);
+    }
+  });
   it("covers every registered rule and matches runtime policy", async () => {
     const inventory = await Bun.file(inventoryPath).json();
     expect(Object.keys(inventory).sort()).toEqual(Object.keys(plugin.rules).sort());

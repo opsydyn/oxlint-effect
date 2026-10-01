@@ -1,6 +1,6 @@
 # Effect 4 Compatibility Foundation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Establish Effect 4 default configuration, explicit Effect 3 legacy configuration and packed dual-version QA without claiming the remaining detectors are v4-ready.
 
@@ -68,13 +68,13 @@ Move primary examples and guidance to v4 in the corresponding adaptation batches
 - `withEffectVersionSchema(schema: readonly unknown[]): readonly unknown[]`: compose an integer enum `[3, 4]` into the first object option schema, preserving existing properties and `additionalProperties: false`; handle the absent-schema case.
 - Inventory entry: `{ sensitive: boolean, applicability: { "3": boolean, "4": boolean }, qualification: { "3": "baseline" | "pending" | "qualified" | "not-applicable", "4": "pending" | "qualified" | "not-applicable" }, evidence: string[] }`, keyed by unprefixed registered rule ID.
 
-- [ ] Write tests named `defaults to four`, `accepts three and four`, `rejects invalid versions`, `preserves boundary and config path schemas`, and `does not share version state`. Assert rejection of `2`, `5`, `"3"`, `null`; alternate calls with versions 3 and 4; assert composed schemas retain existing properties.
-- [ ] Run `bun test tests/effect-version.test.ts`; confirm failure because the module/inventory does not exist.
-- [ ] Implement the module using the existing structured option handling. Inspect every registered rule and its shared helper dependencies; populate every inventory entry with code/reference evidence. Conservatively leave v4 qualification pending where evidence is incomplete. Classify `require-service-accessors` and `require-service-dependencies` as v3-only. Do not infer neutrality from rule names alone.
-- [ ] Add inventory assertions: keys exactly equal `Object.keys(plugin.rules)`; no duplicates or unknown states; not-applicable entries have applicability false; every entry has evidence. Add a regression case showing a newly registered rule without an inventory entry fails.
-- [ ] Attach composed schemas to each identified sensitive rule without changing its detector yet. Run real Oxlint invalid-option checks for a sensitive rule with no prior schema and one with `boundaryPaths`; valid `effectVersion` and paths must load, invalid versions must exit nonzero before successful lint. Direct helper tests alone do not prove Oxlint schema validation.
-- [ ] Run `bun test tests/effect-version.test.ts`, `bun run typecheck` and `bun run test`; preserve current detection while recording pending adaptation explicitly.
-- [ ] Commit scoped files: `feat: establish Effect version policy and audit inventory`.
+- [x] Write tests named `defaults to four`, `accepts three and four`, `rejects invalid versions`, `preserves boundary and config path schemas`, and `does not share version state`. Assert rejection of `2`, `5`, `"3"`, `null`; alternate calls with versions 3 and 4; assert composed schemas retain existing properties.
+- [x] Run `bun test tests/effect-version.test.ts`; confirm failure because the module/inventory does not exist.
+- [x] Implement the module using the existing structured option handling. Inspect every registered rule and its shared helper dependencies; populate every inventory entry with code/reference evidence. Conservatively leave v4 qualification pending where evidence is incomplete. Classify `require-service-accessors` and `require-service-dependencies` as v3-only. Do not infer neutrality from rule names alone.
+- [x] Add inventory assertions: keys exactly equal `Object.keys(plugin.rules)`; no duplicates or unknown states; not-applicable entries have applicability false; every entry has evidence. Add a regression case showing a newly registered rule without an inventory entry fails.
+- [x] Attach composed schemas to each identified sensitive rule without changing its detector yet. Run real Oxlint invalid-option checks for a sensitive rule with no prior schema and one with `boundaryPaths`; valid `effectVersion` and paths must load, invalid versions must exit nonzero before successful lint. Direct helper tests alone do not prove Oxlint schema validation.
+- [x] Run `bun test tests/effect-version.test.ts`, `bun run typecheck` and `bun run test`; preserve current detection while recording pending adaptation explicitly.
+- [x] Commit scoped files: `feat: establish Effect version policy and audit inventory`.
 
 ### Task 2: Default And Legacy Export Contracts
 
@@ -86,13 +86,13 @@ Move primary examples and guidance to v4 in the corresponding adaptation batches
 - `presetFor(groupRules)` accepts option tuples and shares `jsPlugins`.
 - Export `effect3` containing all existing group presets/rules companions plus `recommended`, `recommendedRules`, `allRules`, `ruleGroups`, `presets`, `typeAware`, `jsPlugins`.
 
-- [ ] Write failing config tests: `default maps select four`, `legacy maps select three`, `legacy namespace exposes every companion`, `legacy membership preserves baseline`, `allRules excludes v4-inapplicable rules`, `strict exclusions survive both majors`, and `typeAware remains opt in`. Assert shared plugin registration and v3-only service rule exclusions from v4 maps, not from `plugin.rules`.
-- [ ] Run `bun test tests/config.test.ts`; confirm the new namespace/tuple expectations fail.
-- [ ] Implement versioned map generation with the Task 1 inventory. Reuse existing group rule-name lists, strict lists and DDD unions for both majors. Generate `effect3` without recursion or a second plugin. Pending v4 applicability stays visible as pending in the audit, never described as qualified.
-- [ ] Update existing v3 fixture preset imports to `effect3`; retain their previous expected diagnostics. Update severity-only test helpers to inspect tuple policy without erasing rule keys. Keep manual rule tests explicit about major when they test legacy API behaviour.
-- [ ] Add README examples for v4 `ddd`, v3 `effect3.ddd`, rules-only imports, manual sensitive rules and custom-path overrides. Show `jsPlugins: [...ddd.jsPlugins]` for the current readonly registration type; preserve existing user-land workaround. Label this as unreleased 2.0 migration work with v4 qualification incomplete.
-- [ ] Run `bun test tests/config.test.ts tests/oxlint.integration.test.ts`, `bun run typecheck`, `bun run build`, `bun run docs:api:check` and `bun run test`.
-- [ ] Commit scoped changes: `feat: expose Effect 3 legacy presets alongside v4 policy`.
+- [x] Write failing config tests: `default maps select four`, `legacy maps select three`, `legacy namespace exposes every companion`, `legacy membership preserves baseline`, `allRules excludes v4-inapplicable rules`, `strict exclusions survive both majors`, and `typeAware remains opt in`. Assert shared plugin registration and v3-only service rule exclusions from v4 maps, not from `plugin.rules`.
+- [x] Run `bun test tests/config.test.ts`; confirm the new namespace/tuple expectations fail.
+- [x] Implement versioned map generation with the Task 1 inventory. Reuse existing group rule-name lists, strict lists and DDD unions for both majors. Generate `effect3` without recursion or a second plugin. Pending v4 applicability stays visible as pending in the audit, never described as qualified.
+- [x] Update existing v3 fixture preset imports to `effect3`; retain their previous expected diagnostics. Update severity-only test helpers to inspect tuple policy without erasing rule keys. Keep manual rule tests explicit about major when they test legacy API behaviour.
+- [x] Add README examples for v4 `ddd`, v3 `effect3.ddd`, rules-only imports, manual sensitive rules and custom-path overrides. Show `jsPlugins: [...ddd.jsPlugins]` for the current readonly registration type; preserve existing user-land workaround. Label this as unreleased 2.0 migration work with v4 qualification incomplete.
+- [x] Run `bun test tests/config.test.ts tests/oxlint.integration.test.ts`, `bun run typecheck`, `bun run build`, `bun run docs:api:check` and `bun run test`.
+- [x] Commit scoped changes: `feat: expose Effect 3 legacy presets alongside v4 policy`.
 
 ### Task 3: Packed Dual-Version Consumers And Exact Warnings
 
@@ -105,14 +105,14 @@ Move primary examples and guidance to v4 in the corresponding adaptation batches
 - Public command `test:effect-versions`: `bun run build && bun scripts/verify-effect-version-consumers.ts`.
 - Each consumer has `package.json`, `bun.lock`, `tsconfig.json`, `oxlint.config.ts`, `src/failures.ts`, `src/valid.ts`, `src/config-contract.ts` and `expected-diagnostics.json`.
 
-- [ ] Write harness unit tests for two occurrences of the same rule, missing/extra warnings, wrong counts, malformed expectations and child-process install/typecheck failures. Assert a missing expected warning is never accepted as a clean run. Run `bun test tests/effect-version-consumer.test.ts` and confirm red.
-- [ ] Implement the helpers and staging script following `scripts/verify-type-aware-consumer.ts`: isolated temporary roots/cache, pack the built package once, structured manifest parsing, checked command statuses and cleanup in `finally`. Preserve failed command output in the thrown error.
-- [ ] Pin Effect 3.21.4 and 4.0.0 respectively; pin identical Oxlint 1.71.0 and TypeScript 5.9.3 in both consumers. Commit generated Bun lockfiles. Stage each consumer, use its frozen lockfile to install dependencies, then install the tarball locally without silently refreshing ecosystem dependencies; assert the resolved package/version and Effect major before QA.
-- [ ] Create one version-neutral baseline rule example per consumer using `no-effect-fail-error-message`: two annotated `Effect.fail(error.message)` failures and a clean typed-error control. Typecheck both against their actual major. Enable only this rule for this foundation probe so pending v4 detectors cannot masquerade as qualified. Assert exactly two warnings and clean exit zero for the control.
-- [ ] Add packed `defineConfig` type controls using the recommended/group/rules-only exports, readonly `jsPlugins` spread and a sensitive-rule custom-boundary tuple for each major. Assert invalid version options fail TypeScript via `@ts-expect-error` where the exported type applies; separately run invalid options through Oxlint.
-- [ ] Add mixed-major overrides in one staged Oxlint config, one file per major. Assert valid loading, explicit policy values and boundary behaviour with a version-sensitive boundary rule. Revisit semantic cross-major recovery/fork assertions when those detectors are adapted; do not claim this loading test proves them.
-- [ ] Run `bun test tests/effect-version-consumer.test.ts`, `bun run test:effect-versions` and `bun run test:type-aware`. Require bad lint exit 1, exact warning counts, both consumer typechecks zero and both clean lint controls zero.
-- [ ] Commit scoped files: `test: qualify packed Effect 3 and Effect 4 configuration`.
+- [x] Write harness unit tests for two occurrences of the same rule, missing/extra warnings, wrong counts, malformed expectations and child-process install/typecheck failures. Assert a missing expected warning is never accepted as a clean run. Run `bun test tests/effect-version-consumer.test.ts` and confirm red.
+- [x] Implement the helpers and staging script following `scripts/verify-type-aware-consumer.ts`: isolated temporary roots/cache, pack the built package once, structured manifest parsing, checked command statuses and cleanup in `finally`. Preserve failed command output in the thrown error.
+- [x] Pin Effect 3.21.4 and 4.0.0 respectively; pin identical Oxlint 1.71.0 and TypeScript 5.9.3 in both consumers. Commit generated Bun lockfiles. Stage each consumer, use its frozen lockfile to install dependencies, then install the tarball locally without silently refreshing ecosystem dependencies; assert the resolved package/version and Effect major before QA.
+- [x] Create one version-neutral baseline rule example per consumer using `no-effect-fail-error-message`: two annotated `Effect.fail(error.message)` failures and a clean typed-error control. Typecheck both against their actual major. Enable only this rule for this foundation probe so pending v4 detectors cannot masquerade as qualified. Assert exactly two warnings and clean exit zero for the control.
+- [x] Add packed `defineConfig` type controls using the recommended/group/rules-only exports, readonly `jsPlugins` spread and a sensitive-rule custom-boundary tuple for each major. Assert invalid version options fail TypeScript via `@ts-expect-error` where the exported type applies; separately run invalid options through Oxlint.
+- [x] Add mixed-major overrides in one staged Oxlint config, one file per major. Assert valid loading, explicit policy values and boundary behaviour with a version-sensitive boundary rule. Revisit semantic cross-major recovery/fork assertions when those detectors are adapted; do not claim this loading test proves them.
+- [x] Run `bun test tests/effect-version-consumer.test.ts`, `bun run test:effect-versions` and `bun run test:type-aware`. Require bad lint exit 1, exact warning counts, both consumer typechecks zero and both clean lint controls zero.
+- [x] Commit scoped files: `test: qualify packed Effect 3 and Effect 4 configuration`.
 
 ### Task 4: CI, Foundation Gate And Next Batch Allocation
 
@@ -120,12 +120,12 @@ Move primary examples and guidance to v4 in the corresponding adaptation batches
 
 **Interfaces:** CI adds `effect-version` matrix `[3, 4]`, Node 22 and root frozen install, build then the Task 3 major-specific command. Existing build and type-aware jobs remain.
 
-- [ ] Add inventory tests proving `pending` v4 rows remain pending even when the foundation probe passes; a legacy-only rule cannot accidentally enter v4 `allRules`; every exported group has an auditable set of inventory rows. Run the focused test and confirm any missing guard fails.
-- [ ] Implement matrix CI and document what the foundation gate proves. Do not add a workflow that publishes partially adapted defaults. Preserve the existing release workflow and npm publication issue as separate prerequisites.
-- [ ] Mark Slice 1 checkboxes only after their commands pass. Record qualification evidence for the probe rule, not every rule included by a preset. Leave adaptation and release checkboxes unchecked.
-- [ ] Write the next recovery/runtime batch allocation from audited helper dependencies: `no-catchall-generic-rethrow`, `no-early-catchall-null`, `no-run-effect-outside-boundary`, with listed transitive consumers, v3/v4 API variants, anti-pattern/clean pairs and exact diagnostics. This allocation is input to its own implementation plan, not authorisation to execute that slice.
-- [ ] Run the complete gate: `bun run test`, `bun run typecheck`, `bun run build`, `bun run lint`, `bun run docs:api:check`, `bun run size`, `bun run pack:dry-run`, `bun run test:effect-versions`, `bun run test:type-aware`, then `git diff --check`. Investigate failures without reducing coverage or hiding bundle growth behind an unreviewed limit increase.
-- [ ] Commit verified CI/docs/inventory changes: `ci: gate packed consumers for both Effect majors`.
+- [x] Add inventory tests proving `pending` v4 rows remain pending even when the foundation probe passes; a legacy-only rule cannot accidentally enter v4 `allRules`; every exported group has an auditable set of inventory rows. Run the focused test and confirm any missing guard fails.
+- [x] Implement matrix CI and document what the foundation gate proves. Do not add a workflow that publishes partially adapted defaults. Preserve the existing release workflow and npm publication issue as separate prerequisites.
+- [x] Mark Slice 1 checkboxes only after their commands pass. Record qualification evidence for the probe rule, not every rule included by a preset. Leave adaptation and release checkboxes unchecked.
+- [x] Write the next recovery/runtime batch allocation from audited helper dependencies: `no-catchall-generic-rethrow`, `no-early-catchall-null`, `no-run-effect-outside-boundary`, with listed transitive consumers, v3/v4 API variants, anti-pattern/clean pairs and exact diagnostics. This allocation is input to its own implementation plan, not authorisation to execute that slice.
+- [x] Run the complete gate: `bun run test`, `bun run typecheck`, `bun run build`, `bun run lint`, `bun run docs:api:check`, `bun run size`, `bun run pack:dry-run`, `bun run test:effect-versions`, `bun run test:type-aware`, then `git diff --check`. Investigate failures without reducing coverage or hiding bundle growth behind an unreviewed limit increase.
+- [x] Commit verified CI/docs/inventory changes: `ci: gate packed consumers for both Effect majors`.
 
 ## Completion Evidence
 

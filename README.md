@@ -5,11 +5,18 @@ Oxlint plugin rules for Effect TypeScript code-shape constraints.
 ### Effect Version Status
 
 The unreleased `2.0.0` migration makes default exports Effect 4 policy and adds
-`effect3` for legacy projects. The configuration foundation is in development;
+`effect3` for legacy projects. The configuration foundation is implemented;
 the complete Effect 4 detector and repair corpus is **not yet qualified**.
 Published 1.x packages retain their original Effect 3 behaviour and do not
 provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
 and [per-rule audit](docs/effect-version-inventory.json) before using this checkout.
+
+`bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
+consumers, with exact warning counts, clean controls and config typechecks.
+The current probe qualifies only its documented `no-effect-fail-error-message`
+variants; accepting a version option is not proof that a pending detector has
+been adapted. `release` and `prepublishOnly` are blocked until a major bump and
+all applicable major-specific inventory entries qualify.
 
 ## Install
 
@@ -224,6 +231,9 @@ export default defineConfig({
 
 The companion `oxlint-effect` skill helps coding agents configure the npm
 plugin, diagnose DDD warnings, and repair domain models when requested.
+
+Its existing assets currently target Effect 3. They are legacy controls during
+the v4 migration, not qualified v4 repairs; select `effect3` for their lint QA.
 
 ```bash
 npx skills add opsydyn/oxlint-effect --skill oxlint-effect

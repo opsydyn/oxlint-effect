@@ -48,6 +48,36 @@ jobs:
       - name: Pack Dry Run
         run: bun run pack:dry-run
 
+  effect-version:
+    name: Effect ${{ matrix.effect-version }} packed consumer QA
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        effect-version: [3, 4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install root dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build packed plugin
+        run: bun run build
+
+      - name: Verify packed major-specific consumer
+        run: bun scripts/verify-effect-version-consumers.ts --effect-version ${{ matrix.effect-version }}
+
   type-aware:
     name: Type-aware consumer QA
     runs-on: ubuntu-latest
