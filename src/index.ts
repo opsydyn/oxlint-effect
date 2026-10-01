@@ -363,17 +363,20 @@ function isGeneratorFunctionExpression(node: unknown): node is Node & { body: un
 function getEffectGeneratorArgument(
   node: unknown,
   propertyName: "fn" | "gen",
+  version: EffectVersion = 3,
 ): (Node & { body: unknown }) | undefined {
-  if (!isEffectMemberCallNamed(node, propertyName)) {
+  const namedFn = version === 4 && propertyName === "fn" && typeof node === "object" && node !== null
+    && (node as Node).type === "CallExpression" && isEffectMemberCallNamed((node as Node).callee, "fn");
+  if (!isEffectMemberCallNamed(node, propertyName) && !namedFn) {
     return undefined;
   }
 
-  const fn = firstArgument(node);
+  const fn = version === 4 ? ((node as Node).arguments as unknown[]).find(isGeneratorFunctionExpression) : firstArgument(node as Node & { arguments: unknown[] });
   return isGeneratorFunctionExpression(fn) ? fn : undefined;
 }
 
-function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen"): boolean {
-  return getEffectGeneratorArgument(node, propertyName) !== undefined;
+function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen", version: EffectVersion = 3): boolean {
+  return getEffectGeneratorArgument(node, propertyName, version) !== undefined;
 }
 
 const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise", "fn"]);
@@ -460,9 +463,10 @@ function findYieldWithoutStar(node: unknown, seen = new WeakSet<object>()): unkn
   return undefined;
 }
 
-function findYieldWithoutStarInEffectGen(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
-  return generator ? findYieldWithoutStar(generator.body) : undefined;
+function findYieldWithoutStarInEffectGen(node: unknown, version: EffectVersion): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen", version);
+  return generator ? version === 3 ? findYieldWithoutStar(generator.body)
+    : findOwnCallbackNode(generator.body, (child) => (child as Node).type === "YieldExpression" && (child as Node).delegate !== true) : undefined;
 }
 
 function findPipedYields(node: unknown, seen = new WeakSet<object>()): unknown[] {
@@ -5560,6 +5564,7 @@ const noReturnInCallback = defineRule({
 
 const noEffectFnGenerator = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -5570,7 +5575,7 @@ const noEffectFnGenerator = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isEffectGeneratorCall(node, "fn")) {
+        if (hasEffectEcosystemImport && isEffectGeneratorCall(node, "fn", version)) {
           report(
             context,
             node,
@@ -5892,6 +5897,7 @@ const noTestMockLayerWhenDefaultAvailable = defineRule({
 
 const noNestedEffectGen = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -5902,12 +5908,13 @@ const noNestedEffectGen = defineRule({
         }
       },
       CallExpression(node: any) {
-        const generator = getEffectGeneratorArgument(node, "gen");
+        const generator = getEffectGeneratorArgument(node, "gen", version);
         if (!hasEffectEcosystemImport || !generator) {
           return;
         }
 
-        const nested = findEffectGenCall(generator.body);
+        const nested = version === 3 ? findEffectGenCall(generator.body)
+          : findOwnCallbackNode(generator.body, (child) => isEffectMemberCallNamed(child, "gen"));
         if (nested) {
           report(
             context,
@@ -5922,6 +5929,7 @@ const noNestedEffectGen = defineRule({
 
 const noYieldWithoutStarInEffectGen = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -5936,12 +5944,14 @@ const noYieldWithoutStarInEffectGen = defineRule({
           return;
         }
 
-        const yieldNode = findYieldWithoutStarInEffectGen(node);
+        const yieldNode = findYieldWithoutStarInEffectGen(node, version);
         if (yieldNode) {
           report(
             context,
             yieldNode,
-            "Rule: use yield* inside Effect.gen. Why: plain yield returns an Effect value without delegating to the Effect interpreter. Fix: replace `yield Effect.x` with `yield* Effect.x`.",
+            version === 3
+              ? "Rule: use yield* inside Effect.gen. Why: plain yield returns an Effect value without delegating to the Effect interpreter. Fix: replace `yield Effect.x` with `yield* Effect.x`."
+              : "Rule: use yield* inside Effect.gen. Why: delegation preserves the yielded Effect's result typing and keeps workflow style consistent. Fix: replace `yield Effect.x` with `yield* Effect.x`.",
           );
         }
       },

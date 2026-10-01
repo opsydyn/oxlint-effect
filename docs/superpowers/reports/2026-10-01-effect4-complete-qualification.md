@@ -53,6 +53,12 @@ controls pass. 474 tests, root types, both packed majors and size 26.84 KB pass.
 
 ## Rulings
 
+Q06: v4 named fn/self-bound gen and own-workflow boundaries qualified, retaining
+legacy first-generator behaviour. V4 runtime proves plain yield executes;
+diagnostic now accurately explains delegation typing/style. Flat/delegated
+repairs preserve results. 475 tests, root types, both packed majors and size
+26.98 KB pass. Shared helper owners not explicitly versioned remain pending.
+
 V4 log-only policy excludes observers because the installed API preserves the
 original failure; legacy tapError reporting is retained for compatibility.
 This is a deliberate major-version policy distinction. Existing syntax-local

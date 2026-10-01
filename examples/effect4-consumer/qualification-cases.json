@@ -374,5 +374,68 @@
       }
     },
     "runtime": "src/qualification/effectComposition/lifecycle.contracts.ts"
+  },
+  {
+    "rule": "no-effect-fn-generator",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "anonymous",
+      "named factory application"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-fn-generator.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-fn-generator.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-fn-generator.bad.ts": {
+        "linteffect/no-effect-fn-generator": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/generators.contracts.ts"
+  },
+  {
+    "rule": "no-nested-effect-gen",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "ordinary",
+      "self-bound outer"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-nested-effect-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-nested-effect-gen.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-nested-effect-gen.bad.ts": {
+        "linteffect/no-nested-effect-gen": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/generators.contracts.ts"
+  },
+  {
+    "rule": "no-yield-without-star-in-effect-gen",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "plain yield",
+      "self-bound plain yield"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-yield-without-star-in-effect-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-yield-without-star-in-effect-gen.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-yield-without-star-in-effect-gen.bad.ts": {
+        "linteffect/no-yield-without-star-in-effect-gen": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/generators.contracts.ts"
   }
 ]

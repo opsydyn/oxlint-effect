@@ -50,6 +50,24 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q06 recognises named fn and self gen forms in v4", () => {
+    const generator = generatorCallback(blockStatement(returnStatement(stringLiteral("ready"))));
+    const named = callExpression(effectCall("fn", stringLiteral("operation")), generator);
+    const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node },
+    ], { options: [{ effectVersion: version }] });
+    expect(inspect("no-effect-fn-generator", named, 4)).toHaveLength(1);
+    expect(inspect("no-effect-fn-generator", named, 3)).toHaveLength(0);
+    const plainYield = yieldExpression(effectCall("succeed", stringLiteral("ready")));
+    const contextual = effectCall("gen", objectLiteral(property("self", identifier("owner"))), generatorCallback(blockStatement(expressionStatement(plainYield))));
+    const reports = inspect("no-yield-without-star-in-effect-gen", contextual, 4);
+    expect(reports).toHaveLength(1);
+    expect(reports[0].node).toBe(plainYield);
+    expect(reports[0].message).not.toContain("without delegating to the Effect interpreter");
+    const nested = effectCall("gen", generator);
+    expect(inspect("no-nested-effect-gen", effectCall("gen", objectLiteral(property("self", identifier("owner"))), generatorCallback(blockStatement(expressionStatement(nested)))), 4)).toHaveLength(1);
+    expect(inspect("no-nested-effect-gen", effectCall("gen", generatorCallback(blockStatement(expressionStatement(arrowCallback(nested))))), 4)).toHaveLength(0);
+  });
   it("Effect qualification Q05 keeps async legacy-only and qualifies lifecycle repairs", async () => {
     for (const version of [3, 4] as const) {
       const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();

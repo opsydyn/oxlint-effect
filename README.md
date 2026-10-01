@@ -361,9 +361,9 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-effect-async` | `Effect.async(...)`. | Manual callback bridges are easy to leak or resume incorrectly. |
 | `linteffect/no-effect-ignore` | `Effect.ignore(...)` and pipe arguments such as `Effect.ignore`. | Makes ignored failures explicit at boundaries instead of burying failure ownership. |
 | `linteffect/no-effect-never` | `Effect.never`. | Infinite effects should have explicit lifecycle and teardown ownership. |
-| `linteffect/no-effect-fn-generator` | `Effect.fn(function* ...)`. | Avoids wrapper generators that obscure sequencing. |
-| `linteffect/no-nested-effect-gen` | `Effect.gen` nested inside another `Effect.gen`. | Keeps generator-based effects linear. |
-| `linteffect/no-yield-without-star-in-effect-gen` | Plain `yield` inside `Effect.gen`. | Requires `yield*` so generator steps delegate to the Effect interpreter. |
+| `linteffect/no-effect-fn-generator` | `Effect.fn(function* ...)`; v4 also covers named `Effect.fn("name")(function* ...)`. | Returns one explicit `Effect.gen` from a plain function; non-generator `Effect.fn` bodies stay clean. |
+| `linteffect/no-nested-effect-gen` | `Effect.gen` nested inside another `Effect.gen`; v4 includes `{ self }` forms. | Keeps generator-based effects linear; v4 excludes separately defined nested functions. |
+| `linteffect/no-yield-without-star-in-effect-gen` | Plain `yield` inside `Effect.gen`; v4 includes `{ self }` forms. | Uses `yield*` for resumed-value typing and consistent workflow style. Plain yield can execute in v4; the rule is a delegation-style policy, not an interpreter-failure claim. |
 | `linteffect/no-async-effect-combinator-callback` | `async` callbacks passed to common Effect combinators. | Prevents Promise-returning callbacks from bypassing Effect error, interruption, and tracing semantics. |
 | `linteffect/no-throw-in-effect-logic` | `throw` inside `Effect.gen` or common Effect combinator callbacks. | Keeps failures in typed Effect error channels. |
 | `linteffect/no-try-catch-in-effect-logic` | `try/catch` inside `Effect.gen` or common Effect combinator callbacks. | Uses Effect error combinators instead of local imperative recovery. |

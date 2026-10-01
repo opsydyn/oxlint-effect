@@ -369,5 +369,65 @@
       }
     },
     "runtime": "src/qualification/effectComposition/adapter.contracts.ts"
+  },
+  {
+    "rule": "no-effect-fn-generator",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "anonymous"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-fn-generator.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-fn-generator.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-fn-generator.bad.ts": {
+        "linteffect/no-effect-fn-generator": 1
+      }
+    },
+    "runtime": "src/qualification/effectComposition/generators.contracts.ts"
+  },
+  {
+    "rule": "no-nested-effect-gen",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "ordinary"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-nested-effect-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-nested-effect-gen.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-nested-effect-gen.bad.ts": {
+        "linteffect/no-nested-effect-gen": 1
+      }
+    },
+    "runtime": "src/qualification/effectComposition/generators.contracts.ts"
+  },
+  {
+    "rule": "no-yield-without-star-in-effect-gen",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "plain yield"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-yield-without-star-in-effect-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-yield-without-star-in-effect-gen.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-yield-without-star-in-effect-gen.bad.ts": {
+        "linteffect/no-yield-without-star-in-effect-gen": 1
+      }
+    },
+    "runtime": "src/qualification/effectComposition/generators.contracts.ts"
   }
 ]

@@ -180,18 +180,19 @@
     ]
   },
   "no-effect-fn-generator": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectFnGenerator; transitive helpers: noEffectFnGenerator, getImportSource, isEffectEcosystemImport, isEffectGeneratorCall, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q06: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-fn-generator.{bad,good}.ts; generators.contracts.ts.",
+      "One preserved legacy and two adapted v4 parsed forms. V4 named fn/self-bound gen recognised; unused nested functions excluded. Typed flat/delegated repairs preserve returned values. V4 runtime confirms plain yield executes; diagnostic describes result typing/style. Legacy compiler-negative YieldWrap control retained.",
+      "Direct Effect receiver and inline generators only; legacy direct-first-generator recognition retained. Shared generator helper defaults to legacy shape unless owner explicitly selects its version."
     ]
   },
   "no-effect-sync-console": {
@@ -300,33 +301,35 @@
     ]
   },
   "no-nested-effect-gen": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noNestedEffectGen; transitive helpers: noNestedEffectGen, getImportSource, isEffectEcosystemImport, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findEffectGenCall",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q06: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-nested-effect-gen.{bad,good}.ts; generators.contracts.ts.",
+      "One preserved legacy and two adapted v4 parsed forms. V4 named fn/self-bound gen recognised; unused nested functions excluded. Typed flat/delegated repairs preserve returned values. V4 runtime confirms plain yield executes; diagnostic describes result typing/style. Legacy compiler-negative YieldWrap control retained.",
+      "Direct Effect receiver and inline generators only; legacy direct-first-generator recognition retained. Shared generator helper defaults to legacy shape unless owner explicitly selects its version."
     ]
   },
   "no-yield-without-star-in-effect-gen": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noYieldWithoutStarInEffectGen; transitive helpers: noYieldWithoutStarInEffectGen, getImportSource, isEffectEcosystemImport, findYieldWithoutStarInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findYieldWithoutStar",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q06: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-yield-without-star-in-effect-gen.{bad,good}.ts; generators.contracts.ts.",
+      "One preserved legacy and two adapted v4 parsed forms. V4 named fn/self-bound gen recognised; unused nested functions excluded. Typed flat/delegated repairs preserve returned values. V4 runtime confirms plain yield executes; diagnostic describes result typing/style. Legacy compiler-negative YieldWrap control retained.",
+      "Direct Effect receiver and inline generators only; legacy direct-first-generator recognition retained. Shared generator helper defaults to legacy shape unless owner explicitly selects its version."
     ]
   },
   "no-piped-yield-in-gen": {
