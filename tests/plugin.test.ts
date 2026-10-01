@@ -49,6 +49,69 @@ function runRuleSequence(
 
 const identifier = (name: string) => ({ type: "Identifier", name });
 
+describe("versioned recovery", () => {
+  const inspect = (rule: string, calls: unknown[], version: 3 | 4, filename = "/repo/src/domain.ts", boundaryPaths?: string[]) => runRuleSequence(rule, [
+    { visitorName: "ImportDeclaration", node: importFrom("effect") },
+    ...calls.map((node) => ({ visitorName: "CallExpression", node })),
+  ], { filename, options: [{ effectVersion: version, ...(boundaryPaths === undefined ? {} : { boundaryPaths }) }] });
+
+  it("plain recovery selects its configured major", () => {
+    for (const version of [3, 4] as const) {
+      const name = version === 3 ? "catchAll" : "catch";
+      const generic = effectCall("fail", newExpression(identifier("Error"), stringLiteral("lost")));
+      const calls = [effectCall(name, identifier("program"), arrowCallback(generic)), effectCall(name, arrowCallback(blockStatement(returnStatement(generic))))];
+      const reports = inspect("no-catchall-generic-rethrow", calls, version);
+      expect(reports).toHaveLength(2);
+      expect(reports.map((report) => report.node)).toEqual([generic, generic]);
+      expect(reports[0].message).toContain(`generic Error from ${name}.`);
+      const fallbacks = [nullLiteral(), identifier("undefined"), identifier("fallbackValue")].map((value) => effectCall("succeed", value));
+      const fallbackCalls = fallbacks.map((value, index) => effectCall(name, ...(index === 0 ? [identifier("program")] : []), arrowCallback(index === 1 ? blockStatement(returnStatement(value)) : value)));
+      const fallbackReports = inspect("no-early-catchall-null", fallbackCalls, version);
+      expect(fallbackReports).toHaveLength(3);
+      expect(fallbackReports.map((report) => report.node)).toEqual(fallbacks);
+      for (const rule of ["no-catchall-generic-rethrow", "no-early-catchall-null"]) {
+        const body = rule === "no-early-catchall-null" ? fallbacks[0] : generic;
+        expect(inspect(rule, [effectCall(version === 3 ? "catch" : "catchAll", arrowCallback(body))], version)).toHaveLength(0);
+      }
+    }
+  });
+
+  it("plain recovery rejects distinct recovery contracts", () => {
+    for (const version of [3, 4] as const) {
+      for (const rule of ["no-catchall-generic-rethrow", "no-early-catchall-null"]) {
+        const body = rule === "no-early-catchall-null" ? effectCall("succeed", nullLiteral()) : effectCall("fail", newExpression(identifier("Error")));
+        const calls = ["catchCause", "catchDefect", "catchAllCause", "catchAllDefect", "catchFilter", "catchReason", "catchTag", "catchTags", "catchIf"].map((name) => effectCall(name, arrowCallback(body)));
+        calls.push(objectMethodCall(identifier("Other"), version === 3 ? "catchAll" : "catch", arrowCallback(body)));
+        expect(inspect(rule, calls, version)).toHaveLength(0);
+      }
+      const name = version === 3 ? "catchAll" : "catch";
+      expect(inspect("no-catchall-generic-rethrow", [effectCall(name, arrowCallback(effectCall("fail", identifier("original")))), effectCall(name, arrowCallback(effectCall("fail", newExpression(identifier("TaggedError")))))], version)).toHaveLength(0);
+      expect(inspect("no-early-catchall-null", [effectCall(name, arrowCallback(effectCall("succeed", identifier("result"))))], version)).toHaveLength(0);
+    }
+  });
+
+  it("plain recovery ignores nested unrelated callback returns", () => {
+    for (const version of [3, 4] as const) {
+      for (const rule of ["no-catchall-generic-rethrow", "no-early-catchall-null"]) {
+        const bad = rule === "no-early-catchall-null" ? effectCall("succeed", nullLiteral()) : effectCall("fail", newExpression(identifier("Error")));
+        const handler = arrowCallback(blockStatement(expressionStatement(arrowCallback(blockStatement(returnStatement(bad)))), returnStatement(effectCall("fail", identifier("original")))));
+        expect(inspect(rule, [effectCall(version === 3 ? "catchAll" : "catch", handler)], version)).toHaveLength(0);
+      }
+    }
+  });
+
+  it("early recovery honours versioned boundary paths", () => {
+    for (const version of [3, 4] as const) {
+      const calls = [nullLiteral(), identifier("undefined"), identifier("defaultValue")].map((value) => effectCall(version === 3 ? "catchAll" : "catch", arrowCallback(effectCall("succeed", value))));
+      expect(inspect("no-early-catchall-null", calls, version)).toHaveLength(3);
+      expect(inspect("no-early-catchall-null", calls, version, "/repo/src/main.ts")).toHaveLength(0);
+      expect(inspect("no-early-catchall-null", calls, version, "/repo/src/main.ts", ["**/custom-entry.ts"])).toHaveLength(3);
+      expect(inspect("no-early-catchall-null", calls, version, "/repo/src/custom-entry.ts", ["**/custom-entry.ts"])).toHaveLength(0);
+      expect(inspect("no-early-catchall-null", calls, version, "/repo/src/main.ts", [])).toHaveLength(3);
+    }
+  });
+});
+
 const linkParents = <T>(node: T): T => {
   const visit = (value: unknown, parent?: unknown): void => {
     if (Array.isArray(value)) {

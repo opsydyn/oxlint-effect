@@ -1,5 +1,5 @@
 import { definePlugin, defineRule } from "@oxlint/plugins";
-import { legacyOnlyRules, versionSensitiveRules, withEffectVersionSchema } from "./effect-version.ts";
+import { effectVersionFor, legacyOnlyRules, versionSensitiveRules, withEffectVersionSchema } from "./effect-version.ts";
 import type { EffectVersion } from "./effect-version.ts";
 export type { EffectVersion } from "./effect-version.ts";
 import type { RuleOptionsSchema } from "@oxlint/plugins";
@@ -4767,12 +4767,24 @@ function errorHandlerCallbacks(node: unknown, operators: ReadonlySet<string>): u
   return (node as Node & { arguments: unknown[] }).arguments.filter(isFunctionLike);
 }
 
-function catchAllGenericRethrow(node: unknown): unknown | undefined {
-  for (const callback of errorHandlerCallbacks(node, new Set(["catchAll"]))) {
+function plainCatchOperators(version: EffectVersion): ReadonlySet<string> {
+  return version === 3 ? catchAllOperators : catchOperators;
+}
+
+function handlerReturnStatements(node: unknown, seen = new WeakSet<object>()): unknown[] {
+  if (Array.isArray(node)) return node.flatMap((child) => handlerReturnStatements(child, seen));
+  if (typeof node !== "object" || node === null || seen.has(node) || isFunctionLike(node)) return [];
+  seen.add(node);
+  if ((node as Node).type === "ReturnStatement") return [node];
+  return Object.entries(node).flatMap(([key, child]) => key === "parent" ? [] : handlerReturnStatements(child, seen));
+}
+
+function catchAllGenericRethrow(node: unknown, version: EffectVersion): unknown | undefined {
+  for (const callback of errorHandlerCallbacks(node, plainCatchOperators(version))) {
     const body = callbackBody(callback);
     if (isEffectFailWithGenericError(body)) return body;
 
-    for (const returnNode of findReturnStatements(body)) {
+    for (const returnNode of handlerReturnStatements(body)) {
       if (isEffectFailWithGenericError((returnNode as Node).argument)) {
         return (returnNode as Node).argument;
       }
@@ -4812,6 +4824,7 @@ function logOnlyErrorHandler(node: unknown): unknown | undefined {
 }
 
 const catchAllOperators = new Set(["catchAll"]);
+const catchOperators = new Set(["catch"]);
 const expectedDomainStateNames = new Set(["NotFound", "Missing", "Empty", "None"]);
 
 function isFallbackRecoveryValue(node: unknown): boolean {
@@ -4826,12 +4839,12 @@ function isFallbackRecoveryEffect(node: unknown): boolean {
   return isEffectMemberCallNamed(node, "succeed") && isFallbackRecoveryValue(firstArgument(node));
 }
 
-function earlyCatchAllFallback(node: unknown): unknown | undefined {
-  for (const callback of errorHandlerCallbacks(node, catchAllOperators)) {
+function earlyCatchAllFallback(node: unknown, version: EffectVersion): unknown | undefined {
+  for (const callback of errorHandlerCallbacks(node, plainCatchOperators(version))) {
     const body = callbackBody(callback);
     if (isFallbackRecoveryEffect(body)) return body;
 
-    for (const returnNode of findReturnStatements(body)) {
+    for (const returnNode of handlerReturnStatements(body)) {
       if (isFallbackRecoveryEffect((returnNode as Node).argument)) {
         return (returnNode as Node).argument;
       }
@@ -5034,7 +5047,7 @@ function globToRegExp(pattern: string): RegExp {
   const segments = normalisedPattern.split("/");
   const startsWithGlobstar = segments[0] === "**";
   const firstSegment = startsWithGlobstar ? 1 : 0;
-  let expression = startsWithGlobstar ? "(?:.*/)?" : "(?:^|.*/)";
+  let expression = startsWithGlobstar ? "^(?:.*/)?" : "(?:^|.*/)";
 
   for (let index = firstSegment; index < segments.length; index += 1) {
     const segment = segments[index];
@@ -6873,6 +6886,7 @@ const noEmptyErrorTag = defineRule({
 const noEarlyCatchallNull = defineRule({
   meta: { schema: boundaryPathOptionsSchema },
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6884,7 +6898,7 @@ const noEarlyCatchallNull = defineRule({
       },
       CallExpression(node: any) {
         if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
-          const target = earlyCatchAllFallback(node);
+          const target = earlyCatchAllFallback(node, version);
           if (target) {
             report(
               context,
@@ -6975,6 +6989,7 @@ const noEffectFailErrorMessage = defineRule({
 
 const noCatchallGenericRethrow = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6987,12 +7002,12 @@ const noCatchallGenericRethrow = defineRule({
       CallExpression(node: any) {
         if (!hasEffectEcosystemImport) return;
 
-        const target = catchAllGenericRethrow(node);
+        const target = catchAllGenericRethrow(node, version);
         if (target) {
           report(
             context,
             target,
-            "Rule: do not rethrow generic Error from catchAll. Why: catchAll should preserve or model the original failure instead of erasing its domain type. Fix: use mapError, catchTag, or Effect.fail with a structured tagged error and cause.",
+            `Rule: do not rethrow generic Error from ${version === 3 ? "catchAll" : "catch"}. Why: ${version === 3 ? "catchAll" : "catch"} should preserve or model the original failure instead of erasing its domain type. Fix: use mapError, catchTag, or Effect.fail with a structured tagged error and cause.`,
           );
         }
       },
