@@ -50,6 +50,49 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q02 gives version-correct expected-state repairs", () => {
+    for (const version of [3, 4] as const) {
+      const target = effectCall("fail", stringLiteral("Missing"));
+      const reports = runRuleSequence("no-expected-state-as-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: target },
+      ], { options: [{ effectVersion: version }] });
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(target);
+      expect(reports[0].message).toContain(version === 3 ? "Either" : "Result");
+      if (version === 4) expect(reports[0].message).not.toContain("catchAll");
+    }
+  });
+  it("Effect qualification Q02 selects domain-exception callbacks by major", () => {
+    for (const version of [3, 4] as const) {
+      const name = version === 3 ? "catchAll" : "catch";
+      const target = throwStatement(newExpression(identifier("ValidationError"), stringLiteral("bad")));
+      const callback = arrowCallback(blockStatement(target));
+      const reports = runRuleSequence("no-exception-domain-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall(name, callback) },
+      ], { options: [{ effectVersion: version }] });
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(target);
+      const unrelated = runRuleSequence("no-exception-domain-error", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: objectMethodCall(identifier("Other"), name, callback) },
+      ], { options: [{ effectVersion: version }] });
+      expect(unrelated).toHaveLength(0);
+    }
+  });
+  it("Effect qualification Q02 distinguishes v4 handler maps from nested unrelated functions", () => {
+    const target = throwStatement(newExpression(identifier("ValidationError")));
+    const mapped = effectCall("catchTags", objectLiteral(property("SourceError", arrowCallback(blockStatement(target)))));
+    const nested = effectCall("catch", arrowCallback(blockStatement(
+      expressionStatement(arrowCallback(blockStatement(target))), returnStatement(effectCall("fail", identifier("original"))),
+    )));
+    const inspect = (node: unknown) => runRuleSequence("no-exception-domain-error", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node },
+    ], { options: [{ effectVersion: 4 }] });
+    expect(inspect(mapped)).toHaveLength(1);
+    expect(inspect(nested)).toHaveLength(0);
+  });
   it("Effect qualification Q01 covers public error contracts for both majors", async () => {
     for (const version of [3, 4] as const) {
       const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();

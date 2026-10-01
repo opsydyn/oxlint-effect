@@ -1150,27 +1150,27 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEmptyErrorTag; transitive helpers: noEmptyErrorTag, getImportSource, isEffectEcosystemImport, emptyErrorTagNode, isErrorLikeTypeName, isIdentifier, isTagOnlyTypeShape, typeMembers, getPropertyName, isMemberCall, isEmptyTaggedErrorPayload, typeArguments",
-      "Recognition tokens: TaggedError; API and repair controls still require packed qualification."
+      "Q02: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/errorModeling/no-empty-error-tag.{bad,good}.ts; domain-errors.contracts.ts.",
+      "Parsed alias/interface/empty Data.TaggedError warnings; payload-bearing errors and expected-state tags clean. Tagged failure payload and source cause retained."
     ]
   },
   "no-expected-state-as-error": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noExpectedStateAsError; transitive helpers: noExpectedStateAsError, getImportSource, isEffectEcosystemImport, isExpectedDomainStateFailure, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isStringLiteral, expectedDomainStateNames",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q02: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/errorModeling/no-expected-state-as-error.{bad,good}.ts; domain-errors.contracts.ts.",
+      "Four literal expected states reported; Option absence/presence and Either (v3)/Result (v4) data controls typecheck and execute. Legacy advice retained; v4 advice corrected."
     ]
   },
   "no-exception-domain-error": {
@@ -1180,12 +1180,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noExceptionDomainError; transitive helpers: noExceptionDomainError, getImportSource, isEffectEcosystemImport, findDomainExceptionInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findNode, isDomainExceptionThrow, isDomainErrorConstruction, effectAsyncCallbackCombinators, callbackBody",
-      "Recognition tokens: Effect, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+      "Q02: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/errorModeling/no-exception-domain-error.{bad,good}.ts; domain-errors.contracts.ts.",
+      "Parsed 3 legacy and 14 v4 generator/combinator variants; v4 handler maps recognised, unused nested functions excluded. Ordinary throws stay clean. Tagged failure payload and source cause retained."
     ]
   },
   "no-effect-fail-error-message": {

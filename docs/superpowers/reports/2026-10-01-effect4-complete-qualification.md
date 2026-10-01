@@ -26,6 +26,13 @@ type fixture rejects generic Error in the tagged public contract. No detector
 change was necessary. Evidence is in each consumer's errorModeling group and
 qualification manifest; synthetic report nodes are asserted too.
 
+Q02: expected-state and empty-tag syntax qualified in both majors; the v4
+expected-state repair now names Result rather than the removed Either API.
+Domain exceptions cover 3 parsed legacy and 14 v4 callback forms, including
+handler maps; unused nested functions stay clean in v4. Typed runtime controls
+retain absence/presence, state payloads and original error causes. All 470 tests,
+root types and both packed majors pass; build is 26.82 KB brotlied (27 KB cap).
+
 The plan's Q01-Q52 table is the progress checklist. Wider groups remain open.
 
 ## Rulings

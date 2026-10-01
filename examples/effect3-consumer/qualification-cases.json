@@ -154,5 +154,72 @@
       }
     },
     "runtime": "src/qualification/errorModeling/contracts.ts"
+  },
+  {
+    "rule": "no-expected-state-as-error",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "NotFound",
+      "Missing",
+      "Empty",
+      "None"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-expected-state-as-error.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-expected-state-as-error.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-expected-state-as-error.bad.ts": {
+        "linteffect/no-expected-state-as-error": 4
+      }
+    },
+    "runtime": "src/qualification/errorModeling/domain-errors.contracts.ts"
+  },
+  {
+    "rule": "no-empty-error-tag",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "tag-only alias",
+      "tag-only interface",
+      "empty Data.TaggedError"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-empty-error-tag.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-empty-error-tag.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-empty-error-tag.bad.ts": {
+        "linteffect/no-empty-error-tag": 3
+      }
+    },
+    "runtime": "src/qualification/errorModeling/domain-errors.contracts.ts"
+  },
+  {
+    "rule": "no-exception-domain-error",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "generator",
+      "map",
+      "plain recovery"
+    ],
+    "bad": [
+      "src/qualification/errorModeling/no-exception-domain-error.bad.ts"
+    ],
+    "good": [
+      "src/qualification/errorModeling/no-exception-domain-error.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/errorModeling/no-exception-domain-error.bad.ts": {
+        "linteffect/no-exception-domain-error": 3
+      }
+    },
+    "runtime": "src/qualification/errorModeling/domain-errors.contracts.ts"
   }
 ]

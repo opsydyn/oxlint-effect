@@ -52,6 +52,7 @@ export const versionSensitiveRules = [
   "no-wrapgraphql-catchall",
   "no-early-catchall-null",
   "no-exception-domain-error",
+  "no-expected-state-as-error",
   "no-catchall-generic-rethrow",
   "no-log-only-error-handling",
   "no-fromnullable-nullish-coalesce",

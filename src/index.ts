@@ -1450,6 +1450,49 @@ const effectAsyncCallbackCombinators = new Set([
   "tap",
 ]);
 
+const effect4LogicCallbackOperators = new Set([
+  ...[...effectAsyncCallbackCombinators].filter((name) => name !== "catchAll" && name !== "orElse"),
+  "catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter",
+  "catchCauseIf", "catchCauseFilter", "catchTag", "catchTags", "catchReason", "catchReasons",
+]);
+
+function effectLogicCallbackOperators(version: EffectVersion): ReadonlySet<string> {
+  return version === 3 ? effectAsyncCallbackCombinators : effect4LogicCallbackOperators;
+}
+
+function effectLogicCallbacks(node: unknown, version: EffectVersion): unknown[] {
+  if (!isEffectMemberCall(node)) return [];
+  const property = (node.callee as Node).property;
+  if (!isIdentifier(property) || !effectLogicCallbackOperators(version).has(property.name)) return [];
+  return node.arguments.flatMap((argument) => {
+    if (isFunctionLike(argument)) return [argument];
+    if (version === 4 && (property.name === "catchTags" || property.name === "catchReasons") && isObjectExpression(argument)) {
+      return ((argument as Node).properties as Node[]).map((entry) => entry.value).filter(isFunctionLike);
+    }
+    return [];
+  });
+}
+
+function findOwnCallbackNode(node: unknown, predicate: (node: unknown) => boolean, seen = new WeakSet<object>()): unknown | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const match = findOwnCallbackNode(child, predicate, seen);
+      if (match) return match;
+    }
+    return undefined;
+  }
+  if (typeof node !== "object" || node === null || seen.has(node) || isFunctionLike(node)
+    || (node as Node).type === "ClassDeclaration" || (node as Node).type === "ClassExpression") return undefined;
+  seen.add(node);
+  if (predicate(node)) return node;
+  for (const [key, child] of Object.entries(node)) {
+    if (key === "parent") continue;
+    const match = findOwnCallbackNode(child, predicate, seen);
+    if (match) return match;
+  }
+  return undefined;
+}
+
 function findAsyncEffectCombinatorCallback(node: unknown): unknown | undefined {
   if (!isEffectMemberCall(node)) {
     return undefined;
@@ -4889,22 +4932,15 @@ function isDomainExceptionThrow(node: unknown): boolean {
   return isDomainErrorConstruction((node as Node).argument);
 }
 
-function findDomainExceptionInEffectLogic(node: unknown): unknown | undefined {
+function findDomainExceptionInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
   const generator = getEffectGeneratorArgument(node, "gen");
   if (generator) {
-    return findNode(generator.body, isDomainExceptionThrow);
+    return version === 3 ? findNode(generator.body, isDomainExceptionThrow) : findOwnCallbackNode(generator.body, isDomainExceptionThrow);
   }
 
-  if (!isEffectMemberCall(node)) return undefined;
-
-  const property = ((node.callee as Node).property as Node | undefined);
-  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
-    return undefined;
-  }
-
-  for (const argument of node.arguments) {
+  for (const argument of effectLogicCallbacks(node, version)) {
     const body = callbackBody(argument);
-    const match = body ? findNode(body, isDomainExceptionThrow) : undefined;
+    const match = body ? version === 3 ? findNode(body, isDomainExceptionThrow) : findOwnCallbackNode(body, isDomainExceptionThrow) : undefined;
     if (match) return match;
   }
 
@@ -6925,6 +6961,7 @@ const noEarlyCatchallNull = defineRule({
 
 const noExpectedStateAsError = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6939,7 +6976,9 @@ const noExpectedStateAsError = defineRule({
           report(
             context,
             node,
-            "Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel and encourages broad catchAll recovery. Fix: return Option, Either, or a tagged result for expected state and reserve Effect.fail for exceptional failures.",
+            version === 3
+              ? "Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel and encourages broad catchAll recovery. Fix: return Option, Either, or a tagged result for expected state and reserve Effect.fail for exceptional failures."
+              : "Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel. Fix: return Option, Result, or tagged data for expected state and reserve Effect.fail for exceptional failures.",
           );
         }
       },
@@ -6949,6 +6988,7 @@ const noExpectedStateAsError = defineRule({
 
 const noExceptionDomainError = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6961,7 +7001,7 @@ const noExceptionDomainError = defineRule({
       CallExpression(node: any) {
         if (!hasEffectEcosystemImport) return;
 
-        const target = findDomainExceptionInEffectLogic(node);
+        const target = findDomainExceptionInEffectLogic(node, version);
         if (target) {
           report(
             context,
