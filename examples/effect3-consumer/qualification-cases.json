@@ -762,5 +762,71 @@
       }
     },
     "runtime": "src/qualification/styleSeparation/style.contracts.ts"
+  },
+  {
+    "rule": "prefer-effect-service",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "Tag class",
+      "GenericTag",
+      "Effect.Service repair"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-effect-service.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-effect-service.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/prefer-effect-service.bad.ts": {
+        "linteffect/prefer-effect-service": 2
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/services.contracts.ts"
+  },
+  {
+    "rule": "no-layer-provide-in-service-definition",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "effect builder",
+      "sync builder",
+      "boundary composition"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-layer-provide-in-service-definition.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-layer-provide-in-service-definition.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-layer-provide-in-service-definition.bad.ts": {
+        "linteffect/no-layer-provide-in-service-definition": 2
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/services.contracts.ts"
+  },
+  {
+    "rule": "require-service-accessors",
+    "version": 3,
+    "classification": "legacy-only",
+    "variants": [
+      "omitted accessors",
+      "disabled accessors",
+      "generated accessor repair"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/require-service-accessors.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/require-service-accessors.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/require-service-accessors.bad.ts": {
+        "linteffect/require-service-accessors": 2
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/services.contracts.ts"
   }
 ]

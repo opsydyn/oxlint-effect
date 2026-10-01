@@ -832,5 +832,52 @@
       }
     },
     "runtime": "src/qualification/styleSeparation/style.contracts.ts"
+  },
+  {
+    "rule": "prefer-effect-service",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "removed Tag",
+      "removed GenericTag",
+      "removed Effect.Service",
+      "Context.Service make",
+      "function and class keys"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-effect-service.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-effect-service.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/prefer-effect-service.bad.ts": {
+        "linteffect/prefer-effect-service": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/services.contracts.ts"
+  },
+  {
+    "rule": "no-layer-provide-in-service-definition",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "class effect make",
+      "function make",
+      "class expression",
+      "explicit layer boundary"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-layer-provide-in-service-definition.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-layer-provide-in-service-definition.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-layer-provide-in-service-definition.bad.ts": {
+        "linteffect/no-layer-provide-in-service-definition": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/services.contracts.ts"
   }
 ]

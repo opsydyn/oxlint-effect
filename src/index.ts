@@ -1062,8 +1062,8 @@ function oversizedAnonymousConceptNode(node: unknown): unknown | undefined {
   return undefined;
 }
 
-function calleeContainsEffectService(node: unknown): boolean {
-  if (isMemberExpression(node, "Effect", "Service")) {
+function calleeContainsEffectService(node: unknown, version: EffectVersion = 3): boolean {
+  if (isMemberExpression(node, version === 3 ? "Effect" : "Context", "Service")) {
     return true;
   }
 
@@ -1071,16 +1071,16 @@ function calleeContainsEffectService(node: unknown): boolean {
     return false;
   }
 
-  return calleeContainsEffectService((node as Node).callee);
+  return calleeContainsEffectService((node as Node).callee, version);
 }
 
-function effectServiceOptionsObject(node: unknown): unknown | undefined {
+function effectServiceOptionsObject(node: unknown, version: EffectVersion = 3): unknown | undefined {
   if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
   const call = node as Node & { arguments?: unknown[] };
-  if (!calleeContainsEffectService(call.callee)) {
+  if (!calleeContainsEffectService(call.callee, version)) {
     return undefined;
   }
 
@@ -5999,6 +5999,7 @@ const preferExtractedConcept = defineRule({
 
 const preferEffectService = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6009,11 +6010,13 @@ const preferEffectService = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isContextTagCall(node)) {
+        if (hasEffectEcosystemImport && (isContextTagCall(node) || (version === 4 && isEffectMemberCallNamed(node, "Service")))) {
           report(
             context,
             node,
-            "Rule: prefer Effect.Service. Fix: replace Context.Tag service definitions.",
+            version === 3
+              ? "Rule: prefer Effect.Service. Fix: replace Context.Tag service definitions."
+              : "Rule: prefer Context.Service. Fix: migrate legacy Context.Tag, Context.GenericTag or Effect.Service definitions to Context.Service; construct implementations with make and explicit Layer wiring where needed.",
           );
         }
       },
@@ -6023,6 +6026,7 @@ const preferEffectService = defineRule({
 
 const noLayerProvideInServiceDefinition = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6033,6 +6037,7 @@ const noLayerProvideInServiceDefinition = defineRule({
         }
       },
       ClassDeclaration(node: any) {
+        if (version === 4) return;
         const options = effectServiceClassOptions(node);
         if (hasEffectEcosystemImport && options && containsLayerProvideCall(options)) {
           report(
@@ -6042,12 +6047,21 @@ const noLayerProvideInServiceDefinition = defineRule({
           );
         }
       },
+      CallExpression(node: any) {
+        if (version === 3 || !hasEffectEcosystemImport) return;
+        const options = effectServiceOptionsObject(node, version);
+        const make = options && objectPropertyValue(options, "make");
+        if (make && containsLayerProvideCall(make)) {
+          report(context, options, "Rule: do not assemble layers inside Context.Service make. Fix: keep make focused on constructing the implementation and compose Layer.provide at app/test boundaries.");
+        }
+      },
     };
   },
 });
 
 const requireServiceAccessors = defineRule({
   create(context: OxlintContext) {
+    if (effectVersionFor(context.options) === 4) return {};
     let hasEffectEcosystemImport = false;
 
     return {

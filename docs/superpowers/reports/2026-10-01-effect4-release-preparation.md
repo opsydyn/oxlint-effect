@@ -26,9 +26,10 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Resolve Q10 size failure and qualify its three rules: fresh build measures
   27.16 KB, within the approved 30 KB cap.
 - [x] Qualify Q11 Style Separation, including failures, repairs and runtime controls.
-- [ ] Complete and qualify Q12-Q52 in the
+- [x] Qualify Q12 service definitions, version-correct repairs and legacy accessor exclusion.
+- [ ] Complete and qualify Q13-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 112 rules with an unqualified applicable version.
+  Current inventory has 109 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.

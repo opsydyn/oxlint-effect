@@ -549,12 +549,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferEffectService; transitive helpers: preferEffectService, getImportSource, isEffectEcosystemImport, isContextTagCall, isMemberCall, isIdentifier",
-      "Recognition tokens: Context, Tag; API and repair controls still require packed qualification."
+      "Q12: pinned packed serviceAndLayerArchitecture cases report two supported legacy Tag/GenericTag definitions and three compiler-negative v4 migration calls. Advice selects Effect.Service for v3 and Context.Service for v4. Bare v4 class/function keys and make with explicit layers stay clean; retrieval preserves value 42. Removed calls are never executed."
     ]
   },
   "no-layer-provide-in-service-definition": {
@@ -564,12 +564,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noLayerProvideInServiceDefinition; transitive helpers: noLayerProvideInServiceDefinition, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, containsLayerProvideCall, isMemberCall",
-      "Recognition tokens: Effect, Service, Layer, provide; API and repair controls still require packed qualification."
+      "Q12: pinned packed serviceAndLayerArchitecture cases report two v3 effect/sync class builders and three v4 class effect make, function make and class-expression builders. Direct/piped construction wiring warns; explicit boundary composition and shape-level Layer values stay clean. Typed/runtime repairs preserve value 42. Named builder aliases are outside syntax scope; transitive helper owners retain their prior defaults pending their own audit."
     ]
   },
   "require-service-accessors": {
@@ -579,12 +579,12 @@
       "4": false
     },
     "qualification": {
-      "3": "baseline",
+      "3": "qualified",
       "4": "not-applicable"
     },
     "evidence": [
       "src/index.ts: requireServiceAccessors; transitive helpers: requireServiceAccessors, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, hasAccessorsTrue, isBooleanLiteral, objectPropertyValue",
-      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification.",
+      "Q12: pinned legacy packed corpus reports omitted/disabled accessors twice; generated accessor repairs compile and retain value 42. V4 presets omit this legacy-only rule; an explicit packed manual-v4 config reports zero on parsed removed-service code and valid Context.Service keys. Compiler-negative fixtures prove Effect.Service and accessor options unavailable in v4.",
       "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
     ]
   },

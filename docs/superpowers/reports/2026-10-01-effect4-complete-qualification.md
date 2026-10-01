@@ -110,6 +110,30 @@ qualification is inferred. Q12-Q52 and cross-group closure remain outstanding.
 Fresh gates: 481 tests, root typecheck, both packed majors, build, 27.2 KB under
 the approved 30 KB limit and diff check pass.
 
+## Q12 Service Definitions
+
+RED tests exposed v4 advice still recommending removed Effect.Service and
+missing Context.Service make construction detection. Version-selected advice
+and construction visitors now pass report-location checks. Legacy accessor
+enforcement has an explicit v4 no-op, verified through a packed manual config.
+
+The packed corpus reports two legacy Tag/GenericTag migrations, three removed
+v4 calls checked with compiler-negative contracts, two legacy inline wiring
+builders and three v4 make builders (class, function and class expression).
+Legacy omitted/disabled accessors report twice; generated accessor repairs work.
+Both majors' supported repairs preserve service value 42 and contextual layer
+retrieval. Removed v4 calls are not executed or cast into fictional APIs.
+
+Ruling: valid bare Context.Service keys remain clean; make is optional in the
+installed API, not a new requirement. The historical preference rule is a v4
+migration diagnostic. Inline make layer-assembly policy retains the existing
+construction/composition separation, without banning legitimate Layer.provide
+at external boundaries or on shape-level values. Named builder aliases remain
+outside local syntax recognition. Other shared-helper owners are not qualified
+by this batch; Q13-Q52 and cross-group closure remain open.
+Fresh gates: 483 tests, root typecheck, both packed majors (including manual
+v4 accessor exclusion), build, size 27.38 KB under 30 KB and diff check pass.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

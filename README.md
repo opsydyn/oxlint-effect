@@ -413,9 +413,9 @@ Effect flow, domain meaning, or runtime boundaries.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/prefer-effect-service` | `Context.Tag(...)` and `Context.GenericTag(...)` service definitions. | Modern `Effect.Service` gives services generated accessors, consistent default layers, and clearer dependency ownership. |
-| `linteffect/no-layer-provide-in-service-definition` | `Layer.provide(...)` nested inside an `Effect.Service` options object. | Service definitions should declare implementation and dependencies; layer assembly belongs at application, test, or composition boundaries. |
-| `linteffect/require-service-accessors` | `Effect.Service` classes whose options omit `accessors: true`. | Static accessors keep service APIs consistent and avoid hand-written dependency plumbing. |
+| `linteffect/prefer-effect-service` | Legacy `Context.Tag`/`GenericTag` definitions; v4 also flags removed `Effect.Service` calls. | V4 repair: use `Context.Service` keys/classes, optional `make` and explicit layers. Bare v4 keys are valid. Legacy `effect3` repair remains `Effect.Service`. The historical rule ID is retained. |
+| `linteffect/no-layer-provide-in-service-definition` | V4 `Layer.provide` assembly inside inline `Context.Service` `make`, including function builders and class expressions; legacy checks `Effect.Service` class options. | Keep construction focused and move layer assembly to named app/test composition boundaries. Ordinary `Layer.provide`, including piped boundary composition, remains clean. Named builder aliases are not resolved. |
+| `linteffect/require-service-accessors` | Legacy `Effect.Service` class options omitting or disabling `accessors: true`. | Legacy-only: generated accessors keep v3 service APIs consistent. Omitted from v4 presets and a no-op under explicit v4 manual policy; never add this option to `Context.Service`. |
 | `linteffect/require-service-dependencies` | `Effect.Service` implementations that `yield* SomeService` without a `dependencies` option. | Service dependency graphs should be declared where the service is defined. |
 | `linteffect/no-namespace-effect-import` | `import * as ... from "effect"` and other Effect package namespace imports. | Direct named imports keep the Effect surface explicit and easier to scan. |
 | `linteffect/no-manual-service-object-export` | Exported `*Service` object literals with function-valued members. | Public service APIs should use `Effect.Service` for accessors, default layers, and dependency ownership. |

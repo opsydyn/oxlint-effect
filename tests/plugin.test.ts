@@ -50,6 +50,29 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q12 gives version-correct service migration advice", () => {
+    const inspect = (node: unknown, version: 3 | 4) => runRuleSequence("prefer-effect-service", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    for (const name of ["Tag", "GenericTag"]) {
+      const node = objectMethodCall(identifier("Context"), name, stringLiteral("Service"));
+      expect(inspect(node, 3)[0].message).toContain("prefer Effect.Service");
+      expect(inspect(node, 4)[0].message).toContain("prefer Context.Service");
+      expect(inspect(node, 4)[0].node).toBe(node);
+    }
+    expect(inspect(effectCall("Service"), 4)).toHaveLength(1);
+    expect(inspect(objectMethodCall(identifier("Context"), "Service", stringLiteral("Key")), 4)).toHaveLength(0);
+  });
+  it("Effect qualification Q12 checks v4 make construction without imposing legacy accessors", () => {
+    const options = objectLiteral(property("make", effectCall("gen", generatorCallback(blockStatement(returnStatement(objectMethodCall(identifier("Layer"), "provide", identifier("live"), identifier("deps"))))))));
+    for (const node of [objectMethodCall(identifier("Context"), "Service", stringLiteral("Key"), options), callExpression(memberCall("Context", "Service"), stringLiteral("Key"), options)]) {
+      const reports = runRuleSequence("no-layer-provide-in-service-definition", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });
+      expect(reports).toHaveLength(1);
+      expect(reports[0].node).toBe(options);
+      expect(reports[0].message).toContain("Context.Service");
+    }
+    const ordinary = objectMethodCall(identifier("Layer"), "provide", identifier("live"), identifier("deps"));
+    expect(runRuleSequence("no-layer-provide-in-service-definition", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: ordinary }], { options: [{ effectVersion: 4 }] })).toHaveLength(0);
+    expect(runRuleSequence("require-service-accessors", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ClassDeclaration", node: serviceClassDeclaration(objectLiteral()) }], { options: [{ effectVersion: 4 }] })).toHaveLength(0);
+  });
   it("Effect qualification Q11 selects recovery and eager workflow pillars", () => {
     const inspect = (rule: string, visitorName: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName, node }], { options: [{ effectVersion: version }] });
     for (const name of ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchTags", "catchReason", "catchReasons", "timeoutOption", "timeoutOrElse"]) {
