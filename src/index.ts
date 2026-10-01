@@ -1287,9 +1287,12 @@ function isEffectOrLayerProvideCall(node: unknown): boolean {
   return isEffectMemberCallNamed(node, "provide") || isMemberCall(node, "Layer", "provide");
 }
 
-function inlineLayerProvideInProgram(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
-  return generator ? findNode(generator.body, isEffectOrLayerProvideCall) : undefined;
+function inlineLayerProvideInProgram(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen", version) ??
+    (version === 4 ? getEffectGeneratorArgument(node, "fn", version) : undefined);
+  return generator ? (version === 4
+    ? findOwnCallbackNode(generator.body, isEffectOrLayerProvideCall)
+    : findNode(generator.body, isEffectOrLayerProvideCall)) : undefined;
 }
 
 function layerMergeChain(node: unknown): unknown | undefined {
@@ -6222,7 +6225,7 @@ const noInlineLayerProvideInProgram = defineRule({
         }
       },
       CallExpression(node: any) {
-        const provide = hasEffectEcosystemImport ? inlineLayerProvideInProgram(node) : undefined;
+        const provide = hasEffectEcosystemImport ? inlineLayerProvideInProgram(node, effectVersionFor(context.options)) : undefined;
         if (provide) {
           report(
             context,

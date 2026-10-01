@@ -686,12 +686,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noInlineLayerProvideInProgram; transitive helpers: noInlineLayerProvideInProgram, getImportSource, isEffectEcosystemImport, inlineLayerProvideInProgram, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findNode, isEffectOrLayerProvideCall, isMemberCall",
-      "Recognition tokens: Effect, provide, Layer; API and repair controls still require packed qualification."
+      "Q15: packed v3 direct/piped Effect.provide and inline Layer.provide produce three warnings; v4 also recognises self-bound gen and named generator fn, producing five. V4 owns its generator scope; unused nested callbacks stay clean, legacy broad traversal is retained. External provision repairs retain dependency order and value 42."
     ]
   },
   "prefer-layer-mergeall-for-infrastructure": {
@@ -701,12 +701,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferLayerMergeallForInfrastructure; transitive helpers: preferLayerMergeallForInfrastructure, getImportSource, isEffectEcosystemImport, layerMergeChain, isMemberCall, isIdentifier, findNode",
-      "Recognition tokens: Layer; API and repair controls still require packed qualification."
+      "Q15: unchanged nested argument heuristic; two- and three-level chains produce three warnings per major. Independent mergeAll repairs retain all four distinct service values; single binary merges stay clean. No dependency independence or general flattening of dependent providers is inferred."
     ]
   },
   "no-service-layer-scatter": {
@@ -716,12 +716,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noServiceLayerScatter; transitive helpers: noServiceLayerScatter, getImportSource, isEffectEcosystemImport, scatteredLayerProvideDeclaration, isLayerLikeDeclarationName, isIdentifier, findNode, isEffectOrLayerProvideCall, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall",
-      "Recognition tokens: Effect, provide, Layer; API and repair controls still require packed qualification."
+      "Q15: unchanged per-file declaration/suffix heuristic; third and fourth matching declarations produce two warnings per major. Layer.provide and Effect.provide both count; two declarations and differently named provision stay clean. Grouped repairs retain actual service/program values; focused tests prove fresh-context counter isolation."
     ]
   },
   "no-match-void-branch": {

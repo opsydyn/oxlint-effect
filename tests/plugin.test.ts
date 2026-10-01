@@ -50,6 +50,34 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q15 recognises v4 generator forms and owns only their scope", () => {
+    const provide = effectCall("provide", identifier("program"), identifier("live"));
+    const body = blockStatement(expressionStatement(provide));
+    const inspect = (node: unknown, version: 3 | 4) => runRuleSequence("no-inline-layer-provide-in-program", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    expect(inspect(effectCall("gen", objectLiteral(property("self", identifier("owner"))), generatorCallback(body)), 4)[0]?.node).toBe(provide);
+    expect(inspect(callExpression(effectCall("fn", stringLiteral("workflow")), generatorCallback(body)), 4)[0]?.node).toBe(provide);
+    expect(inspect(effectCall("fn", generatorCallback(body)), 4)[0]?.node).toBe(provide);
+    const nested = effectCall("gen", generatorCallback(blockStatement(expressionStatement(arrowCallback(provide)))));
+    expect(inspect(nested, 4)).toHaveLength(0);
+    expect(inspect(nested, 3)[0]?.node).toBe(provide);
+  });
+  it("Effect qualification Q15 preserves merge locations, scatter thresholds and packed cases", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-inline-layer-provide-in-program", "prefer-layer-mergeall-for-infrastructure", "no-service-layer-scatter"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+      const inner = objectMethodCall(identifier("Layer"), "merge", identifier("a"), identifier("b"));
+      const outer = objectMethodCall(identifier("Layer"), "merge", inner, identifier("c"));
+      expect(runRuleSequence("prefer-layer-mergeall-for-infrastructure", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: outer }], { options: [{ effectVersion: major }] })[0]?.node).toBe(inner);
+      const targets = ["OneLive", "TwoLayer", "ThreeLive", "FourLayer"].map(name => variableDeclaratorWithInit(name, objectMethodCall(identifier("Layer"), "provide", identifier("live"), identifier("source"))));
+      const visits = [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, ...targets.map(node => ({ visitorName: "VariableDeclaration", node: { type: "VariableDeclaration", declarations: [node] } }))];
+      const reports = runRuleSequence("no-service-layer-scatter", visits, { options: [{ effectVersion: major }] });
+      expect(reports.map(report => report.node)).toEqual(targets.slice(2));
+      expect(runRuleSequence("no-service-layer-scatter", visits.slice(0, 3), { options: [{ effectVersion: major }] })).toHaveLength(0);
+      const multi = { visitorName: "VariableDeclaration", node: { type: "VariableDeclaration", declarations: targets } };
+      const multipleReports = runRuleSequence("no-service-layer-scatter", [visits[0], multi, visits[1], visits[2]], { options: [{ effectVersion: major }] });
+      expect(multipleReports.map(report => report.node)).toEqual([targets[1]]);
+    }
+  });
   it("Effect qualification Q14 checks v4 constructed method returns, not Promise adapters", () => {
     const method = property("load", arrowCallback(objectMethodCall(identifier("Promise"), "resolve", identifier("value"))));
     const make = effectCall("succeed", objectLiteral(method));

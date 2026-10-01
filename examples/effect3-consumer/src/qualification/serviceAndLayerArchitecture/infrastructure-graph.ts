@@ -1,0 +1,11 @@
+import { Context, Effect, Layer } from "effect";
+export const A = Context.GenericTag<{ readonly value: number }>("Q15A");
+export const B = Context.GenericTag<{ readonly value: number }>("Q15B");
+export const C = Context.GenericTag<{ readonly value: number }>("Q15C");
+export const D = Context.GenericTag<{ readonly value: number }>("Q15D");
+export const a = Layer.succeed(A, { value: 1 });
+export const b = Layer.succeed(B, { value: 2 });
+export const c = Layer.succeed(C, { value: 3 });
+export const d = Layer.succeed(D, { value: 4 });
+export const readA = Effect.gen(function* () { return (yield* A).value; });
+export const readAll = Effect.gen(function* () { return [(yield* A).value, (yield* B).value, (yield* C).value, (yield* D).value]; });

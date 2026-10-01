@@ -970,5 +970,73 @@
       }
     },
     "runtime": "src/qualification/serviceAndLayerArchitecture/layer-methods.contracts.ts"
+  },
+  {
+    "rule": "no-inline-layer-provide-in-program",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct and piped Effect.provide",
+      "inline Layer.provide",
+      "provider order repair"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-inline-layer-provide-in-program.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-inline-layer-provide-in-program.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-inline-layer-provide-in-program.bad.ts": {
+        "linteffect/no-inline-layer-provide-in-program": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/infrastructure.contracts.ts"
+  },
+  {
+    "rule": "prefer-layer-mergeall-for-infrastructure",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "two and three-level merge chains",
+      "independent mergeAll repair",
+      "single merge clean"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-layer-mergeall-for-infrastructure.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-layer-mergeall-for-infrastructure.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/prefer-layer-mergeall-for-infrastructure.bad.ts": {
+        "linteffect/prefer-layer-mergeall-for-infrastructure": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/infrastructure.contracts.ts"
+  },
+  {
+    "rule": "no-service-layer-scatter",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "third and fourth declarations",
+      "Layer and Effect provide",
+      "two declaration threshold",
+      "suffix heuristic",
+      "grouped infrastructure repair"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-service-layer-scatter.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-service-layer-scatter.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-service-layer-scatter.bad.ts": {
+        "linteffect/no-service-layer-scatter": 2
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/infrastructure.contracts.ts"
   }
 ]

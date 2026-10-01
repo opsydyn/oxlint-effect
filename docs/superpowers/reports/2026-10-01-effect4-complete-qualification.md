@@ -179,6 +179,29 @@ Promise methods. Unknown named builders and Promise aliases remain outside the
 syntax proof. This trades missed opaque construction for avoiding false
 positives in legitimate adapters; legacy behaviour is preserved.
 
+## Q15 Infrastructure Composition
+
+RED exposed missing v4 self-bound generator recognition and missing packed
+evidence. GREEN recognises ordinary/self-bound Effect.gen and generator
+Effect.fn, including named forms, while restricting v4 traversal to the
+generator's own scope. Legacy gen traversal is unchanged. Packed cases report
+three inline provisions for v3/five for v4, three nested merge warnings and
+two scatter warnings per major; focused tests verify report nodes and fresh
+per-context scatter counters.
+
+Typed/runtime repairs preserve actual dependency order and workflow value 42,
+all four independent merged service values and each scattered service/program
+result. Single merges, two matching declarations, differently named provision
+and unused v4 nested helpers remain clean. Fresh 489 tests, root types, both
+packed majors, build, size 27.59 KB under 30 KB and diff check pass. Q16-Q52 and
+cross-group closure remain open; 100 rules retain an unqualified version.
+
+Ruling: v4 generator Effect.fn has the same workflow ownership as Effect.gen;
+unused nested functions are not part of that workflow. This can miss provision
+hidden behind named helpers, which remains outside syntax-only proof. Merge
+and scatter policy stays unchanged: only independent merges are repaired,
+and scatter remains a name/declaration threshold rather than type analysis.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
