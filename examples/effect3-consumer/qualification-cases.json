@@ -900,5 +900,75 @@
       }
     },
     "runtime": "src/qualification/serviceAndLayerArchitecture/service-exports.contracts.ts"
+  },
+  {
+    "rule": "no-layer-merge-in-request-handler",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "handler declaration merge",
+      "route declaration mergeAll",
+      "request declaration provide",
+      "extracted boundary",
+      "arrow/name limits"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-layer-merge-in-request-handler.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-layer-merge-in-request-handler.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-layer-merge-in-request-handler.bad.ts": {
+        "linteffect/no-layer-merge-in-request-handler": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/layer-methods.contracts.ts"
+  },
+  {
+    "rule": "no-service-method-returning-promise",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "Promise annotation",
+      "visible Promise API",
+      "failure identity repair"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/no-service-method-returning-promise.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/no-service-method-returning-promise.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/no-service-method-returning-promise.bad.ts": {
+        "linteffect/no-service-method-returning-promise": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/layer-methods.contracts.ts"
+  },
+  {
+    "rule": "prefer-layer-pipe",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "two-level tower",
+      "three-level tower",
+      "piped repair",
+      "single provide",
+      "nested provider limit"
+    ],
+    "bad": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-layer-pipe.bad.ts"
+    ],
+    "good": [
+      "src/qualification/serviceAndLayerArchitecture/prefer-layer-pipe.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/serviceAndLayerArchitecture/prefer-layer-pipe.bad.ts": {
+        "linteffect/prefer-layer-pipe": 3
+      }
+    },
+    "runtime": "src/qualification/serviceAndLayerArchitecture/layer-methods.contracts.ts"
   }
 ]

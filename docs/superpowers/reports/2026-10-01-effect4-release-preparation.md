@@ -28,9 +28,10 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Qualify Q11 Style Separation, including failures, repairs and runtime controls.
 - [x] Qualify Q12 service definitions, version-correct repairs and legacy accessor exclusion.
 - [x] Qualify Q13 legacy dependencies, namespace imports and manual service exports.
-- [ ] Complete and qualify Q14-Q52 in the
+- [x] Qualify Q14 handler layers, Promise-returning methods and provision piping.
+- [ ] Complete and qualify Q15-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 106 rules with an unqualified applicable version.
+  Current inventory has 103 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.

@@ -641,12 +641,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noLayerMergeInRequestHandler; transitive helpers: noLayerMergeInRequestHandler, getImportSource, isEffectEcosystemImport, layerCompositionInRequestHandler, isRequestHandler, isIdentifier, findNode, isLayerCompositionCall, isMemberCall",
-      "Recognition tokens: Layer, provide; API and repair controls still require packed qualification."
+      "Q14: unchanged declaration/name policy; pinned packed cases report merge, mergeAll and provide in Handler/Route/Request functions three times per major. Extracted layers, dedicated builders and documented arrow-function lookalikes remain clean. All empty contexts build successfully; report-location assertions point to the handler declaration."
     ]
   },
   "no-service-method-returning-promise": {
@@ -656,12 +656,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noServiceMethodReturningPromise; transitive helpers: noServiceMethodReturningPromise, getImportSource, isEffectEcosystemImport, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, isIdentifier, promiseReturningServiceMethod, findNode, isPromiseReturningProperty, functionReturnsPromise, isFunctionLike, isIdentifierTypeReference, returnTypeAnnotation, findPromiseApiCall, isPromiseStaticApiCall, isMemberCall, isPromiseChainCall",
-      "Recognition tokens: Effect, Service, all, allSettled, race, catch; API and repair controls still require packed qualification."
+      "Q14: pinned corpus reports three legacy annotated/API/failure methods and six v4 generator make, named generator fn, function make async, class-expression chain, constructor and block-return methods. V4 constructed-shape recognition leaves Effect adapters and unused nested callbacks clean. Typed runtime repairs preserve result 42 and original tagged failure identity. Named factories/stored Promise aliases/opaque construction are outside syntax scope; legacy traversal remains unchanged."
     ]
   },
   "prefer-layer-pipe": {
@@ -671,12 +671,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferLayerPipe; transitive helpers: preferLayerPipe, getImportSource, isEffectEcosystemImport, layerProvideCallTower, isMemberCall, isIdentifier, findNode, firstArgument",
-      "Recognition tokens: Layer, provide; API and repair controls still require packed qualification."
+      "Q14: unchanged tower heuristic; two- and three-level inputs report three inner calls per pinned major. Piped, single and provider-argument controls stay clean. Actual Source/Middle/Output layers retain dependency order and retrieved value 42 under both bad and repaired wiring; synthetic location checks identify the inner provide call."
     ]
   },
   "no-inline-layer-provide-in-program": {

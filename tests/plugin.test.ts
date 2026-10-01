@@ -50,6 +50,33 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q14 checks v4 constructed method returns, not Promise adapters", () => {
+    const method = property("load", arrowCallback(objectMethodCall(identifier("Promise"), "resolve", identifier("value"))));
+    const make = effectCall("succeed", objectLiteral(method));
+    const node = callExpression(memberCall("Context", "Service"), stringLiteral("Service"), objectLiteral(property("make", make)));
+    const inspect = (target: unknown) => runRuleSequence("no-service-method-returning-promise", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: target }], { options: [{ effectVersion: 4 }] });
+    expect(inspect(node)[0]?.node).toBe(method);
+    const adapter = effectCall("tryPromise", objectLiteral(property("try", arrowCallback(objectMethodCall(identifier("Promise"), "resolve", identifier("value"))))));
+    const clean = callExpression(memberCall("Context", "Service"), stringLiteral("Service"), objectLiteral(property("make", effectCall("succeed", objectLiteral(property("load", arrowCallback(adapter)))))));
+    expect(inspect(clean)).toHaveLength(0);
+    const asyncMethod = property("load", asyncArrowCallback(identifier("value")));
+    const asyncService = callExpression(memberCall("Context", "Service"), stringLiteral("Service"), objectLiteral(property("make", arrowCallback(effectCall("sync", arrowCallback(objectLiteral(asyncMethod)))))));
+    expect(inspect(asyncService)[0]?.node).toBe(asyncMethod);
+    const tracedMake = callExpression(effectCall("fn", stringLiteral("make")), generatorCallback(blockStatement(returnStatement(objectLiteral(method)))));
+    const tracedService = callExpression(memberCall("Context", "Service"), stringLiteral("Service"), objectLiteral(property("make", tracedMake)));
+    expect(inspect(tracedService)[0]?.node).toBe(method);
+  });
+  it("Effect qualification Q14 covers unchanged Layer policies with packed evidence", async () => {
+    for (const major of [3,4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-layer-merge-in-request-handler", "prefer-layer-pipe"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+      const inner = objectMethodCall(identifier("Layer"), "provide", identifier("output"), identifier("middle"));
+      const tower = objectMethodCall(identifier("Layer"), "provide", inner, identifier("source"));
+      expect(runRuleSequence("prefer-layer-pipe", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: tower }], { options: [{ effectVersion: major }] })[0].node).toBe(inner);
+      const handler = { ...functionDeclarationReturning(objectMethodCall(identifier("Layer"), "mergeAll", identifier("live"))), id: identifier("readHandler") };
+      expect(runRuleSequence("no-layer-merge-in-request-handler", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "FunctionDeclaration", node: handler }], { options: [{ effectVersion: major }] })[0].node).toBe(handler);
+    }
+  });
   it("Effect qualification Q13 excludes legacy dependency options from v4", () => {
     const dependency = yieldExpression(identifier("DatabaseService"), true);
     const node = serviceClassDeclaration(objectLiteral(property("effect", effectCall("gen", generatorCallback(blockStatement(expressionStatement(dependency)))))));

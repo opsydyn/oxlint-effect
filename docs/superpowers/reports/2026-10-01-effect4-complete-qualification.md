@@ -156,6 +156,29 @@ and exercised by typed/runtime controls. Fresh 485 tests, root typecheck,
 both packed majors, build, 27.39 KB under 30 KB and diff check pass.
 Q14-Q52 and cross-group closure remain open.
 
+## Q14 Handler Layers And Service Methods
+
+RED exposed missing Context.Service method recognition and the named Effect.fn
+make factory gap. GREEN inspects literal constructed service shapes and actual
+method returns rather than Promise adapter callbacks. V4 annotation, async,
+visible static/chain/constructor and own-scope block returns are recognised;
+Effect adapters and unused local callbacks stay clean. Legacy traversal is
+unchanged. Packed cases report three legacy/six v4 methods, three request-handler
+declarations and three nested-input provide calls per major.
+
+Typed/runtime controls retain successful value 42, original tagged failure
+identity, actual Source/Middle/Output provisioning order and contextual method
+retrieval. Named construction aliases and opaque builders are not inferred;
+request names/arrow controls and provider-argument nesting retain existing
+heuristic scope. Fresh 487 tests, root typecheck, both packed majors, build,
+size 27.6 KB under 30 KB and diff check pass. Q15-Q52 and group closure remain open.
+
+Ruling: inspect recognised constructed shapes in v4, not all nested properties
+of make, to avoid diagnosing Effect.tryPromise's callback options as public
+Promise methods. Unknown named builders and Promise aliases remain outside the
+syntax proof. This trades missed opaque construction for avoiding false
+positives in legitimate adapters; legacy behaviour is preserved.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

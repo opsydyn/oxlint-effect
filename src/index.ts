@@ -1321,28 +1321,59 @@ function scatteredLayerProvideDeclaration(node: unknown): unknown | undefined {
     ));
 }
 
-function functionReturnsPromise(node: unknown): boolean {
+function functionReturnsPromise(node: unknown, version: EffectVersion = 3): boolean {
   if (!isFunctionLike(node)) {
     return false;
   }
 
-  return (
-    isIdentifierTypeReference(returnTypeAnnotation(node), "Promise") ||
-    findPromiseApiCall((node as Node).body) !== undefined
-  );
+  if (isIdentifierTypeReference(returnTypeAnnotation(node), "Promise")) return true;
+  if (version === 3) return findPromiseApiCall((node as Node).body) !== undefined;
+  if ((node as Node).async === true) return true;
+  const isPromise = (value: unknown) => isPromiseStaticApiCall(value) || isPromiseChainCall(value, version) ||
+    (typeof value === "object" && value !== null && (value as Node).type === "NewExpression" && isIdentifier((value as Node).callee, "Promise"));
+  const body = (node as Node).body;
+  return isPromise(body) || findOwnCallbackNode(body, (child) => typeof child === "object" && child !== null &&
+    (child as Node).type === "ReturnStatement" && isPromise((child as Node).argument)) !== undefined;
 }
 
-function isPromiseReturningProperty(node: unknown): boolean {
+function isPromiseReturningProperty(node: unknown, version: EffectVersion = 3): boolean {
   return (
     typeof node === "object" &&
     node !== null &&
     (node as Node).type === "Property" &&
-    functionReturnsPromise((node as Node).value)
+    functionReturnsPromise((node as Node).value, version)
   );
 }
 
-function promiseReturningServiceMethod(node: unknown): unknown | undefined {
-  return findNode(node, isPromiseReturningProperty);
+function promiseReturningServiceMethod(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  if (version === 3) return findNode(node, isPromiseReturningProperty);
+  // Inspect constructed shapes, not callback options inside Promise adapters.
+  const seen = new WeakSet<object>();
+  const inspect = (value: unknown): unknown | undefined => {
+    if (typeof value !== "object" || value === null || seen.has(value)) return undefined;
+    seen.add(value);
+    const current = value as Node;
+    if (current.type === "ObjectExpression") return (current.properties as unknown[] | undefined)?.find((property) => isPromiseReturningProperty(property, version));
+    if (isFunctionLike(value)) {
+      const body = current.body as Node | undefined;
+      if (body?.type !== "BlockStatement") return inspect(body);
+      for (const returned of findNodes(body, (child) => typeof child === "object" && child !== null && (child as Node).type === "ReturnStatement", new WeakSet<object>(), true, true)) {
+        const method = inspect((returned as Node).argument);
+        if (method) return method;
+      }
+      return undefined;
+    }
+    const generator = getEffectGeneratorArgument(value, "gen", version) ?? getEffectGeneratorArgument(value, "fn", version);
+    if (generator) return inspect(generator);
+    const first = Array.isArray(current.arguments) ? current.arguments[0] : undefined;
+    if (isEffectMemberCallNamed(value, "succeed") || isEffectMemberCallNamed(value, "sync")) return inspect(first);
+    if (isPipeCall(value)) {
+      const callee = current.callee as Node | undefined;
+      return inspect(callee?.type === "MemberExpression" ? callee.object : first);
+    }
+    return undefined;
+  };
+  return inspect(objectPropertyValue(node, "make"));
 }
 
 function objectHasServiceMethod(node: unknown): boolean {
@@ -6287,6 +6318,7 @@ const noLayerMergeInRequestHandler = defineRule({
 
 const noServiceMethodReturningPromise = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6297,6 +6329,7 @@ const noServiceMethodReturningPromise = defineRule({
         }
       },
       ClassDeclaration(node: any) {
+        if (version === 4) return;
         const options = effectServiceClassOptions(node);
         const method = options ? promiseReturningServiceMethod(options) : undefined;
         if (hasEffectEcosystemImport && method) {
@@ -6306,6 +6339,12 @@ const noServiceMethodReturningPromise = defineRule({
             "Rule: return Effect from service methods.",
           );
         }
+      },
+      CallExpression(node: any) {
+        if (version === 3 || !hasEffectEcosystemImport) return;
+        const options = effectServiceOptionsObject(node, version);
+        const method = options && promiseReturningServiceMethod(options, version);
+        if (method) report(context, method, "Rule: return Effect from service methods. Fix: expose an Effect-returning Context.Service method and keep Promise interop inside an Effect adapter.");
       },
     };
   },
