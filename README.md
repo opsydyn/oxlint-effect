@@ -405,9 +405,9 @@ Effect flow, domain meaning, or runtime boundaries.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-mixed-pillar-function` | Functions that mix three or more style pillars: workflow, pure transformation, behavior decoration, and Layer construction. | Each function should have one obvious style so the domain story, policies, transformations, and wiring stay separately reviewable. |
-| `linteffect/no-clever-effect-expression` | Deep or wrapper-heavy expressions combining multiple style pillars, such as `pipe(Effect.map(Effect.gen(...), flow(...)), ((x) => x))`. | Dense expression towers hide intent and make Effect code harder to debug or refactor. |
-| `linteffect/prefer-extracted-concept` | Multi-statement anonymous callbacks passed into Effect combinators. | Inline callback bodies with several steps usually represent a named transformation, policy, or workflow concept. |
+| `linteffect/no-mixed-pillar-function` | Function bodies containing three or more pillars: workflow, `flow` transformation, behaviour decoration and Layer construction. V4 includes its recovery operators and `flatMapEager`; legacy spellings remain under `effect3`. | Extract named workflows, transformations, policies and wiring. This syntax-local scan includes nested callbacks, not inferred named references. |
+| `linteffect/no-clever-effect-expression` | Expressions with at least two pillars and call depth four or an inline function wrapper. Pillar recognition follows the selected Effect major. | Extract named steps; shallow multi-pillar and deep single-pillar expressions remain clean. |
+| `linteffect/prefer-extracted-concept` | Anonymous block callbacks with at least three statements passed to calls in Effect-importing files, including ordinary JS calls. | Name the transformation, policy or workflow before passing it. Named callbacks, expression bodies and two-statement blocks remain clean; this is a syntax heuristic, not Effect type inference. |
 
 ### Service and Layer Architecture
 

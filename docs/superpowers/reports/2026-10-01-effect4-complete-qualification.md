@@ -85,13 +85,30 @@ value preservation and recovery identity contracts pass in both packed majors.
 user explicitly approved a 30 KB dual-major budget on 2026-10-01. Fresh tests,
 types, both packed majors, build, size (27.16 KB) and diff checks pass under that
 approved bound. The three inventory entries and allocation checkbox now record
-qualification. No push or publication has occurred; Q11-Q52 remain open.
+qualification. No push or publication has occurred; subsequent batches remain open.
 
 The decorated-yield walker now uses existing findNodes with opt-in stop-at-match
 and own-function-scope controls; defaults preserve prior owners. The three
 decoration visitors share the existing versioned callback-rule factory.
 Regression tests and both packed corpora pass; this does not qualify other
 style-pillar consumers of shared decoration recognition.
+
+## Q11 Style Separation
+
+Version-selected pillar classification now recognises v4 recovery and eager
+sequencing, while preserving legacy catchAll/zipRight policy. RED exposed the
+missing v4 recovery pillar; GREEN asserts function/call report locations and
+removed spelling isolation. The unchanged extraction heuristic is qualified
+without narrowing its existing import-gated ordinary-JS callback scope.
+
+Packed cases warn four legacy/five v4 mixed functions, three clever expressions
+and four oversized callbacks per major. Controls cover named composition,
+Layer construction, IIFE wrappers, threshold boundaries and deep single pillars.
+All repairs typecheck and preserve result values. Shared workflow-helper owners
+retain their default legacy recognition until their allocated audit; no blanket
+qualification is inferred. Q12-Q52 and cross-group closure remain outstanding.
+Fresh gates: 481 tests, root typecheck, both packed majors, build, 27.2 KB under
+the approved 30 KB limit and diff check pass.
 
 ## Q08 Decisions
 

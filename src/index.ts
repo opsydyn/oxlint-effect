@@ -624,13 +624,15 @@ function pipeOperatorArguments(node: unknown): unknown[] {
   return [];
 }
 
-function isWorkflowSequencingOperator(node: unknown): boolean {
+function isWorkflowSequencingOperator(node: unknown, version: EffectVersion = 3): boolean {
   if (!isEffectMemberCall(node)) {
     return false;
   }
 
   const property = ((node.callee as Node).property as Node | undefined);
-  return isIdentifier(property) && workflowSequencingCombinators.has(property.name);
+  return isIdentifier(property) && (version === 3
+    ? workflowSequencingCombinators.has(property.name)
+    : property.name === "flatMapEager" || (property.name !== "zipRight" && workflowSequencingCombinators.has(property.name)));
 }
 
 function workflowSequencingPipeline(node: unknown): unknown | undefined {
@@ -933,10 +935,11 @@ type StylePillar = "workflow" | "pure" | "behavior" | "layer";
 
 function stylePillarsInNode(
   node: unknown,
+  version: EffectVersion,
   pillars = new Set<StylePillar>(),
   seen = new WeakSet<object>(),
 ): Set<StylePillar> {
-  if (isEffectMemberCallNamed(node, "gen") || isWorkflowSequencingOperator(node)) {
+  if (isEffectMemberCallNamed(node, "gen") || isWorkflowSequencingOperator(node, version)) {
     pillars.add("workflow");
   }
 
@@ -944,7 +947,7 @@ function stylePillarsInNode(
     pillars.add("pure");
   }
 
-  if (isBehaviorDecorationOperator(node)) {
+  if (isBehaviorDecorationOperator(node, version)) {
     pillars.add("behavior");
   }
 
@@ -954,7 +957,7 @@ function stylePillarsInNode(
 
   if (Array.isArray(node)) {
     for (const child of node) {
-      stylePillarsInNode(child, pillars, seen);
+      stylePillarsInNode(child, version, pillars, seen);
     }
     return pillars;
   }
@@ -970,7 +973,7 @@ function stylePillarsInNode(
 
   for (const [key, child] of Object.entries(node)) {
     if (key !== "parent") {
-      stylePillarsInNode(child, pillars, seen);
+      stylePillarsInNode(child, version, pillars, seen);
     }
   }
 
@@ -989,13 +992,13 @@ function isFunctionLike(node: unknown): boolean {
   );
 }
 
-function mixedPillarFunctionNode(node: unknown): unknown | undefined {
+function mixedPillarFunctionNode(node: unknown, version: EffectVersion): unknown | undefined {
   if (!isFunctionLike(node)) {
     return undefined;
   }
 
   const body = (node as Node).body;
-  return stylePillarsInNode(body).size >= 3 ? node : undefined;
+  return stylePillarsInNode(body, version).size >= 3 ? node : undefined;
 }
 
 function callExpressionDepth(node: unknown, seen = new WeakSet<object>()): number {
@@ -1019,12 +1022,12 @@ function callExpressionDepth(node: unknown, seen = new WeakSet<object>()): numbe
   return (node as Node).type === "CallExpression" ? childDepth + 1 : childDepth;
 }
 
-function cleverEffectExpressionNode(node: unknown): unknown | undefined {
+function cleverEffectExpressionNode(node: unknown, version: EffectVersion): unknown | undefined {
   if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
-  const pillars = stylePillarsInNode(node);
+  const pillars = stylePillarsInNode(node, version);
   const hasWrapperTrick = isInlineFunctionIifeCall(node) || findArrowIifeCall(node) !== undefined;
   return pillars.size >= 2 && (callExpressionDepth(node) >= 4 || hasWrapperTrick) ? node : undefined;
 }
@@ -5915,10 +5918,11 @@ const noWorkflowInBehaviorPipe = createVersionedEffectCallbackRule(
 );
 const noMixedPillarFunction = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     function check(node: any) {
-      const mixedFunction = mixedPillarFunctionNode(node);
+      const mixedFunction = mixedPillarFunctionNode(node, version);
       if (hasEffectEcosystemImport && mixedFunction) {
         report(
           context,
@@ -5944,6 +5948,7 @@ const noMixedPillarFunction = defineRule({
 
 const noCleverEffectExpression = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -5954,7 +5959,7 @@ const noCleverEffectExpression = defineRule({
         }
       },
       CallExpression(node: any) {
-        const cleverExpression = cleverEffectExpressionNode(node);
+        const cleverExpression = cleverEffectExpressionNode(node, version);
         if (hasEffectEcosystemImport && cleverExpression) {
           report(
             context,

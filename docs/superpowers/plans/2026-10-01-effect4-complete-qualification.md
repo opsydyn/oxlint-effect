@@ -164,7 +164,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q08 | `effectComposition` | `no-promise-api-in-effect-logic`, `no-swallowed-catch-all`, `no-manual-effect-channels` |
 | [x] | Q09 | `effectComposition` | `no-effect-type-alias`, `no-public-generic-effect-error` |
 | [x] | Q10 | `behaviorDecoration` | `prefer-pipe-for-behavior`, `prefer-decorated-effect-before-gen`, `no-workflow-in-behavior-pipe` |
-| [ ] | Q11 | `styleSeparation` | `no-mixed-pillar-function`, `no-clever-effect-expression`, `prefer-extracted-concept` |
+| [x] | Q11 | `styleSeparation` | `no-mixed-pillar-function`, `no-clever-effect-expression`, `prefer-extracted-concept` |
 | [ ] | Q12 | `serviceAndLayerArchitecture` | `prefer-effect-service`, `no-layer-provide-in-service-definition`, `require-service-accessors` |
 | [ ] | Q13 | `serviceAndLayerArchitecture` | `require-service-dependencies`, `no-namespace-effect-import`, `no-manual-service-object-export` |
 | [ ] | Q14 | `serviceAndLayerArchitecture` | `no-layer-merge-in-request-handler`, `no-service-method-returning-promise`, `prefer-layer-pipe` |

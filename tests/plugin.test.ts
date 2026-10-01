@@ -50,6 +50,26 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q11 selects recovery and eager workflow pillars", () => {
+    const inspect = (rule: string, visitorName: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName, node }], { options: [{ effectVersion: version }] });
+    for (const name of ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchTags", "catchReason", "catchReasons", "timeoutOption", "timeoutOrElse"]) {
+      const node = functionDeclarationReturning(objectLiteral(property("workflow", effectCall("gen", generatorCallback(blockStatement(returnStatement(identifier("value")))))), property("shape", flowCall(identifier("normalize"))), property("policy", effectCall(name, identifier("program")))));
+      expect(inspect("no-mixed-pillar-function", "FunctionDeclaration", node, 4)[0]?.node).toBe(node);
+      expect(inspect("no-mixed-pillar-function", "FunctionDeclaration", node, 3)).toHaveLength(0);
+    }
+    const expression = effectCall("catchEager", effectCall("gen", generatorCallback(blockStatement(returnStatement(effectCall("succeed", callExpression(identifier("normalize"), identifier("value"))))))), arrowCallback(effectCall("succeed", identifier("value"))));
+    expect(inspect("no-clever-effect-expression", "CallExpression", expression, 4)[0]?.node).toBe(expression);
+    expect(inspect("no-clever-effect-expression", "CallExpression", expression, 3)).toHaveLength(0);
+    const eager = functionDeclarationReturning(objectLiteral(property("workflow", effectCall("flatMapEager", identifier("program"))), property("shape", flowCall(identifier("normalize"))), property("policy", effectCall("withSpan", stringLiteral("load")))));
+    expect(inspect("no-mixed-pillar-function", "FunctionDeclaration", eager, 4)[0]?.node).toBe(eager);
+    for (const [removed, includeGen] of [["catchAll", true], ["zipRight", false]] as const) {
+      const node = functionDeclarationReturning(objectLiteral(property("shape", flowCall(identifier("normalize"))), property("removed", effectCall(removed, identifier("program"))), property("other", includeGen ? effectCall("gen", generatorCallback(blockStatement(returnStatement(identifier("value"))))) : effectCall("withSpan", stringLiteral("load")))));
+      expect(inspect("no-mixed-pillar-function", "FunctionDeclaration", node, 3)[0]?.node).toBe(node);
+      expect(inspect("no-mixed-pillar-function", "FunctionDeclaration", node, 4)).toHaveLength(0);
+    }
+    const callback = arrowCallback(blockStatement(expressionStatement(identifier("first")), expressionStatement(identifier("second")), returnStatement(identifier("value"))));
+    expect(inspect("prefer-extracted-concept", "CallExpression", effectCall("map", identifier("program"), callback), 4)[0]?.node).toBe(callback);
+  });
   it("Effect qualification Q10 classifies v4 recovery decoration and preserves legacy policy", () => {
     const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
     const source = effectCall("fail", identifier("error"));

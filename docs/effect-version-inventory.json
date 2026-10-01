@@ -504,12 +504,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noMixedPillarFunction; transitive helpers: noMixedPillarFunction, mixedPillarFunctionNode, isFunctionLike, stylePillarsInNode, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isWorkflowSequencingOperator, workflowSequencingCombinators, isFlowCall, isBehaviorDecorationOperator, behaviorDecorationOperators, isMemberCall, isMemberExpression, getImportSource, isEffectEcosystemImport",
-      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail, Layer; API and repair controls still require packed qualification."
+      "Q11: pinned packed styleSeparation corpus reports four legacy and five v4 function cases, including declaration/arrow/expression, Layer mixing and v4 flatMapEager. Version-selected recovery classification, removed spelling isolation, two-pillar threshold and named composition controls pass. Repairs preserve runtime results."
     ]
   },
   "no-clever-effect-expression": {
@@ -519,12 +519,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noCleverEffectExpression; transitive helpers: noCleverEffectExpression, getImportSource, isEffectEcosystemImport, cleverEffectExpressionNode, stylePillarsInNode, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isWorkflowSequencingOperator, workflowSequencingCombinators, isFlowCall, isBehaviorDecorationOperator, behaviorDecorationOperators, isMemberCall, isMemberExpression, isInlineFunctionIifeCall, findArrowIifeCall, isArrowIifeCall, callExpressionDepth",
-      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail, Layer; API and repair controls still require packed qualification."
+      "Q11: pinned packed styleSeparation corpus reports three cases per major: data-first depth four, piped depth four and inline wrapper. Named repairs, shallow two-pillar and deep single-pillar controls compile, stay clean and preserve runtime results. V4 catchEager classification has focused report-location regression coverage."
     ]
   },
   "prefer-extracted-concept": {
@@ -534,12 +534,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferExtractedConcept; transitive helpers: preferExtractedConcept, getImportSource, isEffectEcosystemImport, oversizedAnonymousConceptNode, isFunctionLike",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q11: unchanged syntax policy; pinned packed styleSeparation corpus reports four callbacks per major: direct/piped arrows, function expression and ordinary JS callback. Named callbacks, expression bodies and two-statement blocks stay clean; runtime result remains four. Scope is import-gated, not inferred Effect argument types."
     ]
   },
   "prefer-effect-service": {

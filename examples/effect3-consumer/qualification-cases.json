@@ -689,5 +689,78 @@
       }
     },
     "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
+  },
+  {
+    "rule": "no-mixed-pillar-function",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "function declaration",
+      "arrow",
+      "Layer construction",
+      "function expression"
+    ],
+    "bad": [
+      "src/qualification/styleSeparation/no-mixed-pillar-function.bad.ts"
+    ],
+    "good": [
+      "src/qualification/styleSeparation/no-mixed-pillar-function.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/styleSeparation/no-mixed-pillar-function.bad.ts": {
+        "linteffect/no-mixed-pillar-function": 4
+      }
+    },
+    "runtime": "src/qualification/styleSeparation/style.contracts.ts"
+  },
+  {
+    "rule": "no-clever-effect-expression",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "data-first depth four",
+      "piped depth four",
+      "inline wrapper",
+      "named repair",
+      "shallow threshold",
+      "deep single pillar"
+    ],
+    "bad": [
+      "src/qualification/styleSeparation/no-clever-effect-expression.bad.ts"
+    ],
+    "good": [
+      "src/qualification/styleSeparation/no-clever-effect-expression.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/styleSeparation/no-clever-effect-expression.bad.ts": {
+        "linteffect/no-clever-effect-expression": 3
+      }
+    },
+    "runtime": "src/qualification/styleSeparation/style.contracts.ts"
+  },
+  {
+    "rule": "prefer-extracted-concept",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "data-first arrow",
+      "piped arrow",
+      "ordinary JS callback",
+      "function expression",
+      "named callback",
+      "two-statement threshold"
+    ],
+    "bad": [
+      "src/qualification/styleSeparation/prefer-extracted-concept.bad.ts"
+    ],
+    "good": [
+      "src/qualification/styleSeparation/prefer-extracted-concept.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/styleSeparation/prefer-extracted-concept.bad.ts": {
+        "linteffect/prefer-extracted-concept": 4
+      }
+    },
+    "runtime": "src/qualification/styleSeparation/style.contracts.ts"
   }
 ]
