@@ -49,6 +49,63 @@ function runRuleSequence(
 
 const identifier = (name: string) => ({ type: "Identifier", name });
 
+describe("versioned runners", () => {
+  const methods = ["runCallback", "runFork", "runPromise", "runPromiseExit", "runSync", "runSyncExit"];
+  const inspect = (rule: string, calls: unknown[], version: 3 | 4, filename = "/repo/src/domain.ts", boundaryPaths?: string[]) => runRuleSequence(rule, [
+    { visitorName: "ImportDeclaration", node: importFrom("effect") },
+    ...calls.map((node) => ({ visitorName: "CallExpression", node })),
+    { visitorName: "Program:exit", node: {} },
+  ], { filename, options: [{ effectVersion: version, ...(boundaryPaths === undefined ? {} : { boundaryPaths }) }] });
+
+  it("versioned runners distinguish factories from execution", () => {
+    for (const version of [3, 4] as const) {
+      const factories = methods.map((method) => effectCall(`${method}With`, identifier("context")));
+      const executions = factories.map((factory) => callExpression(factory, identifier("program")));
+      expect(inspect("no-run-effect-outside-boundary", methods.map((method) => effectCall(method, identifier("program"))), version)).toHaveLength(6);
+      const reports = inspect("no-run-effect-outside-boundary", [...factories, ...executions], version);
+      expect(reports).toHaveLength(version === 4 ? 6 : 0);
+      expect(inspect("no-run-effect-outside-boundary", [callExpression(executions[0]), objectMethodCall(identifier("Other"), "runPromise", identifier("program"))], version)).toHaveLength(0);
+    }
+    const reports: Report[] = [];
+    const visitor = plugin.rules["no-run-effect-outside-boundary"].create!({ filename: "/repo/src/domain.ts", options: [], report: (report: Report) => reports.push(report) } as any) as Visitor;
+    visitor.ImportDeclaration(importFrom("effect"));
+    visitor.CallExpression(callExpression(effectCall("runPromiseWith", identifier("context")), identifier("program")));
+    expect(reports).toHaveLength(1);
+  });
+
+  it("runner boundary paths replace defaults", () => {
+    const defaults = ["bin/entry.ts", "scripts/entry.ts", "cli/entry.ts", "src/main.ts", "app/api/users/route.ts", "server/entry.ts", "src/a.test.ts", "src/a.spec.ts"];
+    for (const version of [3, 4] as const) {
+      const calls = [effectCall("runPromise", identifier("program"))];
+      for (const filename of defaults) {
+        expect(inspect("no-run-effect-outside-boundary", calls, version, `/repo/${filename}`)).toHaveLength(0);
+        expect(inspect("no-run-effect-outside-boundary", calls, version, `/repo/${filename}`, ["**/custom-entry.ts"])).toHaveLength(1);
+      }
+      expect(inspect("no-run-effect-outside-boundary", calls, version, "C:\\repo\\src\\main.ts")).toHaveLength(0);
+      expect(inspect("no-run-effect-outside-boundary", calls, version, "/repo/src/main.ts", [])).toHaveLength(1);
+      expect(inspect("no-run-effect-outside-boundary", calls, version, "/repo/src/custom-entry.ts", ["**/custom-entry.ts"])).toHaveLength(0);
+      expect(inspect("no-run-effect-outside-boundary", calls, version)).toHaveLength(1);
+    }
+  });
+
+  it("shared runner consumers preserve execution semantics", () => {
+    const factory = effectCall("runPromiseWith", identifier("context"));
+    const execution = callExpression(factory, identifier("program"));
+    expect(inspect("no-hidden-effect-execution", [factory, execution], 4)).toHaveLength(1);
+    expect(inspect("no-hidden-effect-execution", [factory, execution], 3)).toHaveLength(0);
+    for (const [node, expected] of [[factory, 1], [execution, 0]] as const) {
+      expect(runRule("no-boundary-try-catch-without-effect-map", "TryStatement", tryStatement(expressionStatement(node)), { filename: "/repo/server/entry.ts", options: [{ effectVersion: 4 }] })).toHaveLength(expected);
+    }
+    const runScope = { type: "FunctionDeclaration", id: identifier("runWithOpenResource"), body: blockStatement(variableDeclarationWithInit(resourceAcquire("connectClient")), returnStatement(execution)) };
+    linkParents(runScope);
+    expect(inspect("no-run-with-open-resource", [factory, execution], 4)).toHaveLength(1);
+    expect(inspect("no-run-with-open-resource", [factory, execution], 3)).toHaveLength(0);
+    const program = effectCall("gen", generatorCallback(blockStatement(yieldExpression(identifier("UserService"), true))));
+    expect(inspect("no-missing-layer-provision-at-run", [effectCall("runPromise", program)], 4)).toHaveLength(1);
+    expect(inspect("no-missing-layer-provision-at-run", [callExpression(factory, program)], 4)).toHaveLength(0);
+  });
+});
+
 describe("versioned recovery", () => {
   const inspect = (rule: string, calls: unknown[], version: 3 | 4, filename = "/repo/src/domain.ts", boundaryPaths?: string[]) => runRuleSequence(rule, [
     { visitorName: "ImportDeclaration", node: importFrom("effect") },

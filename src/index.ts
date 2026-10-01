@@ -1908,14 +1908,25 @@ const effectRunMethods = new Set([
   "runSyncExit",
 ]);
 
-function isEffectRunCall(node: unknown): boolean {
-  if (!isEffectMemberCall(node)) {
-    return false;
+function effectRunExecution(node: unknown, version: EffectVersion): { program: unknown; hasContext: boolean } | undefined {
+  if (isEffectMemberCall(node)) {
+    const property = (node.callee as Node).property;
+    if (isIdentifier(property) && effectRunMethods.has(property.name)) {
+      return { program: firstArgument(node), hasContext: false };
+    }
   }
+  if (version !== 4 || typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") return undefined;
+  const factory = (node as Node).callee;
+  if (!isEffectMemberCall(factory)) return undefined;
+  const property = (factory.callee as Node).property;
+  if (isIdentifier(property) && property.name.endsWith("With") && effectRunMethods.has(property.name.slice(0, -4))) {
+    return { program: firstArgument(node as Node & { arguments: unknown[] }), hasContext: true };
+  }
+  return undefined;
+}
 
-  const callee = node.callee as Node;
-  const property = callee.property;
-  return isIdentifier(property) && effectRunMethods.has(property.name);
+function isEffectRunCall(node: unknown, version: EffectVersion): boolean {
+  return effectRunExecution(node, version) !== undefined;
 }
 
 function isEffectOrDieReference(node: unknown): boolean {
@@ -7940,6 +7951,7 @@ const noNodeFsInEffectCode = defineRule({
 const noHiddenEffectExecution = defineRule({
   meta: { schema: boundaryPathOptionsSchema },
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
     const runCalls: unknown[] = [];
 
@@ -7949,7 +7961,7 @@ const noHiddenEffectExecution = defineRule({
         if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
       },
       CallExpression(node: any) {
-        if (isEffectRunCall(node)) runCalls.push(node);
+        if (isEffectRunCall(node, version)) runCalls.push(node);
       },
       "Program:exit"() {
         if (!hasEffectEcosystemImport || isBoundaryPath(context)) return;
@@ -7976,9 +7988,10 @@ const boundaryEffectHandlingMethods = new Set([
 
 function containsBoundaryEffectHandling(
   node: unknown,
+  version: EffectVersion,
   seen = new WeakSet<object>(),
 ): boolean {
-  if (isEffectRunCall(node)) return true;
+  if (isEffectRunCall(node, version)) return true;
 
   if (isEffectMemberCall(node)) {
     const property = ((node as Node).callee as Node).property;
@@ -7988,7 +8001,7 @@ function containsBoundaryEffectHandling(
   }
 
   if (Array.isArray(node)) {
-    return node.some((child) => containsBoundaryEffectHandling(child, seen));
+    return node.some((child) => containsBoundaryEffectHandling(child, version, seen));
   }
 
   if (typeof node !== "object" || node === null || seen.has(node)) {
@@ -7997,16 +8010,17 @@ function containsBoundaryEffectHandling(
 
   seen.add(node);
   return Object.entries(node).some(
-    ([key, child]) => key !== "parent" && containsBoundaryEffectHandling(child, seen),
+    ([key, child]) => key !== "parent" && containsBoundaryEffectHandling(child, version, seen),
   );
 }
 
 const noBoundaryTryCatchWithoutEffectMap = defineRule({
   meta: { schema: boundaryPathOptionsSchema },
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       TryStatement(node: any) {
-        if (!node.handler || !isBoundaryPath(context) || containsBoundaryEffectHandling(node)) {
+        if (!node.handler || !isBoundaryPath(context) || containsBoundaryEffectHandling(node, version)) {
           return;
         }
 
@@ -8309,7 +8323,9 @@ const noRuntimeRunFork = createForbiddenMemberCallRule(
 );
 
 const noRunEffectOutsideBoundary = defineRule({
+  meta: { schema: boundaryPathOptionsSchema },
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -8320,7 +8336,7 @@ const noRunEffectOutsideBoundary = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isEffectRunCall(node)) {
+        if (hasEffectEcosystemImport && !isBoundaryPath(context) && isEffectRunCall(node, version)) {
           report(
             context,
             node.callee,
@@ -9687,12 +9703,13 @@ function programInitializerForReference(reference: unknown): unknown | undefined
   return undefined;
 }
 
-function effectRunMissingLayerProvision(node: unknown): boolean {
-  if (!isEffectRunCall(node)) {
+function effectRunMissingLayerProvision(node: unknown, version: EffectVersion): boolean {
+  const execution = effectRunExecution(node, version);
+  if (!execution || execution.hasContext) {
     return false;
   }
 
-  const argument = firstArgument(node as Node & { arguments: unknown[] });
+  const argument = execution.program;
   const program = findNode(argument, isYieldedServiceDependency) !== undefined
     ? argument
     : programInitializerForReference(argument) ?? argument;
@@ -9815,6 +9832,7 @@ const noGlobalResourceSingleton = defineRule({
 
 const noRunWithOpenResource = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -9830,7 +9848,7 @@ const noRunWithOpenResource = defineRule({
         }
 
         const openResource = openResourceInRunScope(node);
-        if (isEffectRunCall(node) && openResource !== undefined) {
+        if (isEffectRunCall(node, version) && openResource !== undefined) {
           report(
             context,
             node,
@@ -9873,6 +9891,7 @@ const noNestedAcquireRelease = defineRule({
 
 const noMissingLayerProvisionAtRun = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -9883,7 +9902,7 @@ const noMissingLayerProvisionAtRun = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && effectRunMissingLayerProvision(node)) {
+        if (hasEffectEcosystemImport && effectRunMissingLayerProvision(node, version)) {
           report(
             context,
             node,
