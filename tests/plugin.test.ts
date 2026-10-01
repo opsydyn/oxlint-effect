@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import plugin from "../src/index";
+import { versionSensitiveRules } from "../src/effect-version";
 
 type Report = { message: string; node: unknown };
 type Visitor = Record<string, (node: any) => void>;
@@ -31,7 +32,9 @@ function runRuleSequence(
 
   const visitor = rule.create({
     filename: contextInput.filename ?? "/repo/src/domain/order.ts",
-    options: contextInput.options ?? [],
+    options: (versionSensitiveRules as readonly string[]).includes(ruleName)
+      ? [{ effectVersion: 3, ...(contextInput.options?.[0] as object ?? {}) }]
+      : contextInput.options ?? [],
     report(report: Report) {
       reports.push(report);
     },

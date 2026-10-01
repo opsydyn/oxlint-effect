@@ -2,6 +2,15 @@
 
 Oxlint plugin rules for Effect TypeScript code-shape constraints.
 
+### Effect Version Status
+
+The unreleased `2.0.0` migration makes default exports Effect 4 policy and adds
+`effect3` for legacy projects. The configuration foundation is in development;
+the complete Effect 4 detector and repair corpus is **not yet qualified**.
+Published 1.x packages retain their original Effect 3 behaviour and do not
+provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
+and [per-rule audit](docs/effect-version-inventory.json) before using this checkout.
+
 ## Install
 
 ```bash
@@ -24,6 +33,52 @@ export default defineConfig({
 `recommended.jsPlugins` is exported as a readonly tuple. Spreading it creates
 the mutable array shape expected by Oxlint's `ExternalPluginEntry[]` config
 type.
+
+### Configure Legacy Effect 3
+
+Every group and its rules-only companion is available under `effect3` in the
+unreleased 2.0 configuration. Default `ddd` targets Effect 4; legacy projects use:
+
+```ts
+import { defineConfig } from "oxlint";
+import { effect3 } from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  jsPlugins: [...effect3.ddd.jsPlugins],
+  rules: effect3.ddd.rules,
+});
+```
+
+For rules-only composition, use `effect3.domainModelingRules` and
+`effect3.errorModelingRules`. The namespace also includes `recommended`,
+`recommendedRules`, `allRules`, `ruleGroups`, `presets`, `typeAware` and `jsPlugins`.
+No second plugin registration is needed. `effect3.typeAware` remains opt-in.
+
+Version-sensitive rule entries are tuples with `effectVersion: 3 | 4`.
+Manually enabling a sensitive rule without options selects 4. When customising
+severity or paths, specify the major explicitly rather than discarding it:
+
+```ts
+export default defineConfig({
+  jsPlugins: [...effect3.jsPlugins],
+  rules: {
+    ...effect3.dddRules,
+    "linteffect/no-early-catchall-null": [
+      "warn",
+      { effectVersion: 3, boundaryPaths: ["src/http/**", "test/**"] },
+    ],
+  },
+});
+```
+
+For Effect 4 manual policy, use `["error", { effectVersion: 4 }]`. Ordinary Oxlint
+override/merge rules apply; there is no process-wide version detection.
+Version-neutral rules keep severity-only entries and existing options.
+`allRules` includes all rules applicable to the selected major, not every
+registered rule. The five currently identified v3-only rules remain registered
+and available in `effect3`: `require-service-accessors`,
+`require-service-dependencies`, `no-effect-async`, `no-effect-orElse-ladder` and
+`no-fromnullable-nullish-coalesce`. The audit may identify further restrictions.
 
 ### Configure Type-Aware Linting
 
@@ -129,8 +184,7 @@ Named group presets:
 | `testingObservabilityAndQa` | Testing, Observability, and QA |
 
 Each preset also has a rule-only export with a `Rules` suffix. Use those when
-you want to compose multiple groups. `typeAware` is the only new mode in this
-slice; compose it with rule-only exports when a type-aware configuration needs
+you want to compose multiple groups. Compose `typeAware` with rule-only exports when a type-aware configuration needs
 additional Effect policy:
 
 ```ts

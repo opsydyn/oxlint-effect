@@ -8,8 +8,8 @@ export default defineConfig({
     },
   ],
   rules: {
-    "linteffect/no-yield-with-held-semaphore-permit": "error",
-    "linteffect/no-yield-with-held-mutable-ref": "error",
-    "linteffect/no-unscoped-background-fiber": "error",
+    "linteffect/no-yield-with-held-semaphore-permit": ["error", { effectVersion: 3 }],
+    "linteffect/no-yield-with-held-mutable-ref": ["error", { effectVersion: 3 }],
+    "linteffect/no-unscoped-background-fiber": ["error", { effectVersion: 3 }],
   },
 });

@@ -4,7 +4,7 @@ export default defineConfig({
   jsPlugins: [{ name: "linteffect", specifier: "../../../src/index.ts" }],
   rules: {
     "linteffect/no-effect-fail-error-message": "error",
-    "linteffect/no-catchall-generic-rethrow": "error",
-    "linteffect/no-log-only-error-handling": "error",
+    "linteffect/no-catchall-generic-rethrow": ["error", { effectVersion: 3 }],
+    "linteffect/no-log-only-error-handling": ["error", { effectVersion: 3 }],
   },
 });

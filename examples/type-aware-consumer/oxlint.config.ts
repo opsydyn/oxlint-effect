@@ -1,5 +1,7 @@
 import { defineConfig } from "oxlint";
-import { typeAware } from "@opsydyn/oxlint-effect";
+import { effect3 } from "@opsydyn/oxlint-effect";
+
+const { typeAware } = effect3;
 
 export default defineConfig({
   options: typeAware.options,

@@ -1,5 +1,7 @@
 import { definePlugin, defineRule } from "@oxlint/plugins";
-import { versionSensitiveRules, withEffectVersionSchema } from "./effect-version.ts";
+import { legacyOnlyRules, versionSensitiveRules, withEffectVersionSchema } from "./effect-version.ts";
+import type { EffectVersion } from "./effect-version.ts";
+export type { EffectVersion } from "./effect-version.ts";
 import type { RuleOptionsSchema } from "@oxlint/plugins";
 import type { Context as OxlintContext, ESTree } from "@oxlint/plugins";
 
@@ -10080,13 +10082,27 @@ type StrictRuleName = StrictTestingObservabilityAndQaRuleName |
   typeof strictPureTransformationRuleNames[number] |
   typeof strictResourceLifetimeRuleNames[number];
 
-function rulesFromNames<const T extends readonly RuleName[]>(ruleNames: T) {
+export type EffectRuleOptions = {
+  effectVersion?: EffectVersion;
+  boundaryPaths?: readonly string[];
+  configPaths?: readonly string[];
+};
+export type EffectRuleEntry = "error" | readonly ["error", EffectRuleOptions];
+
+type ApplicableRuleName<N extends RuleName, V extends EffectVersion> =
+  V extends 4 ? Exclude<N, typeof legacyOnlyRules[number]> : N;
+type VersionedRuleEntry<N extends RuleName, V extends EffectVersion> =
+  N extends typeof versionSensitiveRules[number] ? readonly ["error", { readonly effectVersion: V }] : "error";
+
+function rulesFromNames<const T extends readonly RuleName[], const V extends EffectVersion>(ruleNames: T, version: V) {
   return Object.fromEntries(
-    ruleNames.map((ruleName) => [`linteffect/${ruleName}`, "error"]),
-  ) as Record<`linteffect/${T[number]}`, "error">;
+    ruleNames.filter((ruleName) => version === 3 || !(legacyOnlyRules as readonly string[]).includes(ruleName))
+      .map((ruleName) => [`linteffect/${ruleName}`, (versionSensitiveRules as readonly string[]).includes(ruleName)
+        ? ["error", { effectVersion: version }] : "error"]),
+  ) as { [N in ApplicableRuleName<T[number], V> as `linteffect/${N}`]: VersionedRuleEntry<N, V> };
 }
 
-function presetFor<const T extends Record<`linteffect/${string}`, "error">>(groupRules: T) {
+function presetFor<const T extends Record<`linteffect/${string}`, EffectRuleEntry>>(groupRules: T) {
   return {
     jsPlugins,
     rules: groupRules,
@@ -10100,277 +10116,369 @@ export const jsPlugins = [
   },
 ] as const;
 
-export const reactAndRuntimeBoundariesRules = rulesFromNames([
-  "no-react-state",
-  "no-runtime-runfork",
-  "no-run-effect-outside-boundary",
-  "no-or-die-outside-boundary",
-  "prevent-dynamic-imports",
-  "no-render-side-effects",
-  "no-inline-runtime-provide",
-] as const);
+function createVersionedConfigurations<const V extends EffectVersion>(version: V) {
+  const reactAndRuntimeBoundariesRules = rulesFromNames([
+    "no-react-state",
+    "no-runtime-runfork",
+    "no-run-effect-outside-boundary",
+    "no-or-die-outside-boundary",
+    "prevent-dynamic-imports",
+    "no-render-side-effects",
+    "no-inline-runtime-provide",
+  ] as const, version);
 
-export const effectCompositionRules = rulesFromNames([
-  "no-effect-as",
-  "no-effect-do",
-  "no-effect-bind",
-  "no-effect-async",
-  "no-effect-ignore",
-  "no-effect-never",
-  "no-effect-fn-generator",
-  "no-nested-effect-gen",
-  "no-yield-without-star-in-effect-gen",
-  "no-async-effect-combinator-callback",
-  "no-throw-in-effect-logic",
-  "no-try-catch-in-effect-logic",
-  "no-promise-api-in-effect-logic",
-  "no-swallowed-catch-all",
-  "no-manual-effect-channels",
-  "no-effect-type-alias",
-  "no-public-generic-effect-error",
-] as const);
+  const effectCompositionRules = rulesFromNames([
+    "no-effect-as",
+    "no-effect-do",
+    "no-effect-bind",
+    "no-effect-async",
+    "no-effect-ignore",
+    "no-effect-never",
+    "no-effect-fn-generator",
+    "no-nested-effect-gen",
+    "no-yield-without-star-in-effect-gen",
+    "no-async-effect-combinator-callback",
+    "no-throw-in-effect-logic",
+    "no-try-catch-in-effect-logic",
+    "no-promise-api-in-effect-logic",
+    "no-swallowed-catch-all",
+    "no-manual-effect-channels",
+    "no-effect-type-alias",
+    "no-public-generic-effect-error",
+  ] as const, version);
 
-export const concurrencySafetyRules = rulesFromNames([
-  "no-unbounded-effect-all",
-  "no-fire-and-forget-fork",
-  "no-fork-in-loop",
-  "no-race-without-cleanup",
-  "no-unobserved-fiber",
-  "no-unbounded-concurrent-retry",
-  "no-blocking-call-in-effect",
-  "no-promise-concurrency-in-effect",
-  "no-shared-mutable-state-across-fibers",
-  "no-timeout-with-noninterruptible-promise",
-  "no-uninterruptible-concurrent-region",
-  "no-unbounded-queue-or-pubsub",
-  "no-global-mutable-concurrency-state",
-  ...strictConcurrencySafetyRuleNames,
-  "no-acquire-without-scoped-release",
-] as const);
+  const concurrencySafetyRules = rulesFromNames([
+    "no-unbounded-effect-all",
+    "no-fire-and-forget-fork",
+    "no-fork-in-loop",
+    "no-race-without-cleanup",
+    "no-unobserved-fiber",
+    "no-unbounded-concurrent-retry",
+    "no-blocking-call-in-effect",
+    "no-promise-concurrency-in-effect",
+    "no-shared-mutable-state-across-fibers",
+    "no-timeout-with-noninterruptible-promise",
+    "no-uninterruptible-concurrent-region",
+    "no-unbounded-queue-or-pubsub",
+    "no-global-mutable-concurrency-state",
+    ...strictConcurrencySafetyRuleNames,
+    "no-acquire-without-scoped-release",
+  ] as const, version);
 
-export const resourceLifetimeRules = rulesFromNames([
-  "no-manual-resource-close",
-  "no-unbound-scope",
-  "no-resource-succeed-escape",
-  "no-resource-without-acquire-release",
-  ...strictResourceLifetimeRuleNames,
-  "no-run-with-open-resource",
-] as const);
+  const resourceLifetimeRules = rulesFromNames([
+    "no-manual-resource-close",
+    "no-unbound-scope",
+    "no-resource-succeed-escape",
+    "no-resource-without-acquire-release",
+    ...strictResourceLifetimeRuleNames,
+    "no-run-with-open-resource",
+  ] as const, version);
 
-export const pipelineShapeAndSequencingRules = rulesFromNames([
-  "no-nested-effect-call",
-  "no-effect-ladder",
-  "no-flatmap-ladder",
-  "no-pipe-ladder",
-  "no-call-tower",
-  "no-effect-orElse-ladder",
-  "no-effect-wrapper-alias",
-  "warn-effect-sync-wrapper",
-  "no-effect-side-effect-wrapper",
-  "no-effect-all-step-sequencing",
-  "no-effect-succeed-variable",
-] as const);
+  const pipelineShapeAndSequencingRules = rulesFromNames([
+    "no-nested-effect-call",
+    "no-effect-ladder",
+    "no-flatmap-ladder",
+    "no-pipe-ladder",
+    "no-call-tower",
+    "no-effect-orElse-ladder",
+    "no-effect-wrapper-alias",
+    "warn-effect-sync-wrapper",
+    "no-effect-side-effect-wrapper",
+    "no-effect-all-step-sequencing",
+    "no-effect-succeed-variable",
+  ] as const, version);
 
-export const branchingAndLocalControlFlowRules = rulesFromNames([
-  "no-if-statement",
-  "no-switch-statement",
-  "no-ternary",
-  "no-try-catch",
-  "no-arrow-ladder",
-  "no-iife-wrapper",
-  "no-return-in-arrow",
-  "no-return-in-callback",
-  "no-return-null",
-  "no-branch-in-object",
-] as const);
+  const branchingAndLocalControlFlowRules = rulesFromNames([
+    "no-if-statement",
+    "no-switch-statement",
+    "no-ternary",
+    "no-try-catch",
+    "no-arrow-ladder",
+    "no-iife-wrapper",
+    "no-return-in-arrow",
+    "no-return-in-callback",
+    "no-return-null",
+    "no-branch-in-object",
+  ] as const, version);
 
-export const optionMatchAndDataNormalizationRules = rulesFromNames([
-  "no-option-as",
-  "no-match-void-branch",
-  "no-match-effect-branch",
-  "no-model-overlay-cast",
-  "no-unknown-boolean-coercion-helper",
-  "no-fromnullable-nullish-coalesce",
-  "no-option-boolean-normalization",
-  "no-string-sentinel-return",
-  "no-string-sentinel-const",
-] as const);
+  const optionMatchAndDataNormalizationRules = rulesFromNames([
+    "no-option-as",
+    "no-match-void-branch",
+    "no-match-effect-branch",
+    "no-model-overlay-cast",
+    "no-unknown-boolean-coercion-helper",
+    "no-fromnullable-nullish-coalesce",
+    "no-option-boolean-normalization",
+    "no-string-sentinel-return",
+    "no-string-sentinel-const",
+  ] as const, version);
 
-export const atomStateAndPlatformBoundariesRules = rulesFromNames([
-  "no-effect-sync-console",
-  "no-atom-registry-effect-sync",
-  "no-family-collection-read",
-  "no-naked-object-state-update",
-  "no-wrapgraphql-catchall",
-] as const);
+  const atomStateAndPlatformBoundariesRules = rulesFromNames([
+    "no-effect-sync-console",
+    "no-atom-registry-effect-sync",
+    "no-family-collection-read",
+    "no-naked-object-state-update",
+    "no-wrapgraphql-catchall",
+  ] as const, version);
 
-export const domainModelingRules = rulesFromNames([
-  "no-raw-domain-id-alias",
-  "no-boolean-domain-flag",
-  "no-magic-domain-string",
-  "no-raw-domain-primitive-params",
-  "no-raw-time-domain-field",
-  "no-overloaded-options-object",
-  "no-domain-logic-in-conditional",
-  "no-implicit-state-machine-object",
-  "no-adhoc-domain-error",
-  "no-domain-meaning-by-folder-only",
-  "no-new-date-in-domain-logic",
-] as const);
+  const domainModelingRules = rulesFromNames([
+    "no-raw-domain-id-alias",
+    "no-boolean-domain-flag",
+    "no-magic-domain-string",
+    "no-raw-domain-primitive-params",
+    "no-raw-time-domain-field",
+    "no-overloaded-options-object",
+    "no-domain-logic-in-conditional",
+    "no-implicit-state-machine-object",
+    "no-adhoc-domain-error",
+    "no-domain-meaning-by-folder-only",
+    "no-new-date-in-domain-logic",
+  ] as const, version);
 
-const dddErrorModelingRuleNames = [
-  "no-error-as-public-effect-error",
-  "no-unknown-public-error-channel",
-  "no-mixed-effect-error-shapes",
-  "no-expected-state-as-error",
-] as const;
-type DddErrorModelingRuleName = typeof dddErrorModelingRuleNames[number];
+  const dddErrorModelingRuleNames = [
+    "no-error-as-public-effect-error",
+    "no-unknown-public-error-channel",
+    "no-mixed-effect-error-shapes",
+    "no-expected-state-as-error",
+  ] as const;
+  type DddErrorModelingRuleName = typeof dddErrorModelingRuleNames[number];
 
-const errorModelingRuleNames = [
-  ...dddErrorModelingRuleNames,
-  "no-early-catchall-null",
-  "no-empty-error-tag",
-  "no-exception-domain-error",
-  "no-effect-fail-error-message",
-  "no-catchall-generic-rethrow",
-  "no-log-only-error-handling",
-] as const;
+  const errorModelingRuleNames = [
+    ...dddErrorModelingRuleNames,
+    "no-early-catchall-null",
+    "no-empty-error-tag",
+    "no-exception-domain-error",
+    "no-effect-fail-error-message",
+    "no-catchall-generic-rethrow",
+    "no-log-only-error-handling",
+  ] as const;
 
-export const errorModelingRules = rulesFromNames(errorModelingRuleNames);
+  const errorModelingRules = rulesFromNames(errorModelingRuleNames, version);
 
-export const dddRules = {
-  ...domainModelingRules,
-  ...errorModelingRules,
-} as const;
+  const dddRules = {
+    ...domainModelingRules,
+    ...errorModelingRules,
+  } as const;
 
-export const effectFlowRules = rulesFromNames([
-  "no-piped-yield-in-gen",
-  "no-gen-for-mapping",
-  "prefer-gen-for-workflow",
-  ...strictEffectFlowRuleNames,
-] as const);
+  const effectFlowRules = rulesFromNames([
+    "no-piped-yield-in-gen",
+    "no-gen-for-mapping",
+    "prefer-gen-for-workflow",
+    ...strictEffectFlowRuleNames,
+  ] as const, version);
 
-export const pureTransformationRules = rulesFromNames([
-  "no-large-anonymous-flow",
-  "no-effect-in-flow",
-  "prefer-named-flow",
-  ...strictPureTransformationRuleNames,
-] as const);
+  const pureTransformationRules = rulesFromNames([
+    "no-large-anonymous-flow",
+    "no-effect-in-flow",
+    "prefer-named-flow",
+    ...strictPureTransformationRuleNames,
+  ] as const, version);
 
-export const behaviorDecorationRules = rulesFromNames([
-  "prefer-pipe-for-behavior",
-  "prefer-decorated-effect-before-gen",
-  "no-workflow-in-behavior-pipe",
-] as const);
+  const behaviorDecorationRules = rulesFromNames([
+    "prefer-pipe-for-behavior",
+    "prefer-decorated-effect-before-gen",
+    "no-workflow-in-behavior-pipe",
+  ] as const, version);
 
-export const styleSeparationRules = rulesFromNames([
-  "no-mixed-pillar-function",
-  "no-clever-effect-expression",
-  "prefer-extracted-concept",
-] as const);
+  const styleSeparationRules = rulesFromNames([
+    "no-mixed-pillar-function",
+    "no-clever-effect-expression",
+    "prefer-extracted-concept",
+  ] as const, version);
 
-export const serviceAndLayerArchitectureRules = rulesFromNames([
-  "prefer-effect-service",
-  "no-layer-provide-in-service-definition",
-  "require-service-accessors",
-  "require-service-dependencies",
-  "no-namespace-effect-import",
-  "no-manual-service-object-export",
-  "no-layer-merge-in-request-handler",
-  "no-service-method-returning-promise",
-  "prefer-layer-pipe",
-  "no-inline-layer-provide-in-program",
-  "prefer-layer-mergeall-for-infrastructure",
-  "no-service-layer-scatter",
-] as const);
+  const serviceAndLayerArchitectureRules = rulesFromNames([
+    "prefer-effect-service",
+    "no-layer-provide-in-service-definition",
+    "require-service-accessors",
+    "require-service-dependencies",
+    "no-namespace-effect-import",
+    "no-manual-service-object-export",
+    "no-layer-merge-in-request-handler",
+    "no-service-method-returning-promise",
+    "prefer-layer-pipe",
+    "no-inline-layer-provide-in-program",
+    "prefer-layer-mergeall-for-infrastructure",
+    "no-service-layer-scatter",
+  ] as const, version);
 
-export const platformAndBoundaryHygieneRules = rulesFromNames([
-  "no-hidden-effect-execution",
-  "no-boundary-try-catch-without-effect-map",
-  "no-node-fs-in-effect-code",
-  "no-json-parse-without-schema",
-  "no-date-now-in-effect",
-  "no-node-platform-in-shared-code",
-  "no-process-env-direct-read",
-] as const);
+  const platformAndBoundaryHygieneRules = rulesFromNames([
+    "no-hidden-effect-execution",
+    "no-boundary-try-catch-without-effect-map",
+    "no-node-fs-in-effect-code",
+    "no-json-parse-without-schema",
+    "no-date-now-in-effect",
+    "no-node-platform-in-shared-code",
+    "no-process-env-direct-read",
+  ] as const, version);
 
-export const testingObservabilityAndQaRules = rulesFromNames([
-  "no-console-in-effect-flow",
-  "no-effect-log-without-structured-context",
-  "require-span-on-public-service-method",
-  ...strictTestingObservabilityAndQaRuleNames,
-] as const);
+  const testingObservabilityAndQaRules = rulesFromNames([
+    "no-console-in-effect-flow",
+    "no-effect-log-without-structured-context",
+    "require-span-on-public-service-method",
+    ...strictTestingObservabilityAndQaRuleNames,
+  ] as const, version);
 
-export const allRules = rulesFromNames(Object.keys(rules) as RuleName[]);
-const recommendedExcludedRuleNames = [
-  ...strictTestingObservabilityAndQaRuleNames,
-  ...strictConcurrencySafetyRuleNames,
-  ...strictErrorModelingRuleNames,
-  ...strictEffectFlowRuleNames,
-  ...strictPureTransformationRuleNames,
-  ...strictResourceLifetimeRuleNames,
-  ...dddErrorModelingRuleNames,
-  "no-resource-succeed-escape",
-] as readonly RuleName[];
-const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
-  (ruleName): ruleName is Exclude<
-    RuleName,
-    StrictRuleName | DddErrorModelingRuleName | "no-resource-succeed-escape"
-  > => (
-    !recommendedExcludedRuleNames.includes(ruleName)
-  ),
-);
-export const recommendedRules = rulesFromNames(recommendedRuleNames);
+  const allRules = rulesFromNames(Object.keys(rules) as RuleName[], version);
+  const recommendedExcludedRuleNames = [
+    ...strictTestingObservabilityAndQaRuleNames,
+    ...strictConcurrencySafetyRuleNames,
+    ...strictErrorModelingRuleNames,
+    ...strictEffectFlowRuleNames,
+    ...strictPureTransformationRuleNames,
+    ...strictResourceLifetimeRuleNames,
+    ...dddErrorModelingRuleNames,
+    "no-resource-succeed-escape",
+  ] as readonly RuleName[];
+  const recommendedRuleNames = (Object.keys(rules) as RuleName[]).filter(
+    (ruleName): ruleName is Exclude<
+      RuleName,
+      StrictRuleName | DddErrorModelingRuleName | "no-resource-succeed-escape"
+    > => (
+      !recommendedExcludedRuleNames.includes(ruleName)
+    ),
+  );
+  const recommendedRules = rulesFromNames(recommendedRuleNames, version);
 
-export const ruleGroups = {
-  reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
-  effectComposition: effectCompositionRules,
-  concurrencySafety: concurrencySafetyRules,
-  resourceLifetime: resourceLifetimeRules,
-  pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
-  branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
-  optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
-  atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
-  domainModeling: domainModelingRules,
-  errorModeling: errorModelingRules,
-  ddd: dddRules,
-  effectFlow: effectFlowRules,
-  pureTransformation: pureTransformationRules,
-  behaviorDecoration: behaviorDecorationRules,
-  styleSeparation: styleSeparationRules,
-  serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
-  platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
-  testingObservabilityAndQa: testingObservabilityAndQaRules,
-} as const;
+  const ruleGroups = {
+    reactAndRuntimeBoundaries: reactAndRuntimeBoundariesRules,
+    effectComposition: effectCompositionRules,
+    concurrencySafety: concurrencySafetyRules,
+    resourceLifetime: resourceLifetimeRules,
+    pipelineShapeAndSequencing: pipelineShapeAndSequencingRules,
+    branchingAndLocalControlFlow: branchingAndLocalControlFlowRules,
+    optionMatchAndDataNormalization: optionMatchAndDataNormalizationRules,
+    atomStateAndPlatformBoundaries: atomStateAndPlatformBoundariesRules,
+    domainModeling: domainModelingRules,
+    errorModeling: errorModelingRules,
+    ddd: dddRules,
+    effectFlow: effectFlowRules,
+    pureTransformation: pureTransformationRules,
+    behaviorDecoration: behaviorDecorationRules,
+    styleSeparation: styleSeparationRules,
+    serviceAndLayerArchitecture: serviceAndLayerArchitectureRules,
+    platformAndBoundaryHygiene: platformAndBoundaryHygieneRules,
+    testingObservabilityAndQa: testingObservabilityAndQaRules,
+  } as const;
 
-export const recommended = presetFor(recommendedRules);
-export const typeAware = {
-  options: {
-    typeAware: true,
-  },
-  jsPlugins,
-  rules: recommended.rules,
-} as const;
-export const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
-export const effectComposition = presetFor(effectCompositionRules);
-export const concurrencySafety = presetFor(concurrencySafetyRules);
-export const resourceLifetime = presetFor(resourceLifetimeRules);
-export const pipelineShapeAndSequencing = presetFor(pipelineShapeAndSequencingRules);
-export const branchingAndLocalControlFlow = presetFor(branchingAndLocalControlFlowRules);
-export const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNormalizationRules);
-export const atomStateAndPlatformBoundaries = presetFor(atomStateAndPlatformBoundariesRules);
-export const domainModeling = presetFor(domainModelingRules);
-export const errorModeling = presetFor(errorModelingRules);
-export const ddd = presetFor(dddRules);
-export const effectFlow = presetFor(effectFlowRules);
-export const pureTransformation = presetFor(pureTransformationRules);
-export const behaviorDecoration = presetFor(behaviorDecorationRules);
-export const styleSeparation = presetFor(styleSeparationRules);
-export const serviceAndLayerArchitecture = presetFor(serviceAndLayerArchitectureRules);
-export const platformAndBoundaryHygiene = presetFor(platformAndBoundaryHygieneRules);
-export const testingObservabilityAndQa = presetFor(testingObservabilityAndQaRules);
+  const recommended = presetFor(recommendedRules);
+  const typeAware = {
+    options: {
+      typeAware: true,
+    },
+    jsPlugins,
+    rules: recommended.rules,
+  } as const;
+  const reactAndRuntimeBoundaries = presetFor(reactAndRuntimeBoundariesRules);
+  const effectComposition = presetFor(effectCompositionRules);
+  const concurrencySafety = presetFor(concurrencySafetyRules);
+  const resourceLifetime = presetFor(resourceLifetimeRules);
+  const pipelineShapeAndSequencing = presetFor(pipelineShapeAndSequencingRules);
+  const branchingAndLocalControlFlow = presetFor(branchingAndLocalControlFlowRules);
+  const optionMatchAndDataNormalization = presetFor(optionMatchAndDataNormalizationRules);
+  const atomStateAndPlatformBoundaries = presetFor(atomStateAndPlatformBoundariesRules);
+  const domainModeling = presetFor(domainModelingRules);
+  const errorModeling = presetFor(errorModelingRules);
+  const ddd = presetFor(dddRules);
+  const effectFlow = presetFor(effectFlowRules);
+  const pureTransformation = presetFor(pureTransformationRules);
+  const behaviorDecoration = presetFor(behaviorDecorationRules);
+  const styleSeparation = presetFor(styleSeparationRules);
+  const serviceAndLayerArchitecture = presetFor(serviceAndLayerArchitectureRules);
+  const platformAndBoundaryHygiene = presetFor(platformAndBoundaryHygieneRules);
+  const testingObservabilityAndQa = presetFor(testingObservabilityAndQaRules);
 
-export const presets = {
+  const presets = {
+    recommended,
+    typeAware,
+    reactAndRuntimeBoundaries,
+    effectComposition,
+    concurrencySafety,
+    resourceLifetime,
+    pipelineShapeAndSequencing,
+    branchingAndLocalControlFlow,
+    optionMatchAndDataNormalization,
+    atomStateAndPlatformBoundaries,
+    domainModeling,
+    errorModeling,
+    ddd,
+    effectFlow,
+    pureTransformation,
+    behaviorDecoration,
+    styleSeparation,
+    serviceAndLayerArchitecture,
+    platformAndBoundaryHygiene,
+    testingObservabilityAndQa,
+  } as const;
+
+  return {
+    jsPlugins,
+    reactAndRuntimeBoundariesRules,
+    effectCompositionRules,
+    concurrencySafetyRules,
+    resourceLifetimeRules,
+    pipelineShapeAndSequencingRules,
+    branchingAndLocalControlFlowRules,
+    optionMatchAndDataNormalizationRules,
+    atomStateAndPlatformBoundariesRules,
+    domainModelingRules,
+    errorModelingRules,
+    dddRules,
+    effectFlowRules,
+    pureTransformationRules,
+    behaviorDecorationRules,
+    styleSeparationRules,
+    serviceAndLayerArchitectureRules,
+    platformAndBoundaryHygieneRules,
+    testingObservabilityAndQaRules,
+    allRules,
+    recommendedRules,
+    ruleGroups,
+    recommended,
+    typeAware,
+    reactAndRuntimeBoundaries,
+    effectComposition,
+    concurrencySafety,
+    resourceLifetime,
+    pipelineShapeAndSequencing,
+    branchingAndLocalControlFlow,
+    optionMatchAndDataNormalization,
+    atomStateAndPlatformBoundaries,
+    domainModeling,
+    errorModeling,
+    ddd,
+    effectFlow,
+    pureTransformation,
+    behaviorDecoration,
+    styleSeparation,
+    serviceAndLayerArchitecture,
+    platformAndBoundaryHygiene,
+    testingObservabilityAndQa,
+    presets,
+  } as const;
+}
+
+export const {
+  reactAndRuntimeBoundariesRules,
+  effectCompositionRules,
+  concurrencySafetyRules,
+  resourceLifetimeRules,
+  pipelineShapeAndSequencingRules,
+  branchingAndLocalControlFlowRules,
+  optionMatchAndDataNormalizationRules,
+  atomStateAndPlatformBoundariesRules,
+  domainModelingRules,
+  errorModelingRules,
+  dddRules,
+  effectFlowRules,
+  pureTransformationRules,
+  behaviorDecorationRules,
+  styleSeparationRules,
+  serviceAndLayerArchitectureRules,
+  platformAndBoundaryHygieneRules,
+  testingObservabilityAndQaRules,
+  allRules,
+  recommendedRules,
+  ruleGroups,
   recommended,
   typeAware,
   reactAndRuntimeBoundaries,
@@ -10391,7 +10499,11 @@ export const presets = {
   serviceAndLayerArchitecture,
   platformAndBoundaryHygiene,
   testingObservabilityAndQa,
-} as const;
+  presets,
+} = createVersionedConfigurations(4);
+
+/** Legacy Effect 3 presets; default exports target Effect 4. */
+export const effect3 = createVersionedConfigurations(3);
 
 export default definePlugin({
   meta: {

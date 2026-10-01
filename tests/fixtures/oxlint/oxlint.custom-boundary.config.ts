@@ -11,6 +11,6 @@ export default defineConfig({
   rules: {
     "linteffect/no-node-platform-in-shared-code": ["error", { boundaryPaths: ["custom-boundary/**"] }],
     "linteffect/no-process-env-direct-read": ["error", { boundaryPaths: ["custom-boundary/**"], configPaths: ["custom-boundary/**"] }],
-    "linteffect/no-hidden-effect-execution": ["error", { boundaryPaths: ["custom-boundary/**"] }],
+    "linteffect/no-hidden-effect-execution": ["error", { effectVersion: 3, boundaryPaths: ["custom-boundary/**"] }],
   },
 });

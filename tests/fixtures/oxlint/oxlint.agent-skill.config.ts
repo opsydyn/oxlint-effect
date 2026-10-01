@@ -1,7 +1,7 @@
 import { defineConfig } from "oxlint";
-import { dddRules } from "../../../src/index.ts";
+import { effect3 } from "../../../src/index.ts";
 
 export default defineConfig({
   jsPlugins: [{ name: "linteffect", specifier: "../../../src/index.ts" }],
-  rules: dddRules,
+  rules: effect3.dddRules,
 });

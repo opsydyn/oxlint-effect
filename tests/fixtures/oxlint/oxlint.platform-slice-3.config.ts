@@ -10,6 +10,6 @@ export default defineConfig({
   ],
   rules: {
     "linteffect/no-new-date-in-domain-logic": "error",
-    "linteffect/no-boundary-try-catch-without-effect-map": "error",
+    "linteffect/no-boundary-try-catch-without-effect-map": ["error", { effectVersion: 3 }],
   },
 });

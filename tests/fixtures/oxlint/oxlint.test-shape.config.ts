@@ -1,5 +1,5 @@
 import { defineConfig } from "oxlint";
-import { testingObservabilityAndQaRules } from "../../../src/index.ts";
+import { effect3 } from "../../../src/index.ts";
 
 export default defineConfig({
   plugins: ["typescript"],
@@ -9,5 +9,5 @@ export default defineConfig({
       specifier: "../../../src/index.ts",
     },
   ],
-  rules: testingObservabilityAndQaRules,
+  rules: effect3.testingObservabilityAndQaRules,
 });

@@ -8,7 +8,7 @@ export default defineConfig({
     },
   ],
   rules: {
-    "linteffect/no-manual-deferred-coordination": "error",
-    "linteffect/no-acquire-without-scoped-release": "error",
+    "linteffect/no-manual-deferred-coordination": ["error", { effectVersion: 3 }],
+    "linteffect/no-acquire-without-scoped-release": ["error", { effectVersion: 3 }],
   },
 });

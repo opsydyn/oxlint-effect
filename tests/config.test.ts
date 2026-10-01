@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import { legacyOnlyRules, versionSensitiveRules } from "../src/effect-version";
+import type { EffectRuleEntry } from "../src/index";
 import plugin, {
   allRules,
   atomStateAndPlatformBoundaries,
@@ -17,6 +19,7 @@ import plugin, {
   errorModelingRules,
   effectFlow,
   effectFlowRules,
+  effect3,
   effectComposition,
   effectCompositionRules,
   optionMatchAndDataNormalization,
@@ -51,10 +54,15 @@ const expectedJsPlugins = [
   },
 ] as const;
 
-type ComparableRules = Record<string, "error">;
+type ComparableRules = Record<string, EffectRuleEntry>;
+
+const severities = (rules: ComparableRules) => Object.fromEntries(
+  Object.entries(rules).map(([id, entry]) => [id, typeof entry === "string" ? entry : entry[0]]),
+);
 
 const rulesFor = (ruleNames: string[]) => Object.fromEntries(
-  ruleNames.map((ruleName) => [`linteffect/${ruleName}`, "error"]),
+  ruleNames.filter((name) => !(legacyOnlyRules as readonly string[]).includes(name))
+    .map((ruleName) => [`linteffect/${ruleName}`, (versionSensitiveRules as readonly string[]).includes(ruleName) ? ["error", { effectVersion: 4 }] : "error"]),
 ) as ComparableRules;
 
 const groupExpectations = {
@@ -281,6 +289,41 @@ const exportedPresets = {
 } as const;
 
 describe("linteffect config exports", () => {
+  it("default maps select four and legacy maps select three", () => {
+    expect(recommended.rules["linteffect/no-catchall-generic-rethrow"]).toEqual(["error", { effectVersion: 4 }]);
+    expect(effect3.recommended.rules["linteffect/no-catchall-generic-rethrow"]).toEqual(["error", { effectVersion: 3 }]);
+    expect(recommended.rules["linteffect/no-effect-fail-error-message"]).toBe("error");
+    expect(effect3.recommended.rules["linteffect/no-effect-fail-error-message"]).toBe("error");
+  });
+  it("legacy namespace exposes every companion and preserves baseline membership", () => {
+    expect(Object.keys(effect3.ruleGroups).sort()).toEqual(Object.keys(ruleGroups).sort());
+    expect(Object.keys(effect3.presets).sort()).toEqual(Object.keys(presets).sort());
+    for (const [name, names] of Object.entries(groupExpectations)) {
+      const legacy = effect3 as unknown as Record<string, any>;
+      expect(Object.keys(legacy[`${name}Rules`]).sort()).toEqual(names.map((id) => `linteffect/${id}`).sort());
+      expect(legacy[name].rules).toEqual(legacy[`${name}Rules`]);
+      expect(legacy[name].jsPlugins).toBe(effect3.jsPlugins);
+    }
+    expect(Object.keys(effect3.allRules).sort()).toEqual(Object.keys(plugin.rules).map((id) => `linteffect/${id}`).sort());
+    expect(effect3.ddd.rules).toEqual({ ...effect3.domainModelingRules, ...effect3.errorModelingRules });
+  });
+  it("allRules excludes v4-inapplicable rules without removing registration", () => {
+    for (const name of ["require-service-accessors", "require-service-dependencies", "no-effect-async", "no-effect-orElse-ladder", "no-fromnullable-nullish-coalesce"]) {
+      expect(allRules).not.toHaveProperty(`linteffect/${name}`);
+      expect(effect3.allRules).toHaveProperty(`linteffect/${name}`);
+      expect(plugin.rules).toHaveProperty(name);
+    }
+  });
+  it("strict exclusions survive both majors and typeAware remains opt in", () => {
+    for (const config of [recommended, effect3.recommended]) {
+      expect(config).not.toHaveProperty("options");
+      expect(config.rules).not.toHaveProperty("linteffect/no-early-catchall-null");
+      expect(config.rules).not.toHaveProperty("linteffect/no-unscoped-background-fiber");
+    }
+    expect(effect3.typeAware.options).toEqual({ typeAware: true });
+    expect(effect3.typeAware.rules).toEqual(effect3.recommendedRules);
+    expect(effect3.jsPlugins).toBe(recommended.jsPlugins);
+  });
   it("exports a recommended config with plugin loading and enabled rules", () => {
     expect(recommended.jsPlugins as unknown).toEqual(expectedJsPlugins);
     expect(recommended.rules).toEqual(recommendedRules);
@@ -302,15 +345,15 @@ describe("linteffect config exports", () => {
       expect(recommended.rules).not.toHaveProperty(`linteffect/${ruleName}`);
     }
 
-    expect(recommended.rules).toHaveProperty("linteffect/no-exception-domain-error", "error");
+    expect(recommended.rules).toHaveProperty("linteffect/no-exception-domain-error", ["error", { effectVersion: 4 }]);
     expect(recommended.rules).not.toHaveProperty("linteffect/no-expected-state-as-error");
-    expect(recommended.rules).toHaveProperty("linteffect/no-manual-resource-close", "error");
-    expect(recommended.rules).toHaveProperty("linteffect/no-unbound-scope", "error");
-    expect(recommended.rules).toHaveProperty("linteffect/no-resource-without-acquire-release", "error");
-    expect(recommended.rules).toHaveProperty("linteffect/no-run-with-open-resource", "error");
+    expect(recommended.rules).toHaveProperty("linteffect/no-manual-resource-close", ["error", { effectVersion: 4 }]);
+    expect(recommended.rules).toHaveProperty("linteffect/no-unbound-scope", ["error", { effectVersion: 4 }]);
+    expect(recommended.rules).toHaveProperty("linteffect/no-resource-without-acquire-release", ["error", { effectVersion: 4 }]);
+    expect(recommended.rules).toHaveProperty("linteffect/no-run-with-open-resource", ["error", { effectVersion: 4 }]);
     expect(recommended.rules).not.toHaveProperty("linteffect/no-resource-succeed-escape");
 
-    expect(recommended.rules).toEqual({
+    expect(severities(effect3.recommended.rules)).toEqual({
       "linteffect/no-react-state": "error",
       "linteffect/no-if-statement": "error",
       "linteffect/no-switch-statement": "error",
@@ -450,10 +493,11 @@ describe("linteffect config exports", () => {
   it("keeps the allRules export aligned with plugin rules", () => {
     expect(Object.keys(allRules).sort()).toEqual(
       Object.keys(plugin.rules)
+        .filter((name) => !(legacyOnlyRules as readonly string[]).includes(name))
         .map((ruleName) => `linteffect/${ruleName}`)
         .sort(),
     );
-    expect(Object.values(allRules).every((severity) => severity === "error")).toBe(true);
+    expect(Object.values(severities(allRules)).every((severity) => severity === "error")).toBe(true);
   });
 
   it("exports named rule groups for every documented README group", () => {

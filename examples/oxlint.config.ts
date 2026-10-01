@@ -1,5 +1,5 @@
 import { defineConfig } from "oxlint";
-import { allRules } from "../src/index.ts";
+import { effect3 } from "../src/index.ts";
 
 export default defineConfig({
   plugins: ["typescript"],
@@ -10,10 +10,10 @@ export default defineConfig({
     },
   ],
   rules: {
-    ...allRules,
+    ...effect3.allRules,
     "linteffect/no-boundary-try-catch-without-effect-map": [
       "error",
-      { boundaryPaths: ["examples/backend/platform-boundary-hygiene-anti-patterns.ts"] },
+      { effectVersion: 3, boundaryPaths: ["examples/backend/platform-boundary-hygiene-anti-patterns.ts"] },
     ],
   },
 });
