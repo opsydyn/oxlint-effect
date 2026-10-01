@@ -78,13 +78,20 @@ and the 27 KB size gate pass. No detector change needed.
 
 ## Rulings
 
-Q10 is in progress, not qualified: all 14 legacy and 25 v4 decoration spellings
+Q10 is qualified: all 14 legacy and 25 v4 decoration spellings
 have parsed bad/clean controls; repeated yields and buried-workflow thresholds,
 value preservation and recovery identity contracts pass in both packed majors.
-480 tests and root types pass. The build is 27.16 KB against the approved 27 KB
-cap, so inventory qualification and the allocation checkbox remain unchanged.
-A 30 KB dual-major budget has been proposed for explicit user approval; no cap
-change, batch-completion claim, push or publication has occurred.
+480 tests and root types pass. The build initially failed the 27 KB cap; the
+user explicitly approved a 30 KB dual-major budget on 2026-10-01. Fresh tests,
+types, both packed majors, build, size (27.16 KB) and diff checks pass under that
+approved bound. The three inventory entries and allocation checkbox now record
+qualification. No push or publication has occurred; Q11-Q52 remain open.
+
+The decorated-yield walker now uses existing findNodes with opt-in stop-at-match
+and own-function-scope controls; defaults preserve prior owners. The three
+decoration visitors share the existing versioned callback-rule factory.
+Regression tests and both packed corpora pass; this does not qualify other
+style-pillar consumers of shared decoration recognition.
 
 ## Q08 Decisions
 

@@ -131,7 +131,7 @@ For every row, use this same ordered TDD contract:
 - [ ] Run `bun test tests/plugin.test.ts --test-name-pattern 'Effect qualification Qxx'` and the relevant case-validation tests; record RED on the actual gap before changing detectors or evidence. Do not claim a passing pre-existing detector needed a fix.
 - [ ] Implement only that row's missing recognition/repair contract in `src/index.ts`, threading explicit policy through changed shared helpers. Update `src/effect-version.ts` and schema/preset tests if sensitivity or legacy-only membership changes. Add regressions for every transitive helper owner, not automatic qualification for those owners.
 - [ ] Add the row's annotated bad/good/type/runtime fixtures in both consumer group folders. Legacy-only fixtures live only in v3; v4 presets/manual-policy applicability controls prove the documented exclusion. Assertions use Exit/Cause/Option/Result APIs from that installed major and preserve identity, cause, units and wire formats.
-- [ ] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions`, `bun run build`, `bun run size` and `git diff --check`. Expected: passing suite/types, actual packed diagnostics and clean controls, built size under 27 KB. Update README rows, inventory evidence, group status and this row only after these gates pass.
+- [ ] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions`, `bun run build`, `bun run size` and `git diff --check`. Expected: passing suite/types, actual packed diagnostics and clean controls, built size under the user-approved 30 KB dual-major budget (increased from 27 KB on 2026-10-01). Update README rows, inventory evidence, group status and this row only after these gates pass.
 - [ ] Commit `test: qualify Effect versions Qxx <group>` (use `feat:` or `fix:` if it changes behaviour), then continue to the next row without an approval prompt.
 
 ### Batch-Specific Contracts
@@ -163,7 +163,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q07 | `effectComposition` | `no-async-effect-combinator-callback`, `no-throw-in-effect-logic`, `no-try-catch-in-effect-logic` |
 | [x] | Q08 | `effectComposition` | `no-promise-api-in-effect-logic`, `no-swallowed-catch-all`, `no-manual-effect-channels` |
 | [x] | Q09 | `effectComposition` | `no-effect-type-alias`, `no-public-generic-effect-error` |
-| [ ] | Q10 | `behaviorDecoration` | `prefer-pipe-for-behavior`, `prefer-decorated-effect-before-gen`, `no-workflow-in-behavior-pipe` |
+| [x] | Q10 | `behaviorDecoration` | `prefer-pipe-for-behavior`, `prefer-decorated-effect-before-gen`, `no-workflow-in-behavior-pipe` |
 | [ ] | Q11 | `styleSeparation` | `no-mixed-pillar-function`, `no-clever-effect-expression`, `prefer-extracted-concept` |
 | [ ] | Q12 | `serviceAndLayerArchitecture` | `prefer-effect-service`, `no-layer-provide-in-service-definition`, `require-service-accessors` |
 | [ ] | Q13 | `serviceAndLayerArchitecture` | `require-service-dependencies`, `no-namespace-effect-import`, `no-manual-service-object-export` |

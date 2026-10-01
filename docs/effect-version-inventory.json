@@ -459,12 +459,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferPipeForBehavior; transitive helpers: preferPipeForBehavior, getImportSource, isEffectEcosystemImport, staticBehaviorCall, isBehaviorDecorationOperator, isEffectMemberCall, isIdentifier, behaviorDecorationOperators, isExistingEffectExpression, isPipeCall",
-      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail; API and repair controls still require packed qualification."
+      "Q10: pinned packed Effect 3.21.4 and 4.0.0 behaviorDecoration cases report 14 legacy and 25 v4 static decoration spellings. Data-last pipe repairs compile and stay clean; stored aliases remain outside the syntactic scope. Runtime repairs preserve values and original recovery error identity."
     ]
   },
   "prefer-decorated-effect-before-gen": {
@@ -474,12 +474,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: preferDecoratedEffectBeforeGen; transitive helpers: preferDecoratedEffectBeforeGen, getImportSource, isEffectEcosystemImport, repeatedDecoratedYieldInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findBehaviorDecoratedYields, isBehaviorDecoratedYield, isPipeCall, pipeOperatorArguments, isBehaviorDecorationOperator, behaviorDecorationOperators",
-      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail; API and repair controls still require packed qualification."
+      "src/index.ts: preferDecoratedEffectBeforeGen; version-selected generator and decoration recognition, cycle-safe findNodes with stop-at-match and v4 own-function-scope traversal",
+      "Q10: pinned packed legacy generator warns once; v4 ordinary and self-bound generators warn twice. Extracted effects, single decorated yields and v4 unused nested functions stay clean. Typed runtime repairs preserve workflow values."
     ]
   },
   "no-workflow-in-behavior-pipe": {
@@ -489,12 +489,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noWorkflowInBehaviorPipe; transitive helpers: noWorkflowInBehaviorPipe, getImportSource, isEffectEcosystemImport, workflowInBehaviorPipe, isPipeCall, isIdentifier, pipeOperatorArguments, isBehaviorDecorationOperator, isEffectMemberCall, behaviorDecorationOperators, isWorkflowSequencingOperator, workflowSequencingCombinators, containsNodeType",
-      "Recognition tokens: Effect, catchAll, catchSome, catchTag, provide, timeout, timeoutFail; API and repair controls still require packed qualification."
+      "Q10: pinned packed behaviorDecoration cases warn once in legacy and twice in v4, including catch decoration around sequencing. Named workflow repairs and single-step threshold controls stay clean and preserve runtime values."
     ]
   },
   "no-mixed-pillar-function": {

@@ -1,6 +1,6 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: foundation and first recovery/runtime batch locally verified; wider detector adaptation remains outstanding.
+Status: foundation, recovery/runtime batch and Q01-Q10 locally verified; Q11-Q52 and cross-group closure remain outstanding.
 
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
@@ -23,7 +23,7 @@ Qualification scope: `no-effect-fail-error-message` has pinned packed failure
 and clean controls for both majors. The mixed-major boundary probe proves
 configuration isolation with common runner syntax, not all v4 runner variants.
 The three headline recovery/runtime rules now also have scoped qualification;
-137 other applicable v4 inventory entries remain pending. Presets accepting
+115 rules still have an unqualified applicable version. Presets accepting
 `effectVersion` does not imply that pending detectors already branch on it.
 The release/prepublish guard blocks this checkout until a major bump and
 all applicable major-specific qualifications are complete.
@@ -55,8 +55,9 @@ only after their packed warning and clean-control gates pass.
 - [x] Repair runner boundary options and add transitive runner regressions.
 - [x] Add typed packed failures, clean controls, runtime contracts and documentation for this batch.
 
-Slice 2 remains open: logging, async callbacks, Cause/defect/filter/reason
-recovery and behaviour-decoration owners still need their own qualification.
+Slice 2 remains open for full group closure. Q01-Q10 now qualify the allocated
+logging/recovery, async callback and behaviour-decoration owners. This does not
+qualify other consumers of their shared helpers.
 Stored runner aliases and testing-group `runPromiseWith` shapes remain follow-on
 coverage; neither is implied by the headline runner qualification.
 

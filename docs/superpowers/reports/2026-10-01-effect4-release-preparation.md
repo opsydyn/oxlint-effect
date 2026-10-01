@@ -21,12 +21,13 @@ Configuration examples and limitations are in the [README](../../../README.md).
 ## Release Checklist
 
 - [x] Stage a major changeset with migration notes.
-- [x] Preserve the publication guard and existing 27 KB size budget.
-- [ ] Resolve Q10 size failure: measured 27.16 KB against 27 KB. A proposed
-  30 KB budget has not been approved; do not silently change it.
-- [ ] Complete and qualify Q10, then Q11-Q52 in the
+- [x] Preserve the publication guard; apply the explicitly user-approved 30 KB
+  dual-major budget on 2026-10-01 (previously 27 KB).
+- [x] Resolve Q10 size failure and qualify its three rules: fresh build measures
+  27.16 KB, within the approved 30 KB cap.
+- [ ] Complete and qualify Q11-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 118 rules with an unqualified applicable version.
+  Current inventory has 115 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.
@@ -42,9 +43,10 @@ Configuration examples and limitations are in the [README](../../../README.md).
 Fresh preparation checks passed: 480 unit tests, root typecheck, both packed
 Effect consumer suites, the type-aware consumer, publint, API documentation
 validation, dry-run package inspection and Changesets status. These are partial
-qualification checks, not proof that the full campaign is complete. The size
-check failed by 156 bytes; both current-version and prospective-major release
-checks rejected publication as described below.
+qualification checks, not proof that the full campaign is complete. The initial
+size check failed by 156 bytes; after explicit budget approval, Q10's fresh
+tests, types, packed consumers and size checks pass. Both current-version and
+prospective-major release checks still reject publication as described below.
 
 Run from the repository root after completing the pending qualification:
 
