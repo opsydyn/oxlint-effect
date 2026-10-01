@@ -1,0 +1,19 @@
+{
+  "categories": {
+    "correctness": "off"
+  },
+  "jsPlugins": [
+    {
+      "name": "linteffect",
+      "specifier": "@opsydyn/oxlint-effect"
+    }
+  ],
+  "rules": {
+    "linteffect/no-hidden-effect-execution": [
+      "error",
+      {
+        "effectVersion": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "oxlint-effect4-consumer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --config oxlint.config.ts src/failures.ts",
+    "lint:valid": "oxlint --config oxlint.config.ts src/valid.ts"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "1.71.0",
+    "effect": "4.0.0",
+    "oxlint": "1.71.0",
+    "typescript": "5.9.3"
+  }
+}

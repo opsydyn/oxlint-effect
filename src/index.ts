@@ -10087,12 +10087,12 @@ export type EffectRuleOptions = {
   boundaryPaths?: readonly string[];
   configPaths?: readonly string[];
 };
-export type EffectRuleEntry = "error" | readonly ["error", EffectRuleOptions];
+export type EffectRuleEntry = "error" | ["error", EffectRuleOptions];
 
 type ApplicableRuleName<N extends RuleName, V extends EffectVersion> =
   V extends 4 ? Exclude<N, typeof legacyOnlyRules[number]> : N;
 type VersionedRuleEntry<N extends RuleName, V extends EffectVersion> =
-  N extends typeof versionSensitiveRules[number] ? readonly ["error", { readonly effectVersion: V }] : "error";
+  N extends typeof versionSensitiveRules[number] ? ["error", { effectVersion: V }] : "error";
 
 function rulesFromNames<const T extends readonly RuleName[], const V extends EffectVersion>(ruleNames: T, version: V) {
   return Object.fromEntries(

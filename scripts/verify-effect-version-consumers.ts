@@ -1,0 +1,83 @@
+import { spawnSync } from "node:child_process";
+import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join, resolve } from "node:path";
+import { assertCommandSuccess, assertDiagnosticCounts, diagnosticCounts, selectedEffectVersions } from "./effect-version-consumer.ts";
+
+const majors = selectedEffectVersions(process.argv.slice(2));
+const repoRoot = resolve(import.meta.dir, "..");
+const workspace = await mkdtemp(join(tmpdir(), "oxlint-effect-versions-"));
+
+function run(command: string, args: string[], cwd: string) {
+  const result = spawnSync(command, args, {
+    cwd, encoding: "utf8",
+    env: { ...process.env, npm_config_cache: join(workspace, "npm-cache"), npm_config_ignore_scripts: "true" },
+  });
+  if (result.error) throw new Error(`Could not execute ${command}: ${result.error.message}`);
+  return { status: result.status, output: `${result.stdout}${result.stderr}`, stdout: result.stdout };
+}
+
+async function installedVersions(root: string): Promise<Record<string, string>> {
+  const versions: Record<string, string> = {};
+  async function scan(modules: string) {
+    const entries = await readdir(modules, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+      const path = join(modules, entry.name);
+      if (entry.name.startsWith("@")) { await scan(path); continue; }
+      const file = Bun.file(join(path, "package.json"));
+      if (await file.exists()) versions[path.slice(root.length + 1)] = (await file.json()).version;
+      await scan(join(path, "node_modules"));
+    }
+  }
+  await scan(join(root, "node_modules"));
+  return versions;
+}
+
+function verifyLint(root: string, config: string, files: string[], expected: unknown, status: number) {
+  const result = run(join(root, "node_modules/.bin/oxlint"), ["--config", config, ...files], root);
+  if (result.status !== status) throw new Error(`Lint expected exit ${status}, received ${result.status}:\n${result.output}`);
+  try { assertDiagnosticCounts(diagnosticCounts(result.output), expected); }
+  catch (error) { throw new Error(`Lint diagnostic gate failed:\n${result.output}`, { cause: error }); }
+}
+
+try {
+  const pack = run("npm", ["pack", "--json", "--pack-destination", workspace], repoRoot);
+  assertCommandSuccess(pack, "npm pack");
+  const packed: unknown = JSON.parse(pack.stdout);
+  if (!Array.isArray(packed) || packed.length !== 1 || typeof packed[0]?.filename !== "string" || basename(packed[0].filename) !== packed[0].filename) throw new Error("npm pack returned an invalid tarball filename");
+  const tarball = join(workspace, packed[0].filename);
+  const rootPackage = await Bun.file(join(repoRoot, "package.json")).json();
+  for (const major of majors) {
+    const root = join(workspace, `effect${major}`);
+    await cp(join(repoRoot, `examples/effect${major}-consumer`), root, { recursive: true, filter: (path) => !path.split(/[\\/]/).includes("node_modules") });
+    const originalLock = await readFile(join(root, "bun.lock"), "utf8");
+    assertCommandSuccess(run("bun", ["install", "--frozen-lockfile", "--ignore-scripts"], root), "frozen consumer install");
+    const before = await installedVersions(root);
+    assertCommandSuccess(run("npm", ["install", "--no-save", "--package-lock=false", "--ignore-scripts", tarball], root), "packed plugin install");
+    const after = await installedVersions(root);
+    for (const [path, version] of Object.entries(before)) {
+      if (after[path] !== version) throw new Error(`Packed install changed locked dependency ${path}: ${version} -> ${after[path]}`);
+    }
+    if (originalLock !== await readFile(join(root, "bun.lock"), "utf8")) throw new Error("Packed install changed the consumer lockfile");
+    const manifest = await Bun.file(join(root, "package.json")).json();
+    for (const [name, version] of Object.entries(manifest.devDependencies)) {
+      const installed = await Bun.file(join(root, "node_modules", name, "package.json")).json();
+      if (installed.version !== version) throw new Error(`Expected ${name}@${version}, installed ${installed.version}`);
+    }
+    const plugin = await Bun.file(join(root, "node_modules/@opsydyn/oxlint-effect/package.json")).json();
+    if (plugin.version !== rootPackage.version || plugin.name !== rootPackage.name) throw new Error("Consumer did not install the packed plugin version");
+    assertCommandSuccess(run("bun", ["run", "typecheck"], root), `Effect ${major} typecheck`);
+    const expected: unknown = await Bun.file(join(root, "expected-diagnostics.json")).json();
+    verifyLint(root, "oxlint.config.ts", ["src/failures.ts"], expected, 1);
+    verifyLint(root, "oxlint.config.ts", ["src/valid.ts", "src/config-contract.ts"], {}, 0);
+    verifyLint(root, "oxlint.mixed.config.ts", ["src/mixed/effect3.ts", "src/mixed/effect4.ts"], { "linteffect/no-hidden-effect-execution": 2 }, 1);
+    verifyLint(root, "oxlint.mixed.config.ts", ["src/mixed/effect3-boundary.ts", "src/mixed/effect4-boundary.ts"], {}, 0);
+    const invalid = run(join(root, "node_modules/.bin/oxlint"), ["--config", "oxlint.invalid.config.json", "src/valid.ts"], root);
+    if (invalid.status === 0 || !invalid.output.includes("effectVersion")) throw new Error(`Invalid version unexpectedly accepted:\n${invalid.output}`);
+    console.log(`Effect ${major}: packed declarations, exact warning counts, clean controls, mixed-major paths and invalid options passed`);
+  }
+} finally { await rm(workspace, { recursive: true, force: true }); }
