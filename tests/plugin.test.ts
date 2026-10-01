@@ -50,6 +50,20 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q10 classifies v4 recovery decoration and preserves legacy policy", () => {
+    const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    const source = effectCall("fail", identifier("error"));
+    for (const name of ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchTag", "catchTags", "catchReason", "catchReasons", "timeoutOption", "timeoutOrElse"]) {
+      expect(inspect("prefer-pipe-for-behavior", effectCall(name, source, arrowCallback(effectCall("fail", identifier("error")))), 4)).toHaveLength(1);
+    }
+    expect(inspect("prefer-pipe-for-behavior", effectCall("catchAll", source, arrowCallback(source)), 4)).toHaveLength(0);
+    expect(inspect("prefer-pipe-for-behavior", effectCall("catchAll", source, arrowCallback(source)), 3)).toHaveLength(1);
+    const decorated = () => yieldExpression(methodPipeCall(source, effectCall("catch", arrowCallback(source))), true);
+    const node = effectCall("gen", objectLiteral(property("self", identifier("owner"))), generatorCallback(blockStatement(expressionStatement(decorated()), expressionStatement(decorated()))));
+    expect(inspect("prefer-decorated-effect-before-gen", node, 4)).toHaveLength(1);
+    const workflow = methodPipeCall(source, effectCall("catch", arrowCallback(source)), effectCall("flatMap", arrowCallback(source)), effectCall("andThen", arrowCallback(source)));
+    expect(inspect("no-workflow-in-behavior-pipe", workflow, 4)).toHaveLength(1);
+  });
   it("Effect qualification Q09 covers explicit type surfaces in both majors", async () => {
     for (const version of [3, 4] as const) {
       const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();

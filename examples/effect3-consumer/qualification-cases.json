@@ -616,5 +616,78 @@
       }
     },
     "runtime": "src/qualification/effectComposition/type-surfaces.contracts.ts"
+  },
+  {
+    "rule": "prefer-pipe-for-behavior",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "annotateLogs",
+      "as",
+      "catchTag",
+      "map",
+      "mapBoth",
+      "provide",
+      "retry",
+      "tap",
+      "tapError",
+      "timeout",
+      "withSpan",
+      "catchAll",
+      "catchSome",
+      "timeoutFail"
+    ],
+    "bad": [
+      "src/qualification/behaviorDecoration/prefer-pipe-for-behavior.bad.ts"
+    ],
+    "good": [
+      "src/qualification/behaviorDecoration/prefer-pipe-for-behavior.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/behaviorDecoration/prefer-pipe-for-behavior.bad.ts": {
+        "linteffect/prefer-pipe-for-behavior": 14
+      }
+    },
+    "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
+  },
+  {
+    "rule": "prefer-decorated-effect-before-gen",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "ordinary"
+    ],
+    "bad": [
+      "src/qualification/behaviorDecoration/prefer-decorated-effect-before-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/behaviorDecoration/prefer-decorated-effect-before-gen.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/behaviorDecoration/prefer-decorated-effect-before-gen.bad.ts": {
+        "linteffect/prefer-decorated-effect-before-gen": 1
+      }
+    },
+    "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
+  },
+  {
+    "rule": "no-workflow-in-behavior-pipe",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "ordinary"
+    ],
+    "bad": [
+      "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.bad.ts"
+    ],
+    "good": [
+      "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.bad.ts": {
+        "linteffect/no-workflow-in-behavior-pipe": 1
+      }
+    },
+    "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
   }
 ]

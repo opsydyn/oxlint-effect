@@ -78,6 +78,14 @@ and the 27 KB size gate pass. No detector change needed.
 
 ## Rulings
 
+Q10 is in progress, not qualified: all 14 legacy and 25 v4 decoration spellings
+have parsed bad/clean controls; repeated yields and buried-workflow thresholds,
+value preservation and recovery identity contracts pass in both packed majors.
+480 tests and root types pass. The build is 27.16 KB against the approved 27 KB
+cap, so inventory qualification and the allocation checkbox remain unchanged.
+A 30 KB dual-major budget has been proposed for explicit user approval; no cap
+change, batch-completion claim, push or publication has occurred.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

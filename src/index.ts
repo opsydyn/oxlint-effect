@@ -848,21 +848,29 @@ const behaviorDecorationOperators = new Set([
   "withSpan",
 ]);
 
-function isBehaviorDecorationOperator(node: unknown): boolean {
+const effect4RecoveryOperatorNames = [
+  "catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter",
+  "catchCauseIf", "catchCauseFilter", "catchTag", "catchTags", "catchReason", "catchReasons",
+] as const;
+function isBehaviorDecorationOperator(node: unknown, version: EffectVersion = 3): boolean {
   if (!isEffectMemberCall(node)) {
     return false;
   }
 
   const property = ((node.callee as Node).property as Node | undefined);
-  return isIdentifier(property) && behaviorDecorationOperators.has(property.name);
+  if (!isIdentifier(property)) return false;
+  const name = property.name;
+  return version === 3 ? behaviorDecorationOperators.has(name)
+    : (name !== "catchAll" && name !== "catchSome" && name !== "timeoutFail" && behaviorDecorationOperators.has(name)) ||
+      (effect4RecoveryOperatorNames as readonly string[]).includes(name) || name === "timeoutOption" || name === "timeoutOrElse" || name === "catchNoSuchElement";
 }
 
 function isExistingEffectExpression(node: unknown): boolean {
   return isEffectMemberCall(node) || isPipeCall(node);
 }
 
-function staticBehaviorCall(node: unknown): unknown | undefined {
-  if (!isBehaviorDecorationOperator(node)) {
+function staticBehaviorCall(node: unknown, version: EffectVersion): unknown | undefined {
+  if (!isBehaviorDecorationOperator(node, version)) {
     return undefined;
   }
 
@@ -870,7 +878,7 @@ function staticBehaviorCall(node: unknown): unknown | undefined {
   return isExistingEffectExpression(first) ? node : undefined;
 }
 
-function isBehaviorDecoratedYield(node: unknown): boolean {
+function isBehaviorDecoratedYield(node: unknown, version: EffectVersion): boolean {
   if (
     typeof node !== "object" ||
     node === null ||
@@ -882,49 +890,26 @@ function isBehaviorDecoratedYield(node: unknown): boolean {
   }
 
   return pipeOperatorArguments((node as Node).argument)
-    .some((argument) => isBehaviorDecorationOperator(argument));
+    .some((argument) => isBehaviorDecorationOperator(argument, version));
 }
 
-function findBehaviorDecoratedYields(node: unknown, seen = new WeakSet<object>()): unknown[] {
-  if (Array.isArray(node)) {
-    return node.flatMap((child) => findBehaviorDecoratedYields(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return [];
-  }
-
-  if (seen.has(node)) {
-    return [];
-  }
-  seen.add(node);
-
-  if (isBehaviorDecoratedYield(node)) {
-    return [node];
-  }
-
-  return Object.entries(node).flatMap(([key, child]) => (
-    key === "parent" ? [] : findBehaviorDecoratedYields(child, seen)
-  ));
-}
-
-function repeatedDecoratedYieldInEffectGen(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
+function repeatedDecoratedYieldInEffectGen(node: unknown, version: EffectVersion): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen", version);
   if (!generator) {
     return undefined;
   }
 
-  const decoratedYields = findBehaviorDecoratedYields(generator.body);
+  const decoratedYields = findNodes(generator.body, (child) => isBehaviorDecoratedYield(child, version), new WeakSet<object>(), true, version === 4);
   return decoratedYields.length >= 2 ? decoratedYields[1] : undefined;
 }
 
-function workflowInBehaviorPipe(node: unknown): unknown | undefined {
+function workflowInBehaviorPipe(node: unknown, version: EffectVersion): unknown | undefined {
   if (!isPipeCall(node)) {
     return undefined;
   }
 
   const parts = pipeOperatorArguments(node);
-  const hasBehaviorDecoration = parts.some((part) => isBehaviorDecorationOperator(part));
+  const hasBehaviorDecoration = parts.some((part) => isBehaviorDecorationOperator(part, version));
   if (!hasBehaviorDecoration) {
     return undefined;
   }
@@ -1219,11 +1204,16 @@ function findNodes(
   node: unknown,
   predicate: (node: unknown) => boolean,
   seen = new WeakSet<object>(),
+  stopAtMatch = false,
+  ownScope = false,
 ): unknown[] {
+  if (ownScope && isFunctionLike(node)) return [];
+  if (stopAtMatch && typeof node === "object" && node !== null && seen.has(node)) return [];
   const matches = predicate(node) ? [node] : [];
+  if (stopAtMatch && matches.length) return matches;
 
   if (Array.isArray(node)) {
-    return node.flatMap((child) => findNodes(child, predicate, seen)).concat(matches);
+    return node.flatMap((child) => findNodes(child, predicate, seen, stopAtMatch, ownScope)).concat(matches);
   }
 
   if (typeof node !== "object" || node === null) {
@@ -1237,7 +1227,7 @@ function findNodes(
 
   return Object.entries(node).reduce<unknown[]>(
     (collected, [key, child]) => (
-      key === "parent" ? collected : collected.concat(findNodes(child, predicate, seen))
+      key === "parent" ? collected : collected.concat(findNodes(child, predicate, seen, stopAtMatch, ownScope))
     ),
     matches,
   );
@@ -1420,8 +1410,7 @@ const effectAsyncCallbackCombinators = new Set([
 
 const effect4LogicCallbackOperators = new Set([
   ...[...effectAsyncCallbackCombinators].filter((name) => name !== "catchAll" && name !== "orElse"),
-  "catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter",
-  "catchCauseIf", "catchCauseFilter", "catchTags", "catchReason", "catchReasons",
+  ...effect4RecoveryOperatorNames,
 ]);
 
 function effectLogicCallbackOperators(version: EffectVersion): ReadonlySet<string> {
@@ -5912,93 +5901,18 @@ const noBusinessLogicInPipe = defineRule({
   },
 });
 
-const preferPipeForBehavior = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const behaviorCall = staticBehaviorCall(node);
-        if (behaviorCall) {
-          report(
-            context,
-            behaviorCall,
-            "Rule: prefer .pipe() for behavior decoration. Why: retry, timeout, spans, logging, recovery, DI, and value transforms decorate an existing effect. Fix: write `program.pipe(Effect.retry(policy))` instead of `Effect.retry(program, policy)`.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const preferDecoratedEffectBeforeGen = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const decoratedYield = repeatedDecoratedYieldInEffectGen(node);
-        if (decoratedYield) {
-          report(
-            context,
-            decoratedYield,
-            "Rule: extract decorated effects before Effect.gen. Why: repeated retry/timeout/span/logging decorators inside generator yields bury behavior policy in workflow steps. Fix: name the decorated effects first, then yield the workflow story.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noWorkflowInBehaviorPipe = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const workflowPipe = workflowInBehaviorPipe(node);
-        if (workflowPipe) {
-          report(
-            context,
-            workflowPipe,
-            "Rule: avoid workflow sequencing inside behavior pipes. Why: behavior pipes should answer how an effect behaves, not hide the workflow story. Fix: move multi-step sequencing into Effect.gen and keep retry/timeout/spans/logging as decorators around named effects.",
-          );
-        }
-      },
-    };
-  },
-});
-
+const preferPipeForBehavior = createVersionedEffectCallbackRule(
+  staticBehaviorCall,
+  () => "Rule: prefer .pipe() for behavior decoration. Why: retry, timeout, spans, logging, recovery, DI, and value transforms decorate an existing effect. Fix: write `program.pipe(Effect.retry(policy))` instead of `Effect.retry(program, policy)`.",
+);
+const preferDecoratedEffectBeforeGen = createVersionedEffectCallbackRule(
+  repeatedDecoratedYieldInEffectGen,
+  () => "Rule: extract decorated effects before Effect.gen. Why: repeated retry/timeout/span/logging decorators inside generator yields bury behavior policy in workflow steps. Fix: name the decorated effects first, then yield the workflow story.",
+);
+const noWorkflowInBehaviorPipe = createVersionedEffectCallbackRule(
+  workflowInBehaviorPipe,
+  () => "Rule: avoid workflow sequencing inside behavior pipes. Why: behavior pipes should answer how an effect behaves, not hide the workflow story. Fix: move multi-step sequencing into Effect.gen and keep retry/timeout/spans/logging as decorators around named effects.",
+);
 const noMixedPillarFunction = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;

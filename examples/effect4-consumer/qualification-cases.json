@@ -672,5 +672,91 @@
       }
     },
     "runtime": "src/qualification/effectComposition/type-surfaces.contracts.ts"
+  },
+  {
+    "rule": "prefer-pipe-for-behavior",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "annotateLogs",
+      "as",
+      "catchTag",
+      "map",
+      "mapBoth",
+      "provide",
+      "retry",
+      "tap",
+      "tapError",
+      "timeout",
+      "withSpan",
+      "catch",
+      "catchEager",
+      "catchCause",
+      "catchDefect",
+      "catchIf",
+      "catchFilter",
+      "catchCauseIf",
+      "catchCauseFilter",
+      "catchTags",
+      "timeoutOption",
+      "timeoutOrElse",
+      "catchNoSuchElement",
+      "catchReason",
+      "catchReasons"
+    ],
+    "bad": [
+      "src/qualification/behaviorDecoration/prefer-pipe-for-behavior.bad.ts"
+    ],
+    "good": [
+      "src/qualification/behaviorDecoration/prefer-pipe-for-behavior.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/behaviorDecoration/prefer-pipe-for-behavior.bad.ts": {
+        "linteffect/prefer-pipe-for-behavior": 25
+      }
+    },
+    "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
+  },
+  {
+    "rule": "prefer-decorated-effect-before-gen",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "ordinary",
+      "self-bound or recovery-specific"
+    ],
+    "bad": [
+      "src/qualification/behaviorDecoration/prefer-decorated-effect-before-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/behaviorDecoration/prefer-decorated-effect-before-gen.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/behaviorDecoration/prefer-decorated-effect-before-gen.bad.ts": {
+        "linteffect/prefer-decorated-effect-before-gen": 2
+      }
+    },
+    "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
+  },
+  {
+    "rule": "no-workflow-in-behavior-pipe",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "ordinary",
+      "self-bound or recovery-specific"
+    ],
+    "bad": [
+      "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.bad.ts"
+    ],
+    "good": [
+      "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.bad.ts": {
+        "linteffect/no-workflow-in-behavior-pipe": 2
+      }
+    },
+    "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"
   }
 ]

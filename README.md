@@ -10,6 +10,8 @@ the complete Effect 4 detector and repair corpus is **not yet qualified**.
 Published 1.x packages retain their original Effect 3 behaviour and do not
 provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
 and [per-rule audit](docs/effect-version-inventory.json) before using this checkout.
+The staged major changeset and outstanding publication gates are tracked in the
+[2.0.0 release checklist](docs/superpowers/reports/2026-10-01-effect4-release-preparation.md).
 
 `bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
@@ -395,8 +397,8 @@ Effect flow, domain meaning, or runtime boundaries.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/prefer-pipe-for-behavior` | Static behavior decorators such as `Effect.retry(Effect.succeed(...), policy)`. | Retry, timeout, spans, logging, recovery, DI, and value transforms should read as behavior around an existing effect. |
-| `linteffect/prefer-decorated-effect-before-gen` | Two or more decorated `yield* service.pipe(Effect.retry(...))` / `yield* effect.pipe(Effect.withSpan(...))` steps inside one `Effect.gen`. | Generator bodies should tell the workflow story; behavior policy should be named before the workflow. |
+| `linteffect/prefer-pipe-for-behavior` | Static decorators whose first argument is a visible Effect call or pipe. V4 includes recovery families/maps and timeoutOption/timeoutOrElse/catchNoSuchElement. | Decorates with `.pipe()`; stored Effect aliases are outside the detector's syntax-local scope. V3 retains catchAll/catchSome/timeoutFail. |
+| `linteffect/prefer-decorated-effect-before-gen` | Two or more decorated yields inside one `Effect.gen`; v4 includes `{ self }` and recovery decoration. | Names decorated effects before the workflow. V4 excludes separately defined nested functions; one decorated yield stays below the threshold. |
 | `linteffect/no-workflow-in-behavior-pipe` | Pipes that mix behavior decorators with multiple workflow sequencing operators or embedded control flow. | `.pipe()` should answer how an effect behaves, not bury multi-step workflow that belongs in `Effect.gen`. |
 
 ### Style Separation
