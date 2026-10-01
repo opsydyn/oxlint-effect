@@ -1,10 +1,11 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: design proposed; implementation not started.
+Status: design approved; implementation not started.
 
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).
+Start with the [foundation implementation plan](../../docs/superpowers/plans/2026-10-01-effect4-compatibility-foundation.md).
 
 This is compatibility work on existing rules, not an addition to the original
 100-candidate rule count. Checkboxes record verified implementation, not approval

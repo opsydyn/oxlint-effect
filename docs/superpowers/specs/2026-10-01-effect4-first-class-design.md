@@ -1,6 +1,6 @@
 # Effect 4 First-Class Compatibility
 
-Status: proposed; consumer direction approved, written design awaiting review.
+Status: approved by the user on 2026-10-01; implementation not started.
 
 ## Intent
 
