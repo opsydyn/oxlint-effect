@@ -7,6 +7,7 @@ resolved from the root checkout or the public registry.
 
 Failures are intentional. The baseline expects exactly two
 `no-effect-fail-error-message` diagnostics, while the clean control has none.
-Mixed-major files exercise configuration isolation and boundary paths using
-shared runner syntax, not complete v4 recovery/fork semantics. Config contracts
+Mixed-major files use cross-policy boundary paths and per-file JSON diagnostic
+counts in one process. They exercise configuration isolation with shared runner
+syntax, not complete v4 recovery/fork semantics. Config contracts
 are checked against the packed declarations. This is foundation QA only.

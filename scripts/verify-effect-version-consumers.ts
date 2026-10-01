@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
-import { assertCommandSuccess, assertDiagnosticCounts, diagnosticCounts, selectedEffectVersions } from "./effect-version-consumer.ts";
+import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, selectedEffectVersions } from "./effect-version-consumer.ts";
 
 const majors = selectedEffectVersions(process.argv.slice(2));
 const repoRoot = resolve(import.meta.dir, "..");
@@ -37,10 +37,13 @@ async function installedVersions(root: string): Promise<Record<string, string>> 
   return versions;
 }
 
-function verifyLint(root: string, config: string, files: string[], expected: unknown, status: number) {
-  const result = run(join(root, "node_modules/.bin/oxlint"), ["--config", config, ...files], root);
+function verifyLint(root: string, config: string, files: string[], expected: unknown, status: number, expectedByFile?: Record<string, Record<string, number>>) {
+  const result = run(join(root, "node_modules/.bin/oxlint"), ["--format", "json", "--config", config, ...files], root);
   if (result.status !== status) throw new Error(`Lint expected exit ${status}, received ${result.status}:\n${result.output}`);
-  try { assertDiagnosticCounts(diagnosticCounts(result.output), expected); }
+  try {
+    assertDiagnosticCounts(diagnosticCounts(result.stdout), expected);
+    if (expectedByFile) assertDiagnosticCountsByFile(diagnosticCountsByFile(result.stdout), expectedByFile);
+  }
   catch (error) { throw new Error(`Lint diagnostic gate failed:\n${result.output}`, { cause: error }); }
 }
 
@@ -74,8 +77,12 @@ try {
     const expected: unknown = await Bun.file(join(root, "expected-diagnostics.json")).json();
     verifyLint(root, "oxlint.config.ts", ["src/failures.ts"], expected, 1);
     verifyLint(root, "oxlint.config.ts", ["src/valid.ts", "src/config-contract.ts"], {}, 0);
-    verifyLint(root, "oxlint.mixed.config.ts", ["src/mixed/effect3.ts", "src/mixed/effect4.ts"], { "linteffect/no-hidden-effect-execution": 2 }, 1);
-    verifyLint(root, "oxlint.mixed.config.ts", ["src/mixed/effect3-boundary.ts", "src/mixed/effect4-boundary.ts"], {}, 0);
+    verifyLint(root, "oxlint.mixed.config.ts", ["src/mixed"], { "linteffect/no-hidden-effect-execution": 4 }, 1, {
+      "src/mixed/effect3.ts": { "linteffect/no-hidden-effect-execution": 1 },
+      "src/mixed/effect4.ts": { "linteffect/no-hidden-effect-execution": 1 },
+      "src/mixed/effect3/modern-entry.ts": { "linteffect/no-hidden-effect-execution": 1 },
+      "src/mixed/effect4/legacy-entry.ts": { "linteffect/no-hidden-effect-execution": 1 },
+    });
     const invalid = run(join(root, "node_modules/.bin/oxlint"), ["--config", "oxlint.invalid.config.json", "src/valid.ts"], root);
     if (invalid.status === 0 || !invalid.output.includes("effectVersion")) throw new Error(`Invalid version unexpectedly accepted:\n${invalid.output}`);
     console.log(`Effect ${major}: packed declarations, exact warning counts, clean controls, mixed-major paths and invalid options passed`);

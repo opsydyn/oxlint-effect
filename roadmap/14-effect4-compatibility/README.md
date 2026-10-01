@@ -26,6 +26,8 @@ All other applicable v4 inventory entries remain pending. Presets accepting
 `effectVersion` does not imply that pending detectors already branch on it.
 The release/prepublish guard blocks this checkout until a major bump and
 all applicable major-specific qualifications are complete.
+See the [foundation qualification report](../../docs/superpowers/reports/2026-10-01-effect4-foundation-qualification.md)
+for local evidence, review fixes and limits.
 
 ## Slice 2: Recovery And Runtime Boundaries
 
