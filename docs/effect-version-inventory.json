@@ -898,12 +898,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noSwallowedCatchAll; transitive helpers: noSwallowedCatchAll, getImportSource, isEffectEcosystemImport, getSwallowedCatchAllHandler, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, callbackBody, isSwallowedCatchAllBody, isEffectVoidMember, isMemberExpression",
-      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+      "Q08: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-swallowed-catch-all.{bad,good}.ts; interop.contracts.ts.",
+      "4 legacy piped-expression and 16 v4 plain/eager expression/block warnings. V4 asVoid of visible success warns; asVoid of re-failure and typed tag/Cause recovery stay clean. Runtime preserves original failure identity. Legacy expression-only policy retained.",
+      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases."
     ]
   },
   "no-effect-ignore": {
@@ -944,12 +945,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noPromiseApiInEffectLogic; transitive helpers: noPromiseApiInEffectLogic, getImportSource, isEffectEcosystemImport, findPromiseApiInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPromiseApiCall, isPromiseStaticApiCall, isMemberCall, isPromiseChainCall, effectAsyncCallbackCombinators, callbackBody",
-      "Recognition tokens: Effect, all, allSettled, race, catch, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+      "Q08: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-promise-api-in-effect-logic.{bad,good}.ts; interop.contracts.ts.",
+      "13 legacy/25 v4 parsed warnings: inline generator/recovery callbacks, six static APIs, visible then/catch/finally and constructed Promise chains. V4 Effect.catch/unrelated receivers/unused functions clean; v4 unknown receiver aliases are deliberately outside syntax-local chain scope. Legacy chain-name policy retained.",
+      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases."
     ]
   },
   "no-try-catch": {
@@ -989,12 +991,13 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noManualEffectChannels; transitive helpers: noManualEffectChannels, isQualifiedTypeReference, isIdentifier",
-      "Recognition tokens: Effect, Layer; API and repair controls still require packed qualification."
+      "Q08: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-manual-effect-channels.{bad,good}.ts; interop.contracts.ts.",
+      "Effect and Layer channel tuple warnings in both majors; inferred repairs typecheck and retain returned value. Exact qualified type-reference syntax, not arbitrary inferred channel checks.",
+      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases."
     ]
   },
   "no-wrapgraphql-catchall": {

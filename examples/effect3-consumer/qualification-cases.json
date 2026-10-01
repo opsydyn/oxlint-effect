@@ -502,5 +502,74 @@
       }
     },
     "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
+  },
+  {
+    "rule": "no-promise-api-in-effect-logic",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "generator",
+      "map",
+      "plain recovery",
+      "six static Promise APIs",
+      "then/catch/finally chains",
+      "constructed Promise chain"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-promise-api-in-effect-logic.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-promise-api-in-effect-logic.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-promise-api-in-effect-logic.bad.ts": {
+        "linteffect/no-promise-api-in-effect-logic": 13
+      }
+    },
+    "runtime": "src/qualification/effectComposition/interop.contracts.ts"
+  },
+  {
+    "rule": "no-swallowed-catch-all",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "piped succeed",
+      "piped asVoid",
+      "piped ignore",
+      "piped void"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-swallowed-catch-all.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-swallowed-catch-all.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-swallowed-catch-all.bad.ts": {
+        "linteffect/no-swallowed-catch-all": 4
+      }
+    },
+    "runtime": "src/qualification/effectComposition/interop.contracts.ts"
+  },
+  {
+    "rule": "no-manual-effect-channels",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "Effect tuple",
+      "Layer tuple"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-manual-effect-channels.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-manual-effect-channels.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-manual-effect-channels.bad.ts": {
+        "linteffect/no-manual-effect-channels": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/interop.contracts.ts"
   }
 ]

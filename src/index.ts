@@ -1421,7 +1421,7 @@ const effectAsyncCallbackCombinators = new Set([
 const effect4LogicCallbackOperators = new Set([
   ...[...effectAsyncCallbackCombinators].filter((name) => name !== "catchAll" && name !== "orElse"),
   "catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter",
-  "catchCauseIf", "catchCauseFilter", "catchTag", "catchTags", "catchReason", "catchReasons",
+  "catchCauseIf", "catchCauseFilter", "catchTags", "catchReason", "catchReasons",
 ]);
 
 function effectLogicCallbackOperators(version: EffectVersion): ReadonlySet<string> {
@@ -1460,105 +1460,43 @@ function findEffectLogicNode(node: unknown, version: EffectVersion, predicate: (
   return undefined;
 }
 
-function findThrowInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
-  return findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === "ThrowStatement");
+function findEffectStatement(node: unknown, version: EffectVersion, type: "ThrowStatement" | "TryStatement"): unknown | undefined {
+  return findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === type);
 }
 
-function findTryCatchInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
-  return findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === "TryStatement");
-}
+const promiseStaticApiMethods = new Set(["all", "allSettled", "any", "race", "reject", "resolve"]);
 
 function isPromiseStaticApiCall(node: unknown): boolean {
-  return (
-    isMemberCall(node, "Promise", "all") ||
-    isMemberCall(node, "Promise", "allSettled") ||
-    isMemberCall(node, "Promise", "any") ||
-    isMemberCall(node, "Promise", "race") ||
-    isMemberCall(node, "Promise", "reject") ||
-    isMemberCall(node, "Promise", "resolve")
-  );
+  return isMemberCall(node, "Promise") && promiseStaticApiMethods.has(String((((node as Node).callee as Node).property as Node).name));
 }
 
-function isPromiseChainCall(node: unknown): boolean {
+function isPromiseChainCall(node: unknown, version: EffectVersion = 3): boolean {
   if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
     return false;
   }
 
   const callee = (node as Node).callee;
+  const receiver = (callee as Node | undefined)?.object as Node | undefined;
   return (
     typeof callee === "object" &&
     callee !== null &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
+    (version === 3 || isPromiseStaticApiCall(receiver) ||
+      (receiver?.type === "NewExpression" && isIdentifier(receiver.callee, "Promise")) ||
+      isPromiseChainCall(receiver, version)) &&
     (isIdentifier((callee as Node).property, "then") ||
       isIdentifier((callee as Node).property, "catch") ||
       isIdentifier((callee as Node).property, "finally"))
   );
 }
 
-function findPromiseApiCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findPromiseApiCall(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  if (isPromiseStaticApiCall(node) || isPromiseChainCall(node)) {
-    return node;
-  }
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findPromiseApiCall(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+function findPromiseApiCall(node: unknown): unknown | undefined {
+  return findNode(node, (child) => isPromiseStaticApiCall(child) || isPromiseChainCall(child));
 }
 
-function findPromiseApiInEffectLogic(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
-  if (generator) {
-    return findPromiseApiCall(generator.body);
-  }
-
-  if (!isEffectMemberCall(node)) {
-    return undefined;
-  }
-
-  const callee = node.callee as Node;
-  const property = callee.property;
-  if (!isIdentifier(property) || !effectAsyncCallbackCombinators.has(property.name)) {
-    return undefined;
-  }
-
-  for (const argument of node.arguments) {
-    const body = callbackBody(argument);
-    const match = body ? findPromiseApiCall(body) : undefined;
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+function findPromiseApiInEffectLogic(node: unknown, version: EffectVersion): unknown | undefined {
+  return findEffectLogicNode(node, version, (child) => isPromiseStaticApiCall(child) || isPromiseChainCall(child, version));
 }
 
 const promiseConcurrencyMethods = new Set(["all", "allSettled", "any", "race"]);
@@ -1824,23 +1762,29 @@ function findEffectOrDieOutsideBoundary(node: unknown): unknown | undefined {
   return undefined;
 }
 
-function isSwallowedCatchAllBody(node: unknown): boolean {
+function isSwallowedCatchAllBody(node: unknown, version: EffectVersion = 3): boolean {
   return (
     isEffectMemberCallNamed(node, "succeed") ||
-    isEffectMemberCallNamed(node, "asVoid") ||
+    (isEffectMemberCallNamed(node, "asVoid") && (version === 3 || isSwallowedCatchAllBody(firstArgument(node as Node & { arguments: unknown[] }), version))) ||
     isEffectMemberCallNamed(node, "ignore") ||
     isEffectVoidMember(node)
   );
 }
 
-function getSwallowedCatchAllHandler(node: unknown): unknown | undefined {
-  if (!isEffectMemberCallNamed(node, "catchAll")) {
-    return undefined;
+function getSwallowedCatchAllHandler(node: unknown, version: EffectVersion): unknown | undefined {
+  if (version === 3) {
+    if (!isEffectMemberCallNamed(node, "catchAll")) return undefined;
+    const body = callbackBody(firstArgument(node));
+    return isSwallowedCatchAllBody(body) ? body : undefined;
   }
-
-  const handler = firstArgument(node);
-  const body = callbackBody(handler);
-  return isSwallowedCatchAllBody(body) ? body : undefined;
+  for (const callback of errorHandlerCallbacks(node, plainCatchOperators(version))) {
+    const body = callbackBody(callback);
+    if (isSwallowedCatchAllBody(body, version)) return body;
+    for (const statement of handlerReturnStatements(body)) {
+      if (isSwallowedCatchAllBody((statement as Node).argument, version)) return (statement as Node).argument;
+    }
+  }
+  return undefined;
 }
 
 function isEffectIgnoreReference(node: unknown): boolean {
@@ -4144,42 +4088,8 @@ function isExpressionBodiedArrowCall(node: unknown): boolean {
   );
 }
 
-function findEffectGenCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (isEffectMemberCallNamed(node, "gen")) {
-    return node;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findEffectGenCall(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findEffectGenCall(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+function findEffectGenCall(node: unknown): unknown | undefined {
+  return findNode(node, (child) => isEffectMemberCallNamed(child, "gen"));
 }
 
 function isMatchValuePipeCall(node: unknown): boolean {
@@ -6606,70 +6516,36 @@ const noEffectAllStepSequencing = defineRule({
   },
 });
 
-const noAsyncEffectCombinatorCallback = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
+function createVersionedEffectCallbackRule(
+  find: (node: unknown, version: EffectVersion) => unknown,
+  message: (version: EffectVersion) => string,
+) {
+  return defineRule({
+    create(context: OxlintContext) {
+      const version = effectVersionFor(context.options);
+      let imported = false;
+      return {
+        ImportDeclaration(node: unknown) {
+          const source = getImportSource(node);
+          if (source && isEffectEcosystemImport(source)) imported = true;
+        },
+        CallExpression(node: unknown) {
+          const target = imported ? find(node, version) : undefined;
+          if (target) report(context, target, message(version));
+        },
+      };
+    },
+  });
+}
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const callback = findAsyncEffectCombinatorCallback(node, version);
-        if (callback) {
-          report(
-            context,
-            callback,
-            version === 3
-              ? "Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: return an Effect and compose with Effect.flatMap/fromPromise at the boundary."
-              : "Rule: avoid async callbacks in Effect combinators. Why: a Promise is not an Effect workflow step or typed recovery. Fix: return an Effect, compose with flatMap, and adapt Promise APIs with Effect.tryPromise at the boundary.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noThrowInEffectLogic = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const throwNode = findThrowInEffectLogic(node, version);
-        if (throwNode) {
-          report(
-            context,
-            throwNode,
-            version === 3
-              ? "Rule: avoid throw inside Effect logic. Why: thrown exceptions bypass typed Effect error channels and interruption semantics. Fix: return Effect.fail with a structured tagged error."
-              : "Rule: avoid throw inside Effect logic. Why: thrown exceptions become defects rather than typed domain failures. Fix: return Effect.fail with a structured tagged error.",
-          );
-        }
-      },
-    };
-  },
-});
-
+const noAsyncEffectCombinatorCallback = createVersionedEffectCallbackRule(
+  findAsyncEffectCombinatorCallback,
+  (version) => `Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: return an Effect and compose with Effect.flatMap/${version === 3 ? "fromPromise" : "tryPromise"} at the boundary.`,
+);
+const noThrowInEffectLogic = createVersionedEffectCallbackRule(
+  (node, version) => findEffectStatement(node, version, "ThrowStatement"),
+  (version) => `Rule: avoid throw inside Effect logic. Why: thrown exceptions ${version === 3 ? "bypass typed Effect error channels and interruption semantics" : "become defects rather than typed domain failures"}. Fix: return Effect.fail with a structured tagged error.`,
+);
 const noOrDieOutsideBoundary = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6699,34 +6575,10 @@ const noOrDieOutsideBoundary = defineRule({
   },
 });
 
-const noSwallowedCatchAll = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const handlerBody = getSwallowedCatchAllHandler(node);
-        if (handlerBody) {
-          report(
-            context,
-            handlerBody,
-            "Rule: avoid swallowing errors in catchAll. Why: succeed/void recovery can hide failures without telemetry or typed recovery. Fix: log, re-fail with a structured error, or recover through an explicit domain branch.",
-          );
-        }
-      },
-    };
-  },
-});
+const noSwallowedCatchAll = createVersionedEffectCallbackRule(
+  getSwallowedCatchAllHandler,
+  (version) => `Rule: avoid swallowing errors in ${version === 3 ? "catchAll" : "catch/catchEager"}. Why: succeed/void recovery can hide failures without telemetry or typed recovery. Fix: log, re-fail with a structured error, or recover through an explicit domain branch.`,
+);
 
 const noEmptyErrorTag = defineRule({
   create(context: OxlintContext) {
@@ -6799,61 +6651,14 @@ const noEarlyCatchallNull = defineRule({
   },
 });
 
-const noExpectedStateAsError = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isExpectedDomainStateFailure(node)) {
-          report(
-            context,
-            node,
-            version === 3
-              ? "Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel and encourages broad catchAll recovery. Fix: return Option, Either, or a tagged result for expected state and reserve Effect.fail for exceptional failures."
-              : "Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel. Fix: return Option, Result, or tagged data for expected state and reserve Effect.fail for exceptional failures.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noExceptionDomainError = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) return;
-
-        const target = findDomainExceptionInEffectLogic(node, version);
-        if (target) {
-          report(
-            context,
-            target,
-            "Rule: do not use exceptions for domain errors. Why: throw new *Error inside Effect logic bypasses typed failure channels, supervision, and structured recovery. Fix: return Effect.fail with a Data.TaggedError or structured domain error.",
-          );
-        }
-      },
-    };
-  },
-});
-
+const noExpectedStateAsError = createVersionedEffectCallbackRule(
+  (node) => isExpectedDomainStateFailure(node) ? node : undefined,
+  (version) => `Rule: model expected domain states as data. Why: failing with NotFound, Missing, Empty, or None overloads the error channel and encourages broad ${version === 3 ? "catchAll" : "catch"} recovery. Fix: return Option, ${version === 3 ? "Either" : "Result"}, or a tagged result for expected state and reserve Effect.fail for exceptional failures.`,
+);
+const noExceptionDomainError = createVersionedEffectCallbackRule(
+  findDomainExceptionInEffectLogic,
+  () => "Rule: do not use exceptions for domain errors. Why: throw new *Error inside Effect logic bypasses typed failure channels, supervision, and structured recovery. Fix: return Effect.fail with a Data.TaggedError or structured domain error.",
+);
 const noEffectFailErrorMessage = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6906,34 +6711,10 @@ const noCatchallGenericRethrow = defineRule({
   },
 });
 
-const noLogOnlyErrorHandling = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) return;
-
-        const target = logOnlyErrorHandler(node, version);
-        if (target) {
-          report(
-            context,
-            target,
-            "Rule: do not stop at logging an Effect error. Why: logs alone do not preserve a typed failure or define recovery ownership. Fix: map or re-fail with a structured domain error after adding observability.",
-          );
-        }
-      },
-    };
-  },
-});
-
+const noLogOnlyErrorHandling = createVersionedEffectCallbackRule(
+  logOnlyErrorHandler,
+  () => "Rule: do not stop at logging an Effect error. Why: logs alone do not preserve a typed failure or define recovery ownership. Fix: map or re-fail with a structured domain error after adding observability.",
+);
 const noEffectIgnore = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
@@ -6963,67 +6744,14 @@ const noEffectIgnore = defineRule({
   },
 });
 
-const noTryCatchInEffectLogic = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const tryNode = findTryCatchInEffectLogic(node, version);
-        if (tryNode) {
-          report(
-            context,
-            tryNode,
-            version === 3
-              ? "Rule: avoid try/catch inside Effect logic. Why: it bypasses typed error channels and can miss interruption/cause semantics. Fix: use Effect.try, Effect.catchAll, Effect.catchTag, or typed error combinators."
-              : "Rule: avoid try/catch inside Effect logic. Why: it separates exception recovery from the typed failure channel. Fix: use Effect.try for throwing APIs and Effect.catch or Effect.catchTag for typed failures.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noPromiseApiInEffectLogic = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const promiseNode = findPromiseApiInEffectLogic(node);
-        if (promiseNode) {
-          report(
-            context,
-            promiseNode,
-            "Rule: avoid Promise APIs inside Effect logic. Why: Promise APIs bypass Effect scheduling, typed errors, cancellation, and tracing. Fix: use Effect.all, Effect.tryPromise, or move Promise interop to a boundary adapter.",
-          );
-        }
-      },
-    };
-  },
-});
-
+const noTryCatchInEffectLogic = createVersionedEffectCallbackRule(
+  (node, version) => findEffectStatement(node, version, "TryStatement"),
+  (version) => `Rule: avoid try/catch inside Effect logic. Why: it bypasses typed error channels and can miss interruption/cause semantics. Fix: use Effect.try, Effect.${version === 3 ? "catchAll" : "catch"}, Effect.catchTag, or typed error combinators.`,
+);
+const noPromiseApiInEffectLogic = createVersionedEffectCallbackRule(
+  findPromiseApiInEffectLogic,
+  () => "Rule: avoid Promise APIs inside Effect logic. Why: Promise APIs bypass Effect scheduling, typed errors, cancellation, and tracing. Fix: use Effect.all, Effect.tryPromise, or move Promise interop to a boundary adapter.",
+);
 const noTryCatch = defineRule({
   create(context: OxlintContext) {
     return {

@@ -50,6 +50,24 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q08 separates Promise chains from v4 recovery and qualifies plain swallowing", () => {
+    const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    const body = effectCall("succeed", nullLiteral());
+    for (const name of ["catch", "catchEager"]) {
+      expect(inspect("no-swallowed-catch-all", effectCall(name, identifier("program"), arrowCallback(body)), 4)).toHaveLength(1);
+      expect(inspect("no-swallowed-catch-all", effectCall(name, arrowCallback(blockStatement(returnStatement(body)))), 4)).toHaveLength(1);
+    }
+    expect(inspect("no-swallowed-catch-all", effectCall("catchCause", arrowCallback(body)), 4)).toHaveLength(0);
+    expect(inspect("no-swallowed-catch-all", effectCall("catch", arrowCallback(effectCall("asVoid", effectCall("fail", identifier("error"))))), 4)).toHaveLength(0);
+    const recovery = effectCall("catch", identifier("program"), arrowCallback(effectCall("fail", identifier("error"))));
+    const generator = effectCall("gen", generatorCallback(blockStatement(expressionStatement(recovery))));
+    expect(inspect("no-promise-api-in-effect-logic", generator, 4)).toHaveLength(0);
+    const promise = memberCall("Promise", "resolve");
+    const reports = inspect("no-promise-api-in-effect-logic", effectCall("catch", arrowCallback(blockStatement(expressionStatement(promise), returnStatement(effectCall("fail", identifier("error")))))), 4);
+    expect(reports).toHaveLength(1);
+    expect(reports[0].node).toBe(promise);
+    expect(inspect("no-promise-api-in-effect-logic", effectCall("gen", generatorCallback(blockStatement(expressionStatement(objectMethodCall(identifier("Other"), "catch", arrowCallback(identifier("value"))))))), 4)).toHaveLength(0);
+  });
   it("Effect qualification Q07 selects callback maps and own scope", () => {
     for (const [rule, body] of [
       ["no-throw-in-effect-logic", blockStatement(throwStatement(stringLiteral("invalid")))],

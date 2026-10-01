@@ -66,6 +66,29 @@ packed regression. 477 tests, root types, both packed majors and 26.97 KB pass.
 
 ## Rulings
 
+Q08: 13 legacy/25 v4 Promise cases, 4 legacy/16 v4 swallowed-recovery cases
+and two channel-type cases per major pass. V4 visible Promise sources exclude
+Effect.catch and unrelated receivers; stored aliases are outside this syntactic
+scope. asVoid of re-failure stays clean and retains original failure identity.
+Shared visitors and scope walkers have full prior-owner regression coverage.
+478 tests, root types, both packed majors and the unchanged 27 KB size gate pass.
+
+## Q08 Decisions
+
+Limit v4 chain detection to syntactically visible Promise sources: without type
+information, a method called catch/then/finally does not establish a Promise.
+Legacy broad chain recognition remains unchanged. This trades unresolved stored
+aliases for avoiding v4 Effect.catch and unrelated-object false positives.
+
+Only visibly successful asVoid recovery is classified as swallowed in v4;
+asVoid itself preserves errors. Unknown effect arguments remain outside this
+local success proof. Legacy asVoid reporting remains unchanged.
+
+The near-cap build required consolidating the identical import/version/report
+visitors for the callback owners changed in Q02/Q03/Q07/Q08. Diagnostic text is
+factored without changing legacy text, and duplicate catchTag set membership is
+removed. No size limit was raised; all existing packed cases still pass.
+
 The Q07 build exceeded 27 KB. Deduplicating the changed scope/yield/exception
 walkers through the existing cycle-safe findNode reduced it below the unchanged
 cap. Legacy traversal and all prior qualified callback controls are retained.
