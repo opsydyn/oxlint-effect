@@ -30,9 +30,10 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Qualify Q13 legacy dependencies, namespace imports and manual service exports.
 - [x] Qualify Q14 handler layers, Promise-returning methods and provision piping.
 - [x] Qualify Q15 workflow provisioning, infrastructure merges and scatter thresholds.
-- [ ] Complete and qualify Q16-Q52 in the
+- [x] Qualify Q16 explicit collection scheduling and fork construction/loop ownership.
+- [ ] Complete and qualify Q17-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 100 rules with an unqualified applicable version.
+  Current inventory has 97 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.

@@ -2154,6 +2154,26 @@ function containsEffectForkCall(node: unknown, seen = new WeakSet<object>()): un
   return undefined;
 }
 
+function v4ForkConstruction(node: unknown): unknown | undefined {
+  if (isEffectMemberCallNamed(node, "forkChild") || isEffectMemberCallNamed(node, "forkDetach")) return node;
+  if (typeof node === "object" && node !== null && (node as Node).type === "CallExpression" &&
+    (isEffectMemberCallNamed((node as Node).callee, "forkChild") || isEffectMemberCallNamed((node as Node).callee, "forkDetach"))) return node;
+  if (!isPipeCall(node)) return undefined;
+  const operator = ((node as Node).arguments as unknown[] | undefined)?.at(-1);
+  if (isEffectMemberCallNamed(operator, "forkChild") || isEffectMemberCallNamed(operator, "forkDetach")) return operator;
+  if (typeof operator !== "object" || operator === null || (operator as Node).type !== "MemberExpression") return undefined;
+  const member = operator as Node;
+  return member.computed !== true && isIdentifier(member.object, "Effect") &&
+    (isIdentifier(member.property, "forkChild") || isIdentifier(member.property, "forkDetach")) ? operator : undefined;
+}
+
+function discardedFork(node: unknown, version: EffectVersion): unknown | undefined {
+  if (version === 3) return isEffectMemberCallNamed(node, "fork") ? node : undefined;
+  const expression = typeof node === "object" && node !== null && (node as Node).type === "YieldExpression"
+    ? (node as Node).argument : node;
+  return v4ForkConstruction(expression);
+}
+
 function containsEffectMemberCallInSet(
   node: unknown,
   propertyNames: ReadonlySet<string>,
@@ -8072,7 +8092,7 @@ const noUnboundedEffectAll = defineRule({
           report(
             context,
             node,
-            "Rule: avoid unbounded Effect.all over mapped collections. Why: it can launch work for every item at once and fail under load. Fix: pass an explicit `{ concurrency: n }` option or use a bounded batching strategy.",
+            "Rule: avoid unbounded Effect.all policies over mapped collections. Why: an explicit concurrency option makes scheduling policy visible; omission defaults to sequential execution, not unlimited parallelism. Fix: pass an explicit `{ concurrency: n }` option or use a bounded batching strategy.",
           );
         }
       },
@@ -8092,11 +8112,15 @@ const noFireAndForgetFork = defineRule({
         }
       },
       ExpressionStatement(node: any) {
-        if (hasEffectEcosystemImport && isEffectMemberCallNamed(node.expression, "fork")) {
+        const version = effectVersionFor(context.options);
+        const fork = hasEffectEcosystemImport ? discardedFork(node.expression, version) : undefined;
+        if (fork) {
           report(
             context,
-            node.expression,
-            "Rule: avoid fire-and-forget Effect.fork. Why: detached fibers hide failure, interruption, and ownership. Fix: bind the fiber and join/await/interrupt it, or use Effect.forkScoped / Effect.forkIn with an explicit scope.",
+            fork,
+            version === 3
+              ? "Rule: avoid fire-and-forget Effect.fork. Why: detached fibers hide failure, interruption, and ownership. Fix: bind the fiber and join/await/interrupt it, or use Effect.forkScoped / Effect.forkIn with an explicit scope."
+              : "Rule: avoid discarded Effect.forkChild / Effect.forkDetach constructions or handles. Why: a bare construction is lazy and starts no work; yielding then discarding the fiber loses explicit observation. Child fibers follow parent lifetime, detached fibers do not. Fix: retain and join/await/interrupt the fiber, or use forkScoped / forkIn with explicit scope ownership.",
           );
         }
       },
@@ -8113,12 +8137,16 @@ const noForkInLoop = defineRule({
         return;
       }
 
-      const fork = containsEffectForkCall((node as Node).body);
+      const version = effectVersionFor(context.options);
+      const fork = version === 3 ? containsEffectForkCall((node as Node).body)
+        : findOwnCallbackNode((node as Node).body, child => v4ForkConstruction(child) !== undefined);
       if (fork) {
         report(
           context,
-          fork,
-          "Rule: avoid Effect.fork inside loops. Why: loop-spawned fibers create unbounded concurrency and unclear ownership. Fix: use Effect.forEach / Effect.all with an explicit concurrency limit or a scoped supervisor.",
+          version === 4 ? v4ForkConstruction(fork) : fork,
+          version === 3
+            ? "Rule: avoid Effect.fork inside loops. Why: loop-spawned fibers create unbounded concurrency and unclear ownership. Fix: use Effect.forEach / Effect.all with an explicit concurrency limit or a scoped supervisor."
+            : "Rule: avoid Effect.forkChild / Effect.forkDetach inside loops. Why: per-item forks lack a collection-wide concurrency budget even when handles are retained. Fix: use Effect.forEach / Effect.all with an explicit concurrency limit; preserve observation and lifetime ownership.",
         );
       }
     };

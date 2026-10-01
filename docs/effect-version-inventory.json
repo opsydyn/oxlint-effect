@@ -1822,12 +1822,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noUnboundedEffectAll; transitive helpers: noUnboundedEffectAll, getImportSource, isEffectEcosystemImport, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption",
-      "Recognition tokens: Effect, all; API and repair controls still require packed qualification."
+      "Q16: unchanged immediate .map input / option-presence contract; five parsed warnings per major (omitted, unrelated, opaque named options, failure and reusable collection). Explicit numeric/quoted options, stored inputs, tuples and explicit unbounded values remain clean by existing scope, not safety proof. Installed defaults and runtime prove serial omission, deterministic Deferred coordination proves repaired budget two, ordered results and failure identity are retained."
     ]
   },
   "no-fire-and-forget-fork": {
@@ -1837,12 +1837,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noFireAndForgetFork; transitive helpers: noFireAndForgetFork, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier",
-      "Recognition tokens: Effect, fork; API and repair controls still require packed qualification."
+      "Q16: legacy bare Effect.fork reporting retained; v4 recognises forkChild/forkDetach direct and curried constructions, discarded yields and terminal pipe operators including startup options. One legacy/eight v4 parsed warnings, opposite-policy parsed exclusion and compiler-negative APIs pass. Actual lazy construction executes zero jobs; retained join preserves value/failure identity. Parent, forkScoped and forkIn closure interrupt started work once; detached work survives owner and is explicitly interrupted. Stored aliases and nonterminal pipes remain outside local proof."
     ]
   },
   "no-fork-in-loop": {
@@ -1852,12 +1852,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noForkInLoop; transitive helpers: noForkInLoop, containsEffectForkCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, getImportSource, isEffectEcosystemImport",
-      "Recognition tokens: Effect, fork; API and repair controls still require packed qualification."
+      "Q16: five loop syntaxes report five warnings per major. Legacy broad fork traversal retained; v4 child/detached direct, curried and terminal-pipe forms use own-loop traversal, excluding unused nested callbacks. Retaining handles alone does not add a collection budget. Bounded forEach repairs preserve ordered values; scoped APIs remain excluded as existing policy, not a boundedness proof. Opposite-policy parsed controls and synthetic report nodes pass; no shared policy leakage."
     ]
   },
   "no-race-without-cleanup": {

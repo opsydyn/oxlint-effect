@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, qualificationSelection } from "./effect-version-consumer.ts";
 import { assertQualificationCoverage, resolveQualificationPath, validateQualificationCases } from "./effect-version-qualification.ts";
 import { assertEffectVersionReleaseReady } from "./effect-version-release.ts";
@@ -13,9 +14,9 @@ const inventory = await Bun.file(join(repoRoot, "docs/effect-version-inventory.j
 if (requireComplete) assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "2.0.0");
 const workspace = await mkdtemp(join(tmpdir(), "oxlint-effect-versions-"));
 
-function run(command: string, args: string[], cwd: string) {
+function run(command: string, args: string[], cwd: string, timeout?: number) {
   const result = spawnSync(command, args, {
-    cwd, encoding: "utf8",
+    cwd, encoding: "utf8", timeout,
     env: { ...process.env, npm_config_cache: join(workspace, "npm-cache"), npm_config_ignore_scripts: "true" },
   });
   if (result.error) throw new Error(`Could not execute ${command}: ${result.error.message}`);
@@ -98,7 +99,12 @@ try {
       verifyLint(root, config, entry.good, {}, 0);
       if (entry.runtime) runtimeChecks.add(entry.runtime);
     }
-    for (const path of runtimeChecks) assertCommandSuccess(run("bun", [path], root), `Effect ${major} runtime contract ${path}`);
+    for (const path of runtimeChecks) {
+      const marker = `Runtime contract completed: ${path}`;
+      const script = `await import(${JSON.stringify(pathToFileURL(join(root, path)).href)}); console.log(${JSON.stringify(marker)});`;
+      assertCommandSuccess(run("bun", ["-e", script], root, 60_000), `Effect ${major} runtime contract ${path}`, marker);
+    }
+    verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
     if (major === 4) {
       verifyLint(root, "oxlint.legacy-accessors.config.ts", ["src/qualification/serviceAndLayerArchitecture/legacy-accessors-exclusion.ts"], {}, 0);
       verifyLint(root, "oxlint.legacy-dependencies.config.ts", ["src/qualification/serviceAndLayerArchitecture/legacy-dependencies-exclusion.ts"], {}, 0);

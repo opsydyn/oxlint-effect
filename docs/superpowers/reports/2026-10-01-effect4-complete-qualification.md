@@ -202,6 +202,39 @@ hidden behind named helpers, which remains outside syntax-only proof. Merge
 and scatter policy stays unchanged: only independent merges are repaired,
 and scatter remains a name/declaration threshold rather than type analysis.
 
+## Q16 Collection Scheduling And Fork Ownership
+
+RED exposed missing v4 child/detached forks, discarded yielded handles and
+curried startup construction. GREEN reports direct/curried constructors and
+terminal pipe operators with startup options. V4 loop traversal owns only its
+body, excluding nested function definitions; v3 bare statements and broad loop
+traversal remain unchanged. Parsed counts: five mapped Effect.all warnings per
+major, one legacy/eight v4 discarded forks, five loop warnings per major.
+Opposite-policy parsed files stay clean; checked negative types reject removed
+APIs and unsupported startup options.
+
+Actual runtime contracts retain ordered results and original failure identity.
+Deferred-coordinated collection work reaches exactly two active jobs and never
+exceeds that repaired budget. Omitted options remain sequential in both installed
+majors; bare fork constructions execute zero jobs. Started child/forkScoped/
+forkIn work is interrupted once when its owner closes, while detached work
+survives the owner and receives explicit interruption and exactly-once cleanup.
+Every manifest runtime contract now requires a post-import completion marker
+and has a 60-second deadlock watchdog. RED proved early zero exit previously
+counted as success; GREEN rejects missing completion evidence.
+
+Ruling: preserve the mapped-all option-presence contract, correcting its false
+description of default parallelism. Explicit unbounded option values remain a
+documented pre-existing detection gap, not a safety guarantee. Scoped APIs are
+excluded from these two fork rules, not proven bounded. Terminal-pipe detection
+does not infer observation through arbitrary subsequent operators or stored
+aliases; preserving that local scope trades opaque detections for avoiding
+false ownership claims. No other concurrency-rule table is changed in Q16.
+
+Fresh 493 tests, root types, both packed majors with completion evidence, build,
+size 27.92 KB under 30 KB and diff check pass. Q17-Q52 and cross-group closure
+remain open; 97 rules retain an unqualified applicable version.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

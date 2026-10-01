@@ -510,9 +510,9 @@ export default defineConfig({
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-unbounded-effect-all` | `Effect.all(items.map(...))` without an explicit `concurrency` option. | Prevents load-dependent runaway parallelism and makes throughput ownership explicit. |
-| `linteffect/no-fire-and-forget-fork` | Bare `Effect.fork(...)` expression statements. | Detached fibers hide failure, interruption, and lifecycle ownership. |
-| `linteffect/no-fork-in-loop` | `Effect.fork(...)` inside `for`, `for...of`, `for...in`, `while`, or `do...while` loops. | Avoids loop-spawned unbounded fibers; use bounded `Effect.all` / `Effect.forEach` or scoped supervision. |
+| `linteffect/no-unbounded-effect-all` | `Effect.all(items.map(...))` without an inline `concurrency` option. | Requires explicit scheduling policy; omission actually defaults to sequential execution. This option-presence heuristic does not validate bounds: even `"unbounded"` stays clean. Stored inputs and named options are not resolved. |
+| `linteffect/no-fire-and-forget-fork` | V4: discarded direct/curried `forkChild` / `forkDetach` constructors, yielded handles and terminal pipe operators, including startup options. Legacy: bare `Effect.fork` statements only. | Bare construction is lazy, not a launched fiber. Retain and join/await/interrupt executed handles; children follow parent lifetime, detached fibers do not. `forkScoped` / `forkIn` are excluded; stored aliases and nonterminal pipes are not inferred. |
+| `linteffect/no-fork-in-loop` | V4: `forkChild` / `forkDetach` in the own body of `for`, `for...of`, `for...in`, `while`, or `do...while`, including direct/curried/terminal-pipe startup forms. Legacy: broad nested `Effect.fork` traversal. | Retaining handles does not impose a collection budget; prefer bounded `Effect.all` / `Effect.forEach`. Scoped APIs remain excluded, which is not proof of bounded work. V4 skips nested function definitions. |
 | `linteffect/no-race-without-cleanup` | `Effect.race(...)` / `Effect.raceAll(...)` without `Effect.ensuring`, scoped, or acquire/release cleanup. | Racing effects need explicit loser cleanup so losing work and resources do not leak. |
 | `linteffect/no-unobserved-fiber` | `const fiber = Effect.fork(...)` when the fiber is never passed to `Fiber.join`, `Fiber.await`, or `Fiber.interrupt`. | Forked fibers should have observed failure and interruption ownership. |
 | `linteffect/no-unbounded-concurrent-retry` | `Effect.retry(...)` nested inside unbounded mapped `Effect.all(...)` or unbounded `Effect.forEach(...)`. | Prevents retry storms by requiring bounded concurrency or a queue/backoff policy. |
@@ -528,6 +528,15 @@ export default defineConfig({
 | `linteffect/no-unscoped-background-fiber` | Direct `Effect.forkDaemon(...)` without a direct `Effect.supervised(...)` child-effect marker. | Strict-only protection that requires daemon work to expose supervision or use scoped ownership instead of silently outliving the caller. |
 | `linteffect/no-manual-deferred-coordination` | A local `Deferred.make(...)` / `Deferred.unsafeMake(...)` latch whose matching `Deferred.await(...)` has no timeout, race, interruption, scope, or finalizer protection. | Strict-only protection against unbounded waits and implicit completion ownership in ad hoc coordination. |
 | `linteffect/no-acquire-without-scoped-release` | Resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls for client, connection, pool, database, file, socket, stream, server, subscription, or handle values inside concurrent Effect work without scoped release evidence. | Keeps resources acquired by concurrent work tied to `acquireRelease`, `acquireUseRelease`, `Effect.scoped`, or a matching finalizer. |
+
+Scheduling/fork anti-patterns and repairs are typechecked in the
+[Effect 4 corpus](examples/effect4-consumer/src/qualification/concurrencySafety/)
+and [legacy Effect 3 corpus](examples/effect3-consumer/src/qualification/concurrencySafety/).
+Their runtime contracts verify ordered values, original failure identity,
+bounded scheduling, parent/scoped interruption and explicit detached cleanup.
+Qualification uses completion markers and a 60-second deadlock watchdog, not
+timing-based behavioural assertions. The other concurrency rules still await
+their allocated Effect 4 qualification batches.
 
 ### Resource Lifetime
 

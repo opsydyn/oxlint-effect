@@ -3,6 +3,14 @@ import { spawnSync } from "node:child_process";
 import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, selectedEffectVersions, qualificationSelection } from "../scripts/effect-version-consumer";
 
 describe("Effect consumer diagnostics", () => {
+  it("requires completion evidence rather than an early zero exit from runtime contracts", () => {
+    const marker = "runtime completed";
+    const incomplete = spawnSync("bun", ["-e", "process.exit(0)"], { encoding: "utf8" });
+    expect(() => assertCommandSuccess({ status: incomplete.status, output: incomplete.stdout }, "runtime", marker)).toThrow("completion");
+    const complete = spawnSync("bun", ["-e", `console.log(${JSON.stringify(marker)})`], { encoding: "utf8" });
+    expect(() => assertCommandSuccess({ status: complete.status, output: complete.stdout }, "runtime", marker)).not.toThrow();
+    expect(() => assertCommandSuccess({ status: 1, output: marker }, "runtime", marker)).toThrow("failed");
+  });
   it("composes complete qualification with either major selection", () => {
     expect(qualificationSelection([])).toEqual({ majors: [3, 4], requireComplete: false });
     expect(qualificationSelection(["--require-complete"])).toEqual({ majors: [3, 4], requireComplete: true });

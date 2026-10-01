@@ -46,8 +46,9 @@ export function assertDiagnosticCounts(actual: Record<string, number>, expected:
   if (mismatches.length) throw new Error(`Unexpected diagnostics: ${mismatches.map((id) => `${id}: expected ${wanted[id] ?? 0}, observed ${actual[id] ?? 0}`).join("; ")}`);
 }
 
-export function assertCommandSuccess(result: { status: number | null; output: string }, label: string): void {
+export function assertCommandSuccess(result: { status: number | null; output: string }, label: string, completionMarker?: string): void {
   if (result.status !== 0) throw new Error(`${label} failed (exit ${result.status}):\n${result.output}`);
+  if (completionMarker && !result.output.split(/\r?\n/).includes(completionMarker)) throw new Error(`${label} missing completion evidence:\n${result.output}`);
 }
 
 export function selectedEffectVersions(args: readonly string[]): readonly (3 | 4)[] {

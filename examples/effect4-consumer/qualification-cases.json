@@ -1075,5 +1075,87 @@
       }
     },
     "runtime": "src/qualification/serviceAndLayerArchitecture/infrastructure.contracts.ts"
+  },
+  {
+    "rule": "no-unbounded-effect-all",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "absent options",
+      "unrelated options",
+      "named options limit",
+      "mapped failures",
+      "explicit budget",
+      "stored inputs and tuple scope",
+      "option-presence limit"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unbounded-effect-all.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unbounded-effect-all.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unbounded-effect-all.bad.ts": {
+        "linteffect/no-unbounded-effect-all": 5
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/contracts.ts"
+  },
+  {
+    "rule": "no-fire-and-forget-fork",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "child and detached lazy constructors",
+      "discarded yielded handles",
+      "pipe member and startup factory",
+      "curried startup construction",
+      "join repair",
+      "scoped variants clean",
+      "opposite-major exclusion"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-fire-and-forget-fork.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts": {
+        "linteffect/no-fire-and-forget-fork": 8
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/contracts.ts"
+  },
+  {
+    "rule": "no-fork-in-loop",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "for",
+      "for of",
+      "for in",
+      "while",
+      "do while",
+      "retained handles",
+      "bounded collection repair",
+      "scoped variants control",
+      "own loop scope",
+      "child and detached startup options",
+      "pipe variants"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-fork-in-loop.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts": {
+        "linteffect/no-fork-in-loop": 5
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/contracts.ts"
   }
 ]

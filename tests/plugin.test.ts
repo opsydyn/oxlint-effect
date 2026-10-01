@@ -50,6 +50,45 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q16 diagnoses v4 discarded fork constructors and handles", () => {
+    const inspect = (expression: unknown, major: 3 | 4) => runRuleSequence("no-fire-and-forget-fork", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ExpressionStatement", node: expressionStatement(expression) }], { options: [{ effectVersion: major }] });
+    for (const name of ["forkChild", "forkDetach"]) {
+      const fork = effectCall(name, identifier("task"));
+      expect(inspect(fork, 4)[0]?.node).toBe(fork);
+      expect(inspect(yieldExpression(fork, true), 4)[0]?.node).toBe(fork);
+      const operator = memberExpression("Effect", name);
+      expect(inspect(yieldExpression(methodPipeCall(identifier("task"), operator), true), 4)[0]?.node).toBe(operator);
+      const startup = effectCall(name, objectLiteral(property("startImmediately", booleanLiteral(true))));
+      expect(inspect(pipeCall(identifier("task"), startup), 4)[0]?.node).toBe(startup);
+      const curried = callExpression(startup, identifier("task"));
+      expect(inspect(yieldExpression(curried, true), 4)[0]?.node).toBe(curried);
+      expect(inspect(fork, 3)).toHaveLength(0);
+    }
+    expect(inspect(effectCall("fork", identifier("task")), 4)).toHaveLength(0);
+    expect(inspect(effectCall("fork", identifier("task")), 3)).toHaveLength(1);
+    for (const name of ["forkScoped", "forkIn"]) expect(inspect(effectCall(name, identifier("task")), 4)).toHaveLength(0);
+    expect(inspect(methodPipeCall(identifier("task"), memberExpression("Effect", "forkChild"), effectCall("flatMap", memberExpression("Fiber", "join"))), 4)).toHaveLength(0);
+  });
+  it("Effect qualification Q16 searches v4 loop bodies without owning nested callbacks", () => {
+    const inspect = (body: unknown, major: 3 | 4) => runRuleSequence("no-fork-in-loop", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ForOfStatement", node: forOfStatement(body) }], { options: [{ effectVersion: major }] });
+    const fork = effectCall("forkChild", identifier("task"));
+    expect(inspect(blockStatement(expressionStatement(yieldExpression(fork, true))), 4)[0]?.node).toBe(fork);
+    const curried = callExpression(effectCall("forkDetach", objectLiteral(property("startImmediately", booleanLiteral(true)))), identifier("task"));
+    const body = blockStatement(expressionStatement(yieldExpression(curried, true)));
+    for (const visitorName of ["ForStatement", "ForInStatement", "ForOfStatement", "WhileStatement", "DoWhileStatement"]) {
+      expect(runRuleSequence("no-fork-in-loop", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName, node: { type: visitorName, body } }], { options: [{ effectVersion: 4 }] })[0]?.node).toBe(curried);
+    }
+    expect(inspect(blockStatement(expressionStatement(arrowCallback(fork))), 4)).toHaveLength(0);
+    expect(inspect(blockStatement(expressionStatement(effectCall("fork", identifier("task")))), 4)).toHaveLength(0);
+    const legacy = effectCall("fork", identifier("task"));
+    expect(inspect(blockStatement(expressionStatement(arrowCallback(legacy))), 3)[0]?.node).toBe(legacy);
+  });
+  it("Effect qualification Q16 supplies packed cases for all three policies", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-unbounded-effect-all", "no-fire-and-forget-fork", "no-fork-in-loop"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q15 recognises v4 generator forms and owns only their scope", () => {
     const provide = effectCall("provide", identifier("program"), identifier("live"));
     const body = blockStatement(expressionStatement(provide));
