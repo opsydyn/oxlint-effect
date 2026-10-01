@@ -1,6 +1,6 @@
 # Beyond Parity Roadmap
 
-Last updated: 2026-07-07
+Last updated: 2026-10-01
 
 This roadmap starts after Biome rule parity. The existing top-level `ROADMAP.md`
 remains the parity record. This directory tracks new linting rules inspired by
@@ -79,6 +79,14 @@ plugin export and does not block the v1 release.
 Some candidates intentionally overlap with EffectPatterns aliases. When
 implementing, prefer one public `linteffect/*` rule name and document any
 reference IDs as aliases.
+
+## Version Compatibility
+
+[14 Effect 4 First-Class Compatibility](./14-effect4-compatibility/README.md)
+tracks the planned breaking `2.0.0` transition: default presets target Effect 4,
+with an explicit `effect3` namespace for legacy consumers. The written design
+is proposed; implementation and dual-version qualification remain outstanding.
+This migration does not add to the original candidate-rule count.
 
 ## Update Protocol
 
