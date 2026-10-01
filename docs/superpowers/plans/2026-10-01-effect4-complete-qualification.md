@@ -157,7 +157,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q01 | `errorModeling` | `no-error-as-public-effect-error`, `no-unknown-public-error-channel`, `no-mixed-effect-error-shapes` |
 | [x] | Q02 | `errorModeling` | `no-expected-state-as-error`, `no-empty-error-tag`, `no-exception-domain-error` |
 | [x] | Q03 | `errorModeling` | `no-log-only-error-handling` |
-| [ ] | Q04 | `effectComposition` | `no-effect-as`, `no-effect-do`, `no-effect-bind` |
+| [x] | Q04 | `effectComposition` | `no-effect-as`, `no-effect-do`, `no-effect-bind` |
 | [ ] | Q05 | `effectComposition` | `no-effect-async`, `no-effect-ignore`, `no-effect-never` |
 | [ ] | Q06 | `effectComposition` | `no-effect-fn-generator`, `no-nested-effect-gen`, `no-yield-without-star-in-effect-gen` |
 | [ ] | Q07 | `effectComposition` | `no-async-effect-combinator-callback`, `no-throw-in-effect-logic`, `no-try-catch-in-effect-logic` |

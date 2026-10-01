@@ -243,5 +243,68 @@
       }
     },
     "runtime": "src/qualification/errorModeling/logging.contracts.ts"
+  },
+  {
+    "rule": "no-effect-as",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "data-first",
+      "piped"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-as.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-as.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-as.bad.ts": {
+        "linteffect/no-effect-as": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/builders.contracts.ts"
+  },
+  {
+    "rule": "no-effect-do",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct builder state",
+      "builder pipeline"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-do.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-do.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-do.bad.ts": {
+        "linteffect/no-effect-do": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/builders.contracts.ts"
+  },
+  {
+    "rule": "no-effect-bind",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "data-first",
+      "piped"
+    ],
+    "bad": [
+      "src/qualification/effectComposition/no-effect-bind.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectComposition/no-effect-bind.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectComposition/no-effect-bind.bad.ts": {
+        "linteffect/no-effect-bind": 2
+      }
+    },
+    "runtime": "src/qualification/effectComposition/builders.contracts.ts"
   }
 ]

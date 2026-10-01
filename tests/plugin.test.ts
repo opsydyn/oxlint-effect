@@ -50,6 +50,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q04 covers builder operators and parsed repairs", async () => {
+    for (const version of [3, 4] as const) {
+      const cases = await Bun.file(`examples/effect${version}-consumer/qualification-cases.json`).json();
+      for (const [rule, name] of [["no-effect-as", "as"], ["no-effect-do", "Do"], ["no-effect-bind", "bind"]]) {
+        const entry = cases.find((candidate: { rule: string }) => candidate.rule === rule);
+        expect(entry?.variants.length).toBeGreaterThanOrEqual(2);
+        const node = name === "Do" ? { type: "MemberExpression", object: identifier("Effect"), property: identifier(name) } : effectCall(name, identifier("program"));
+        const reports = runRule(rule, name === "Do" ? "MemberExpression" : "CallExpression", node, { options: [{ effectVersion: version }] });
+        expect(reports).toHaveLength(1);
+        expect(reports[0].node).toBe(name === "Do" ? node : (node as { callee: unknown }).callee);
+      }
+    }
+  });
   it("Effect qualification Q02 gives version-correct expected-state repairs", () => {
     for (const version of [3, 4] as const) {
       const target = effectCall("fail", stringLiteral("Missing"));

@@ -1612,12 +1612,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectAs; transitive helpers: noEffectAs, isMemberExpression, isIdentifier",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q04: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-as.{bad,good}.ts; builders.contracts.ts.",
+      "Installed APIs retain data-first/piped or builder state forms; two parsed warnings per major. Explicit map/gen repairs preserve value and object shape at runtime; unrelated receivers clean. Literal Effect receiver syntax only."
     ]
   },
   "no-effect-do": {
@@ -1627,12 +1627,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectDo; transitive helpers: noEffectDo, isMemberExpression, isIdentifier",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q04: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-do.{bad,good}.ts; builders.contracts.ts.",
+      "Installed APIs retain data-first/piped or builder state forms; two parsed warnings per major. Explicit map/gen repairs preserve value and object shape at runtime; unrelated receivers clean. Literal Effect receiver syntax only."
     ]
   },
   "no-effect-bind": {
@@ -1642,12 +1642,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noEffectBind; transitive helpers: noEffectBind, createForbiddenMemberCallRule, isMemberExpression, isIdentifier",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q04: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-bind.{bad,good}.ts; builders.contracts.ts.",
+      "Installed APIs retain data-first/piped or builder state forms; two parsed warnings per major. Explicit map/gen repairs preserve value and object shape at runtime; unrelated receivers clean. Literal Effect receiver syntax only."
     ]
   },
   "no-runtime-runfork": {

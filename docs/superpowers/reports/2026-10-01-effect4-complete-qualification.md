@@ -43,6 +43,11 @@ Earlier plain recovery rules now cover catchEager in their packed v4 probes.
 
 ## Rulings
 
+Q04: as/Do/bind remain unchanged APIs in both majors. Two parsed warnings per
+rule/major, unrelated receivers and typechecked map/gen repairs pass; runtime
+controls preserve mapped values and bound object shapes. 473 tests, root types,
+both packed majors and size 26.8 KB pass. No detector changes.
+
 V4 log-only policy excludes observers because the installed API preserves the
 original failure; legacy tapError reporting is retained for compatibility.
 This is a deliberate major-version policy distinction. Existing syntax-local
