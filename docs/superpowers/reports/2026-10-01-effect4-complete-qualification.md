@@ -1204,6 +1204,27 @@ publint, API docs and diff. Raw build remains 141.67 kB; cap fails by 829 bytes.
 Q22-Q46 and inventory statuses stay open, 82 unqualified. Continue Q47-Q52 and
 closure without release.
 
+## Q47 Callback Returns And Absence Models
+
+Packed both majors emit 8 arrow plus 1 no-import / 7 regular callback plus 1
+no-import / 5 null-return warnings. Recursive return search includes unused
+nested returns. Callback owners have no import gate; regular callback detection
+excludes arrows and generator FunctionExpressions. Named/object callbacks,
+concise/stored nulls and no/late-import null controls document syntax limits.
+
+Current arrow policy exempts actual Schema.makeFilter, replacing removed
+Schema.filter; legacy filter exemption/messages remain unchanged. Opposite schema
+policy warns once in each consumer. Actual decoding accepts 42 and rejects
+zero/negative/string input. Expression/gen repairs preserve callback 42/0,
+multiple/async results; Option models preserve wire null and present values.
+Absence-to-failure substitution is not claimed equivalent. No purity or arbitrary
+callback safety proof is inferred.
+
+Fresh gates pass: 559 tests / 3663 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 141.74 kB; cap fails by 861 bytes.
+Q22-Q47 and inventory statuses stay open, 82 unqualified. Continue Q48-Q52 and
+closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

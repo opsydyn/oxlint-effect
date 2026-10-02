@@ -216,6 +216,11 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-return-in-arrow")) {
+      const config = "oxlint.qualification.opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-return-in-arrow": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/branchingAndLocalControlFlow/schema-callback.good.ts"], { "linteffect/no-return-in-arrow": 1 }, 1);
+    }
     if (cases.some(entry => entry.rule === "no-ternary")) {
       const config = "oxlint.qualification.opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-ternary": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));

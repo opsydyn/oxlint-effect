@@ -3209,5 +3209,83 @@
       }
     },
     "runtime": "src/qualification/branchingAndLocalControlFlow/exception-iife.contracts.ts"
+  },
+  {
+    "rule": "no-return-in-arrow",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "inline direct arguments, multiple or async callbacks, broad unused returns",
+      "actual expression/named/gen/object callback scope controls",
+      "own-major Schema.filter/makeFilter exemption and decoding checks"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-return-in-arrow.bad.ts",
+      "src/qualification/branchingAndLocalControlFlow/callback-no-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/callbacks.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/schema-callback.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-return-in-arrow.bad.ts": {
+        "linteffect/no-return-in-arrow": 8
+      },
+      "src/qualification/branchingAndLocalControlFlow/callback-no-import.bad.ts": {
+        "linteffect/no-return-in-arrow": 1
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/callback-absence.contracts.ts"
+  },
+  {
+    "rule": "no-return-in-callback",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "inline direct arguments, multiple or async callbacks, broad unused returns",
+      "actual expression/named/gen/object callback scope controls",
+      "own-major Schema.filter/makeFilter exemption and decoding checks"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-return-in-callback.bad.ts",
+      "src/qualification/branchingAndLocalControlFlow/callback-no-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/callbacks.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/schema-callback.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-return-in-callback.bad.ts": {
+        "linteffect/no-return-in-callback": 7
+      },
+      "src/qualification/branchingAndLocalControlFlow/callback-no-import.bad.ts": {
+        "linteffect/no-return-in-callback": 1
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/callback-absence.contracts.ts"
+  },
+  {
+    "rule": "no-return-null",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "explicit null return in declarations/arrows/generators/unused/map callbacks",
+      "actual Option model preserves wire null and present 42",
+      "no/late import and concise/identifier/object scope controls"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-return-null.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/absence.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/null-no-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/null-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-return-null.bad.ts": {
+        "linteffect/no-return-null": 5
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/callback-absence.contracts.ts"
   }
 ]

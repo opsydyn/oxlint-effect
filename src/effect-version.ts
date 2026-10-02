@@ -65,6 +65,7 @@ export const versionSensitiveRules = [
   "no-flatmap-ladder",
   "no-effect-side-effect-wrapper",
   "no-ternary",
+  "no-return-in-arrow",
   "no-hidden-effect-execution",
   "no-boundary-try-catch-without-effect-map",
   "no-run-effect-outside-boundary",

@@ -52,6 +52,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q47 supplies packed callback and absence evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-return-in-arrow", "no-return-in-callback", "no-return-null"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q47 selects current schema filter exemptions", () => {
+    const inspect = (name: string, version: 3 | 4) => runRule("no-return-in-arrow", "CallExpression", callExpression(memberExpression("Schema", name), arrowCallback(blockStatement(returnStatement(identifier("valid"))))), { options: [{ effectVersion: version }] });
+    expect(inspect("makeFilter", 4)).toHaveLength(0);
+    expect(inspect("filter", 4)).toHaveLength(1);
+    expect(inspect("filter", 3)).toHaveLength(0);
+    expect(inspect("makeFilter", 3)).toHaveLength(1);
+  });
   it("Effect qualification Q46 supplies packed exceptions and IIFE evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

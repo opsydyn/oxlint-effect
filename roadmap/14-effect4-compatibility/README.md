@@ -100,6 +100,10 @@ Q46 exception/IIFE checks pass with cleanup, original failure identity and
 deferred Promise execution controls. Size remains 829 bytes over the unchanged
 cap; qualification stays open. Continue Q47-Q52 and closure.
 
+Q47 callback/absence checks pass with current makeFilter/legacy filter exemption,
+actual decoding and Option wire controls. Size is 861 bytes over the unchanged
+cap; qualification stays open. Continue Q48-Q52 and closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

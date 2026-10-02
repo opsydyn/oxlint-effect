@@ -71,7 +71,7 @@
     },
     "evidence": [
       "src/index.ts: noReturnNull; transitive helpers: noReturnNull, getImportSource, isEffectEcosystemImport, isNullLiteral",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q47 packed both majors: 5 explicit null returns in function/block/generator/unused/map. Actual Option absence preserves boundary null and present 42; concise/stored/object/no/late-import gaps documented. No absence-to-failure equivalence claimed. Size gate remains open."
     ]
   },
   "no-option-as": {
@@ -150,7 +150,7 @@
     ]
   },
   "no-return-in-arrow": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -161,7 +161,7 @@
     },
     "evidence": [
       "src/index.ts: noReturnInArrow; transitive helpers: noReturnInArrow, directArrowCallbackReturns, isSchemaFilterCall, isMemberExpression, isIdentifier, findReturnStatements",
-      "Recognition tokens: Schema; API and repair controls still require packed qualification."
+      "Q47 packed both majors: 8 direct/branch/multiple/unused arrow returns plus 1 no-import callback. Current Schema.makeFilter exemption adapted; legacy Schema.filter preserved, opposite schema warns 1. Actual expression/gen callbacks and schema decoding preserve values. Broad nested return and named/object limits documented. Size gate remains open."
     ]
   },
   "no-return-in-callback": {
@@ -176,7 +176,7 @@
     },
     "evidence": [
       "src/index.ts: noReturnInCallback; transitive helpers: noReturnInCallback, directFunctionCallbackReturns, findReturnStatements",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q47 packed both majors: 7 regular/branch/unused/Effect/async returns plus 1 no-import callback. Arrows/generators excluded, recursive returns not scope-aware; actual expression/gen/named/object controls retain 42/0 and async values. Size gate remains open."
     ]
   },
   "no-effect-fn-generator": {

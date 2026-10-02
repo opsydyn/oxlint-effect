@@ -286,26 +286,27 @@ function findReturnStatements(node: unknown, seen = new WeakSet<object>()): unkn
   ));
 }
 
-function isSchemaFilterCall(node: unknown): boolean {
+function isSchemaFilterCall(node: unknown, version: EffectVersion): boolean {
   if (typeof node !== "object" || node === null) {
     return false;
   }
 
   const call = node as Node;
+  const name = version === 3 ? "filter" : "makeFilter";
   return (
     call.type === "CallExpression" &&
-    (isMemberExpression(call.callee, "S", "filter") ||
-      isMemberExpression(call.callee, "Schema", "filter"))
+    (isMemberExpression(call.callee, "S", name) ||
+      isMemberExpression(call.callee, "Schema", name))
   );
 }
 
-function directArrowCallbackReturns(node: unknown): unknown[] {
+function directArrowCallbackReturns(node: unknown, version: EffectVersion): unknown[] {
   if (typeof node !== "object" || node === null) {
     return [];
   }
 
   const call = node as Node;
-  if (call.type !== "CallExpression" || !Array.isArray(call.arguments) || isSchemaFilterCall(call)) {
+  if (call.type !== "CallExpression" || !Array.isArray(call.arguments) || isSchemaFilterCall(call, version)) {
     return [];
   }
 
@@ -5485,9 +5486,10 @@ const noIifeWrapper = defineRule({
 
 const noReturnInArrow = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       CallExpression(node: any) {
-        for (const returnNode of directArrowCallbackReturns(node)) {
+        for (const returnNode of directArrowCallbackReturns(node, version)) {
           report(
             context,
             returnNode,

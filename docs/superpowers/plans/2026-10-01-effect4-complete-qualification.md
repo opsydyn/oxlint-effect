@@ -299,6 +299,10 @@ Q46 exception/IIFE behavioural evidence passes with identity, cleanup and
 deferred execution controls. Size remains 829 bytes over the unchanged cap;
 checkbox/inventory stay open. Continue Q47-Q52.
 
+Q47 callback/absence behavioural evidence passes with current makeFilter/legacy
+filter exemption and actual decoding controls. Size is 861 bytes over the
+unchanged cap; checkbox/inventory stay open. Continue Q48-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

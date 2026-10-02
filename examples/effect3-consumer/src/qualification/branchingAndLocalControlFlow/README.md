@@ -1,4 +1,4 @@
-# Branching And Local Control Flow: Q45-Q46
+# Branching And Local Control Flow: Q45-Q47
 
 These deliberately failing examples use pinned Effect 3. Exact warnings are
 checked against the packed plugin, not an editor restart or an application run.
@@ -55,3 +55,34 @@ error identity, cleanup once on success/failure, async/generator behaviour,
 member-call receiver context and a single deferred Promise invocation. This is
 not proof that all arbitrary IIFEs can be mechanically inlined without semantic
 changes or that callback cancellation has been qualified.
+
+## Callback Returns And Modelled Absence
+
+[`no-return-in-arrow` failures](no-return-in-arrow.bad.ts) cover direct block
+arguments, branches, multiple callbacks and unused nested returns.
+[`no-return-in-callback` failures](no-return-in-callback.bad.ts) cover regular
+FunctionExpressions, including async and nested unused returns. This owner does
+not cover arrows or generator FunctionExpressions. Neither owner has an import
+gate: [ordinary callbacks](callback-no-import.bad.ts) still warn. Return search
+is recursive, not function-scope-aware.
+
+[Repairs](callbacks.good.ts) use expression callbacks and actual Effect.gen;
+named/object callbacks are labelled syntax limits. [Schema controls](schema-callback.good.ts)
+use Schema.filter, which is the own-major arrow exemption.
+The opposite version deliberately warns on the same predicate. Namespace names
+Schema and S are recognised syntactically, not through general symbol resolution.
+Generator exclusion belongs to the regular-callback owner, not every generator
+or every nested callback in a generator body.
+
+[`no-return-null` failures](no-return-null.bad.ts) cover explicit null in named,
+block-arrow, generator, unused and map returns after import.
+[Option repairs](absence.good.ts) represent absence as data, preserving null
+only when encoded at the wire boundary. Concise-null/stored-identifier/object
+values and [no-import](null-no-import.good.ts)/[late-import](null-late-import.good.ts)
+controls document scope gaps, not endorsed repairs. Replacing absence with
+failure is not an equivalent repair unless the domain contract demands it.
+
+[Runtime contracts](callback-absence.contracts.ts) retain 42/0, multiple/async
+callback results, null wire encoding, present Option data and schema acceptance
+of 42 with rejection of zero, negatives and strings. No runtime application or
+general callback purity claim is made.
