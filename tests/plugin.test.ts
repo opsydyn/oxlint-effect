@@ -52,6 +52,12 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q39 supplies packed pure flow evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-large-anonymous-flow", "no-effect-in-flow", "prefer-named-flow"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q38 recognises current eager workflow callbacks", () => {
     const callback = arrowCallback(blockStatement({ type: "IfStatement", test: identifier("enabled"), consequent: blockStatement(), alternate: null }));
     const node = pipeCall(effectCall("succeed", identifier("input")), effectCall("flatMapEager", callback));

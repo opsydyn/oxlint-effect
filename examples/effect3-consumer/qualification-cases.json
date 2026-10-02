@@ -2642,5 +2642,80 @@
       }
     },
     "runtime": "src/qualification/effectFlow/business-workflow.contracts.ts"
+  },
+  {
+    "rule": "no-large-anonymous-flow",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "5/6-stage and already-named flow versus split/short/aliased controls",
+      "Effect/async/await/Promise/console/yield and unused/name false positives",
+      "3-stage inline flow, arbitrary callers and first inline argument report",
+      "actual flow output/array/async/generator/console contract checks",
+      "outer Effect boundary preserves value/failure identity; import-order gaps"
+    ],
+    "bad": [
+      "src/qualification/pureTransformation/no-large-anonymous-flow.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pureTransformation/no-large-anonymous-flow.good.ts",
+      "src/qualification/pureTransformation/pure-flow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pureTransformation/no-large-anonymous-flow.bad.ts": {
+        "linteffect/no-large-anonymous-flow": 3
+      }
+    },
+    "runtime": "src/qualification/pureTransformation/pure-flow.contracts.ts"
+  },
+  {
+    "rule": "no-effect-in-flow",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "5/6-stage and already-named flow versus split/short/aliased controls",
+      "Effect/async/await/Promise/console/yield and unused/name false positives",
+      "3-stage inline flow, arbitrary callers and first inline argument report",
+      "actual flow output/array/async/generator/console contract checks",
+      "outer Effect boundary preserves value/failure identity; import-order gaps"
+    ],
+    "bad": [
+      "src/qualification/pureTransformation/no-effect-in-flow.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pureTransformation/no-effect-in-flow.good.ts",
+      "src/qualification/pureTransformation/pure-flow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pureTransformation/no-effect-in-flow.bad.ts": {
+        "linteffect/no-effect-in-flow": 9
+      }
+    },
+    "runtime": "src/qualification/pureTransformation/pure-flow.contracts.ts"
+  },
+  {
+    "rule": "prefer-named-flow",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "5/6-stage and already-named flow versus split/short/aliased controls",
+      "Effect/async/await/Promise/console/yield and unused/name false positives",
+      "3-stage inline flow, arbitrary callers and first inline argument report",
+      "actual flow output/array/async/generator/console contract checks",
+      "outer Effect boundary preserves value/failure identity; import-order gaps"
+    ],
+    "bad": [
+      "src/qualification/pureTransformation/prefer-named-flow.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pureTransformation/prefer-named-flow.good.ts",
+      "src/qualification/pureTransformation/pure-flow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pureTransformation/prefer-named-flow.bad.ts": {
+        "linteffect/prefer-named-flow": 4
+      }
+    },
+    "runtime": "src/qualification/pureTransformation/pure-flow.contracts.ts"
   }
 ]

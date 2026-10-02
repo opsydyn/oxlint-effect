@@ -404,7 +404,7 @@
     },
     "evidence": [
       "src/index.ts: noLargeAnonymousFlow; transitive helpers: noLargeAnonymousFlow, getImportSource, isEffectEcosystemImport, isLargeFlowCall, isFlowCall, isIdentifier",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q39: 3 warnings per major for 5/6 stages including assigned domain name. Naming alone still warns; actual split/short flow repairs preserve42. Alias flow/import-order controls clean. Policy unchanged, no purity inference. Final 30 KB gate pending: 745 bytes over."
     ]
   },
   "no-effect-in-flow": {
@@ -419,7 +419,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectInFlow; transitive helpers: noEffectInFlow, getImportSource, isEffectEcosystemImport, effectfulFlowArgument, isFlowCall, isIdentifier, isEffectfulFlowArgument, containsEffectMemberCall, isEffectMemberCall, containsNodeType, containsAsyncFunction, containsConsoleCall, isConsoleCall, containsIdentifierNamed",
-      "Recognition tokens: Effect, Runtime; API and repair controls still require packed qualification."
+      "Q39: 9 warnings per major covering Effect/async/await/Promise/console/yield, unused nested callbacks and ordinary Promise/Runtime name counterexamples. Named/aliased effectful flow remains clean gap. Actual outer Effect boundary retains42/original failure; async/generator/console contracts verified with console restoration. Final 30 KB gate pending: 745 bytes over."
     ]
   },
   "prefer-named-flow": {
@@ -434,7 +434,7 @@
     },
     "evidence": [
       "src/index.ts: preferNamedFlow; transitive helpers: preferNamedFlow, getImportSource, isEffectEcosystemImport, inlineNonTrivialFlowArgument, isFlowCall, isIdentifier",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q39: 4 warnings per major for inline3-stage flows in Effect.map, array.map, arbitrary helper and multiple arguments (first only). Named/short repairs preserve42/array/combined84; actual flow APIs checked both majors, import-order gap retained. Final 30 KB gate pending: 745 bytes over."
     ]
   },
   "prefer-flow-for-pure-pipeline": {

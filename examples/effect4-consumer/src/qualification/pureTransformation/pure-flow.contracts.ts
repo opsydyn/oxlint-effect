@@ -1,0 +1,20 @@
+import { Effect, Exit, flow } from "effect";
+import * as large from "./no-large-anonymous-flow.bad";
+import * as split from "./no-large-anonymous-flow.good";
+import * as impure from "./no-effect-in-flow.bad";
+import * as pure from "./no-effect-in-flow.good";
+import * as inline from "./prefer-named-flow.bad";
+import * as named from "./prefer-named-flow.good";
+for (const transform of [large.five, large.six, large.namedDomainTransformation, split.split, split.four, split.opaque, pure.pure, named.transform]) if (transform(1) !== 42) throw new Error("Pure flow result changed");
+for (const task of [pure.outside(1), inline.task, named.task, named.short, impure.effect(1), pure.named(1), pure.alias(1)]) if (await Effect.runPromise(task) !== 42) throw new Error("Effect placement changed value");
+if (inline.array[0] !== 42 || named.array[0] !== 42 || inline.plain !== 42 || inline.multiple !== 84) throw new Error("Named extraction changed call values");
+for (const task of [impure.asynchronous(1), impure.asynchronousExpression(1), impure.promise(1)]) if (await task !== 42) throw new Error("Async counterexample changed");
+if (impure.unused(1) !== 42 || impure.shadowed(1) !== 42 || impure.runtimeName(1) !== 42) throw new Error("Unused/name counterexample changed");
+const iterator = impure.generator(1);
+if (iterator.next().value !== 1 || iterator.next().value !== 42) throw new Error("Generator control changed");
+const previous = console.warn;
+const logs: unknown[][] = [];
+try { console.warn = (...args: unknown[]) => { logs.push(args); }; if (impure.consoleFlow(1) !== 42 || logs.length !== 1 || logs[0]?.[1] !== 1) throw new Error("Console side effect changed"); } finally { console.warn = previous; }
+const original = { _tag: "Q39Failure" };
+const task = Effect.map(Effect.fail(original), pure.pure);
+if (!Exit.isFailure(await Effect.runPromiseExit(task)) || await Effect.runPromise(Effect.flip(task)) !== original) throw new Error("Outer Effect boundary lost failure identity");
