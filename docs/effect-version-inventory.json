@@ -378,7 +378,7 @@
     ]
   },
   "no-business-logic-in-pipe": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -389,7 +389,7 @@
     },
     "evidence": [
       "src/index.ts: noBusinessLogicInPipe; transitive helpers: noBusinessLogicInPipe, getImportSource, isEffectEcosystemImport, businessLogicInPipeCallback, isPipeCall, isIdentifier, pipeOperatorArguments, isEffectMemberCallNamed, isEffectMemberCall, isFunctionLike, containsNodeType, findNode, isYieldedServiceDependency, findNodes",
-      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification."
+      "Q38: 13 legacy/14 current warnings; opposite13/13. Current flatMapEager supported, exact legacy flatMap policy retained. All7 control-flow forms, first qualifying callback, service-name suffix and broad two-call/unused-body reports covered. Valid Reader lookup remains clean; ReaderService alias warns. Generator/service/pure repairs preserve42/0,loops,service values and original failure identity. Final 30 KB gate pending: 745 bytes over."
     ]
   },
   "no-large-anonymous-flow": {

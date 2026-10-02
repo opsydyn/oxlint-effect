@@ -52,6 +52,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q38 recognises current eager workflow callbacks", () => {
+    const callback = arrowCallback(blockStatement({ type: "IfStatement", test: identifier("enabled"), consequent: blockStatement(), alternate: null }));
+    const node = pipeCall(effectCall("succeed", identifier("input")), effectCall("flatMapEager", callback));
+    const inspect = (version: 3 | 4) => runRuleSequence("no-business-logic-in-pipe", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    expect(inspect(4)).toHaveLength(1);
+    expect(inspect(3)).toHaveLength(0);
+  });
+  it("Effect qualification Q38 supplies packed business workflow evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      expect(cases.some((entry: { rule: string }) => entry.rule === "no-business-logic-in-pipe")).toBe(true);
+    }
+  });
   it("Effect qualification Q37 selects current workflow operators", () => {
     const inspect = (operator: string, version: 3 | 4) => runRuleSequence("prefer-gen-for-workflow", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: pipeCall(effectCall("succeed", identifier("value")), effectCall(operator, identifier("step")), effectCall(operator, identifier("step")), effectCall(operator, identifier("step"))) }], { options: [{ effectVersion: version }] });
     expect(inspect("flatMapEager", 4)).toHaveLength(1);

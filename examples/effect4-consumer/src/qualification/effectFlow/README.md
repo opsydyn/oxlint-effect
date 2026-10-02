@@ -21,3 +21,19 @@ repairs preserve 42, object shape, event order and original failure identity;
 failure short-circuits later events. Compiler-negative fixtures reject removed
 current zipRight and foreign legacy eager operators. No application was launched;
 this is packed lint/type/runtime-contract QA with size/closure still outstanding.
+
+## Q38 Business Work In Callback Pipes
+
+`no-business-logic-in-pipe` checks inline flatMap callbacks and current
+flatMapEager callbacks. It reports the first qualifying callback per pipeline,
+not one per operator. All seven control-flow forms, two Effect calls and yielded
+identifiers ending Service are covered. The service check is a name heuristic:
+a valid Reader service is clean, while its ReaderService alias warns. Broad
+walks can also warn on unused nested control flow or a simple two-call map.
+
+Named callbacks, aliased operators and ternaries containing one Effect call are
+clean controls, not proof of workflow simplicity. Actual generator/service/pure
+repairs preserve true/false 42/0, loop values, provided service output and original
+failure identity. The current eager operator is checked under both policies;
+legacy ignores it. All four workflow owners now have behavioural evidence, but
+package size and whole-campaign closure still block final qualification.

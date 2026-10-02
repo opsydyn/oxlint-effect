@@ -265,6 +265,9 @@ Q37 workflow behavioural evidence passes with own-major operator selection.
 Size is 752 bytes over 30 KB; checkbox and inventory statuses stay open.
 Continue Q38.
 
+Q38 business-workflow behavioural evidence passes, completing four owners.
+Size is745 bytes over30 KB; checkbox/inventory stay open. Continue Q39.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

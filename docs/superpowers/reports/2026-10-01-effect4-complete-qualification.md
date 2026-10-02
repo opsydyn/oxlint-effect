@@ -1004,6 +1004,28 @@ majors/opposite/runtime controls, publint, API docs and diff. Build is 141.33 kB
 raw; cap fails by 752 bytes. Q22-Q37 and inventory statuses remain open,
 82 rules unqualified. Continue Q38-Q52 and campaign closure without release.
 
+## Q38 Business Workflow Callbacks
+
+Own-major counts are 13 legacy/14 current, opposite13/13. Current flatMapEager
+is now recognised alongside flatMap; exact legacy policy retained. Regression
+watched RED/GREEN and sensitivity/projections agree. All seven control-flow forms,
+function expressions, first qualifying callback in a pipeline and multiple Effect
+calls have parsed controls. Unused nested branches and simple two-call maps can
+conservatively warn.
+
+The first packed count failed because actual Reader service lookup was missed:
+the helper only recognises yielded names ending Service. Source audit retained
+that heuristic and added both Reader clean-gap and ReaderService alias warning
+controls; warning counts were not weakened. Own-major Tag/Service and provided
+Layer are real typed services. Named callbacks, operator aliases and single-call
+ternaries stay clean. Generator/service/pure repairs preserve42/0, loop outputs,
+service42 and original failure identity. No inference/type/whole-program proof.
+
+Fresh gates pass:545 tests/3598 expectations, root types, final packed majors/
+opposite/runtime, publint, API docs/diff. All four workflow owners have behavioural
+evidence. Build141.41 kB raw; cap fails745 bytes. Q22-Q38 and inventory statuses
+remain open,82 rules unqualified. Continue Q39-Q52 and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

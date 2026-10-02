@@ -2616,5 +2616,31 @@
       }
     },
     "runtime": "src/qualification/effectFlow/workflow.contracts.ts"
+  },
+  {
+    "rule": "no-business-logic-in-pipe",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "all seven control-flow kinds, function forms and first callback report",
+      "actual Context Tag/Service lookup and two-step effect callback",
+      "unused body/two-constructor conservative reports versus named/alias controls",
+      "current flatMapEager recognition, legacy unchanged",
+      "generator/value/service/failure identity runtime repairs"
+    ],
+    "bad": [
+      "src/qualification/effectFlow/no-business-logic-in-pipe.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectFlow/no-business-logic-in-pipe.good.ts",
+      "src/qualification/effectFlow/workflow-no-import.good.ts",
+      "src/qualification/effectFlow/workflow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectFlow/no-business-logic-in-pipe.bad.ts": {
+        "linteffect/no-business-logic-in-pipe": 13
+      }
+    },
+    "runtime": "src/qualification/effectFlow/business-workflow.contracts.ts"
   }
 ]

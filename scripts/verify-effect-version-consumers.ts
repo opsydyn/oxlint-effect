@@ -216,6 +216,11 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-business-logic-in-pipe")) {
+      const config = "oxlint.qualification.business-opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-business-logic-in-pipe": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/effectFlow/no-business-logic-in-pipe.bad.ts"], { "linteffect/no-business-logic-in-pipe": 13 }, 1);
+    }
     if (cases.some(entry => entry.rule === "prefer-gen-for-workflow")) {
       const config = "oxlint.qualification.workflow-opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/prefer-gen-for-workflow": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));

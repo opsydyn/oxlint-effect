@@ -779,13 +779,14 @@ function preferFlowForPurePipelineNode(node: unknown): unknown | undefined {
   return isPureTransformationCall(parent) ? undefined : node;
 }
 
-function businessLogicInPipeCallback(node: unknown): unknown | undefined {
+function businessLogicInPipeCallback(node: unknown, version: EffectVersion = 3): unknown | undefined {
   if (!isPipeCall(node)) {
     return undefined;
   }
 
   for (const part of pipeOperatorArguments(node)) {
-    if (!isEffectMemberCallNamed(part, "flatMap")) {
+    if (!isEffectMemberCallNamed(part, "flatMap") &&
+      !(version === 4 && isEffectMemberCallNamed(part, "flatMapEager"))) {
       continue;
     }
 
@@ -6008,6 +6009,7 @@ const preferFlowForPurePipeline = defineRule({
 
 const noBusinessLogicInPipe = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6022,7 +6024,7 @@ const noBusinessLogicInPipe = defineRule({
           return;
         }
 
-        const callback = businessLogicInPipeCallback(node);
+        const callback = businessLogicInPipeCallback(node, version);
         if (callback) {
           report(
             context,
