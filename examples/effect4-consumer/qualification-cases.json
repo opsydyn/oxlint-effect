@@ -1920,5 +1920,32 @@
       }
     },
     "runtime": "src/qualification/platformAndBoundaryHygiene/decoding-clock-platform.contracts.ts"
+  },
+  {
+    "rule": "no-process-env-direct-read",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "direct computed dynamic optional whole and destructured reads",
+      "no Effect import gate",
+      "delete/local-process false positives and compound-assignment gap",
+      "default/custom/replaced/empty config and boundary paths",
+      "own-major typed integer/provider repair",
+      "missing malformed stable injected configuration and environment restoration"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/no-process-env-direct-read.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/no-process-env-direct-read.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/config/env.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/server/env.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/no-process-env-direct-read.bad.ts": {
+        "linteffect/no-process-env-direct-read": 10
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/environment-config.contracts.ts"
   }
 ]

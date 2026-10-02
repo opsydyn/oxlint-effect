@@ -463,6 +463,17 @@ than renaming wall-clock access. Shared-platform policy needs no Effect import,
 reports type-only Node imports, and does not inspect `require`; configure genuine
 application boundaries or depend on typed services.
 
+Environment examples cover direct/computed/optional reads, whole-object access,
+configuration paths and typed integer providers. V3 uses `Config.integer` with
+`ConfigProvider.fromMap`; v4 uses `Config.Int` with
+`ConfigProvider.fromUnknown`. Both `boundaryPaths` and `configPaths` replace
+defaults, and empty arrays remove exemptions. This literal-name policy needs no
+Effect import: a local object named `process` and `delete` can warn, while imported
+aliases, destructured process objects and compound assignments retain gaps.
+Runtime controls restore their private environment keys and show that injected
+configuration remains stable when ambient state changes, rejecting missing or
+malformed values through Effect.
+
 ### Testing, Observability, and QA
 
 | Rule | Catches | Why |

@@ -52,6 +52,12 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q27 supplies packed environment/config evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      expect(cases.some((entry: { rule: string }) => entry.rule === "no-process-env-direct-read")).toBe(true);
+    }
+  });
   it("Effect qualification Q26 recognises current untraced function clock reads", () => {
     const node = effectCall("fnUntraced", generatorCallback(blockStatement(returnStatement(dateNowCall()))));
     const inspect = (version: 3 | 4) => runRuleSequence("no-date-now-in-effect", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }, { visitorName: "Program:exit", node: {} }], { options: [{ effectVersion: version }] });

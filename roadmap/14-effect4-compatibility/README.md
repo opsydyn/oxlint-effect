@@ -21,6 +21,10 @@ Q26 decoding/clock/platform behavioural checks pass; current clock policy and
 schema advice use pinned v4 APIs. Size is 385 bytes over the unchanged cap;
 qualification remains open. Continue Q27-Q52.
 
+Q27 environment/config behavioural checks pass with unchanged detection and
+own-major typed provider repairs. Size remains 385 bytes over the cap;
+final qualification stays open. Continue Q28-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

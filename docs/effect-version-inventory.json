@@ -1539,7 +1539,7 @@
     },
     "evidence": [
       "src/index.ts: noProcessEnvDirectRead; transitive helpers: noProcessEnvDirectRead, processEnvPathOptionsSchema, isProcessEnvRead, isMemberExpressionNode, isProcessEnvMember, isIdentifier, isNamedMemberProperty, isStringLiteral, isProcessEnvWriteTarget, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isConfigPath, configPathsFor, defaultConfigPaths",
-      "Recognition tokens: OptionalMemberExpression; API and repair controls still require packed qualification."
+      "Q27: 10 warnings per major across direct/computed/dynamic/optional/whole/destructured reads with no Effect import gate. Delete and local process object warnings retained; aliases/destructured process and compound assignment remain gaps. Default/custom/replaced/empty boundaryPaths and configPaths checked independently. Actual v3 integer/fromMap and v4 Int/fromUnknown providers preserve decoded 42 under ambient mutation and reject missing/malformed input; private env keys restored. Final 30 KB gate pending: 385 bytes over."
     ]
   },
   "no-overloaded-options-object": {

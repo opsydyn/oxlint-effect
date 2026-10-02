@@ -704,6 +704,29 @@ Build 140.35 kB raw; unchanged 30 KB compressed cap fails by 385 bytes. Q22-Q26
 remain unchecked, 82 rules retain unqualified applicable versions. Continue
 Q27-Q52 and cross-group closure; no push, version bump or release.
 
+## Q27 Ambient Environment And Owned Configuration
+
+Behavioural evidence passes in both pinned consumers with unchanged detector
+policy. Ten warnings per major cover direct/computed/dynamic/optional reads,
+destructuring and whole-environment access. There is no Effect import gate.
+Literal-name matching retains warnings on a local process object and delete;
+imported aliases, destructured process objects and compound assignments remain
+clean gaps. These are documented rather than treated as ownership repairs.
+
+Both boundaryPaths and configPaths replace defaults; custom and empty-array
+controls verify each option independently. Actual typed repairs use legacy
+Config.integer/ConfigProvider.fromMap/Layer.setConfigProvider versus current
+Config.Int/ConfigProvider.fromUnknown/ConfigProvider.layer. Checked API negatives
+pass. The injected provider decodes 42 and remains stable when ambient state
+changes; missing/malformed integers fail through Effect. Raw reads observe
+mutation. Runtime controls restore every private environment key in finally.
+
+Fresh gates pass: 526 tests/3512 expectations, root types, both packed majors
+including final path controls and runtime markers, publint, API docs and diff.
+Build stays 140.35 kB raw; unchanged 30 KB size cap fails by 385 bytes. Q22-Q27
+remain unchecked; 82 rules retain unqualified applicable versions. Continue
+Q28-Q52 and cross-group closure; no push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

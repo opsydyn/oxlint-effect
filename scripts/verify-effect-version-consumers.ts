@@ -187,6 +187,19 @@ try {
       verifyLint(root, config, [shared], {}, 0);
       verifyLint(root, config, [boundary], { [`linteffect/${rule}`]: 1 }, 1);
     }
+    {
+      const rule = "no-process-env-direct-read";
+      const config = "oxlint.qualification.paths.json";
+      const paths = ["src/qualification/platformAndBoundaryHygiene/config/env.good.ts", "src/qualification/platformAndBoundaryHygiene/server/env.good.ts"];
+      const bad = "src/qualification/platformAndBoundaryHygiene/no-process-env-direct-read.bad.ts";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { boundaryPaths: [], configPaths: [] }] } }));
+      verifyLint(root, config, paths, { [`linteffect/${rule}`]: 2 }, 1, Object.fromEntries(paths.map(path => [path, { [`linteffect/${rule}`]: 1 }])));
+      for (const option of ["boundaryPaths", "configPaths"]) {
+        await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { boundaryPaths: [], configPaths: [], [option]: ["**/no-process-env-direct-read.bad.ts"] }] } }));
+        verifyLint(root, config, [bad], {}, 0);
+        verifyLint(root, config, paths, { [`linteffect/${rule}`]: 2 }, 1);
+      }
+    }
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
       "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },
