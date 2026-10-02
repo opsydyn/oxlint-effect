@@ -216,6 +216,11 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-effect-all-step-sequencing")) {
+      const config = "oxlint.qualification.opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-effect-all-step-sequencing": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/pipelineShapeAndSequencing/no-effect-all-step-sequencing.bad.ts"], { "linteffect/no-effect-all-step-sequencing": 7 }, 1);
+    }
     if (cases.some(entry => entry.rule === "no-effect-side-effect-wrapper")) {
       const config = "oxlint.qualification.opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-effect-side-effect-wrapper": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));

@@ -841,7 +841,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectAllStepSequencing; transitive helpers: noEffectAllStepSequencing, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsAllStepSideEffect, isMemberCall, isEffectLogCall, hasConcurrencyOne, isEffectAllAsVoidPipe, isEffectAsVoidPipeArgument, isMemberExpression, firstArgument",
-      "Recognition tokens: Effect, all, Ref, Fiber; API and repair controls still require packed qualification."
+      "Q44 packed both majors: 7 actual Ref/log/unused warnings plus 2 ordinary Atom/Reactivity controls; opposite policy 7/7. Literal/quoted concurrency, asVoid and duplicate owner reports; actual gen preserves lazy array/void results, final state and original failure short circuit. Defaults/options/steps aliases/discard:true gaps. Size gate remains open."
     ]
   },
   "no-async-effect-combinator-callback": {
@@ -1102,7 +1102,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectSucceedVariable; transitive helpers: noEffectSucceedVariable, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isEffectSucceedVariableArgument, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q44 packed both majors: 6 identifier/member/computed/branch/undefined/shadowed-name warnings. Actual Match/Option selected data and one Effect boundary retain 42/0/absence; literal/object/call/import-order controls. Branch intent is not proved. Size gate remains open."
     ]
   },
   "no-effect-type-alias": {

@@ -88,6 +88,10 @@ Q43 wrapper checks pass with current andThen/legacy zipRight and actual deferred
 execution/defect identity controls. Size is 800 bytes over the unchanged cap;
 qualification stays open. Continue Q44-Q52 and closure.
 
+Q44 collection/value checks pass, finishing all 11 pipeline owners' behavioural
+evidence. Current Ref.set runtime output is preserved despite its void type.
+Size stays 800 bytes over the cap; qualification remains open. Continue Q45-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

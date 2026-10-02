@@ -1,4 +1,4 @@
-# Pipeline Shape And Sequencing: Q41-Q43
+# Pipeline Shape And Sequencing: Q41-Q44
 
 These are deliberately uncorrected anti-patterns for Effect 4. The packed
 consumer installs the built plugin and checks exact warnings per file. Behavioural
@@ -75,6 +75,36 @@ construction, two runs giving two calls, once-only state/invalidate/Atom and
 console work, and identical thrown defect identity. Console is restored in a
 finally block. Actual logs execute under each pinned major. No application is
 started. [Compiler controls](wrappers.types.ts) reject removed zipRight.
+
+## Collections And Selected Values
+
+[`no-effect-all-step-sequencing` failures](no-effect-all-step-sequencing.bad.ts)
+cover real Ref writes with literal concurrency one, quoted keys and asVoid.
+The combined explicit-policy/discard case reports twice. asVoid recognition
+does not itself prove sequential scheduling; default collection scheduling is
+also sequential, not unbounded. The rule searches unused callbacks and local
+[Atom/Reactivity names](ordinary-steps.bad.ts) without an import gate.
+
+[Repairs](no-effect-all-step-sequencing.good.ts) use generator steps and preserve
+the original array results or void discard result. Pinned v4 Ref.set declares
+void but returns internal MutableRef values at runtime: contracts retain and
+compare that observed array rather than silently replacing it with voids.
+Real aggregation
+retains 20/22. Default/options/steps aliases and discard:true are labelled gaps,
+not repairs or proof of safe sequencing.
+
+[`no-effect-succeed-variable` failures](no-effect-succeed-variable.bad.ts)
+include identifiers, static/computed members, branches, undefined and an
+ordinary shadowed receiver after import. It cannot prove that a branch exists.
+[Repairs](no-effect-succeed-variable.good.ts) select plain data with Match/Option
+and use one Effect boundary. Literal/object/call expressions and
+[late imports](succeed-late-import.good.ts) establish shape limits.
+
+[Runtime contracts](collection-values.contracts.ts) compare lazy construction,
+array/void/value results, final Ref state and short circuit on original typed
+failure identity. Successful and absent/false branches retain 42/undefined/0.
+This completes this group's behavioural evidence, not final qualification
+while the package-size gate remains open.
 
 ## Terminal Recovery
 

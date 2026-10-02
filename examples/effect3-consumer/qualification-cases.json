@@ -2959,5 +2959,55 @@
       }
     },
     "runtime": "src/qualification/pipelineShapeAndSequencing/wrappers.contracts.ts"
+  },
+  {
+    "rule": "no-effect-all-step-sequencing",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "explicit concurrency one, quoted key, asVoid and duplicate owner reports",
+      "actual Ref state repair preserves array/void/value outputs, lazy construction and failure short circuit",
+      "ordinary Atom/Reactivity name heuristics and unused callbacks",
+      "defaults/discard:true/options/steps aliases document limits"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-all-step-sequencing.bad.ts",
+      "src/qualification/pipelineShapeAndSequencing/ordinary-steps.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-all-step-sequencing.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-effect-all-step-sequencing.bad.ts": {
+        "linteffect/no-effect-all-step-sequencing": 7
+      },
+      "src/qualification/pipelineShapeAndSequencing/ordinary-steps.bad.ts": {
+        "linteffect/no-effect-all-step-sequencing": 2
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/collection-values.contracts.ts"
+  },
+  {
+    "rule": "no-effect-succeed-variable",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "identifier/member/computed, branch/absence and ordinary-name controls",
+      "literal/object/call and import-order scope controls",
+      "actual Match/Option selected data preserves value and absence"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-succeed-variable.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-succeed-variable.good.ts",
+      "src/qualification/pipelineShapeAndSequencing/succeed-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-effect-succeed-variable.bad.ts": {
+        "linteffect/no-effect-succeed-variable": 6
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/collection-values.contracts.ts"
   }
 ]

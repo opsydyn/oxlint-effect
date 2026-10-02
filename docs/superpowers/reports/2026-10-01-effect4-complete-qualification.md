@@ -1138,6 +1138,34 @@ publint, API docs and diff. Raw build is 141.60 kB; size fails by 800 bytes unde
 the unchanged cap. Q22-Q43 and inventory statuses stay open, 82 unqualified.
 Continue Q44-Q52 and closure without release.
 
+## Q44 Sequential Collections And Selected Data
+
+Unchanged collection and succeed-variable owners emit 7 collection plus 2
+ordinary-name / 6 identifier/member warnings per major. Collection controls
+cover actual Ref writes, literal/quoted concurrency one, asVoid and duplicate
+collection/pipe reports. Broad unused-callback and ordinary Atom/Reactivity
+controls are name heuristics, not platform proof. Default/options/steps aliases
+and discard:true document limits; default scheduling is sequential, not unlimited.
+
+Generator repairs preserve actual array/discard outputs, lazy construction,
+final Ref state and original failure identity with later writes skipped. The
+first current packed runtime exposed a pinned dependency quirk: Ref.set's
+declaration says void, but runtime returns internal MutableRef values. Direct
+local reproduction confirmed it. The v4 contract now compares the observed
+array identities/serialised values against the repair instead of asserting a
+false void-array expectation. Legacy still returns voids; discard remains void.
+
+Succeed-variable policy is shape-only, not branch inference; even undefined and
+shadowed same-name calls warn after import. Match/Option selection and one Effect
+boundary retain 42/0/absence. Literal/object/call and import-order controls are
+explicitly labelled. All 11 pipeline-group owners now have behavioural evidence.
+
+Fresh gates pass: 554 tests / 3639 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build remains 141.60 kB; unchanged cap fails by
+800 bytes. A Q43 documentation trailing space was caught after its gates and
+corrected here; the Q44 fresh diff check passes. Q22-Q44 and inventory statuses
+stay open, 82 unqualified. Continue Q45-Q52 and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

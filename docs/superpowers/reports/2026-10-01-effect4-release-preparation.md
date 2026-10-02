@@ -81,7 +81,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds the unchanged 30 KB cap by 771 bytes.
 - [ ] Close Q43 wrapper qualification: behavioural gates pass;
   compressed size exceeds the unchanged 30 KB cap by 800 bytes.
-- [ ] Complete and qualify Q44-Q52 in the
+- [ ] Close Q44 collection/value qualification: behavioural gates pass;
+  compressed size exceeds the unchanged 30 KB cap by 800 bytes.
+- [ ] Complete and qualify Q45-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition

@@ -286,6 +286,11 @@ Q43 wrapper behavioural evidence passes with current andThen/legacy zipRight
 selection, real lazy execution and defect identity controls. Size is 800 bytes
 over the unchanged cap; checkbox/inventory stay open. Continue Q44-Q52.
 
+Q44 collection/value behavioural evidence passes, finishing all 11 pipeline
+owners. The current runtime preserves pinned Ref.set's observed internal value
+despite its void declaration. Size stays 800 bytes over the cap; checkbox and
+inventory stay open. Continue Q45-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing
