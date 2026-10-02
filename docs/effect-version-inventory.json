@@ -267,7 +267,7 @@
     },
     "evidence": [
       "src/index.ts: noRunpromiseInNonAsyncTestBody; transitive helpers: noRunpromiseInNonAsyncTestBody, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, directTestCallback, isIdentifierCall, isIdentifier, isFunctionLike, discardedRunPromiseInTestCallback, isEffectMemberCallNamed, isEffectMemberCall",
-      "Recognition tokens: Effect, runPromise; API and repair controls still require packed qualification."
+      "Q29: 5 legacy/6 current discarded-runner warnings; opposite policy 5/5. Current applied runPromiseWith recognised, factory creation clean; legacy policy retained. Awaited/returned repairs and real Bun callbacks pass. Nested and aliased runners remain opaque. Deferred ownership proves discarded body returns before completion, with deterministic teardown. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "require-effect-flip-for-error-test": {
@@ -282,7 +282,7 @@
     },
     "evidence": [
       "src/index.ts: requireEffectFlipForErrorTest; transitive helpers: requireEffectFlipForErrorTest, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, directTestCallback, isIdentifierCall, isIdentifier, isFunctionLike, nodesInDirectTestCallback, isEffectRunPromiseRejectsMember, isEffectMemberCallNamed, isEffectMemberCall",
-      "Recognition tokens: Effect, runPromise; API and repair controls still require packed qualification."
+      "Q29: 5 legacy/6 current rejects warnings; opposite policy 5/5. Current applied runPromiseWith recognised. Real Effect.flip assertions preserve original typed-error identity; defects remain failures, so blanket flip advice is conservative. Stored promise assertions remain opaque. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-test-mock-layer-when-default-available": {
@@ -297,7 +297,7 @@
     },
     "evidence": [
       "src/index.ts: noTestMockLayerWhenDefaultAvailable; transitive helpers: noTestMockLayerWhenDefaultAvailable, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, manualLayersNextToServiceDefault, isMemberCall, isIdentifier, isServiceDefaultReference, isManualTestLayer",
-      "Recognition tokens: Layer, provide; API and repair controls still require packed qualification."
+      "Q29: 3 warnings per major and opposite policy. Real legacy Effect.Service.Default versus current user-defined Context.Service Default layers and dedicated test services return 42. Naming and direct argument heuristics retained: valid dependency replacement and unrelated Default can warn, aliases stay clean. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-nested-effect-gen": {

@@ -1952,5 +1952,83 @@
       }
     },
     "runtime": "src/qualification/testingObservabilityAndQa/log-span.contracts.ts"
+  },
+  {
+    "rule": "no-runpromise-in-non-async-test-body",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "real Bun test declarations and checked callback forms",
+      "current contextual execution versus factory creation",
+      "test/spec naming and source-path isolation",
+      "typed failure identity and unrecoverable defect controls",
+      "strict default composition and explicit current static Default convention",
+      "documented nested alias and unrelated Default counterexamples"
+    ],
+    "bad": [
+      "src/qualification/testingObservabilityAndQa/no-runpromise-in-non-async-test-body.bad.test.ts"
+    ],
+    "good": [
+      "src/qualification/testingObservabilityAndQa/no-runpromise-in-non-async-test-body.good.test.ts",
+      "src/qualification/testingObservabilityAndQa/test-no-import.good.test.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/testingObservabilityAndQa/no-runpromise-in-non-async-test-body.bad.test.ts": {
+        "linteffect/no-runpromise-in-non-async-test-body": 5
+      }
+    },
+    "runtime": "src/qualification/testingObservabilityAndQa/test-ownership.contracts.ts"
+  },
+  {
+    "rule": "require-effect-flip-for-error-test",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "real Bun test declarations and checked callback forms",
+      "current contextual execution versus factory creation",
+      "test/spec naming and source-path isolation",
+      "typed failure identity and unrecoverable defect controls",
+      "strict default composition and explicit current static Default convention",
+      "documented nested alias and unrelated Default counterexamples"
+    ],
+    "bad": [
+      "src/qualification/testingObservabilityAndQa/require-effect-flip-for-error-test.bad.test.ts"
+    ],
+    "good": [
+      "src/qualification/testingObservabilityAndQa/require-effect-flip-for-error-test.good.test.ts",
+      "src/qualification/testingObservabilityAndQa/test-no-import.good.test.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/testingObservabilityAndQa/require-effect-flip-for-error-test.bad.test.ts": {
+        "linteffect/require-effect-flip-for-error-test": 5
+      }
+    },
+    "runtime": "src/qualification/testingObservabilityAndQa/test-ownership.contracts.ts"
+  },
+  {
+    "rule": "no-test-mock-layer-when-default-available",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "real Bun test declarations and checked callback forms",
+      "current contextual execution versus factory creation",
+      "test/spec naming and source-path isolation",
+      "typed failure identity and unrecoverable defect controls",
+      "strict default composition and explicit current static Default convention",
+      "documented nested alias and unrelated Default counterexamples"
+    ],
+    "bad": [
+      "src/qualification/testingObservabilityAndQa/no-test-mock-layer-when-default-available.bad.test.ts"
+    ],
+    "good": [
+      "src/qualification/testingObservabilityAndQa/no-test-mock-layer-when-default-available.good.test.ts",
+      "src/qualification/testingObservabilityAndQa/test-no-import.good.test.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/testingObservabilityAndQa/no-test-mock-layer-when-default-available.bad.test.ts": {
+        "linteffect/no-test-mock-layer-when-default-available": 3
+      }
+    },
+    "runtime": "src/qualification/testingObservabilityAndQa/test-ownership.contracts.ts"
   }
 ]

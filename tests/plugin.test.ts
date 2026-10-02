@@ -52,6 +52,21 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q29 recognises current contextual test execution", () => {
+    const execution = callExpression(effectCall("runPromiseWith", identifier("context")), identifier("program"));
+    const test = testCall("it", arrowCallback(blockStatement(expressionStatement(execution))));
+    const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }, { visitorName: "Program:exit", node: {} }], { filename: "/repo/src/operation.test.ts", options: [{ effectVersion: version }] });
+    expect(inspect("no-runpromise-in-non-async-test-body", test, 4)).toHaveLength(1);
+    expect(inspect("no-runpromise-in-non-async-test-body", test, 3)).toHaveLength(0);
+    const rejects = { type: "MemberExpression", object: namedCall("expect", execution), property: identifier("rejects"), computed: false };
+    expect(inspect("require-effect-flip-for-error-test", testCall("it", arrowCallback(blockStatement(expressionStatement(rejects)))), 4)).toHaveLength(1);
+  });
+  it("Effect qualification Q29 supplies packed test ownership evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-runpromise-in-non-async-test-body", "require-effect-flip-for-error-test", "no-test-mock-layer-when-default-available"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q28 sees current service implementations and recovery", () => {
     const implementation = effectCall("succeed", objectLiteral(property("load", arrowCallback(effectCall("sync", arrowCallback(memberCall("console", "warn")))))));
     const options = objectLiteral(property("make", implementation));

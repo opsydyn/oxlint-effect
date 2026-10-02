@@ -51,7 +51,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds unchanged 30 KB by 385 bytes.
 - [ ] Close Q28 observability qualification: behavioural gates pass;
   compressed size exceeds unchanged 30 KB by 600 bytes.
-- [ ] Complete and qualify Q29-Q52 in the
+- [ ] Close Q29 test qualification: behavioural gates and real Bun tests pass;
+  compressed size exceeds unchanged 30 KB by 649 bytes.
+- [ ] Complete and qualify Q30-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition

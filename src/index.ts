@@ -5116,9 +5116,16 @@ function directTestCallback(node: unknown): Node | undefined {
   return isFunctionLike(callback) ? callback as Node : undefined;
 }
 
-function discardedRunPromiseInTestCallback(callback: Node): Node | undefined {
+function isPromiseRunExecution(node: unknown, version: EffectVersion): boolean {
+  return isEffectMemberCallNamed(node, "runPromise") || (version === 4 &&
+    typeof node === "object" && node !== null &&
+    isEffectMemberCallNamed((node as Node).callee, "runPromiseWith") &&
+    effectRunExecution(node, version)?.program !== undefined);
+}
+
+function discardedRunPromiseInTestCallback(callback: Node, version: EffectVersion = 3): Node | undefined {
   const body = callback.body;
-  if (isEffectMemberCallNamed(body, "runPromise")) {
+  if (isPromiseRunExecution(body, version)) {
     return undefined;
   }
 
@@ -5136,7 +5143,7 @@ function discardedRunPromiseInTestCallback(callback: Node): Node | undefined {
       typeof statement === "object" &&
       statement !== null &&
       (statement as Node).type === "ExpressionStatement" &&
-      isEffectMemberCallNamed((statement as Node).expression, "runPromise")
+      isPromiseRunExecution((statement as Node).expression, version)
     ) {
       return (statement as Node).expression as Node;
     }
@@ -5184,7 +5191,7 @@ function nodesInDirectTestCallback(
   return matches;
 }
 
-function isEffectRunPromiseRejectsMember(node: unknown): node is Node {
+function isEffectRunPromiseRejectsMember(node: unknown, version: EffectVersion = 3): node is Node {
   if (
     typeof node !== "object" ||
     node === null ||
@@ -5206,7 +5213,7 @@ function isEffectRunPromiseRejectsMember(node: unknown): node is Node {
   }
 
   const argument = arguments_[0];
-  return isEffectMemberCallNamed(argument, "runPromise");
+  return isPromiseRunExecution(argument, version);
 }
 
 function isServiceDefaultReference(node: unknown): boolean {
@@ -5621,6 +5628,7 @@ const requireSpanOnPublicServiceMethod = createCollectedEffectRule(
 
 const noRunpromiseInNonAsyncTestBody = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
     const candidates: Node[] = [];
 
@@ -5637,7 +5645,7 @@ const noRunpromiseInNonAsyncTestBody = defineRule({
         }
 
         const callback = directTestCallback(node);
-        const candidate = callback && discardedRunPromiseInTestCallback(callback);
+        const candidate = callback && discardedRunPromiseInTestCallback(callback, version);
         if (candidate) {
           candidates.push(candidate);
         }
@@ -5661,6 +5669,7 @@ const noRunpromiseInNonAsyncTestBody = defineRule({
 
 const requireEffectFlipForErrorTest = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
     const candidates: Node[] = [];
 
@@ -5678,7 +5687,7 @@ const requireEffectFlipForErrorTest = defineRule({
 
         const callback = directTestCallback(node);
         if (callback) {
-          candidates.push(...nodesInDirectTestCallback(callback, isEffectRunPromiseRejectsMember));
+          candidates.push(...nodesInDirectTestCallback(callback, candidate => isEffectRunPromiseRejectsMember(candidate, version)));
         }
       },
       "Program:exit"() {

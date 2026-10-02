@@ -206,6 +206,18 @@ try {
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
       verifyLint(root, config, [path], { [`linteffect/${rule}`]: count }, 1, { [path]: { [`linteffect/${rule}`]: count } });
     }
+    for (const rule of ["no-runpromise-in-non-async-test-body", "require-effect-flip-for-error-test", "no-test-mock-layer-when-default-available"]) {
+      const count = rule === "no-test-mock-layer-when-default-available" ? 3 : 5;
+      const path = `src/qualification/testingObservabilityAndQa/${rule}.bad.test.ts`;
+      const config = "oxlint.qualification.opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, [path], { [`linteffect/${rule}`]: count }, 1);
+      const source = `src/qualification/testingObservabilityAndQa/${rule}.source.ts`;
+      await cp(join(root, path), join(root, source));
+      verifyLint(root, config, [source], {}, 0);
+    }
+    const testFixtures = cases.filter(entry => ["no-runpromise-in-non-async-test-body", "require-effect-flip-for-error-test", "no-test-mock-layer-when-default-available"].includes(entry.rule)).flatMap(entry => [...entry.bad, ...entry.good]);
+    if (testFixtures.length) assertCommandSuccess(run("bun", ["test", ...[...new Set(testFixtures)].map(path => `./${path}`)], root, 60_000), `Effect ${major} actual test fixtures`);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
       "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },

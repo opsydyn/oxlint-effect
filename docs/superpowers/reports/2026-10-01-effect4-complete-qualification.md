@@ -767,6 +767,39 @@ raw; unchanged 30 KB cap fails by 600 bytes. Q22-Q28 remain unchecked, 82 rules
 retain unqualified applicable versions. Continue Q29-Q52 and cross-group closure;
 no push, version bump or release.
 
+## Q29 Test Completion, Typed Failures And Default Layers
+
+Three owners have packed, typechecked failures and repairs on both pinned majors.
+Discarded runner and rejects owners emit 5 legacy/6 current warnings; selecting
+the opposite policy emits 5/5. Current applied runPromiseWith is recognised;
+creating its factory alone is clean. Mock/default owner emits 3 warnings per
+major under either policy. Copying each bad file outside test paths is clean.
+No-import controls remain clean. Real Bun fixtures pass 22 tests/14 expectations
+for legacy and 26 tests/15 expectations for current, including intentionally
+lint-failing assertions. Explicit relative paths ensure Bun executes files rather
+than treating them as unmatched filters.
+
+Deferred runtime contracts prove a discarded callback returns before completion;
+the task is then explicitly completed and its retained promise awaited for
+deterministic teardown. Await/return repairs preserve 42. Effect.flip assertions
+recover the original typed-error reference, while defects remain failures. The
+rejects rule still warns on defects: blanket flip advice is conservative and is
+not a valid defect recovery repair. Stored assertions, nested discarded calls
+and aliased runners remain documented syntax-local gaps.
+
+Legacy Effect.Service supplies Default; current Context.Service does not, so the
+typed current fixture explicitly defines its own Default layer. Default wiring
+and dedicated services both return 42. The detector uses names/direct arguments,
+not dependency semantics: legitimate dependency mocks and unrelated Default
+properties can warn; moving a mock to an alias is a clean syntax change, not a
+semantic repair. No broad policy rewrite is made in this compatibility batch.
+
+Fresh gates pass: 531 root tests/3534 expectations, root types, final packed
+consumers with own/opposite/source controls and actual Bun tests, publint, API
+docs and diff. Build is 140.96 kB raw; unchanged 30 KB cap fails by 649 bytes.
+Q22-Q29 and applicable inventory statuses remain open; 82 rules are unqualified.
+Continue Q30-Q52 and cross-group closure; no push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

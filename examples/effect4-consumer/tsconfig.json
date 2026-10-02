@@ -5,6 +5,7 @@
     "moduleResolution": "Bundler",
     "noEmit": true,
     "strict": true,
+    "types": ["bun-types", "node"],
     "target": "ES2022",
     "skipLibCheck": true
   },
