@@ -1026,6 +1026,68 @@ opposite/runtime, publint, API docs/diff. All four workflow owners have behaviou
 evidence. Build141.41 kB raw; cap fails745 bytes. Q22-Q38 and inventory statuses
 remain open,82 rules unqualified. Continue Q39-Q52 and closure without release.
 
+## Q39 Pure Flow Boundaries
+
+Unchanged owners emit3 large-flow/9 effectful-flow/4 inline-flow diagnostics per
+major. Five/six stages still warn when already assigned a domain name; naming
+alone is not a working repair. Shorter split flow retains42. Effectful argument
+controls cover actual Effect/async/await/Promise/console/yield, unused callbacks
+and ordinary values/functions named Runtime/Promise. Named/aliased callbacks and
+import-order gaps remain opaque, not purity proof. Inline3-stage flow warns in
+Effect.map, arrays and arbitrary callers; first qualifying argument only.
+
+Actual typed flow, named/split transformations and outer Effect boundary preserve
+42, array values and combined84. Async/generator and observable console controls
+run explicitly, with console restored in finally. Name/unused false positives
+return42 without executing hidden Effect. Outer failure reference is preserved.
+No whole-program purity or application execution is claimed.
+
+Fresh gates pass:546 tests/3604 expectations, root types, both packed majors,
+publint, API docs/diff. Raw141.41 kB, unchanged cap745 bytes over. Q22-Q39 and
+inventory statuses stay open,82 unqualified. Continue Q40-Q52 without release.
+
+## Q40 Pure Call-Tower Shape
+
+Unchanged owner emits7 warnings per major for depth3/4, max-depth branched calls,
+static/computed methods, curried callee nesting and a named observable transform.
+Outer-only reporting is preserved. Real named flow and explicit intermediates
+retain42/84, and outer Effect mapping retains original failure identity.
+
+Called bodies are not resolved, so purity is not proved: an observable callee
+can warn as pure, an ordinary local fetch name breaks depth, and a named opaque
+flow can remain clean while retaining one mutation. Runtime explicitly compares
+that observable count. Import-order gaps remain documented. No policy rewrite
+or native/application qualification is inferred.
+
+Fresh gates pass:547 tests/3606 expectations, root types, both packed majors,
+publint, API docs/diff. All four pure-transformation owners have behavioural
+evidence. Raw141.41 kB, unchanged cap745 bytes over. Q22-Q40 and inventory
+statuses stay open,82 unqualified. Continue Q41-Q52 and closure without release.
+
+## Q41 Effect And FlatMap Ladders
+
+Deep-call and initialiser/return owners retain their existing policy: 8/5
+warnings plus one ordinary same-name warning per major. Depth four yields two
+CallExpression reports but one initialiser report. Multiple declarators, explicit
+returns, concise arrows and standalone calls distinguish the owners. Shallow,
+computed and aliased controls document unchanged syntax limits; no import gate
+means ordinary same-name objects can warn.
+
+The flatMap owner now selects current flatMapEager, including mixed eager/lazy
+forms. Legacy messages and detection are preserved. Packed counts are 6/9,
+opposite-policy counts 6/6. Both pinned majors export flatten. Broad callback
+search includes unused callbacks; data-last pipe, aliases and concise bodies
+remain opaque. Own-major compiler controls reject unavailable eager APIs in v3.
+
+Actual generator/intermediate repairs preserve 42, first/second/third order,
+failure short circuit and original failure identity. Current eager controls are
+also executed. No application, platform or whole-program purity proof is claimed.
+
+Fresh gates pass: 549 tests / 3618 expectations, root types, both packed majors,
+publint, API docs and diff checks. Raw build is 141.52 kB; the unchanged size cap
+fails by 769 bytes. Q22-Q41 and inventory statuses stay open, with 82 rules still
+unqualified. Continue Q42-Q52 and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

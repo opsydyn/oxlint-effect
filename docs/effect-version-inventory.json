@@ -1736,7 +1736,7 @@
     },
     "evidence": [
       "src/index.ts: noNestedEffectCall; transitive helpers: noNestedEffectCall, hasDeepNestedEffectFirstArgument, isEffectMemberCall, isIdentifier, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q41 packed both majors: 8 deep-call plus 1 ordinary-name warnings, depth 3/4, shallow/computed/alias controls; generator and intermediates preserve 42. No import gate. Size gate remains open."
     ]
   },
   "no-effect-ladder": {
@@ -1751,11 +1751,11 @@
     },
     "evidence": [
       "src/index.ts: noEffectLadder; transitive helpers: noEffectLadder, hasDeepNestedEffectFirstArgument, isEffectMemberCall, isIdentifier, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q41 packed both majors: 5 initialiser/return plus 1 ordinary-name warnings, multiple declarators, concise/standalone scope controls; actual generator/intermediate repairs preserve 42. Size gate remains open."
     ]
   },
   "no-flatmap-ladder": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -1766,7 +1766,7 @@
     },
     "evidence": [
       "src/index.ts: noFlatMapLadder; transitive helpers: noFlatMapLadder, getFlatMapLadderMessage, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallNamed, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q41 packed legacy/current: 6/9 warnings for nested input/callback, map+flatten, multiple declarators and unused callbacks. Current eager/mixed forms adapted; opposite policy 6/6. Generator preserves ordering, short circuit and original failure identity. Aliases/data-last/concise gaps preserved. Size gate remains open."
     ]
   },
   "no-pipe-ladder": {

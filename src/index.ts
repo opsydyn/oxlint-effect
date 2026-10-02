@@ -116,10 +116,10 @@ function containsEffectMemberCallNamed(
   );
 }
 
-function getFlatMapLadderMessage(node: unknown): string | undefined {
+function getFlatMapLadderMessage(node: unknown, version: EffectVersion): string | undefined {
   if (
-    isEffectMemberCallNamed(node, "flatMap") &&
-    containsEffectMemberCallNamed(node.arguments, "flatMap")
+    (isEffectMemberCallNamed(node, "flatMap") || (version === 4 && isEffectMemberCallNamed(node, "flatMapEager"))) &&
+    (containsEffectMemberCallNamed(node.arguments, "flatMap") || (version === 4 && containsEffectMemberCallNamed(node.arguments, "flatMapEager")))
   ) {
     return "Rule: avoid nested Effect.flatMap. Why: it hides sequencing and pushes laddered control flow. Fix: build context once (Effect.all/Effect.map) and run a single flatMap.";
   }
@@ -8096,17 +8096,18 @@ const noEffectLadder = defineRule({
 
 const noFlatMapLadder = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       VariableDeclaration(node: any) {
         for (const declaration of node.declarations ?? []) {
-          const message = getFlatMapLadderMessage(declaration.init);
+          const message = getFlatMapLadderMessage(declaration.init, version);
           if (message) {
             report(context, declaration.init, message);
           }
         }
       },
       ReturnStatement(node: any) {
-        const message = getFlatMapLadderMessage(node.argument);
+        const message = getFlatMapLadderMessage(node.argument, version);
         if (message) {
           report(context, node.argument, message);
         }

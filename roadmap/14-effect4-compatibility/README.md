@@ -76,6 +76,10 @@ Size remains745 bytes over the unchanged cap; qualification stays open. Continue
 Q40 call-tower checks pass, completing pure-transformation behavioural evidence.
 Size remains745 bytes over the unchanged cap; qualification stays open. ContinueQ41-Q52.
 
+Q41 ladder checks pass with current eager/mixed flatMap forms, generator repairs
+and sequencing/failure contracts. Size is 769 bytes over the unchanged cap;
+qualification stays open. Continue Q42-Q52 and campaign closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

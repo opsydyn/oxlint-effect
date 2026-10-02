@@ -2742,5 +2742,80 @@
       }
     },
     "runtime": "src/qualification/pureTransformation/pure-tower.contracts.ts"
+  },
+  {
+    "rule": "no-nested-effect-call",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "depth three/four, both declarators, return/concise/standalone scope",
+      "shallow/computed/alias controls and ordinary same-name no-import false positive",
+      "actual generator and explicit intermediates preserve value"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/deep-effect.bad.ts",
+      "src/qualification/pipelineShapeAndSequencing/same-name.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/deep-effect.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/deep-effect.bad.ts": {
+        "linteffect/no-nested-effect-call": 8
+      },
+      "src/qualification/pipelineShapeAndSequencing/same-name.bad.ts": {
+        "linteffect/no-nested-effect-call": 1
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/ladder.contracts.ts"
+  },
+  {
+    "rule": "no-effect-ladder",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "depth three/four, both declarators, return/concise/standalone scope",
+      "shallow/computed/alias controls and ordinary same-name no-import false positive",
+      "actual generator and explicit intermediates preserve value"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/deep-effect.bad.ts",
+      "src/qualification/pipelineShapeAndSequencing/same-name.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/deep-effect.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/deep-effect.bad.ts": {
+        "linteffect/no-effect-ladder": 5
+      },
+      "src/qualification/pipelineShapeAndSequencing/same-name.bad.ts": {
+        "linteffect/no-effect-ladder": 1
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/ladder.contracts.ts"
+  },
+  {
+    "rule": "no-flatmap-ladder",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "nested input/callback, map+flatten, multiple declarators and unused callback",
+      "current eager/mixed ladders excluded by legacy policy",
+      "actual generator repair preserves value, ordering, short circuit and failure identity",
+      "preserved data-last/alias/concise-body gaps"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-flatmap-ladder.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-flatmap-ladder.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-flatmap-ladder.bad.ts": {
+        "linteffect/no-flatmap-ladder": 6
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/ladder.contracts.ts"
   }
 ]

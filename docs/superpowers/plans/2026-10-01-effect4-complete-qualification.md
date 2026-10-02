@@ -274,6 +274,10 @@ checkbox/inventory stay open. Continue Q40.
 Q40 call-tower behavioural evidence passes, finishing four pure owners.
 Size remains745 bytes over30 KB; checkbox/inventory stay open. Continue Q41.
 
+Q41 ladder behavioural evidence passes for both majors, including current
+flatMapEager and exact opposite-policy counts. Size is 769 bytes over the
+unchanged 30 KB cap; checkbox/inventory stay open. Continue Q42-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

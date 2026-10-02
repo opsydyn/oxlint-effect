@@ -216,6 +216,11 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-flatmap-ladder")) {
+      const config = "oxlint.qualification.opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-flatmap-ladder": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/pipelineShapeAndSequencing/no-flatmap-ladder.bad.ts"], { "linteffect/no-flatmap-ladder": 6 }, 1);
+    }
     if (cases.some(entry => entry.rule === "no-business-logic-in-pipe")) {
       const config = "oxlint.qualification.business-opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-business-logic-in-pipe": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
