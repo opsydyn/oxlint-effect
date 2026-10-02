@@ -958,6 +958,29 @@ publint, API docs and diff. Build is 141.16 kB raw; cap fails by 677 bytes.
 Q22-Q35 and applicable inventory statuses stay open; 82 rules unqualified.
 Continue Q36-Q52 and closure without push, version bump or release.
 
+## Q36 Boolean Normalisation And Domain Outcomes
+
+Owners emit 2 boolean-normalisation, 4 string-return and 6 string-constant warnings
+per major. Exact data-first Option.match arrow shapes are checked, including both
+comparison orders; data-last/block/named configurations remain clean gaps. Actual
+optional Schema repair preserves valid missing/false/true behaviour while malformed
+values fail rather than silently coerce to false.
+
+String owners retain no import gate and broad literal policy, including empty/
+legitimate display strings and unused callbacks. Multiple declarators report once.
+Stored/template returns and aggregate/const-asserted/enum initialisers are clean
+syntax controls. Current advice uses Result under explicit version options;
+exact legacy Either messages remain unchanged. Actual Option absence/value,
+tagged state and selected Result/Either controls preserve 42 and original failure
+reference/request context. Compiler negatives prove current Either unavailable.
+Advice regressions watched RED/GREEN; no string-policy narrowing is introduced.
+
+Fresh gates pass: 541 tests/3584 expectations, root types, both packed majors,
+publint, API docs and diff. All nine normalisation owners have behavioural
+evidence. Build is 141.28 kB raw; unchanged 30 KB cap fails by 696 bytes.
+Q22-Q36 and inventory statuses remain open, 82 rules unqualified. Continue
+Q37-Q52 and closure without push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

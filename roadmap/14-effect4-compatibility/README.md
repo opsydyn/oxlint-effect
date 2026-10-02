@@ -58,6 +58,10 @@ and fromNullishOr restores current applicability under the stable rule ID.
 Four owners remain legacy-only. Size is 677 bytes over the unchanged cap;
 final qualification stays open. Continue Q36-Q52.
 
+Q36 boolean/outcome checks pass, completing all nine normalisation owners with
+current Result/legacy Either guidance. Size is 696 bytes over the unchanged
+cap; final qualification stays open. Continue Q37-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

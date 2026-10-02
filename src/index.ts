@@ -7314,13 +7314,14 @@ const noOptionBooleanNormalization = defineRule({
 
 const noStringSentinelReturn = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       CallExpression(node: any) {
         if (isEffectMemberCallNamed(node, "succeed") && isStringLiteral(firstArgument(node))) {
           report(
             context,
             node,
-            "Rule: avoid returning string tokens. Why: it encodes control flow and forces defensive branching. Fix: return domain values (Option/Either/tagged unions) or real Effect results instead.",
+            `Rule: avoid returning string tokens. Why: it encodes control flow and forces defensive branching. Fix: return domain values (Option/${version === 3 ? "Either" : "Result"}/tagged unions) or real Effect results instead.`,
           );
         }
       },
@@ -7330,13 +7331,14 @@ const noStringSentinelReturn = defineRule({
 
 const noStringSentinelConst = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       VariableDeclaration(node: any) {
         if (isStringSentinelConst(node)) {
           report(
             context,
             node,
-            "Rule: avoid string status constants. Why: they encode control flow and force defensive branching. Fix: use tagged unions, Option/Either, or meaningful domain values instead of string tokens.",
+            `Rule: avoid string status constants. Why: they encode control flow and force defensive branching. Fix: use tagged unions, Option/${version === 3 ? "Either" : "Result"}, or meaningful domain values instead of string tokens.`,
           );
         }
       },

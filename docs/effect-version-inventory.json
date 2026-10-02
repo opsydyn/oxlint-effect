@@ -1359,11 +1359,11 @@
     },
     "evidence": [
       "src/index.ts: noOptionBooleanNormalization; transitive helpers: noOptionBooleanNormalization, getImportSource, isEffectEcosystemImport, isOptionBooleanNormalization, isMemberCall, isIdentifier, objectPropertyValue, isBooleanTrueComparison, isBooleanLiteral, arrowCallbackBody",
-      "Recognition tokens: Option; API and repair controls still require packed qualification."
+      "Q36: 2 warnings per major for exact data-first Option.match normalization, both comparison orders. Data-last/block/named configs stay gaps. Actual optional Schema keeps valid missing/true/false behaviour; malformed values fail instead of silently coercing to false. Final 30 KB gate pending: 696 bytes over."
     ]
   },
   "no-string-sentinel-return": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -1374,11 +1374,11 @@
     },
     "evidence": [
       "src/index.ts: noStringSentinelReturn; transitive helpers: noStringSentinelReturn, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringLiteral, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q36: 4 warnings per major for every direct string succeed, including legitimate text/empty/unused callback. No import gate. Current advice uses Result, exact legacy Either wording retained. Actual Option absence/value, tagged state and selected Result/Either retain 42 and original tagged failure reference/context. Stored/template sentinels remain clean. Final 30 KB gate pending: 696 bytes over."
     ]
   },
   "no-string-sentinel-const": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -1389,7 +1389,7 @@
     },
     "evidence": [
       "src/index.ts: noStringSentinelConst; transitive helpers: noStringSentinelConst, isStringSentinelConst, isStringLiteral",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q36: 6 warnings per major for const/let/var/local/multiple literal initialisers without import gate; legitimate display values also warn. Multiple declarations report once. Aggregates/const assertions/templates/enums stay clean syntax gaps. Current Result advice and legacy Either wording backed by actual selected API and current removed-Either compiler control. Final 30 KB gate pending: 696 bytes over."
     ]
   },
   "no-raw-domain-id-alias": {

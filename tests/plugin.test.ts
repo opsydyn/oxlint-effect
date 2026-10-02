@@ -52,6 +52,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q36 supplies packed boolean and result evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-option-boolean-normalization", "no-string-sentinel-return", "no-string-sentinel-const"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q36 gives own-major result advice", () => {
+    for (const rule of ["no-string-sentinel-return", "no-string-sentinel-const"]) {
+      const visit = rule === "no-string-sentinel-return" ? { visitorName: "CallExpression", node: effectCall("succeed", stringLiteral("ready")) } : { visitorName: "VariableDeclaration", node: variableDeclarationWithInit(stringLiteral("ready")) };
+      expect(runRuleSequence(rule, [visit], { options: [{ effectVersion: 4 }] })[0].message).toContain("Result");
+      expect(runRuleSequence(rule, [visit], { options: [{ effectVersion: 3 }] })[0].message).toContain("Either");
+    }
+  });
   it("Effect qualification Q35 exempts parsed current const assertions", () => {
     const node = { type: "VariableDeclaration", declarations: [{ type: "VariableDeclarator", id: identifier("value"), init: { type: "TSAsExpression", expression: identifier("input"), typeAnnotation: tsTypeReference("const") } }] };
     const inspect = (version: 3 | 4) => runRuleSequence("no-model-overlay-cast", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "VariableDeclaration", node }], { options: [{ effectVersion: version }] });

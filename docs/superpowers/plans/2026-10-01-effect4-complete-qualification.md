@@ -257,6 +257,10 @@ Q35 decoded-model/nullish behavioural evidence passes with current const
 exemption and restored full-nullish applicability. Size is 677 bytes over
 30 KB; checkbox and inventory statuses stay open. Continue Q36.
 
+Q36 boolean/outcome behavioural evidence passes, completing all nine
+normalisation owners. Size is 696 bytes over 30 KB; checkbox and inventory
+statuses stay open. Continue Q37.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

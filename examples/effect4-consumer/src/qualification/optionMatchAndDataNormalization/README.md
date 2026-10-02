@@ -48,3 +48,21 @@ runtime checks preserve None and falsy Some(false/0/empty string), not merely 42
 Aliases and stored normalisation remain opaque. Foreign-policy fixture syntax
 produces zero reports, and a compiler-negative current fixture rejects removed
 fromNullable. No rule rename or legacy diagnostic change is introduced.
+
+## Q36 Booleans And Domain Outcomes
+
+`no-option-boolean-normalization` checks exact data-first Option.match arrow
+configurations with false absence and value===true. Reversed true comparison is
+also reported; data-last, block and named callbacks remain clean gaps. Runtime
+Schema repair retains valid missing/false/true behaviour but rejects malformed
+values instead of silently coercing them to false.
+
+Both string-sentinel owners have no import gate and are deliberately broad:
+every direct string Effect.succeed or variable literal warns, including empty
+strings and legitimate display text. Multiple literal declarators report once.
+Stored/template returns and aggregate/const-asserted/enum initialisers are clean
+gaps, not proof of domain outcomes. Current guidance uses Result; legacy retains
+Either wording. Real Option, tagged state and Result/Either controls preserve
+absence, 42 and original tagged failure identity/context. Current compiler checks
+reject removed Either. All nine owners now have behavioural evidence, but the
+package-size and whole-campaign gates remain outstanding.

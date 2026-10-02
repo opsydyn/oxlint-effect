@@ -2466,5 +2466,77 @@
       }
     },
     "runtime": "src/qualification/optionMatchAndDataNormalization/decoded-model.contracts.ts"
+  },
+  {
+    "rule": "no-option-boolean-normalization",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "exact Option.match arrows and data-last/block/named gaps",
+      "literal succeed versus stored/template controls; no import gate",
+      "const/let/var/local/multiple literal initialisers, legitimate text conservatism",
+      "actual optional boolean schema versus malformed silent coercion",
+      "Option absence, tagged state and selected Result/Either identity controls"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-option-boolean-normalization.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-option-boolean-normalization.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-option-boolean-normalization.bad.ts": {
+        "linteffect/no-option-boolean-normalization": 2
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/normalization.contracts.ts"
+  },
+  {
+    "rule": "no-string-sentinel-return",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "exact Option.match arrows and data-last/block/named gaps",
+      "literal succeed versus stored/template controls; no import gate",
+      "const/let/var/local/multiple literal initialisers, legitimate text conservatism",
+      "actual optional boolean schema versus malformed silent coercion",
+      "Option absence, tagged state and selected Result/Either identity controls"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-string-sentinel-return.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-string-sentinel-return.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-string-sentinel-return.bad.ts": {
+        "linteffect/no-string-sentinel-return": 4
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/normalization.contracts.ts"
+  },
+  {
+    "rule": "no-string-sentinel-const",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "exact Option.match arrows and data-last/block/named gaps",
+      "literal succeed versus stored/template controls; no import gate",
+      "const/let/var/local/multiple literal initialisers, legitimate text conservatism",
+      "actual optional boolean schema versus malformed silent coercion",
+      "Option absence, tagged state and selected Result/Either identity controls"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-string-sentinel-const.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-string-sentinel-const.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-string-sentinel-const.bad.ts": {
+        "linteffect/no-string-sentinel-const": 6
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/normalization.contracts.ts"
   }
 ]

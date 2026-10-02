@@ -732,7 +732,7 @@ not currently expose it; it is not part of the v1 export surface.
 | `linteffect/no-unknown-boolean-coercion-helper` | Local unknown-to-boolean checks paired with null fallback matching. | Moves boolean normalization to the schema boundary. |
 | `linteffect/no-fromnullable-nullish-coalesce` | Current `Option.fromNullishOr(value ?? null)` or `?? undefined`; legacy `Option.fromNullable`. | Passes nullable sources directly without rewrapping noise. |
 | `linteffect/no-option-boolean-normalization` | Repeated `Option.match` boolean normalization. | Normalizes once at the boundary and reads typed booleans later. |
-| `linteffect/no-string-sentinel-return` | `Effect.succeed("token")` sentinel returns. | Uses domain values, Option/Either, or tagged unions for decisions. |
+| `linteffect/no-string-sentinel-return` | `Effect.succeed("token")` sentinel returns. | Uses domain values, Option/Result (legacy Either), or tagged unions for decisions. |
 | `linteffect/no-string-sentinel-const` | String constants used as state/status tokens. | Avoids ad hoc string state machines. |
 
 ### Atom, State, and Platform Boundaries
