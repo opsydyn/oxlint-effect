@@ -3984,7 +3984,7 @@ function isEffectSucceedVariableArgument(node: unknown): boolean {
   );
 }
 
-function isVariableAsAssertion(node: unknown): boolean {
+function isVariableAsAssertion(node: unknown, version: EffectVersion = 3): boolean {
   if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
     return false;
   }
@@ -4001,7 +4001,9 @@ function isVariableAsAssertion(node: unknown): boolean {
       (init as Node).type === "TSAsExpression" &&
       typeof (init as Node).typeAnnotation === "object" &&
       (init as Node).typeAnnotation !== null &&
-      ((init as Node).typeAnnotation as Node).type !== "TSConstKeyword"
+      ((init as Node).typeAnnotation as Node).type !== "TSConstKeyword" &&
+      !(version === 4 && ((init as Node).typeAnnotation as Node).type === "TSTypeReference" &&
+        isIdentifier(((init as Node).typeAnnotation as Node).typeName, "const"))
     );
   }) ?? false;
 }
@@ -4057,9 +4059,9 @@ function isNullishRewrap(node: unknown): boolean {
   );
 }
 
-function isOptionFromNullableNullishCoalesce(node: unknown): boolean {
+function isOptionFromNullableNullishCoalesce(node: unknown, version: EffectVersion = 3): boolean {
   return (
-    isMemberCall(node, "Option", "fromNullable") &&
+    isMemberCall(node, "Option", version === 3 ? "fromNullable" : "fromNullishOr") &&
     isNullishRewrap((node as Node & { arguments: unknown[] }).arguments[0])
   );
 }
@@ -7186,6 +7188,7 @@ const noMixedEffectErrorShapes = defineRule({
 
 const noModelOverlayCast = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -7196,7 +7199,7 @@ const noModelOverlayCast = defineRule({
         }
       },
       VariableDeclaration(node: any) {
-        if (hasEffectEcosystemImport && isVariableAsAssertion(node)) {
+        if (hasEffectEcosystemImport && isVariableAsAssertion(node, version)) {
           report(
             context,
             node,
@@ -7262,6 +7265,7 @@ const noUnknownBooleanCoercionHelper = defineRule({
 
 const noFromnullableNullishCoalesce = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -7272,11 +7276,11 @@ const noFromnullableNullishCoalesce = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isOptionFromNullableNullishCoalesce(node)) {
+        if (hasEffectEcosystemImport && isOptionFromNullableNullishCoalesce(node, version)) {
           report(
             context,
             node,
-            "Rule: avoid nullish re-wrap inside Option.fromNullable. Why: `x ?? null` and `x ?? undefined` add noise and hide source shape. Fix: pass the source directly to Option.fromNullable.",
+            `Rule: avoid nullish re-wrap inside Option.${version === 3 ? "fromNullable" : "fromNullishOr"}. Why: \`x ?? null\` and \`x ?? undefined\` add noise and hide source shape. Fix: pass the source directly to Option.${version === 3 ? "fromNullable" : "fromNullishOr"}.`,
           );
         }
       },

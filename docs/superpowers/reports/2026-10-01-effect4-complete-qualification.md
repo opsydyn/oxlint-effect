@@ -925,6 +925,39 @@ publint, API docs and diff. Build remains 140.96 kB raw; cap fails by 649 bytes.
 Q22-Q34 and inventory statuses stay open; 82 rules unqualified. Continue Q35-Q52
 and closure without push, version bump or release.
 
+## Q35 Decoded Models And Full-Nullish Conversion
+
+Actual packed parsing exposed the const-assertion shape missing from synthetic
+coverage. Current policy excludes parsed TSTypeReference const; legacy traversal
+is preserved, including its const false positive. Model overlay emits 5 legacy/
+4 current warnings, opposite 4/4; current clean const emits one under legacy
+selection. Other initializer casts remain broadly reported, multiple declarators
+produce one report, satisfies/returned assertions are clean controls. Runtime
+proves an assertion did not validate a malformed model.
+
+Boolean helper emits 3 warnings per major from file-global exact typeof-boolean/
+immediate orElse-null correlation before/after markers, including unrelated
+checks. Duplicate markers do not duplicate reports. Exact-shape/import-order
+gaps remain labelled. Real Schema.optional repairs preserve absent, undefined,
+false and true, rejecting string/null/number inputs. Current optionalKey is
+separately tested as rejecting explicit undefined; it is not substituted for
+broader legacy optionality. Unknown Match predicate parameters are explicitly
+typed rather than suppressed.
+
+Full-nullish owner emits 3 warnings per major, opposite zero. Its prior legacy-
+only audit was too narrow: current fromNullishOr is the equivalent supported API.
+Version-selected detection/advice and v4 presets/applicability are restored under
+the stable rule ID; legacy fromNullable message is unchanged. Four rules remain
+legacy-only. Compiler negatives prove fromNullable removed in current; runtime
+repairs retain None and falsy Some(false/0/empty string), not just 42. Aliases and
+stored normalisation remain opaque. New policy/config regressions watched RED
+then GREEN, and full packed versions/configs pass after correcting the inventory.
+
+Fresh gates pass: 539 tests/3574 expectations, root types, final packed majors,
+publint, API docs and diff. Build is 141.16 kB raw; cap fails by 677 bytes.
+Q22-Q35 and applicable inventory statuses stay open; 82 rules unqualified.
+Continue Q36-Q52 and closure without push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

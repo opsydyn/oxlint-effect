@@ -2393,5 +2393,78 @@
       }
     },
     "runtime": "src/qualification/optionMatchAndDataNormalization/selection.contracts.ts"
+  },
+  {
+    "rule": "no-model-overlay-cast",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "declaration assertions, as const/satisfies and return-only gaps",
+      "file-global typeof boolean/null-marker correlation before and after, dedup and unrelated checks",
+      "own-major nullish constructor, null/undefined/nested wraps, aliases",
+      "actual Schema boolean optionality, malformed inputs and falsy absence semantics"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-model-overlay-cast.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-model-overlay-cast.good.ts",
+      "src/qualification/optionMatchAndDataNormalization/decoded-model-no-import.good.ts",
+      "src/qualification/optionMatchAndDataNormalization/decoded-model-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-model-overlay-cast.bad.ts": {
+        "linteffect/no-model-overlay-cast": 5
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/decoded-model.contracts.ts"
+  },
+  {
+    "rule": "no-unknown-boolean-coercion-helper",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "declaration assertions, as const/satisfies and return-only gaps",
+      "file-global typeof boolean/null-marker correlation before and after, dedup and unrelated checks",
+      "own-major nullish constructor, null/undefined/nested wraps, aliases",
+      "actual Schema boolean optionality, malformed inputs and falsy absence semantics"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-unknown-boolean-coercion-helper.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-unknown-boolean-coercion-helper.good.ts",
+      "src/qualification/optionMatchAndDataNormalization/decoded-model-no-import.good.ts",
+      "src/qualification/optionMatchAndDataNormalization/decoded-model-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-unknown-boolean-coercion-helper.bad.ts": {
+        "linteffect/no-unknown-boolean-coercion-helper": 3
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/decoded-model.contracts.ts"
+  },
+  {
+    "rule": "no-fromnullable-nullish-coalesce",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "declaration assertions, as const/satisfies and return-only gaps",
+      "file-global typeof boolean/null-marker correlation before and after, dedup and unrelated checks",
+      "own-major nullish constructor, null/undefined/nested wraps, aliases",
+      "actual Schema boolean optionality, malformed inputs and falsy absence semantics"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-fromnullable-nullish-coalesce.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-fromnullable-nullish-coalesce.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-fromnullable-nullish-coalesce.bad.ts": {
+        "linteffect/no-fromnullable-nullish-coalesce": 3
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/decoded-model.contracts.ts"
   }
 ]

@@ -23,3 +23,28 @@ pipeline. Both true/false and Some/None paths retain 42/0; failures retain their
 original reference. `unsafeCommon` is a labelled clean counterexample: blindly
 moving +41 outside the branch changes false to 41. No clean diagnostic alone
 establishes equivalence. Packed lint, types and runtime contracts are the QA gate.
+
+## Q35 Decoded Models And Nullish Sources
+
+`no-model-overlay-cast` reports non-const variable initializer assertions, even
+unrelated primitive casts; multiple asserted declarators yield one report.
+`satisfies` is clean. Current policy exempts actual parsed `as const`; legacy
+retains its conservative parser-shape false positive. Assertions only in returned
+expressions are a gap. The bad overlay retains a string in a nominal number field at runtime;
+correct Schema decoding validates rather than trusting the assertion.
+
+`no-unknown-boolean-coercion-helper` correlates an exact typeof-boolean check
+with an immediate Match.orElse-null marker anywhere in the file. Checks before
+or after that marker warn once, including unrelated checks outside services.
+Reversed/loose/inequality checks and block markers are clean gaps, not validation.
+The Schema repair preserves absent/undefined/false/true and rejects text, null
+and numeric booleans. Current optional permits absence and explicit undefined;
+optionalKey is stricter and has a separate failing undefined runtime control.
+
+`no-fromnullable-nullish-coalesce` keeps its public ID but selects the installed
+major: legacy fromNullable, current fromNullishOr. Both null and undefined wraps
+are redundant for these full-nullish converters. Pass the source directly;
+runtime checks preserve None and falsy Some(false/0/empty string), not merely 42.
+Aliases and stored normalisation remain opaque. Foreign-policy fixture syntax
+produces zero reports, and a compiler-negative current fixture rejects removed
+fromNullable. No rule rename or legacy diagnostic change is introduced.

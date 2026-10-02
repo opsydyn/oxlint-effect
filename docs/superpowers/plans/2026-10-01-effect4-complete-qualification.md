@@ -253,6 +253,10 @@ Continue Q34 without a prompt.
 Q34 Option/Match behavioural evidence passes. Size remains 649 bytes over
 30 KB; checkbox and inventory statuses stay open. Continue Q35.
 
+Q35 decoded-model/nullish behavioural evidence passes with current const
+exemption and restored full-nullish applicability. Size is 677 bytes over
+30 KB; checkbox and inventory statuses stay open. Continue Q36.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

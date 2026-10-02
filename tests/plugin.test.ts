@@ -52,6 +52,26 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q35 exempts parsed current const assertions", () => {
+    const node = { type: "VariableDeclaration", declarations: [{ type: "VariableDeclarator", id: identifier("value"), init: { type: "TSAsExpression", expression: identifier("input"), typeAnnotation: tsTypeReference("const") } }] };
+    const inspect = (version: 3 | 4) => runRuleSequence("no-model-overlay-cast", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "VariableDeclaration", node }], { options: [{ effectVersion: version }] });
+    expect(inspect(4)).toHaveLength(0);
+    expect(inspect(3)).toHaveLength(1);
+  });
+  it("Effect qualification Q35 selects the own-major nullish constructor", () => {
+    const inspect = (name: string, version: 3 | 4) => runRuleSequence("no-fromnullable-nullish-coalesce", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: callExpression(memberExpression("Option", name), logicalExpression(identifier("value"), "??", nullLiteral())) }], { options: [{ effectVersion: version }] });
+    expect(inspect("fromNullishOr", 4)).toHaveLength(1);
+    expect(inspect("fromNullable", 4)).toHaveLength(0);
+    expect(inspect("fromNullishOr", 3)).toHaveLength(0);
+    expect(inspect("fromNullable", 3)).toHaveLength(1);
+    expect(inspect("fromNullishOr", 4)[0].message).toContain("Option.fromNullishOr");
+  });
+  it("Effect qualification Q35 supplies packed decoded-model evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-model-overlay-cast", "no-unknown-boolean-coercion-helper", "no-fromnullable-nullish-coalesce"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q34 supplies packed Option and Match evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

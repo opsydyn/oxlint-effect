@@ -216,6 +216,17 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-fromnullable-nullish-coalesce")) {
+      const config = "oxlint.qualification.nullish-opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-fromnullable-nullish-coalesce": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/optionMatchAndDataNormalization/no-fromnullable-nullish-coalesce.bad.ts"], {}, 0);
+    }
+    if (cases.some(entry => entry.rule === "no-model-overlay-cast")) {
+      const config = "oxlint.qualification.overlay-opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-model-overlay-cast": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/optionMatchAndDataNormalization/no-model-overlay-cast.bad.ts"], { "linteffect/no-model-overlay-cast": 4 }, 1);
+      verifyLint(root, config, ["src/qualification/optionMatchAndDataNormalization/no-model-overlay-cast.good.ts"], major === 4 ? { "linteffect/no-model-overlay-cast": 1 } : {}, major === 4 ? 1 : 0);
+    }
     if (cases.some(entry => entry.rule === "no-new-date-in-domain-logic")) {
       const rule = "linteffect/no-new-date-in-domain-logic";
       const config = "oxlint.qualification.date-boundary.json";

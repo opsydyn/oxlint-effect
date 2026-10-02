@@ -1302,7 +1302,7 @@
     ]
   },
   "no-model-overlay-cast": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -1313,7 +1313,7 @@
     },
     "evidence": [
       "src/index.ts: noModelOverlayCast; transitive helpers: noModelOverlayCast, getImportSource, isEffectEcosystemImport, isVariableAsAssertion",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q35: 5 legacy/4 current warnings; opposite 4/4, current clean const fixture warns once under legacy policy. Actual parsed const reference excluded only in current policy; legacy parser false positive retained. Other variable assertions broad, multiple declarators dedup, satisfies/return-only controls. Runtime bad overlay retains malformed value; actual Schema repair validates. Final 30 KB gate pending: 677 bytes over."
     ]
   },
   "no-unknown-boolean-coercion-helper": {
@@ -1328,23 +1328,23 @@
     },
     "evidence": [
       "src/index.ts: noUnknownBooleanCoercionHelper; transitive helpers: noUnknownBooleanCoercionHelper, getImportSource, isEffectEcosystemImport, isTypeofBooleanCheck, isMatchOrElseNullCall, isMatchBranchCall, isIdentifier, isNullLiteral, arrowCallbackBody",
-      "Recognition tokens: orElse, Match; API and repair controls still require packed qualification."
+      "Q35: 3 warnings per major, exact typeof-boolean checks before/after file-global null marker, unrelated checks and duplicate markers. Reversed/loose/inequality/block-marker/import-order controls retained. Actual Schema optional preserves absent/undefined/false/true, rejects malformed/null/numeric inputs; current optionalKey explicitly rejects undefined. Final 30 KB gate pending: 677 bytes over."
     ]
   },
   "no-fromnullable-nullish-coalesce": {
     "sensitive": true,
     "applicability": {
       "3": true,
-      "4": false
+      "4": true
     },
     "qualification": {
       "3": "baseline",
-      "4": "not-applicable"
+      "4": "pending"
     },
     "evidence": [
       "src/index.ts: noFromnullableNullishCoalesce; transitive helpers: noFromnullableNullishCoalesce, getImportSource, isEffectEcosystemImport, isOptionFromNullableNullishCoalesce, isMemberCall, isIdentifier, isNullishRewrap, isNullLiteral, isUndefinedIdentifier",
-      "Recognition tokens: Option, fromNullable; API and repair controls still require packed qualification.",
-      "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
+      "Q35: 3 warnings per major for null/undefined/nested wraps; opposite policy zero. Current fromNullishOr equivalent restores v4 applicability/presets under stable ID, legacy fromNullable diagnostic unchanged. Runtime preserves None and Some(false/0/empty string/42); aliases/stored normalization opaque. Compiler rejects removed current constructor. Final 30 KB gate pending: 677 bytes over.",
+      "Q35 re-audit: current fromNullishOr is the equivalent full-nullish constructor. Stable rule ID now applies to both majors; version-selected detection and guidance retain legacy diagnostics."
     ]
   },
   "no-option-boolean-normalization": {

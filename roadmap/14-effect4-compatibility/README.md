@@ -53,6 +53,11 @@ Q34 Option/Match behavioural checks pass, preserving presence and branch values
 with explicit unsafe-rewrite counterexamples. Size remains 649 bytes over the
 cap; final qualification stays open. Continue Q35-Q52.
 
+Q35 decoded-model/nullish checks pass; current const false positive corrected
+and fromNullishOr restores current applicability under the stable rule ID.
+Four owners remain legacy-only. Size is 677 bytes over the unchanged cap;
+final qualification stays open. Continue Q36-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

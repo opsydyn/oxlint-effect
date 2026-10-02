@@ -63,7 +63,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds unchanged 30 KB by 649 bytes.
 - [ ] Close Q34 Option/Match qualification: behavioural gates pass;
   compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Complete and qualify Q35-Q52 in the
+- [ ] Close Q35 decoded-model/nullish qualification: behavioural gates pass;
+  compressed size exceeds unchanged 30 KB by 677 bytes.
+- [ ] Complete and qualify Q36-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
