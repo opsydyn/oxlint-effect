@@ -216,6 +216,11 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-effect-side-effect-wrapper")) {
+      const config = "oxlint.qualification.opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-effect-side-effect-wrapper": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/pipelineShapeAndSequencing/no-effect-side-effect-wrapper.bad.ts"], { "linteffect/no-effect-side-effect-wrapper": 6 }, 1);
+    }
     if (cases.some(entry => entry.rule === "no-call-tower")) {
       const config = "oxlint.qualification.opposite.json";
       const path = major === 3 ? "src/qualification/pipelineShapeAndSequencing/no-effect-orElse-ladder.bad.ts" : "src/qualification/pipelineShapeAndSequencing/foreign-orElse.good.ts";

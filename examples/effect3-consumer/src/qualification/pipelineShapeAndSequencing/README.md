@@ -1,4 +1,4 @@
-# Pipeline Shape And Sequencing: Q41-Q42
+# Pipeline Shape And Sequencing: Q41-Q43
 
 These are deliberately uncorrected anti-patterns for Effect 3. The packed
 consumer installs the built plugin and checks exact warnings per file. Behavioural
@@ -44,6 +44,37 @@ Working [pipe](no-pipe-ladder.good.ts) and [tower](no-call-tower.good.ts) repair
 use flat pipelines or generators; aliases/computed calls are labelled gaps,
 not endorsed repairs. [Runtime contracts](pipe-tower.contracts.ts) retain 42,
 the deliberate void result, source failure identity and terminal fallback order.
+
+## Wrapper Intent And Deferred Execution
+
+[`no-effect-wrapper-alias` failures](no-effect-wrapper-alias.bad.ts) cover
+free/receiver pipes, concise factories, returns, unused nested returns and
+multiple declarators. [Repairs](no-effect-wrapper-alias.good.ts) compute pure
+domain data and construct Effect at the call site. Direct constructors are
+allowed; block-arrow/namespace aliases remain documented shape gaps.
+
+[`warn-effect-sync-wrapper` failures](warn-effect-sync-wrapper.bad.ts) use
+immediate expression-arrow calls. Even pure callees warn: called-body purity
+is not established. [Controls](warn-effect-sync-wrapper.good.ts) cover block,
+literal, named, function-expression and console callbacks, while
+[late imports](sync-late-import.good.ts) show the existing import-order gap.
+Keep real side effects deferred; do not move them into eager succeed arguments
+just to silence a warning. Block-body repairs are a syntax-policy control, not
+a claim that arbitrary callback work is now safe or pure.
+
+[`no-effect-side-effect-wrapper` failures](no-effect-side-effect-wrapper.bad.ts)
+cover actual log/console plus local state/invalidate/Atom name heuristics and
+unused callback false positives. Current sequencing uses `andThen`, legacy
+`zipRight`; `as` is common. Opposite-policy counts exclude the foreign
+sequencing form. [Generator repairs](no-effect-side-effect-wrapper.good.ts)
+keep effects explicit and return the real value; named opaque steps are gaps.
+The rule has no import gate. Local Atom/state helpers are not platform API proof.
+
+[Runtime contracts](wrappers.contracts.ts) check 42, no execution during
+construction, two runs giving two calls, once-only state/invalidate/Atom and
+console work, and identical thrown defect identity. Console is restored in a
+finally block. Actual logs execute under each pinned major. No application is
+started. 
 
 ## Terminal Recovery
 

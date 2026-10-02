@@ -2944,5 +2944,71 @@
       }
     },
     "runtime": "src/qualification/pipelineShapeAndSequencing/pipe-tower.contracts.ts"
+  },
+  {
+    "rule": "no-effect-wrapper-alias",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "free/receiver pipe, concise factories, nested unused return and multiple declarators",
+      "actual pure domain data plus call-site constructors; preserved block/alias gaps"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-wrapper-alias.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-wrapper-alias.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-effect-wrapper-alias.bad.ts": {
+        "linteffect/no-effect-wrapper-alias": 7
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/wrappers.contracts.ts"
+  },
+  {
+    "rule": "warn-effect-sync-wrapper",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "immediate arrow calls, pure/member/nested/throwing callees",
+      "block/literal/named/function-expression/console/import-order controls",
+      "actual deferral and repeated execution count; thrown failure remains failure"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/warn-effect-sync-wrapper.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/warn-effect-sync-wrapper.good.ts",
+      "src/qualification/pipelineShapeAndSequencing/sync-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/warn-effect-sync-wrapper.bad.ts": {
+        "linteffect/warn-effect-sync-wrapper": 5
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/wrappers.contracts.ts"
+  },
+  {
+    "rule": "no-effect-side-effect-wrapper",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "as and own-major sequence with actual logs/console",
+      "local state/invalidate/Atom name heuristics and unused callback false positives",
+      "gen repair retains value and deferred once-only effects; opposite sequence excluded"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-side-effect-wrapper.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-side-effect-wrapper.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-effect-side-effect-wrapper.bad.ts": {
+        "linteffect/no-effect-side-effect-wrapper": 7
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/wrappers.contracts.ts"
   }
 ]

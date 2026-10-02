@@ -811,11 +811,11 @@
     },
     "evidence": [
       "src/index.ts: warnEffectSyncWrapper; transitive helpers: warnEffectSyncWrapper, getImportSource, isEffectEcosystemImport, firstArgument, arrowCallbackBody, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isExpressionBodiedArrowCall, isConsoleCall",
-      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+      "Q43 packed both majors: 5 immediate arrow-call warnings including pure/member/nested/throwing callees. Block/literal/named/function-expression/console/import-order controls; deferred construction, repeated once-only execution and defect identity checked. Size gate remains open."
     ]
   },
   "no-effect-side-effect-wrapper": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -826,7 +826,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectSideEffectWrapper; transitive helpers: noEffectSideEffectWrapper, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsWrapperSideEffect, isIdentifierCall, isMemberCall, isEffectLogCall, isConsoleCall, firstArgument",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q43 packed both majors: 7 as/own-major sequence warnings; current andThen adapted, legacy zipRight and exact messages preserved, opposite counts 6/6. Actual logging/console and ordinary state/invalidate/Atom heuristics, unused callbacks, opaque named gaps. Gen repair preserves 42 and deferred once-only effects. Size gate remains open."
     ]
   },
   "no-effect-all-step-sequencing": {
@@ -981,7 +981,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectWrapperAlias; transitive helpers: noEffectWrapperAlias, isEffectWrapperAliasExpression, isPipeStartingWithEffect, pipeParts, isPipeCall, isIdentifier, containsEffectMemberCall, isEffectMemberCall, hasEffectWrapperAliasReturn, findReturnStatements",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q43 packed both majors: 7 pipe/factory/return/unused/multiple-declarator warnings. Actual pure data/call-site repair preserves 42; direct constructors, block-arrow and namespace shapes document policy limits. Size gate remains open."
     ]
   },
   "no-manual-effect-channels": {

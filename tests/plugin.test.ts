@@ -52,6 +52,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q43 supplies packed wrapper evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-effect-wrapper-alias", "warn-effect-sync-wrapper", "no-effect-side-effect-wrapper"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q43 selects current side-effect sequencing wrappers", () => {
+    const inspect = (operator: string, version: 3 | 4) => runRule("no-effect-side-effect-wrapper", "CallExpression", effectCall(operator, effectCall("logInfo", stringLiteral("event")), identifier("next")), { options: [{ effectVersion: version }] });
+    expect(inspect("andThen", 4)).toHaveLength(1);
+    expect(inspect("zipRight", 4)).toHaveLength(0);
+    expect(inspect("andThen", 3)).toHaveLength(0);
+    expect(inspect("zipRight", 3)).toHaveLength(1);
+  });
   it("Effect qualification Q42 disables removed orElse policy in current manual config", () => {
     const node = effectCall("orElse", effectCall("flatMap", identifier("task"), identifier("step")), identifier("fallback"));
     expect(runRule("no-effect-orElse-ladder", "CallExpression", node, { options: [{ effectVersion: 3 }] })).toHaveLength(1);

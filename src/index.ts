@@ -6533,6 +6533,7 @@ const warnEffectSyncWrapper = defineRule({
 
 const noEffectSideEffectWrapper = defineRule({
   create(context: OxlintContext) {
+    const sequencing = effectVersionFor(context.options) === 3 ? "zipRight" : "andThen";
     return {
       CallExpression(node: any) {
         if (isEffectMemberCallNamed(node, "as") && containsWrapperSideEffect(firstArgument(node))) {
@@ -6544,13 +6545,13 @@ const noEffectSideEffectWrapper = defineRule({
         }
 
         if (
-          isEffectMemberCallNamed(node, "zipRight") &&
+          isEffectMemberCallNamed(node, sequencing) &&
           containsWrapperSideEffect(firstArgument(node))
         ) {
           report(
             context,
             node,
-            "Rule: avoid Effect.zipRight for side effects. Why: it hides side effects and discards values. Fix: use explicit pipeline steps that return real values with Effect.flatMap, Effect.andThen, or Effect.tap.",
+            `Rule: avoid Effect.${sequencing} for side effects. Why: it hides side effects and discards values. Fix: use explicit pipeline steps that return real values with Effect.flatMap, Effect.andThen, or Effect.tap.`,
           );
         }
       },

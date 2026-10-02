@@ -1113,6 +1113,31 @@ publint, API docs and diff. Raw build is 141.54 kB; size remains 771 bytes over
 the unchanged cap. Q22-Q42 and inventory statuses remain open, with 82 rules
 unqualified. Continue Q43-Q52 and closure without release.
 
+## Q43 Wrapper Intent And Lazy Side Effects
+
+Packed both majors emit 7 alias / 5 sync / 7 side-effect wrapper warnings.
+Aliases cover free/receiver pipes, concise factories, explicit/unused nested
+returns and multiple declarators. Pure domain data plus call-site constructors
+retain 42; direct constructors, block arrows and namespaces document limitations.
+
+Sync policy remains an expression-arrow-call heuristic: even pure callees warn.
+Block, literal, named, function-expression and console callbacks plus late-import
+controls preserve existing policy. Actual repairs retain lazy construction,
+two runs producing two calls and original thrown defect identity. Moving real
+side effects into eager succeed arguments is explicitly not endorsed.
+
+The side-effect owner now selects current andThen versus legacy zipRight, with
+common as detection and exact legacy messages retained. Opposite counts are
+6/6. Actual logs/console execute; local state/invalidate/Atom controls only prove
+name heuristics, not platform integration. Generator repair preserves deferred
+once-only work and 42. Named opaque steps and unused callbacks document gaps
+and broad search. Console restoration is protected by finally.
+
+Fresh gates pass: 553 tests / 3635 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 141.60 kB; size fails by 800 bytes under
+the unchanged cap. Q22-Q43 and inventory statuses stay open, 82 unqualified.
+Continue Q44-Q52 and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
