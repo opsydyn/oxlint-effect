@@ -117,6 +117,12 @@ try {
       const path = `src/qualification/concurrencySafety/${rule}.bad.ts`;
       verifyLint(root, config, [path], { [`linteffect/${rule}`]: count }, 1, { [path]: { [`linteffect/${rule}`]: count } });
     }
+    for (const [rule, count] of [["no-yield-with-held-mutable-ref", major === 3 ? 6 : 7], ["no-acquire-without-scoped-release", 6], ["no-unscoped-background-fiber", 0]] as const) {
+      const config = "oxlint.qualification.opposite.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      const path = `src/qualification/concurrencySafety/${rule}.bad.ts`;
+      verifyLint(root, config, [path], count ? { [`linteffect/${rule}`]: count } : {}, count ? 1 : 0, count ? { [path]: { [`linteffect/${rule}`]: count } } : undefined);
+    }
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
       "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },

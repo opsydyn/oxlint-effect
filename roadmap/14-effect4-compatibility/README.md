@@ -1,6 +1,6 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: foundation, recovery/runtime batch and Q01-Q20 locally verified; Q21-Q52 and cross-group closure remain outstanding.
+Status: foundation, recovery/runtime batch and Q01-Q21 locally verified; Q22-Q52 and cross-group closure remain outstanding.
 
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
@@ -23,7 +23,7 @@ Qualification scope: `no-effect-fail-error-message` has pinned packed failure
 and clean controls for both majors. The mixed-major boundary probe proves
 configuration isolation with common runner syntax, not all v4 runner variants.
 The three headline recovery/runtime rules now also have scoped qualification;
-85 rules still have an unqualified applicable version. Presets accepting
+82 rules still have an unqualified applicable version. Presets accepting
 `effectVersion` does not imply that pending detectors already branch on it.
 The release/prepublish guard blocks this checkout until a major bump and
 all applicable major-specific qualifications are complete.
@@ -70,6 +70,10 @@ coverage; neither is implied by the headline runner qualification.
 
 First targeted batch: `no-fire-and-forget-fork`, `no-fork-in-loop`,
 `no-unobserved-fiber`. Detached-fiber ownership follows as a separate batch.
+
+Q16-Q21's allocated rule batches now have packed failures, clean controls and
+runtime/type contracts for both majors. Final group/preset composition closure
+is still a campaign-wide gate; this is not release readiness.
 
 ## Slice 4: Service And Layer Architecture
 

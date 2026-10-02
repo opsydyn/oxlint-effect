@@ -2032,12 +2032,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noAcquireWithoutScopedRelease; transitive helpers: noAcquireWithoutScopedRelease, getImportSource, isEffectEcosystemImport, concurrentWorkArguments, isEffectMemberCall, isIdentifier, concurrentWorkMembers, findUnscopedResourceAcquisitions, collectUnscopedResourceAcquisitions, hasScopedReleaseEvidence, isEffectMemberCallNamed, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, hasMatchingDeferredFinalizer, findNode, isMemberCall, callbackBody, containsIdentifierNamed, isFunctionLike, matchingFinalizerBindingNames, findNodes, resourceAcquisitionCall, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms",
-      "Recognition tokens: Effect, fork, forkScoped, forkDaemon, all, forEach, race, raceFirst, raceAll, acquireRelease, acquireUseRelease, Scope, acquire; API and repair controls still require packed qualification."
+      "Q21: 8 legacy/14 v4 parsed warnings, opposite policy retains 6 each. Preserve legacy name/marker traversal. V4 selects current fork/race forms with direct/curried/terminal-pipe work and recognises gen/fn, logic, sync/suspend/Promise and mapped callbacks through native parent metadata; unused definitions stay clean. Report actual acquisition nodes and deduplicate nested roots. Naming, scope and name-matched finalizers remain heuristics, not type/cleanup proof; bare scoped acquisition stays clean but leaks the stand-in until manual release. Runtime owned acquireUseRelease retains 43/original errors/interruption and releases once on each exit; raw acquisition releases zero times without explicit teardown. Scope acquireRelease and registered finalizer controls release once. Resource-shaped typed stand-ins do not qualify native filesystem/network behaviour."
     ]
   },
   "no-manual-resource-close": {
@@ -2197,12 +2197,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noYieldWithHeldMutableRef; transitive helpers: noYieldWithHeldMutableRef, getImportSource, isEffectEcosystemImport, synchronizedRefModifierWork, isEffectfulSynchronizedRefCall, effectfulSynchronizedRefMembers, isMemberCall, isIdentifier, isAnyEffectfulSynchronizedRefCall, isAnyObjectMemberCallNamed, isSynchronizedRefNamespaceCall, containsHighRiskSuspension, isEffectMemberCall, highRiskEffectMembers",
-      "Recognition tokens: Effect, promise, tryPromise, fork, forkDaemon, forkScoped, all, forEach, race, raceAll, Queue, Deferred; API and repair controls still require packed qualification."
+      "src/index.ts: noYieldWithHeldMutableRef; version-selected synchronizedRefModifierWork and containsEffect4ConcurrentOperation permit traversal; createVersionedEffectCallbackRule import/report gate.",
+      "Q21: 7 legacy/10 v4 parsed warnings; opposite policy 6 legacy/7 v4. V4 direct/curried/terminal-pipe SynchronizedRef/SubscriptionRef namespaces, four modifier names and recognised gen/fn callbacks; skip unary factory calls, ordinary unused helpers and unrelated object methods. Preserve legacy namespace/instance and broad traversal. Runtime holds contender behind a gated update, while an independent delta repair allows progress before release; failure/interruption leave state unchanged, lock reusable and finalizer once. Modifier values and optional no-update branches retain 42/state. V4 modifySomeEffect returns Effect<[result, Option<state>]> without fallback, unlike legacy fallback plus Option<Effect<[result,state]>>. Checked API negatives cover signature and removed instance method. Do not mechanically split state-dependent I/O; aliases/other modifier names are outside scope."
     ]
   },
   "no-unscoped-background-fiber": {
@@ -2212,12 +2212,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noUnscopedBackgroundFiber; transitive helpers: noUnscopedBackgroundFiber, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallNamed, firstArgument",
-      "Recognition tokens: Effect, forkDaemon; API and repair controls still require packed qualification."
+      "Q21: 4 legacy/8 v4 parsed warnings; foreign policy emits zero in each consumer. Preserve direct forkDaemon and supervised marker policy. V4 forkDetach direct, options, curried and terminal method/function pipes warn even with returned/joined handles or an inner scope. Empty/undefined/inline-options factories stay clean; stored factories/named options are not inferred. Runtime proves detached work survives caller completion, scoped inner work and legacy Supervisor.none marker do not impose teardown, explicit interrupt releases once, and forkScoped/forkIn/child owners interrupt and finalize on scope/parent completion. Checked negatives cover removed forkDaemon/supervised; intentional detached lifetime remains a strict policy warning rather than a proven leak."
     ]
   }
 }

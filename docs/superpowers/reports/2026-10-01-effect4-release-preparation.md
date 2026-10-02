@@ -35,9 +35,10 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Qualify Q18 async boundaries, Promise aggregation and lexical shared-state work.
 - [x] Qualify Q19 timeout cancellation, masking boundaries and bounded buffers.
 - [x] Qualify Q20 lexical global ownership, Deferred coordination and semaphore permits.
-- [ ] Complete and qualify Q21-Q52 in the
+- [x] Qualify Q21 held refs, detached lifetime and concurrent acquisition ownership.
+- [ ] Complete and qualify Q22-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 85 rules with an unqualified applicable version.
+  Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.

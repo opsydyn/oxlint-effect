@@ -52,6 +52,42 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q21 recognises current held-ref pipes and owned callbacks", () => {
+    const callback = arrowCallback(effectCall("gen", generatorCallback(blockStatement(expressionStatement(effectCall("forkChild", identifier("task")))))));
+    const inspect = (node: unknown) => runRuleSequence("no-yield-with-held-mutable-ref", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });
+    expect(inspect(methodPipeCall(identifier("ref"), objectMethodCall(identifier("SynchronizedRef"), "updateEffect", callback)))).toHaveLength(1);
+    const traced = callExpression(effectCall("fn", stringLiteral("locked")), generatorCallback(blockStatement(expressionStatement(effectCall("sleep", numericLiteral(1))))));
+    expect(inspect(objectMethodCall(identifier("SynchronizedRef"), "updateEffect", identifier("ref"), traced))).toHaveLength(1);
+    expect(inspect(objectMethodCall(identifier("SynchronizedRef"), "updateEffect", callback))).toHaveLength(0);
+    const unused = arrowCallback(effectCall("gen", generatorCallback(blockStatement(expressionStatement(arrowCallback(effectCall("sleep", numericLiteral(1))))))));
+    expect(inspect(objectMethodCall(identifier("SynchronizedRef"), "updateEffect", identifier("ref"), unused))).toHaveLength(0);
+  });
+  it("Effect qualification Q21 distinguishes detach startup from option factories", () => {
+    const inspect = (node: unknown, version: 3 | 4 = 4) => runRuleSequence("no-unscoped-background-fiber", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    expect(inspect(effectCall("forkDetach", identifier("task")))).toHaveLength(1);
+    expect(inspect(methodPipeCall(identifier("task"), memberAccess(identifier("Effect"), "forkDetach")))).toHaveLength(1);
+    expect(inspect(callExpression(effectCall("forkDetach", objectLiteral()), identifier("task")))).toHaveLength(1);
+    expect(inspect(effectCall("forkDetach", objectLiteral()))).toHaveLength(0);
+    expect(inspect(effectCall("forkDetach", identifier("undefined")))).toHaveLength(0);
+    expect(inspect(effectCall("forkDaemon", identifier("task")))).toHaveLength(0);
+    expect(inspect(effectCall("forkDetach", identifier("task")), 3)).toHaveLength(0);
+  });
+  it("Effect qualification Q21 finds current inline acquisition and skips unused helpers", () => {
+    const acquisition = namedCall("openConnection");
+    const inspect = (node: unknown) => runRuleSequence("no-acquire-without-scoped-release", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });
+    const callback = arrowCallback(acquisition);
+    const sync = effectCall("sync", callback);
+    Object.assign(callback, { parent: sync });
+    expect(inspect(effectCall("forkChild", sync))[0]?.node).toBe(acquisition);
+    const unused = effectCall("gen", generatorCallback(blockStatement(expressionStatement(arrowCallback(namedCall("openConnection"))))));
+    expect(inspect(effectCall("forkChild", unused))).toHaveLength(0);
+  });
+  it("Effect qualification Q21 supplies packed ref, lifetime and acquisition evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-yield-with-held-mutable-ref", "no-unscoped-background-fiber", "no-acquire-without-scoped-release"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q20 protects the current Deferred timeout fallback form", () => {
     const binding = variableDeclaratorWithInit("ready", objectMethodCall(identifier("Deferred"), "makeUnsafe"));
     const reference = identifier("ready");

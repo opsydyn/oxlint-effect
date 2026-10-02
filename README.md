@@ -524,10 +524,10 @@ export default defineConfig({
 | `linteffect/no-unbounded-queue-or-pubsub` | Explicit `Queue.unbounded` / `PubSub.unbounded`; v4 also detects `Queue.make` with omitted/undefined options or inline missing/undefined/Infinity capacity, and `PubSub.makeAtomicUnbounded`. | Use bounded suspend/backpressure constructors with an owned capacity. Named/spread options and computed capacities are not evaluated; clean syntax is not capacity validation. Dropping/sliding changes delivery semantics. V4 PubSub subscriptions use `PubSub.take`, legacy subscriptions use `Queue.take`; scope subscriptions and shut down owned buffers. |
 | `linteffect/no-global-mutable-concurrency-state` | V4: lexical module/global `let` / `var` writes or known mutable-container operations in inline collections and direct/curried/terminal-pipe child/detached forks. Legacy: file-wide names, including function-local declarations, and old fork syntax. | Own `Ref` state per execution/service or aggregate immutable results. V4 excludes local/shadow bindings; object-property writes and stored task bodies remain outside scope. Syntax is not execution/data-race proof; default collections are sequential. |
 | `linteffect/no-yield-with-held-semaphore-permit` | V4: instance/namespace `Semaphore.withPermit` / `withPermits`, including curried/terminal pipes, around visible waits, Promise adapters or current concurrent work in recognised gen/fn bodies. Legacy: `Effect.Semaphore.withPermits` and direct/curried `TSemaphore` forms with broad traversal. | Strict-only coordination policy, not permit-leak detection. Narrow unrelated waits when semantics allow; async I/O may intentionally be permit-bound, and moving it outside changes concurrency limits. Named tasks, ordinary nested definitions in v4 and other acquisition APIs are not inferred. |
-| `linteffect/no-yield-with-held-mutable-ref` | Effectful `SynchronizedRef` modifiers (`modifyEffect`, `modifySomeEffect`, `updateEffect`, `updateAndGetEffect`) whose callback suspends or starts concurrent work. | Strict-only protection that keeps internal reference coordination short and synchronous. |
-| `linteffect/no-unscoped-background-fiber` | Direct `Effect.forkDaemon(...)` without a direct `Effect.supervised(...)` child-effect marker. | Strict-only protection that requires daemon work to expose supervision or use scoped ownership instead of silently outliving the caller. |
+| `linteffect/no-yield-with-held-mutable-ref` | Four effectful modifier names: `modifyEffect`, `modifySomeEffect`, `updateEffect`, `updateAndGetEffect`. V4: literal `SynchronizedRef` / `SubscriptionRef` namespaces, direct/curried/terminal-pipe forms and visible waits/current concurrent work through recognised gen/fn callbacks. Legacy: namespace/instance forms with broad traversal. | Strict-only short critical-section policy. Move only independent work outside, retaining a synchronous state transition; splitting state-dependent I/O can lose atomicity. V4 skips ordinary unused helpers, named callback bodies and unrelated object methods. Other modifier names remain outside this rule. |
+| `linteffect/no-unscoped-background-fiber` | V4: direct/curried/terminal-pipe `forkDetach`, including returned/joined handles and a scope inside the detached child. Empty/undefined/inline-options factories stay clean. Legacy: direct `forkDaemon` without a visible `supervised` marker in child work. | Strict-only scoped-lifetime policy: use `forkScoped` / `forkIn` or child ownership. Joining/returning observes or transfers a handle, not scoped teardown. Legacy supervision observes but does not itself interrupt; v4 removed `Effect.supervised`. Intentional detached ownership still warns; stored factory aliases/named options are not inferred. |
 | `linteffect/no-manual-deferred-coordination` | V4: direct `Deferred.make` / `makeUnsafe` bindings and same-binding awaits, including captured closures. Recognises current timeout/race, interruptible/scoped and same-binding finalizer markers; supports direct/curried/terminal timeout/race forms. Legacy: function-local name matching with `make` / `unsafeMake` and old protection tables. | Strict-only completion/cancellation ownership policy. V4 distinguishes shadowed finalizer bindings and does not treat a timeout fallback callback as bounded source work. Scope, interruptibility or finalizer reference presence is not proof of execution or eventual completion; named latch aliases are not resolved. |
-| `linteffect/no-acquire-without-scoped-release` | Resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls for client, connection, pool, database, file, socket, stream, server, subscription, or handle values inside concurrent Effect work without scoped release evidence. | Keeps resources acquired by concurrent work tied to `acquireRelease`, `acquireUseRelease`, `Effect.scoped`, or a matching finalizer. |
+| `linteffect/no-acquire-without-scoped-release` | Resource-shaped acquisition names inside inline collection/fork/race work. V4 adds current child/detached/scoped/in forks, first-completion races, curried/terminal pipes and recognised gen/fn/logic/adapter/mapped callbacks; skips ordinary unused definitions. Legacy: old fork/race names and broad traversal. | Own actual release with `acquireRelease`, `acquireUseRelease` or registered finalizers. Existing scope and name-matched finalizer markers remain coarse exclusions, not cleanup proof: a bare scope does not release a raw resource. Naming is a heuristic; stored tasks, aliases and generic factory names are not resource-type inference. |
 
 Scheduling/fork anti-patterns and repairs are typechecked in the
 [Effect 4 corpus](examples/effect4-consumer/src/qualification/concurrencySafety/)
@@ -552,12 +552,22 @@ Compiler-negative controls distinguish legacy `unsafeMake(FiberId)` and
 `Effect.Semaphore.withPermits` from current `makeUnsafe()` and `Semaphore` APIs.
 Legacy `TSemaphore` wraps Effect work, with work-first direct and semaphore-first
 curried forms; it is not a current-v4 API.
+Q21's [ref/lifetime/acquisition contracts](examples/effect4-consumer/src/qualification/concurrencySafety/ref-background-acquisition.contracts.ts)
+verify lock contention, independent-delta repair, unchanged state on modifier
+failure/interruption, detached work surviving caller completion, owned-child
+teardown and resource finalization on all three exit paths. Resources are typed
+stand-ins with counted release, not native filesystem/network qualification.
+V4 `modifySomeEffect` returns `Effect<[result, Option<state>]>`; legacy takes a
+fallback and `Option<Effect<[result, state]>>`. Both no-update branches preserve
+state and result. Do not mechanically port the optional modifier's signature.
+The allocated concurrency batches are qualified; cross-group composition and
+the remaining resource-lifetime batches are still pending.
 V4 fiber observation and shared-state checks use Oxlint's
 lexical scope metadata, not TypeScript type inference; they do not require
 `typeAware` or enable compiler diagnostics.
 Qualification uses completion markers and a 60-second deadlock watchdog, not
-timing-based behavioural assertions. The other concurrency rules still await
-their allocated Effect 4 qualification batches.
+timing-based behavioural assertions. Qualification remains scoped to the
+documented calling forms and pinned package versions.
 
 ### Resource Lifetime
 

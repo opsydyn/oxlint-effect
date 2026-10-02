@@ -1381,5 +1381,75 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
+  },
+  {
+    "rule": "no-yield-with-held-mutable-ref",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "four effectful modifier names",
+      "direct and curried callbacks",
+      "independent delta contention and exit contracts",
+      "actual legacy instance modifyEffect"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-yield-with-held-mutable-ref.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-yield-with-held-mutable-ref.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-yield-with-held-mutable-ref.bad.ts": {
+        "linteffect/no-yield-with-held-mutable-ref": 7
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ref-background-acquisition.contracts.ts"
+  },
+  {
+    "rule": "no-unscoped-background-fiber",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "returned/joined handle is not scoped ownership",
+      "scope inside detached task is not caller scope",
+      "direct daemon and retained supervisor marker",
+      "explicit scoped/in/child shutdown"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unscoped-background-fiber.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unscoped-background-fiber.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unscoped-background-fiber.bad.ts": {
+        "linteffect/no-unscoped-background-fiber": 4
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ref-background-acquisition.contracts.ts"
+  },
+  {
+    "rule": "no-acquire-without-scoped-release",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "actual typed resource-shaped acquisition",
+      "collection, forks and success/first-completion races",
+      "managed release on success/failure/interruption",
+      "scope marker limitation",
+      "legacy traversal and finalizer matching"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-acquire-without-scoped-release.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-acquire-without-scoped-release.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-acquire-without-scoped-release.bad.ts": {
+        "linteffect/no-acquire-without-scoped-release": 8
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ref-background-acquisition.contracts.ts"
   }
 ]

@@ -431,6 +431,70 @@ API-negative controls pass. Build is 140.76 kB raw; size is 29.77 KB under the
 approved 30 KB cap. Q21-Q52 and cross-group closure remain open; 85 rules retain
 an unqualified applicable version. No push/release.
 
+## Q21 Held Refs, Background Ownership And Acquisition
+
+Qualified `no-yield-with-held-mutable-ref`, `no-unscoped-background-fiber`
+and `no-acquire-without-scoped-release` against pinned Effect 3.21.4/4.0.0
+and Oxlint 1.71.0 consumers, preserving their preset membership.
+
+- Held refs: seven legacy/ten v4 warnings. Current literal SynchronizedRef and
+  SubscriptionRef namespace forms support direct, curried and terminal pipes
+  for the four existing modifier names. Recognised gen/fn callbacks include
+  current child work; unused ordinary helpers and unrelated methods stay clean.
+  Unary modifier factories do not warn before application. Legacy instance and
+  namespace forms retain broad traversal. Runtime verifies a gated update holds
+  a contender behind the lock; computing an independent delta outside allows
+  contender progress first. Success retains both updates, failure/interruption
+  leave the failed update uncommitted, and the lock remains usable with one
+  finalization. Moving state-dependent I/O outside is not a mechanical repair.
+- Background: four legacy/eight v4 warnings. Current forkDetach direct/options,
+  curried and terminal method/function pipes warn even with returned/joined
+  handles or a scope inside the child. Empty, undefined and inline-options
+  factories stay clean; stored aliases/named options remain outside inference.
+  Legacy direct forkDaemon and supervised marker policy are unchanged. Runtime
+  detached children survive caller completion until explicitly interrupted;
+  inner scoping and Supervisor.none do not themselves close them. Actual scoped,
+  explicit-scope and child ownership interrupt/finalize on scope/parent exit.
+  Intentional detached lifetime is a strict-policy warning, not a proven leak.
+- Acquisition: eight legacy/fourteen v4 warnings, reported on acquisition nodes
+  and deduplicated across nested roots. Current fork/race families, currying,
+  terminal pipes and gen/fn/logic/adapter/mapped callbacks are covered; unused
+  definitions stay clean. Legacy broad traversal remains. Naming and existing
+  scope/name-matched finalizer exclusions are coarse syntax markers: a bare
+  scope does not release a raw resource. Runtime typed stand-ins count actual
+  release: unowned acquisition releases zero times on success/failure/interruption
+  until explicit teardown; acquireUseRelease releases exactly once and preserves
+  43, original error identity and interruption. Scoped acquireRelease and an
+  actual registered finalizer also release once. No native filesystem/network
+  qualification is claimed, and stored task bodies remain opaque.
+
+Source audit: SynchronizedRef remains exported in v4, but its instance
+modifyEffect method does not. V4 modifySomeEffect takes Effect<[result,
+Option<state>]> without fallback; legacy takes a fallback plus
+Option<Effect<[result,state]>>. Both positive and no-update outcomes preserve
+results/state, and checked API negatives reject the foreign signatures. V4
+Fiber.interrupt returns void, so runtime checks await the resulting exit rather
+than pretending its return is an Exit. V4 forkDaemon/supervised are absent.
+
+Opposite policy retains six/six ref/acquisition warnings in the legacy consumer,
+seven/six in v4, and zero foreign daemon/detach warnings in either. The lazy
+undefined-options factory regression went RED before its explicit exclusion.
+
+Q21 exceeded the unchanged 30 KB cap. Consolidating equivalent import/report
+visitors for Q17-Q21 owners through the existing helper, sharing the current
+concurrency/permit traversal and removing redundant namespace guards reduced
+the build without changing adjacent predicates, messages or report targets.
+The helper's optional multi-target mode retains acquisition deduplication; its
+default single-target behaviour remains unchanged. Full packed Q17-Q20 cases
+and opposite policies are re-run, not assumed qualified from the refactor.
+
+Fresh gates: 510 tests/3436 expectations, root typecheck, both packed consumers
+with exact own/opposite counts, clean controls, API negatives and runtime
+completion markers, publint, API docs and diff check pass. Build is 140.39 kB
+raw; size passes at 30 KB under the approved cap, with very little headroom.
+Q22-Q52 and cross-group closure remain open; 82 rules retain an unqualified
+applicable version. No push/release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

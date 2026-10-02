@@ -174,7 +174,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q18 | `concurrencySafety` | `no-blocking-call-in-effect`, `no-promise-concurrency-in-effect`, `no-shared-mutable-state-across-fibers` |
 | [x] | Q19 | `concurrencySafety` | `no-timeout-with-noninterruptible-promise`, `no-uninterruptible-concurrent-region`, `no-unbounded-queue-or-pubsub` |
 | [x] | Q20 | `concurrencySafety` | `no-global-mutable-concurrency-state`, `no-manual-deferred-coordination`, `no-yield-with-held-semaphore-permit` |
-| [ ] | Q21 | `concurrencySafety` | `no-yield-with-held-mutable-ref`, `no-unscoped-background-fiber`, `no-acquire-without-scoped-release` |
+| [x] | Q21 | `concurrencySafety` | `no-yield-with-held-mutable-ref`, `no-unscoped-background-fiber`, `no-acquire-without-scoped-release` |
 | [ ] | Q22 | `resourceLifetime` | `no-manual-resource-close`, `no-unbound-scope`, `no-resource-succeed-escape` |
 | [ ] | Q23 | `resourceLifetime` | `no-resource-without-acquire-release`, `no-request-scoped-long-lived-resource`, `no-global-resource-singleton` |
 | [ ] | Q24 | `resourceLifetime` | `no-nested-acquire-release`, `no-missing-layer-provision-at-run`, `no-run-with-open-resource` |

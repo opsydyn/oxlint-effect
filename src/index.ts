@@ -2333,7 +2333,16 @@ function heldSemaphoreWork(node: unknown, version: EffectVersion = 3): unknown |
   return undefined;
 }
 
-function synchronizedRefModifierWork(node: unknown): unknown | undefined {
+function synchronizedRefModifierWork(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  if (version === 4) {
+    const operator = isPipeCall(node) ? ((node as Node).arguments as unknown[]).at(-1) : (node as Node)?.callee;
+    const owner = [node, operator].find(call => isEffectfulSynchronizedRefCall(call, "SynchronizedRef") || isEffectfulSynchronizedRefCall(call, "SubscriptionRef"));
+    if (owner) {
+      const arguments_ = (owner as Node).arguments as unknown[];
+      return owner !== node || arguments_.length > 1 ? arguments_.at(-1) : undefined;
+    }
+    return undefined;
+  }
   if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
     return undefined;
   }
@@ -2343,25 +2352,13 @@ function synchronizedRefModifierWork(node: unknown): unknown | undefined {
     return undefined;
   }
 
-  if (
-    typeof call.callee === "object" &&
-    call.callee !== null &&
-    (call.callee as Node).type === "CallExpression"
-  ) {
-    const inner = call.callee as Node;
-    if (
-      isEffectfulSynchronizedRefCall(inner, "SynchronizedRef") &&
-      call.arguments.length > 0
-    ) {
-      return (inner as Node & { arguments: unknown[] }).arguments.at(-1);
-    }
-  }
+  if (isEffectfulSynchronizedRefCall(call.callee, "SynchronizedRef") && call.arguments.length > 0) return ((call.callee as Node).arguments as unknown[]).at(-1);
 
   if (isEffectfulSynchronizedRefCall(call, "SynchronizedRef") && call.arguments.length > 1) {
     return call.arguments.at(-1);
   }
 
-  if (isAnyEffectfulSynchronizedRefCall(call) && !isSynchronizedRefNamespaceCall(call)) {
+  if (isAnyEffectfulSynchronizedRefCall(call) && !isEffectfulSynchronizedRefCall(call, "SynchronizedRef")) {
     return call.arguments.at(-1);
   }
 
@@ -2369,15 +2366,11 @@ function synchronizedRefModifierWork(node: unknown): unknown | undefined {
 }
 
 function isEffectfulSynchronizedRefCall(node: unknown, objectName: string): boolean {
-  return [...effectfulSynchronizedRefMembers].some((propertyName) => isMemberCall(node, objectName, propertyName));
+  return isAnyEffectfulSynchronizedRefCall(node) && isIdentifier(((node as Node).callee as Node).object, objectName);
 }
 
 function isAnyEffectfulSynchronizedRefCall(node: unknown): boolean {
   return [...effectfulSynchronizedRefMembers].some((propertyName) => isAnyObjectMemberCallNamed(node, propertyName));
-}
-
-function isSynchronizedRefNamespaceCall(node: unknown): boolean {
-  return [...effectfulSynchronizedRefMembers].some((propertyName) => isMemberCall(node, "SynchronizedRef", propertyName));
 }
 
 const deferredConstructorMembers = new Set(["make", "unsafeMake", "makeUnsafe"]);
@@ -2874,7 +2867,14 @@ function isResourceCleanupCall(node: unknown): boolean {
   );
 }
 
-function concurrentWorkArguments(node: unknown): unknown[] | undefined {
+function concurrentWorkArguments(node: unknown, version: EffectVersion = 3): unknown[] | undefined {
+  if (version === 4) {
+    const operator = isPipeCall(node) ? ((node as Node).arguments as unknown[]).at(-1) : (node as Node)?.callee;
+    const matches = (call: unknown) => [...effect4ConcurrentCalls].some(name => isEffectMemberCallNamed(call, name) || isEffectMemberExpressionNamed(call, name));
+    if (matches(node)) return (node as Node).arguments as unknown[];
+    if (matches(operator)) return [...((operator as Node).arguments as unknown[] ?? []), ...(isPipeCall(node) ? [pipeSource(node as Node)] : (node as Node).arguments as unknown[])];
+    return undefined;
+  }
   if (!isEffectMemberCall(node)) {
     return undefined;
   }
@@ -2950,10 +2950,11 @@ function collectUnscopedResourceAcquisitions(
   seen = new WeakSet<object>(),
   ownedBindings = new Set<string>(),
   owned = false,
+  version: EffectVersion = 3,
 ): void {
   if (Array.isArray(node)) {
     for (const child of node) {
-      collectUnscopedResourceAcquisitions(child, matches, seen, ownedBindings, owned);
+      collectUnscopedResourceAcquisitions(child, matches, seen, ownedBindings, owned, version);
     }
     return;
   }
@@ -2963,16 +2964,17 @@ function collectUnscopedResourceAcquisitions(
   }
   seen.add(node);
 
+  if (version === 4 && isFunctionLike(node)) {
+    const parent = (node as Node).parent;
+    if (getEffectGeneratorArgument(parent, "gen", 4) !== node && getEffectGeneratorArgument(parent, "fn", 4) !== node && !effectLogicCallbacks(parent, 4).includes(node) &&
+      !["sync", "suspend", "promise", "tryPromise"].some(name => isEffectMemberCallNamed(parent, name)) && !isAnyObjectMemberCallNamed(parent, "map")) return;
+  }
+
   if (hasScopedReleaseEvidence(node)) {
     return;
   }
 
-  const nextOwnedBindings = new Set(ownedBindings);
-  if (isFunctionLike(node)) {
-    for (const name of matchingFinalizerBindingNames(node)) {
-      nextOwnedBindings.add(name);
-    }
-  }
+  const nextOwnedBindings = isFunctionLike(node) ? new Set([...ownedBindings, ...matchingFinalizerBindingNames(node)]) : ownedBindings;
 
   const declaration = (node as Node).type === "VariableDeclarator" ? node as Node : undefined;
   const declarationName = declaration && isIdentifier(declaration.id) ? declaration.id.name : undefined;
@@ -2994,6 +2996,7 @@ function collectUnscopedResourceAcquisitions(
       seen,
       nextOwnedBindings,
       owned || declarationIsOwned,
+      version,
     );
   }
 }
@@ -3004,9 +3007,9 @@ function findUnscopedResourceAcquisition(node: unknown, seen = new WeakSet<objec
   return matches[0];
 }
 
-function findUnscopedResourceAcquisitions(node: unknown): unknown[] {
+function findUnscopedResourceAcquisitions(node: unknown, version: EffectVersion = 3): unknown[] {
   const matches: unknown[] = [];
-  collectUnscopedResourceAcquisitions(node, matches);
+  collectUnscopedResourceAcquisitions(node, matches, undefined, undefined, false, version);
   return matches;
 }
 
@@ -3041,21 +3044,14 @@ function containsConcurrentOperation(node: unknown, seen = new WeakSet<object>()
 
 const effect4ConcurrentCalls = new Set(["all", "forEach", "forkChild", "forkDetach", "forkScoped", "forkIn", "race", "raceAll", "raceFirst", "raceAllFirst"]);
 
-function containsEffect4ConcurrentOperation(node: unknown): boolean {
+function containsEffect4ConcurrentOperation(node: unknown, permit = false): boolean {
   return !!findOwnCallbackNode(node, child => {
     if (isMemberCall(child, "Queue", "take") || isMemberCall(child, "PubSub", "take") ||
-      [...effect4ConcurrentCalls].some(name => isEffectMemberCallNamed(child, name) || isEffectMemberExpressionNamed(child, name))) return true;
+      [...effect4ConcurrentCalls].some(name => isEffectMemberCallNamed(child, name) || isEffectMemberExpressionNamed(child, name)) ||
+      permit && (["sleep", "promise", "tryPromise"].some(name => isEffectMemberCallNamed(child, name)) || isMemberCall(child, "Deferred", "await"))) return true;
     const generator = getEffectGeneratorArgument(child, "gen", 4) ?? getEffectGeneratorArgument(child, "fn", 4);
-    if (generator && containsEffect4ConcurrentOperation(generator.body)) return true;
-    return effectLogicCallbacks(child, 4).some(callback => containsEffect4ConcurrentOperation(callbackBody(callback)));
-  });
-}
-
-function containsEffect4PermitSuspension(node: unknown): boolean {
-  return containsEffect4ConcurrentOperation(node) || !!findOwnCallbackNode(node, child => {
-    if (["sleep", "promise", "tryPromise"].some(name => isEffectMemberCallNamed(child, name)) || isMemberCall(child, "Deferred", "await")) return true;
-    const generator = getEffectGeneratorArgument(child, "gen", 4) ?? getEffectGeneratorArgument(child, "fn", 4);
-    return (generator !== undefined && containsEffect4PermitSuspension(generator.body)) || effectLogicCallbacks(child, 4).some(callback => containsEffect4PermitSuspension(callbackBody(callback)));
+    if (generator && containsEffect4ConcurrentOperation(generator.body, permit)) return true;
+    return effectLogicCallbacks(child, 4).some(callback => containsEffect4ConcurrentOperation(callbackBody(callback), permit));
   });
 }
 
@@ -6676,11 +6672,13 @@ const noEffectAllStepSequencing = defineRule({
 function createVersionedEffectCallbackRule(
   find: (node: unknown, version: EffectVersion) => unknown,
   message: (version: EffectVersion) => string,
+  multiple = false,
 ) {
   return defineRule({
     create(context: OxlintContext) {
       const version = effectVersionFor(context.options);
       let imported = false;
+      const reported = multiple ? new WeakSet<object>() : undefined;
       return {
         ImportDeclaration(node: unknown) {
           const source = getImportSource(node);
@@ -6688,7 +6686,12 @@ function createVersionedEffectCallbackRule(
         },
         CallExpression(node: unknown) {
           const target = imported ? find(node, version) : undefined;
-          if (target) report(context, target, message(version));
+          if (!target) return;
+          for (const entry of multiple ? target as object[] : [target]) {
+            if (reported?.has(entry as object)) continue;
+            reported?.add(entry as object);
+            report(context, entry, message(version));
+          }
         },
       };
     },
@@ -8415,88 +8418,19 @@ const noUnobservedFiber = defineRule({
   },
 });
 
-const noUnboundedConcurrentRetry = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noUnboundedConcurrentRetry = createVersionedEffectCallbackRule(
+  node => isUnboundedConcurrentRetry(node) ? node : undefined,
+  () => "Rule: avoid unbounded concurrent retry policies. Why: inline retries need an explicit collection scheduling policy; omitted concurrency defaults to sequential execution, not unlimited parallelism. Fix: add an explicit concurrency limit and a bounded retry/backoff policy. This heuristic checks option presence, not its bound or retry count.",
+);
+const noBlockingCallInEffect = createVersionedEffectCallbackRule(
+  findBlockingSyncCallInEffectLogic,
+  version => `Rule: avoid blocking sync calls inside Effect logic. Why: synchronous I/O or CPU work blocks the executing JavaScript thread; wrapping it in a Promise does not offload it. Fix: use genuinely asynchronous platform APIs via Effect.${version === 4 ? "callback" : "async"}/tryPromise, or a dedicated worker for blocking work. Sync suffix recognition is a heuristic.`,
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isUnboundedConcurrentRetry(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid unbounded concurrent retry policies. Why: inline retries need an explicit collection scheduling policy; omitted concurrency defaults to sequential execution, not unlimited parallelism. Fix: add an explicit concurrency limit and a bounded retry/backoff policy. This heuristic checks option presence, not its bound or retry count.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noBlockingCallInEffect = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const version = effectVersionFor(context.options);
-        const blockingNode = findBlockingSyncCallInEffectLogic(node, version);
-        if (blockingNode) {
-          report(
-            context,
-            blockingNode,
-            `Rule: avoid blocking sync calls inside Effect logic. Why: synchronous I/O or CPU work blocks the executing JavaScript thread; wrapping it in a Promise does not offload it. Fix: use genuinely asynchronous platform APIs via Effect.${version === 4 ? "callback" : "async"}/tryPromise, or a dedicated worker for blocking work. Sync suffix recognition is a heuristic.`,
-          );
-        }
-      },
-    };
-  },
-});
-
-const noPromiseConcurrencyInEffect = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const promiseNode = findPromiseConcurrencyInEffectLogic(node, effectVersionFor(context.options));
-        if (promiseNode) {
-          report(
-            context,
-            promiseNode,
-            `Rule: avoid Promise concurrency APIs inside Effect logic. Why: raw Promise aggregation does not own interruption of its underlying operations. Fix: use bounded Effect.all/forEach, Effect.${effectVersionFor(context.options) === 4 ? "result" : "either"} for settled outcomes, raceFirst for first completion or race for first success, with signal-aware boundary adapters. Preserve application error semantics explicitly.`,
-          );
-        }
-      },
-    };
-  },
-});
+const noPromiseConcurrencyInEffect = createVersionedEffectCallbackRule(
+  findPromiseConcurrencyInEffectLogic,
+  version => `Rule: avoid Promise concurrency APIs inside Effect logic. Why: raw Promise aggregation does not own interruption of its underlying operations. Fix: use bounded Effect.all/forEach, Effect.${version === 4 ? "result" : "either"} for settled outcomes, raceFirst for first completion or race for first success, with signal-aware boundary adapters. Preserve application error semantics explicitly.`,
+);
 
 const noSharedMutableStateAcrossFibers = defineRule({
   create(context: OxlintContext) {
@@ -8563,82 +8497,18 @@ const noSharedMutableStateAcrossFibers = defineRule({
   },
 });
 
-const noTimeoutWithNoninterruptiblePromise = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const promiseNode = noninterruptiblePromiseTimeoutNode(node, effectVersionFor(context.options));
-        if (promiseNode) {
-          report(
-            context,
-            promiseNode,
-            "Rule: avoid timeout around noninterruptible Promise effects. Why: Effect timeout interrupts the wrapper, but the underlying operation stops only if it observes cancellation. Fix: accept and forward AbortSignal in the adapter to an API that honours it. Parameter presence is a syntax heuristic, not proof of cancellation.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noUninterruptibleConcurrentRegion = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isUninterruptibleConcurrentRegion(node, effectVersionFor(context.options))) {
-          report(
-            context,
-            node,
-            "Rule: avoid uninterruptible concurrent regions. Why: broad masking around collection, fork, race or waiting work can defer cancellation and shutdown. Fix: keep only a short critical section masked and explicitly restore interruption for long-running work. Scoping alone does not restore interruptibility; syntax does not prove the mask is actually executed.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noUnboundedQueueOrPubSub = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isUnboundedQueueOrPubSub(node, effectVersionFor(context.options))) {
-          report(
-            context,
-            node,
-            "Rule: avoid unbounded Queue or PubSub constructors. Why: unbounded buffers hide backpressure and can fail under load. Fix: use Queue.bounded / PubSub.bounded with an explicit capacity at the owning boundary.",
-          );
-        }
-      },
-    };
-  },
-});
+const noTimeoutWithNoninterruptiblePromise = createVersionedEffectCallbackRule(
+  noninterruptiblePromiseTimeoutNode,
+  () => "Rule: avoid timeout around noninterruptible Promise effects. Why: Effect timeout interrupts the wrapper, but the underlying operation stops only if it observes cancellation. Fix: accept and forward AbortSignal in the adapter to an API that honours it. Parameter presence is a syntax heuristic, not proof of cancellation.",
+);
+const noUninterruptibleConcurrentRegion = createVersionedEffectCallbackRule(
+  (node, version) => isUninterruptibleConcurrentRegion(node, version) ? node : undefined,
+  () => "Rule: avoid uninterruptible concurrent regions. Why: broad masking around collection, fork, race or waiting work can defer cancellation and shutdown. Fix: keep only a short critical section masked and explicitly restore interruption for long-running work. Scoping alone does not restore interruptibility; syntax does not prove the mask is actually executed.",
+);
+const noUnboundedQueueOrPubSub = createVersionedEffectCallbackRule(
+  (node, version) => isUnboundedQueueOrPubSub(node, version) ? node : undefined,
+  () => "Rule: avoid unbounded Queue or PubSub constructors. Why: unbounded buffers hide backpressure and can fail under load. Fix: use Queue.bounded / PubSub.bounded with an explicit capacity at the owning boundary.",
+);
 
 const noGlobalMutableConcurrencyState = defineRule({
   create(context: OxlintContext) {
@@ -8775,103 +8645,30 @@ const noManualDeferredCoordination = defineRule({
   },
 });
 
-const noAcquireWithoutScopedRelease = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const reported = new WeakSet<object>();
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const work = concurrentWorkArguments(node);
-        if (!work) {
-          return;
-        }
-
-        for (const acquisition of findUnscopedResourceAcquisitions(work)) {
-          if (typeof acquisition !== "object" || acquisition === null || reported.has(acquisition)) {
-            continue;
-          }
-
-          reported.add(acquisition);
-          report(
-            context,
-            acquisition,
-            "Rule: avoid resource acquisition without scoped release. Why: acquiring a client, connection, file, or handle inside concurrent work can outlive failures and interruption. Fix: wrap acquisition in acquireRelease/acquireUseRelease, use Effect.scoped, or register a matching finalizer.",
-          );
-        }
-      },
-    };
+const noAcquireWithoutScopedRelease = createVersionedEffectCallbackRule(
+  (node, version) => {
+    const work = concurrentWorkArguments(node, version);
+    return work ? findUnscopedResourceAcquisitions(work, version) : undefined;
   },
-});
+  version => `Rule: avoid resource acquisition without scoped release. Why: acquiring a client, connection, file, or handle inside concurrent work can outlive failures and interruption. Fix: ${version === 3 ? "wrap acquisition in acquireRelease/acquireUseRelease, use Effect.scoped, or register a matching finalizer." : "own release; a scope marker is insufficient."}`,
+  true,
+);
 
-const noYieldWithHeldSemaphorePermit = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const version = effectVersionFor(context.options);
-        const work = heldSemaphoreWork(node, version);
-        if (work && (version === 4 ? containsEffect4PermitSuspension(work) : containsHighRiskSuspension(work))) {
-          report(
-            context,
-            node,
-            "Rule: avoid suspension while holding a semaphore permit. Why: unrelated waits hold capacity needed by other work. Fix: narrow coordination critical sections when semantics allow. Async work may intentionally be permit-bound; moving it outside changes concurrency limits. This strict policy is not leak detection.",
-          );
-        }
-      },
-    };
+const noYieldWithHeldSemaphorePermit = createVersionedEffectCallbackRule(
+  (node, version) => {
+    const work = heldSemaphoreWork(node, version);
+    return work && (version === 4 ? containsEffect4ConcurrentOperation(work, true) : containsHighRiskSuspension(work)) ? node : undefined;
   },
-});
+  () => "Rule: avoid suspension while holding a semaphore permit. Why: unrelated waits hold capacity needed by other work. Fix: narrow coordination critical sections when semantics allow. Async work may intentionally be permit-bound; moving it outside changes concurrency limits. This strict policy is not leak detection.",
+);
 
-const noYieldWithHeldMutableRef = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const callback = synchronizedRefModifierWork(node);
-        if (callback && containsHighRiskSuspension(callback)) {
-          report(
-            context,
-            node,
-            "Rule: avoid suspension while holding synchronized reference coordination. Why: effectful SynchronizedRef modifiers hold internal coordination while the callback sleeps, awaits, or starts concurrent work. Fix: compute the effect outside the modifier and commit a short synchronous state transition.",
-          );
-        }
-      },
-    };
+const noYieldWithHeldMutableRef = createVersionedEffectCallbackRule(
+  (node, version) => {
+    const callback = synchronizedRefModifierWork(node, version);
+    return callback && (version === 3 ? containsHighRiskSuspension(callback) : containsEffect4ConcurrentOperation(callbackBody(callback) ?? callback, true)) ? node : undefined;
   },
-});
+  version => `Rule: avoid suspension while holding synchronized reference coordination. Why: effectful SynchronizedRef modifiers hold internal coordination while the callback sleeps, awaits, or starts concurrent work. Fix: ${version === 3 ? "compute the effect outside the modifier and commit a short synchronous state transition." : "move independent work outside; retain atomicity."}`,
+);
 
 const preventDynamicImports = defineRule({
   create(context: OxlintContext) {
@@ -8887,35 +8684,18 @@ const preventDynamicImports = defineRule({
   },
 });
 
-const noUnscopedBackgroundFiber = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          !hasEffectEcosystemImport ||
-          !isEffectMemberCallNamed(node, "forkDaemon") ||
-          containsEffectMemberCallNamed(firstArgument(node), "supervised")
-        ) {
-          return;
-        }
-
-        report(
-          context,
-          node,
-          "Rule: avoid unscoped background fibers. Why: Effect.forkDaemon detaches work from the caller's scope and can outlive failures and shutdown. Fix: use forkScoped/forkIn or make supervisor ownership explicit in the child effect.",
-        );
-      },
-    };
+const noUnscopedBackgroundFiber = createVersionedEffectCallbackRule(
+  (node, version) => {
+    if (version === 3) return isEffectMemberCallNamed(node, "forkDaemon") && !containsEffectMemberCallNamed(firstArgument(node), "supervised") ? node : undefined;
+    const operator = isPipeCall(node) ? ((node as Node).arguments as unknown[]).at(-1) : (node as Node)?.callee;
+    if (isEffectMemberCallNamed(node, "forkDetach")) {
+      const input = firstArgument(node);
+      return input && !isIdentifier(input, "undefined") && !isObjectExpression(input) ? node : undefined;
+    }
+    return isEffectMemberCallNamed(operator, "forkDetach") || isEffectMemberExpressionNamed(operator, "forkDetach") ? node : undefined;
   },
-});
+  version => `Rule: avoid unscoped background fibers. Why: Effect.${version === 3 ? "forkDaemon" : "forkDetach"} detaches work from the caller's scope and can outlive failures and shutdown. Fix: use forkScoped/forkIn ${version === 3 ? "or make supervisor ownership explicit in the child effect." : "or child ownership; join is not lifetime ownership."}`,
+);
 
 function resourceReleaseCallbackArguments(node: unknown): readonly unknown[] {
   if (typeof node !== "object" || node === null || !Array.isArray((node as Node).arguments)) {
