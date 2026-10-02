@@ -73,6 +73,9 @@ cap; final qualification stays open. Continue Q39-Q52.
 Q39 pure-flow checks pass with actual flow/runtime and conservative-name controls.
 Size remains745 bytes over the unchanged cap; qualification stays open. ContinueQ40-Q52.
 
+Q40 call-tower checks pass, completing pure-transformation behavioural evidence.
+Size remains745 bytes over the unchanged cap; qualification stays open. ContinueQ41-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

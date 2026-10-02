@@ -52,6 +52,12 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q40 supplies packed pure call-tower evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      expect(cases.some((entry: { rule: string }) => entry.rule === "prefer-flow-for-pure-pipeline")).toBe(true);
+    }
+  });
   it("Effect qualification Q39 supplies packed pure flow evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

@@ -2790,5 +2790,30 @@
       }
     },
     "runtime": "src/qualification/pureTransformation/pure-flow.contracts.ts"
+  },
+  {
+    "rule": "prefer-flow-for-pure-pipeline",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "3/4 depth, branched maximum and outer-only reporting",
+      "static/computed methods and curried callee depth",
+      "named observable callee purity counterexample and name-only impurity blacklist",
+      "actual flow/explicit steps/outer Effect repair values and original failure identity",
+      "preserved import-order gap"
+    ],
+    "bad": [
+      "src/qualification/pureTransformation/prefer-flow-for-pure-pipeline.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pureTransformation/prefer-flow-for-pure-pipeline.good.ts",
+      "src/qualification/pureTransformation/pure-tower-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pureTransformation/prefer-flow-for-pure-pipeline.bad.ts": {
+        "linteffect/prefer-flow-for-pure-pipeline": 7
+      }
+    },
+    "runtime": "src/qualification/pureTransformation/pure-tower.contracts.ts"
   }
 ]

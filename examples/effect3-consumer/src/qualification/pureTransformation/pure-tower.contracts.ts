@@ -1,0 +1,12 @@
+import { Effect, Exit } from "effect";
+import * as bad from "./prefer-flow-for-pure-pipeline.bad";
+import * as good from "./prefer-flow-for-pure-pipeline.good";
+for (const value of [bad.three, bad.four, bad.members, bad.computed, bad.curried, good.value, good.explicit, good.nameGap()]) if (value !== 42) throw new Error("Pure tower repair changed value");
+if (bad.branched !== 84 || await Effect.runPromise(good.task) !== 42) throw new Error("Branched/Effect value changed");
+const events: string[] = [];
+if (bad.observable(events) !== 42 || events.join() !== "touch") throw new Error("Original observable callee changed");
+events.length = 0;
+if (good.opaqueMutation(events) !== 42 || events.join() !== "touch") throw new Error("Clean purity counterexample changed");
+const original = { _tag: "Q40Failure" };
+const task = Effect.map(Effect.fail(original), good.transform);
+if (!Exit.isFailure(await Effect.runPromiseExit(task)) || await Effect.runPromise(Effect.flip(task)) !== original) throw new Error("Flow transform lost failure identity");

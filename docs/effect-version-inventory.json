@@ -449,7 +449,7 @@
     },
     "evidence": [
       "src/index.ts: preferFlowForPurePipeline; transitive helpers: preferFlowForPurePipeline, getImportSource, isEffectEcosystemImport, preferFlowForPurePipelineNode, pureTransformationCallDepth, isPureTransformationCall, pureTransformationCallName, isIdentifier, containsEffectMemberCall, isEffectMemberCall, containsNodeType, containsIdentifierNamed, containsConsoleCall, isConsoleCall, pureTransformationImpureNames, isFunctionLike",
-      "Recognition tokens: Effect, Runtime; API and repair controls still require packed qualification."
+      "Q40: 7 warnings per major for depth3/4, branched maximum, static/computed methods, curried callee and observable named transform. Outer-only reports. Actual flow/explicit-step repairs preserve42/84 and failure identity; name-only blacklist and opaque effectful flow counterexamples preserve one observable call without proving purity. Import-order gap retained. Final 30 KB gate pending: 745 bytes over."
     ]
   },
   "prefer-pipe-for-behavior": {

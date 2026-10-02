@@ -20,3 +20,17 @@ Runtime contracts check42, array/combined values, async/generator results and
 console side effects with restoration in finally. Unused/name false positives
 are executed separately. Outer Effect mapping retains original failure identity.
 These are lint/type/runtime contracts, not whole-program purity or release proof.
+
+## Q40 Pure Call Towers
+
+`prefer-flow-for-pure-pipeline` reports max nested call depth of three or more,
+with outer-only reporting. Branched arguments use maximum depth, not summed call
+count. Static/computed methods and curried callees have parsed controls. Actual
+named flow and explicit intermediate steps preserve42/84 and failure identity.
+
+Purity is a syntax heuristic. Called definitions are not resolved: an observable
+callee can warn as supposedly pure, while a local ordinary fetch name breaks the
+depth calculation. A named opaque flow can retain one mutation while staying
+clean; it is a counterexample, not a pure repair. Runtime checks compare the
+observable call count, and import-order gaps remain labelled. All four owners
+have behavioural evidence, with size/campaign closure still outstanding.

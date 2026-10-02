@@ -271,6 +271,9 @@ Size is745 bytes over30 KB; checkbox/inventory stay open. Continue Q39.
 Q39 pure-flow behavioural evidence passes. Size remains745 bytes over30 KB;
 checkbox/inventory stay open. Continue Q40.
 
+Q40 call-tower behavioural evidence passes, finishing four pure owners.
+Size remains745 bytes over30 KB; checkbox/inventory stay open. Continue Q41.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing
