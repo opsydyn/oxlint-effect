@@ -1451,5 +1451,83 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/ref-background-acquisition.contracts.ts"
+  },
+  {
+    "rule": "no-manual-resource-close",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "literal direct calls and naming limitations",
+      "registered cleanup versus use callbacks",
+      "scope lexical binding and actual teardown",
+      "boundary exclusions",
+      "success/failure/interruption and once-only release",
+      "checked major-specific signatures"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-manual-resource-close.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-manual-resource-close.good.ts",
+      "src/qualification/resourceLifetime/main.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-manual-resource-close.bad.ts": {
+        "linteffect/no-manual-resource-close": 7
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/cleanup-scope-escape.contracts.ts"
+  },
+  {
+    "rule": "no-unbound-scope",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "literal direct calls and naming limitations",
+      "registered cleanup versus use callbacks",
+      "scope lexical binding and actual teardown",
+      "boundary exclusions",
+      "success/failure/interruption and once-only release",
+      "checked major-specific signatures"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-unbound-scope.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-unbound-scope.good.ts",
+      "src/qualification/resourceLifetime/main.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-unbound-scope.bad.ts": {
+        "linteffect/no-unbound-scope": 4
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/cleanup-scope-escape.contracts.ts"
+  },
+  {
+    "rule": "no-resource-succeed-escape",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "literal direct calls and naming limitations",
+      "registered cleanup versus use callbacks",
+      "scope lexical binding and actual teardown",
+      "boundary exclusions",
+      "success/failure/interruption and once-only release",
+      "checked major-specific signatures"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-resource-succeed-escape.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-resource-succeed-escape.good.ts",
+      "src/qualification/resourceLifetime/main.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-resource-succeed-escape.bad.ts": {
+        "linteffect/no-resource-succeed-escape": 6
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/cleanup-scope-escape.contracts.ts"
   }
 ]

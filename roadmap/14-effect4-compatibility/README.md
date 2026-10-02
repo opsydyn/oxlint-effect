@@ -2,6 +2,10 @@
 
 Status: foundation, recovery/runtime batch and Q01-Q21 locally verified; Q22-Q52 and cross-group closure remain outstanding.
 
+Q22 cleanup/manual-scope/resource-success behavioural checks and examples pass
+for both majors, but final qualification is blocked by the 30 KB size cap
+(123 bytes over). Its completion checkbox and inventory statuses remain open.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

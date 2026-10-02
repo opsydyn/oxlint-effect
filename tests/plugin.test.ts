@@ -52,6 +52,32 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q22 recognises current effect-valued finalizers only", () => {
+    const cleanup = objectMethodCall(identifier("client"), "close");
+    const owner = objectMethodCall(identifier("Scope"), "addFinalizer", identifier("scope"), effectCall("sync", arrowCallback(cleanup)));
+    linkParents(owner);
+    const inspect = (version: 3 | 4, filename?: string, boundaryPaths?: string[]) => runRuleSequence("no-manual-resource-close", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: cleanup }], { filename, options: [{ effectVersion: version, ...(boundaryPaths ? { boundaryPaths } : {}) }] });
+    expect(inspect(4)).toHaveLength(0);
+    expect(inspect(3)).toHaveLength(1);
+    expect(inspect(3, "/repo/custom/entry.ts", ["**/custom/**"])).toHaveLength(0);
+  });
+  it("Effect qualification Q22 does not mistake current scope markers for manual scope ownership", () => {
+    const inspect = (version: 3 | 4, method: string, namespace = "Effect") => {
+      const make = objectMethodCall(identifier("Scope"), "make");
+      linkParents(objectMethodCall(identifier(namespace), method, make));
+      return runRuleSequence("no-unbound-scope", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: make }], { options: [{ effectVersion: version }] });
+    };
+    expect(inspect(4, "scoped")).toHaveLength(1);
+    expect(inspect(4, "scoped", "Layer")).toHaveLength(1);
+    expect(inspect(3, "scoped")).toHaveLength(0);
+    expect(inspect(3, "scoped", "Layer")).toHaveLength(0);
+  });
+  it("Effect qualification Q22 supplies packed cleanup, scope and escape evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-manual-resource-close", "no-unbound-scope", "no-resource-succeed-escape"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q21 recognises current held-ref pipes and owned callbacks", () => {
     const callback = arrowCallback(effectCall("gen", generatorCallback(blockStatement(expressionStatement(effectCall("forkChild", identifier("task")))))));
     const inspect = (node: unknown) => runRuleSequence("no-yield-with-held-mutable-ref", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });

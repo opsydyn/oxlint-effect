@@ -6673,26 +6673,30 @@ function createVersionedEffectCallbackRule(
   find: (node: unknown, version: EffectVersion) => unknown,
   message: (version: EffectVersion) => string,
   multiple = false,
+  boundary = false,
+  visitorNames = ["CallExpression"],
 ) {
   return defineRule({
+    ...(boundary ? { meta: { schema: boundaryPathOptionsSchema } } : {}),
     create(context: OxlintContext) {
       const version = effectVersionFor(context.options);
       let imported = false;
       const reported = multiple ? new WeakSet<object>() : undefined;
+      const visit = (node: unknown) => {
+        const target = imported && (!boundary || !isBoundaryPath(context)) ? find(node, version) : undefined;
+        if (!target) return;
+        for (const entry of multiple ? target as object[] : [target]) {
+          if (reported?.has(entry as object)) continue;
+          reported?.add(entry as object);
+          report(context, entry, message(version));
+        }
+      };
       return {
         ImportDeclaration(node: unknown) {
           const source = getImportSource(node);
           if (source && isEffectEcosystemImport(source)) imported = true;
         },
-        CallExpression(node: unknown) {
-          const target = imported ? find(node, version) : undefined;
-          if (!target) return;
-          for (const entry of multiple ? target as object[] : [target]) {
-            if (reported?.has(entry as object)) continue;
-            reported?.add(entry as object);
-            report(context, entry, message(version));
-          }
-        },
+        ...Object.fromEntries(visitorNames.map(name => [name, visit])),
       };
     },
   });
@@ -8697,89 +8701,50 @@ const noUnscopedBackgroundFiber = createVersionedEffectCallbackRule(
   version => `Rule: avoid unscoped background fibers. Why: Effect.${version === 3 ? "forkDaemon" : "forkDetach"} detaches work from the caller's scope and can outlive failures and shutdown. Fix: use forkScoped/forkIn ${version === 3 ? "or make supervisor ownership explicit in the child effect." : "or child ownership; join is not lifetime ownership."}`,
 );
 
-function resourceReleaseCallbackArguments(node: unknown): readonly unknown[] {
+function resourceReleaseCallbackArguments(node: unknown, version: EffectVersion = 3): readonly unknown[] {
   if (typeof node !== "object" || node === null || !Array.isArray((node as Node).arguments)) {
     return [];
   }
 
   const arguments_ = (node as Node & { arguments: unknown[] }).arguments;
-  if (isEffectMemberCallNamed(node, "acquireUseRelease")) {
-    return arguments_.slice(2);
-  }
-
-  if (
-    isEffectMemberCallNamed(node, "acquireRelease") ||
-    isEffectMemberCallNamed(node, "acquireReleaseInterruptible")
-  ) {
-    return arguments_.slice(1);
-  }
-
-  if (isEffectMemberCallNamed(node, "addFinalizer")) {
-    return arguments_.slice(0, 1);
-  }
-
-  if (
-    isMemberCall(node, "Scope", "addFinalizer") ||
-    isMemberCall(node, "Scope", "addFinalizerExit")
-  ) {
-    return arguments_.slice(1);
-  }
-
-  return [];
+  const offset = isEffectMemberCallNamed(node, "acquireUseRelease") ? 2
+    : isResourceAcquireReleaseCall(node, version) ? 1
+    : isEffectMemberCallNamed(node, "addFinalizer") ? 0
+    : isMemberCall(node, "Scope", "addFinalizer") || isMemberCall(node, "Scope", "addFinalizerExit") ? 1
+    : -1;
+  return offset < 0 ? [] : arguments_.slice(offset, version === 4 || offset === 0 ? offset + 1 : undefined);
 }
 
-function hasReleaseOwnership(node: unknown): boolean {
+function resourceAncestor(node: unknown, matches: (node: Node) => boolean): Node | undefined {
   let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
 
   while (typeof current === "object" && current !== null) {
-    if (seen.has(current)) return false;
+    if (seen.has(current)) return undefined;
     seen.add(current);
-
-    if (isFunctionLike(current)) {
-      const owner = (current as Node).parent;
-      if (resourceReleaseCallbackArguments(owner).some((argument) => argument === current)) {
-        return true;
-      }
-    }
-
+    if (matches(current as Node)) return current as Node;
     current = (current as Node).parent;
   }
 
-  return false;
+  return undefined;
 }
 
-const noManualResourceClose = defineRule({
-  meta: { schema: boundaryPathOptionsSchema },
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+function hasReleaseOwnership(node: unknown, version: EffectVersion = 3): boolean {
+  return resourceAncestor(node, current => (version === 4 || isFunctionLike(current)) &&
+    resourceReleaseCallbackArguments(current.parent, version).some(argument => argument === current)) !== undefined;
+}
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          !hasEffectEcosystemImport ||
-          isBoundaryPath(context) ||
-          !isResourceCleanupCall(node) ||
-          hasReleaseOwnership(node)
-        ) {
-          return;
-        }
+function createResourceLifetimeRule(
+  matches: (node: unknown, version: EffectVersion) => boolean,
+  message: (version: EffectVersion) => string,
+) {
+  return createVersionedEffectCallbackRule((node, version) => matches(node, version) ? node : undefined, message, false, true);
+}
 
-        report(
-          context,
-          node,
-          "Rule: avoid manual resource cleanup. Why: direct close/dispose calls can bypass Effect scope ownership. Fix: acquire the resource with Effect.acquireRelease or register cleanup with a Scope finalizer.",
-        );
-      },
-    };
-  },
-});
+const noManualResourceClose = createResourceLifetimeRule(
+  (node, version) => isResourceCleanupCall(node) && !hasReleaseOwnership(node, version),
+  () => "Rule: avoid manual resource cleanup. Why: direct close/dispose calls can bypass Effect scope ownership. Fix: acquire the resource with Effect.acquireRelease or register cleanup with a Scope finalizer.",
+);
 
 function isScopeMakeCall(node: unknown): node is Node & { arguments: unknown[] } {
   return isMemberCall(node, "Scope", "make") && Array.isArray((node as Node).arguments);
@@ -9009,14 +8974,6 @@ function hasMatchingScopeClose(node: unknown): boolean {
   ).length > 0;
 }
 
-function isScopeAcquireReleaseCall(node: unknown): node is Node & { arguments: unknown[] } {
-  return (
-    isEffectMemberCallNamed(node, "acquireRelease") ||
-    isEffectMemberCallNamed(node, "acquireUseRelease") ||
-    isEffectMemberCallNamed(node, "acquireReleaseInterruptible")
-  ) && Array.isArray((node as Node).arguments);
-}
-
 function scopeCloseUsesCallbackParameter(
   node: unknown,
   parameter: Node & { name: string },
@@ -9054,98 +9011,23 @@ function hasMatchingScopeReleaseCallback(node: Node & { arguments: unknown[] }):
   });
 }
 
-function hasScopeOwner(node: unknown): boolean {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
-  const seen = new WeakSet<object>();
-
-  while (typeof current === "object" && current !== null) {
-    if (seen.has(current)) return false;
-    seen.add(current);
-
-    if (
-      isEffectMemberCallNamed(current, "scoped") ||
-      isMemberCall(current, "Layer", "scoped")
-    ) {
-      return true;
-    }
-
-    if (
-      isScopeAcquireReleaseCall(current) &&
-      firstArgument(current) === node &&
-      hasMatchingScopeReleaseCallback(current)
-    ) {
-      return true;
-    }
-
-    current = (current as Node).parent;
-  }
-
-  return hasMatchingScopeClose(node);
+function hasScopeOwner(node: unknown, version: EffectVersion = 3): boolean {
+  return resourceAncestor(node, current => (
+    version === 3 && (isEffectMemberCallNamed(current, "scoped") || isMemberCall(current, "Layer", "scoped"))
+  ) || (
+    isResourceAcquireReleaseCall(current, version) && firstArgument(current) === node && hasMatchingScopeReleaseCallback(current)
+  )) !== undefined || hasMatchingScopeClose(node);
 }
 
-const noUnboundScope = defineRule({
-  meta: { schema: boundaryPathOptionsSchema },
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noUnboundScope = createResourceLifetimeRule(
+  (node, version) => isScopeMakeCall(node) && !hasScopeOwner(node, version),
+  version => `Rule: bind Scope.make to an owned lifecycle. Why: an unbound Scope can leak resources and finalizers. Fix: ${version === 3 ? "use Effect.scoped/Layer.scoped, close the scope explicitly, or acquire it with a matching release callback." : "use Effect.scope or acquire it with a matching Scope.close release callback. Effect.scoped alone does not own a separate scope."}`,
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          !hasEffectEcosystemImport ||
-          isBoundaryPath(context) ||
-          !isScopeMakeCall(node) ||
-          hasScopeOwner(node)
-        ) {
-          return;
-        }
-
-        report(
-          context,
-          node,
-          "Rule: bind Scope.make to an owned lifecycle. Why: an unbound Scope can leak resources and finalizers. Fix: use Effect.scoped/Layer.scoped, close the scope explicitly, or acquire it with a matching release callback.",
-        );
-      },
-    };
-  },
-});
-
-const noResourceSucceedEscape = defineRule({
-  meta: { schema: boundaryPathOptionsSchema },
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          !hasEffectEcosystemImport ||
-          isBoundaryPath(context) ||
-          !isEffectMemberCallNamed(node, "succeed") ||
-          !isResourceLikeExpression(firstArgument(node))
-        ) {
-          return;
-        }
-
-        report(
-          context,
-          node,
-          "Rule: do not let live resources escape through Effect.succeed. Why: ordinary success values do not express resource lifetime ownership. Fix: keep the resource inside Effect.acquireRelease, Scope, or a service layer.",
-        );
-      },
-    };
-  },
-});
+const noResourceSucceedEscape = createResourceLifetimeRule(
+  node => isEffectMemberCallNamed(node, "succeed") && isResourceLikeExpression(firstArgument(node)),
+  () => "Rule: do not let live resources escape through Effect.succeed. Why: ordinary success values do not express resource lifetime ownership. Fix: keep the resource inside Effect.acquireRelease, Scope, or a service layer.",
+);
 
 function isResourceLikeConstruction(node: unknown): boolean {
   if (typeof node !== "object" || node === null || (node as Node).type !== "NewExpression") {
@@ -9173,10 +9055,10 @@ function isResourceLifecycleCandidate(node: unknown): boolean {
   return resourceAcquisitionCall(node) || isResourceLikeConstruction(node);
 }
 
-function isResourceAcquireReleaseCall(node: unknown): boolean {
+function isResourceAcquireReleaseCall(node: unknown, version: EffectVersion = 3): node is Node & { arguments: unknown[] } {
   return (
     isEffectMemberCallNamed(node, "acquireRelease") ||
-    isEffectMemberCallNamed(node, "acquireReleaseInterruptible") ||
+    (version === 3 && isEffectMemberCallNamed(node, "acquireReleaseInterruptible")) ||
     isEffectMemberCallNamed(node, "acquireUseRelease")
   );
 }
@@ -9186,46 +9068,16 @@ function hasResourceLifecycleOwner(node: unknown): boolean {
     return true;
   }
 
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
-  const seen = new WeakSet<object>();
-  while (typeof current === "object" && current !== null) {
-    if (seen.has(current)) {
-      return false;
-    }
-    seen.add(current);
-
-    if (
+  return resourceAncestor(node, current => (
       isResourceAcquireReleaseCall(current) ||
       isEffectMemberCallNamed(current, "scoped") ||
       isMemberCall(current, "Layer", "scoped") ||
       isEffectScopedPipeCall(current)
-    ) {
-      return true;
-    }
-
-    current = (current as Node).parent;
-  }
-
-  return false;
+  )) !== undefined;
 }
 
 function resourceLexicalScope(node: unknown): Node | undefined {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
-  const seen = new WeakSet<object>();
-  while (typeof current === "object" && current !== null) {
-    if (seen.has(current)) {
-      return undefined;
-    }
-    seen.add(current);
-
-    if (isFunctionLike(current) || (current as Node).type === "Program") {
-      return current as Node;
-    }
-
-    current = (current as Node).parent;
-  }
-
-  return undefined;
+  return resourceAncestor(node, current => isFunctionLike(current) || current.type === "Program");
 }
 
 function unownedResourcesInScope(scope: Node): unknown[] {
@@ -9354,199 +9206,37 @@ function effectRunMissingLayerProvision(node: unknown, version: EffectVersion): 
   );
 }
 
-const noResourceWithoutAcquireRelease = defineRule({
-  meta: { schema: boundaryPathOptionsSchema },
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noResourceWithoutAcquireRelease = createResourceLifetimeRule(
+  node => resourceAcquisitionCall(node) && !hasResourceLifecycleOwner(node),
+  () => "Rule: acquire resources with an Effect release owner. Why: open/connect/create calls can leak across failure and interruption when they are ordinary calls. Fix: use Effect.acquireRelease, Effect.acquireUseRelease, Effect.scoped, or a matching finalizer.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          !hasEffectEcosystemImport ||
-          isBoundaryPath(context) ||
-          !resourceAcquisitionCall(node) ||
-          hasResourceLifecycleOwner(node)
-        ) {
-          return;
-        }
+const noRequestScopedLongLivedResource = createVersionedEffectCallbackRule(
+  requestScopedResourceNodes,
+  () => "Rule: do not acquire long-lived resources inside request-scoped handlers. Why: per-request clients and pools multiply connections and make shutdown ownership ambiguous. Fix: provide the resource through a Layer or a longer-lived service boundary.",
+  true, true, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"],
+);
 
-        report(
-          context,
-          node,
-          "Rule: acquire resources with an Effect release owner. Why: open/connect/create calls can leak across failure and interruption when they are ordinary calls. Fix: use Effect.acquireRelease, Effect.acquireUseRelease, Effect.scoped, or a matching finalizer.",
-        );
-      },
-    };
-  },
-});
+const noGlobalResourceSingleton = createVersionedEffectCallbackRule(
+  node => enclosingFunction(node) === undefined && isResourceLikeConstruction(node) ? node : undefined,
+  () => "Rule: do not create global resource singletons in Effect modules. Why: module-level clients and pools bypass Layer ownership and make tests and shutdown order implicit. Fix: construct the resource in a Layer or Effect.Service and provide it at the application boundary.",
+  false, true, ["NewExpression"],
+);
 
-const noRequestScopedLongLivedResource = defineRule({
-  meta: { schema: boundaryPathOptionsSchema },
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const reported = new WeakSet<object>();
+const noRunWithOpenResource = createVersionedEffectCallbackRule(
+  (node, version) => isEffectRunCall(node, version) && openResourceInRunScope(node) !== undefined ? node : undefined,
+  () => "Rule: do not run an Effect while an unowned resource is open in the same scope. Why: runtime execution can finish without closing the resource. Fix: move acquisition into acquireRelease/scoped ownership and run only the managed effect.",
+);
 
-    const reportResources = (node: unknown) => {
-      for (const candidate of requestScopedResourceNodes(node)) {
-        if (typeof candidate !== "object" || candidate === null || reported.has(candidate)) {
-          continue;
-        }
-        reported.add(candidate);
-        report(
-          context,
-          candidate,
-          "Rule: do not acquire long-lived resources inside request-scoped handlers. Why: per-request clients and pools multiply connections and make shutdown ownership ambiguous. Fix: provide the resource through a Layer or a longer-lived service boundary.",
-        );
-      }
-    };
+const noNestedAcquireRelease = createVersionedEffectCallbackRule(
+  nestedAcquireReleaseNode,
+  () => "Rule: avoid deeply nested resource acquisition. Why: nested release stacks are difficult to audit and compose. Fix: build a named Layer or combine independent resources into one managed acquisition boundary.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      FunctionDeclaration(node: any) {
-        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
-          reportResources(node);
-        }
-      },
-      FunctionExpression(node: any) {
-        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
-          reportResources(node);
-        }
-      },
-      ArrowFunctionExpression(node: any) {
-        if (hasEffectEcosystemImport && !isBoundaryPath(context)) {
-          reportResources(node);
-        }
-      },
-    };
-  },
-});
-
-const noGlobalResourceSingleton = defineRule({
-  meta: { schema: boundaryPathOptionsSchema },
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      NewExpression(node: any) {
-        if (
-          !hasEffectEcosystemImport ||
-          isBoundaryPath(context) ||
-          enclosingFunction(node) !== undefined ||
-          !isResourceLikeConstruction(node)
-        ) {
-          return;
-        }
-
-        report(
-          context,
-          node,
-          "Rule: do not create global resource singletons in Effect modules. Why: module-level clients and pools bypass Layer ownership and make tests and shutdown order implicit. Fix: construct the resource in a Layer or Effect.Service and provide it at the application boundary.",
-        );
-      },
-    };
-  },
-});
-
-const noRunWithOpenResource = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const openResource = openResourceInRunScope(node);
-        if (isEffectRunCall(node, version) && openResource !== undefined) {
-          report(
-            context,
-            node,
-            "Rule: do not run an Effect while an unowned resource is open in the same scope. Why: runtime execution can finish without closing the resource. Fix: move acquisition into acquireRelease/scoped ownership and run only the managed effect.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noNestedAcquireRelease = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const nested = nestedAcquireReleaseNode(node);
-        if (nested) {
-          report(
-            context,
-            nested,
-            "Rule: avoid deeply nested resource acquisition. Why: nested release stacks are difficult to audit and compose. Fix: build a named Layer or combine independent resources into one managed acquisition boundary.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noMissingLayerProvisionAtRun = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && effectRunMissingLayerProvision(node, version)) {
-          report(
-            context,
-            node,
-            "Rule: provide service layers before running an Effect that retrieves services. Why: an unprovided tag fails at runtime and hides the dependency contract at the boundary. Fix: compose the required Layer and use Effect.provide or Layer.provide before Effect.run*.",
-          );
-        }
-      },
-    };
-  },
-});
+const noMissingLayerProvisionAtRun = createVersionedEffectCallbackRule(
+  (node, version) => effectRunMissingLayerProvision(node, version) ? node : undefined,
+  () => "Rule: provide service layers before running an Effect that retrieves services. Why: an unprovided tag fails at runtime and hides the dependency contract at the boundary. Fix: compose the required Layer and use Effect.provide or Layer.provide before Effect.run*.",
+);
 
 const rules = {
   "no-react-state": noReactState,

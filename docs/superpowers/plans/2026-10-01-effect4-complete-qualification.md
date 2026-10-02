@@ -207,6 +207,11 @@ For every row, use this same ordered TDD contract:
 | [ ] | Q51 | `atomStateAndPlatformBoundaries` | `no-effect-sync-console`, `no-atom-registry-effect-sync`, `no-family-collection-read` |
 | [ ] | Q52 | `atomStateAndPlatformBoundaries` | `no-naked-object-state-update`, `no-wrapgraphql-catchall` |
 
+Q22 behavioural evidence passes in both packed majors; final qualification is
+blocked by the unchanged 30 KB compressed budget (123 bytes over). Leave its
+checkbox and inventory statuses open until that gate is resolved; see the
+[Q22 report](../reports/2026-10-01-effect4-complete-qualification.md#q22-cleanup-manual-scopes-and-resource-success-values).
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

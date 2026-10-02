@@ -36,6 +36,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Qualify Q19 timeout cancellation, masking boundaries and bounded buffers.
 - [x] Qualify Q20 lexical global ownership, Deferred coordination and semaphore permits.
 - [x] Qualify Q21 held refs, detached lifetime and concurrent acquisition ownership.
+- [ ] Close Q22 cleanup/manual-scope/resource-success qualification: behavioural
+  checks pass, but its 139.04 kB raw build exceeds the unchanged 30 KB compressed
+  cap by 123 bytes. Inventory entries remain unqualified pending this gate.
 - [ ] Complete and qualify Q22-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.

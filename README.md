@@ -578,8 +578,8 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-manual-resource-close` | Resource-like `.close()`, `.destroy()`, `.dispose()`, or `.cleanup()` calls outside release or finalizer callbacks. | Keeps cleanup owned by Effect scopes instead of ad hoc imperative code. |
-| `linteffect/no-unbound-scope` | `Scope.make()` without `Effect.scoped`, `Layer.scoped`, explicit `Scope.close`, or a matching acquire/release callback. | Prevents scopes and their finalizers from being leaked. |
+| `linteffect/no-manual-resource-close` | Resource-like `.close()`, `.destroy()`, `.dispose()`, or `.cleanup()` outside release/finalizer arguments. V4 includes effect-valued `Scope.addFinalizer`. | Encourages owned cleanup; callback presence is not execution proof. |
+| `linteffect/no-unbound-scope` | `Scope.make()` without a same-function, same-binding `Scope.close`, or a matching acquire/release callback. Legacy policy also accepts `Effect.scoped`/`Layer.scoped` markers. | Exposes unowned manual scopes. V4 scoping alone does not close a separately created scope. |
 | `linteffect/no-resource-succeed-escape` | `Effect.succeed(resourceLike)` for client, connection, pool, file, socket, stream, server, subscription, or handle-shaped values. | Keeps live resource lifetimes inside scoped Effect ownership; this heuristic is focused-only rather than recommended. |
 | `linteffect/no-resource-without-acquire-release` | Runtime: resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls without a release owner. | Makes resource ownership explicit across failure, interruption, and shutdown. |
 | `linteffect/no-request-scoped-long-lived-resource` | Strict: resource acquisition or construction inside request, route, endpoint, controller, or handler functions. | Keeps long-lived clients and pools in application Layers instead of multiplying them per request. |
@@ -587,6 +587,31 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 | `linteffect/no-run-with-open-resource` | Runtime: `Effect.run*` in a lexical scope containing an unowned resource creation. | Prevents runtime execution from finishing while an imperative resource remains open. |
 | `linteffect/no-nested-acquire-release` | Strict: `Effect.acquireRelease` / `acquireUseRelease` nesting deeper than two levels. | Encourages named Layers and manageable release boundaries instead of opaque release stacks. |
 | `linteffect/no-missing-layer-provision-at-run` | Strict: `Effect.run*` on a program that yields a service tag without a local `Effect.provide` or `Layer.provide`. | Makes runtime dependency provisioning visible at the application boundary. |
+
+Q22's cleanup, scope and success-value examples use pinned Effect 3.21.4/4.0.0
+consumers. Behavioural qualification is recorded in the
+[campaign report](docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md#q22-cleanup-manual-scopes-and-resource-success-values);
+final batch closure is blocked by the unchanged 30 KB size gate.
+
+Prefer the supplied `Effect.scope` inside `Effect.scoped`, or acquire a manual
+`Scope.make()` with `Effect.acquireUseRelease` and release it using
+`Scope.close(scope, exit)`. Both majors register effect-valued finalizers with
+`Scope.addFinalizer(scope, effect)`, and exit-aware callbacks with
+`Scope.addFinalizerExit(scope, exit => effect)`. Current interruptible acquisition
+uses `Effect.acquireRelease(acquire, release, { interruptible: true })`; legacy
+`acquireReleaseInterruptible` instead passes only the exit to its release callback.
+V4 acquire/release APIs in these examples are data-first only.
+
+These checks are not resource escape analysis. Named callbacks, aliases and
+computed properties remain opaque. The legacy detector retains warnings on valid
+curried release callbacks and effect-valued `Scope.addFinalizer` cleanup. A visible
+`Scope.close` can be lazy or unreachable; legacy scoped markers can leave a manual
+scope open. `no-resource-succeed-escape` remains focused-only and can warn inside
+owned use or on immutable `client.value`, while a generic alias can escape without
+warning. Do not mechanically rename values to silence it. The repairs export data
+after owned use; runtime controls demonstrate once-only release on success,
+failure and interruption, repeated scope close, premature double cleanup and an
+already-closed returned handle. Typed stand-ins do not qualify native I/O behaviour.
 
 `Scope.global` remains a deferred candidate because the supported Effect API does
 not currently expose it; it is not part of the v1 export surface.

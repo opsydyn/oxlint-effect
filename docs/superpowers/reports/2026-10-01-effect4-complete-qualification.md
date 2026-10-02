@@ -495,6 +495,68 @@ raw; size passes at 30 KB under the approved cap, with very little headroom.
 Q22-Q52 and cross-group closure remain open; 82 rules retain an unqualified
 applicable version. No push/release.
 
+## Q22 Cleanup, Manual Scopes And Resource Success Values
+
+Behavioural evidence is complete for `no-manual-resource-close`,
+`no-unbound-scope` and `no-resource-succeed-escape` against pinned Effect
+3.21.4/4.0.0 and Oxlint 1.71.0. Final qualification remains blocked by size;
+the three inventory statuses and Q22 completion checkbox stay unchanged.
+
+- Cleanup: seven legacy/five v4 parsed warnings. All four cleanup methods and
+  premature cleanup in the use callback warn. V4 recognises effect-valued
+  Scope.addFinalizer arguments, including deferred effects; release callbacks,
+  Effect.addFinalizer and Scope.addFinalizerExit are clean. Valid legacy curried
+  release and effect-valued finalizer warnings are retained and labelled, not
+  disguised as broken APIs. Callback/finalizer presence is not execution proof;
+  aliases, computed methods and nested lazy definitions remain inference limits.
+- Manual scopes: four legacy/five v4 warnings. Same-function, same-binding
+  explicit close and matching acquireRelease/acquireUseRelease callbacks are
+  clean; wrong/shadowed bindings and nested helper close do not confer ownership.
+  V4 no longer treats Effect.scoped or removed Layer.scoped/acquireReleaseInterruptible
+  as ownership of a manually created scope. Legacy marker exclusions remain.
+  The supplied Effect.scope is the scoped repair. Close-expression presence is
+  not dominance/execution proof: a clean lazy-close control demonstrably remains
+  open. No Scope.use/provide alias-flow inference is claimed.
+- Success values: six warnings in each major, unchanged and focused-only.
+  Literal resource names and nested receiver names are detected, including
+  fully owned use (a conservative warning); generic aliases remain clean despite
+  carrying the same live resource. Immutable client.value can also warn by
+  receiver naming. Returning data from owned use is the repair, not renaming.
+
+Own/opposite parsed counts are cleanup 7/5 versus 6/5, scopes 4/5 versus 4/4,
+success values 6/6 under either policy. Default main.ts exclusions are checked
+per rule; custom boundary globs suppress the bad file, and boundaryPaths: []
+restores exactly one warning per rule in main.ts. Focused tests first failed
+on effect-valued finalizers, separate-scope marker ownership and absent manifests.
+
+Checked API negatives reject callback-valued Scope.addFinalizer, closing an
+acquisition instead of a scope, missing Exit, foreign strategy signatures and
+foreign acquisition forms. V3 acquireReleaseInterruptible receives only Exit;
+v4 replaces it with acquireRelease's interruptible option and uses direct-only
+acquireUseRelease. Runtime contracts exercise actual typed resources and scopes:
+acquireUseRelease, manually acquired Scope and supplied-scope finalization each
+preserve 43/original failure identity/interruption and release exactly once.
+Repeated Scope.close does not release twice. Premature manual cleanup does;
+scope-marker/lazy-close controls remain open until explicit teardown. A returned
+scoped handle is already closed, while the data repair returns 42. No native I/O
+or whole-program ownership claim is made.
+
+Fresh unit gates pass: 513 tests/3449 expectations, root typecheck, publint,
+API docs and diff check. Both packed majors pass the warning counts, clean
+controls, checked API negatives and runtime completion markers. These passes
+do not override the failed size gate or qualify Q22 for release.
+
+The 30 KB cap is unchanged. Shared import/report visitors now optionally retain
+boundary schema/gating and selectable visitor names; resource-lifetime visitors
+reuse them with predicates, legacy messages, report nodes and deduplication
+preserved. Lifecycle ancestor walking and acquisition recognition are shared;
+unqualified Q23/Q24 owners keep legacy-default predicates. This structural
+consolidation does not qualify those later owners. Q22's final build is 139.04 kB
+raw but exceeds the compressed cap by 123 bytes. Budget approval or a separate
+bundle-reduction gate is required before marking Q22 qualified. Q22-Q52 and
+cross-group closure remain open; 82 rules retain an unqualified applicable
+version. No push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

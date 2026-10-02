@@ -2051,8 +2051,8 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noManualResourceClose; transitive helpers: noManualResourceClose, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isResourceCleanupCall, isIdentifier, resourceCleanupMethods, isResourceLikeExpression, isResourceLikeName, identifierNameTokens, resourceLikeTerms, isMemberExpressionNode, hasReleaseOwnership, isFunctionLike, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall",
-      "Recognition tokens: OptionalMemberExpression, Effect, acquireUseRelease, acquireRelease, acquireReleaseInterruptible, Scope; API and repair controls still require packed qualification."
+      "src/index.ts: noManualResourceClose through shared boundary/import/report visitor; resourceReleaseCallbackArguments and resourceAncestor select release ownership by major. Legacy callers retain default version 3.",
+      "Q22: 7 legacy/5 v4 warnings; opposite policy 6/5. V4 accepts effect-valued Scope.addFinalizer cleanup; retained legacy curried/effect-valued finalizer false positives are annotated. Typed release/finalizer variants execute once; premature use cleanup reproduces double release. Names, aliases, computed members and callback markers are not type/execution proof. Final qualification pending: unchanged 30 KB compressed-size gate fails by 123 bytes."
     ]
   },
   "no-unbound-scope": {
@@ -2066,8 +2066,8 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noUnboundScope; transitive helpers: noUnboundScope, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isScopeMakeCall, isMemberCall, isIdentifier, hasScopeOwner, isEffectMemberCallNamed, isEffectMemberCall, isScopeAcquireReleaseCall, firstArgument, hasMatchingScopeReleaseCallback, isFunctionLike, findNodes, isScopeCloseFor, enclosingFunction, scopeCloseUsesCallbackParameter, variableBindingForReference, lexicalBindingsInFunction, lexicalBindingIdentifiers, patternBindingIdentifiers, lexicalBindingScope, lexicalScopeNode, lexicalScopeNodeTypes, isWithinLexicalScope, lexicalScopeDepth, hasMatchingScopeClose, scopeMakeBindingDeclaration, directScopeMakeInitializer",
-      "Recognition tokens: Scope, Effect, Layer, acquireRelease, acquireUseRelease, acquireReleaseInterruptible; API and repair controls still require packed qualification."
+      "src/index.ts: noUnboundScope; resourceAncestor, versioned isResourceAcquireReleaseCall, hasMatchingScopeReleaseCallback and hasMatchingScopeClose preserve lexical binding identity, boundary options and legacy marker exclusions.",
+      "Q22: 4 legacy/5 v4 warnings; opposite policy 4 each. V4 scoped/removed legacy markers do not own separate Scope.make. Supplied Effect.scope and matching release/close controls are clean. Same-function close binding is checked, not execution/dominance: lazy close and legacy scoped markers demonstrably leave scopes open. Actual manual/supplied scopes finalize on success/failure/interruption without double release; foreign API signatures are compiler-negative controls. Final qualification pending unchanged 30 KB size gate, 123 bytes over."
     ]
   },
   "no-resource-succeed-escape": {
@@ -2081,8 +2081,8 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noResourceSucceedEscape; transitive helpers: noResourceSucceedEscape, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isResourceLikeExpression, isResourceLikeName, identifierNameTokens, resourceLikeTerms, isMemberExpressionNode, firstArgument",
-      "Recognition tokens: Effect, OptionalMemberExpression; API and repair controls still require packed qualification."
+      "src/index.ts: noResourceSucceedEscape through shared boundary/import/report visitor; Effect.succeed, isResourceLikeExpression and literal resource vocabulary. Focused-only membership and boundary options remain unchanged.",
+      "Q22: 6 warnings in each major under either policy. Named/nested resources warn, including fully owned use and immutable client.value; generic aliases remain opaque and clean. Scoped escape returns an already-closed handle; owned data repair returns 42. Typed runtime identity/cleanup controls do not imply whole-program escape or native I/O analysis. Final qualification pending unchanged 30 KB size gate, 123 bytes over."
     ]
   },
   "no-resource-without-acquire-release": {
