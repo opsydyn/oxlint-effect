@@ -52,6 +52,17 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q45 supplies packed branching evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-if-statement", "no-switch-statement", "no-ternary"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q45 gives current result branching advice", () => {
+    const inspect = (version: 3 | 4) => runRuleSequence("no-ternary", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "ConditionalExpression", node: { type: "ConditionalExpression" } }], { options: [{ effectVersion: version }] })[0].message;
+    expect(inspect(4)).toContain("Result.match");
+    expect(inspect(3)).toContain("Either.match");
+  });
   it("Effect qualification Q44 supplies packed collection and value evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

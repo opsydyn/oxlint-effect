@@ -1166,6 +1166,25 @@ publint, API docs and diff. Raw build remains 141.60 kB; unchanged cap fails by
 corrected here; the Q44 fresh diff check passes. Q22-Q44 and inventory statuses
 stay open, 82 unqualified. Continue Q45-Q52 and closure without release.
 
+## Q45 Import-Wide Branching Policy
+
+Packed both majors emit 7 if / 3 switch / 5 ternary warnings. Existing import-wide
+and order-sensitive policy includes unrelated pure functions, unused callbacks,
+nested and fall-through branches. No/late-import controls are limits, not repairs.
+Detection stays unchanged; current ternary advice now names Result.match while
+legacy retains its exact Either.match message. Opposite-policy counts stay 5/5.
+
+Actual Match/Option/Either (legacy) or Result (current) repairs preserve boolean,
+else-if, default, fall-through and nested outputs, absence and error identity.
+The nested if and ternary have distinct false-path values; each is compared
+against its own repair. Compiler controls reject incomplete exhaustive matching.
+No whole-program branch desirability or platform/application proof is inferred.
+
+Fresh gates pass: 556 tests / 3647 expectations, root types, packed both majors,
+publint, API docs and diff. Raw build is 141.67 kB; cap fails by 829 bytes.
+Q22-Q45 and inventory statuses stay open, 82 unqualified. Continue Q46-Q52 and
+closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

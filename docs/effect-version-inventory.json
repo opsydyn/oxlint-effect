@@ -26,7 +26,7 @@
     },
     "evidence": [
       "src/index.ts: noIfStatement; transitive helpers: noIfStatement, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q45 packed both majors: 7 simple/else-if/nested/unused/top-level warnings. Import-wide pure-function policy and no/late-import limits retained. Actual Match repair preserves each branch result, Option absence and own-major result error identity. Size gate remains open."
     ]
   },
   "no-switch-statement": {
@@ -41,11 +41,11 @@
     },
     "evidence": [
       "src/index.ts: noSwitchStatement; transitive helpers: noSwitchStatement, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q45 packed both majors: 3 union/fall-through/unused warnings. Actual exhaustive/default Match preserves values; compiler rejects incomplete matching. Import-wide/no/late-import controls labelled. Size gate remains open."
     ]
   },
   "no-ternary": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -56,7 +56,7 @@
     },
     "evidence": [
       "src/index.ts: noTernary; transitive helpers: noTernary, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q45 packed both majors: 5 simple/nested/Effect/unused warnings; opposite 5/5. Current Result.match advice adapted, exact legacy Either.match advice retained. Actual Match/Option/result preserves each original branch and error identity; no/late-import gaps documented. Size gate remains open."
     ]
   },
   "no-return-null": {

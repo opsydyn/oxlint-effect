@@ -92,6 +92,10 @@ Q44 collection/value checks pass, finishing all 11 pipeline owners' behavioural
 evidence. Current Ref.set runtime output is preserved despite its void type.
 Size stays 800 bytes over the cap; qualification remains open. Continue Q45-Q52.
 
+Q45 branching checks pass with current Result/legacy Either advice and actual
+branch-preserving Match repairs. Size is 829 bytes over the unchanged cap;
+qualification stays open. Continue Q46-Q52 and closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

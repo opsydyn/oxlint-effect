@@ -1,0 +1,13 @@
+import { Effect, Either, Match, Option } from "effect";
+export const selected = (enabled: boolean) => Match.value(enabled).pipe(Match.when(true, () => 42), Match.orElse(() => 0));
+export const state = (mode: "ready" | "waiting") => Match.value(mode).pipe(Match.when("ready", () => 42), Match.when("waiting", () => 0), Match.exhaustive);
+export const chained = (n: number) => Match.value(n).pipe(Match.when(n => n > 1, () => 42), Match.when(1, () => 1), Match.orElse(() => 0));
+export const nested = (enabled: boolean, allowed: boolean) => Match.value({ enabled, allowed }).pipe(Match.when({ enabled: true, allowed: true }, () => 42), Match.orElse(() => 0));
+export const nestedTernary = (enabled: boolean, allowed: boolean) => Match.value({ enabled, allowed }).pipe(Match.when({ enabled: true, allowed: true }, () => 42), Match.when({ enabled: true }, () => 1), Match.orElse(() => 0));
+export const fallback = (mode: string) => Match.value(mode).pipe(Match.when("ready", () => 42), Match.when("complete", () => 42), Match.orElse(() => 0));
+export const task = (enabled: boolean) => Effect.map(Effect.succeed(enabled), selected);
+export const optional = (value: Option.Option<number>) => Option.match(value, { onNone: () => 0, onSome: n => n });
+export const success = Either.right(42);
+export const original = { _tag: "Q45Failure" };
+export const failure = Either.left(original);
+export const outcome = (value: Either.Either<number, typeof original>) => Either.match(value, { onLeft: error => error, onRight: n => n });

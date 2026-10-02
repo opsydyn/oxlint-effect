@@ -291,6 +291,10 @@ owners. The current runtime preserves pinned Ref.set's observed internal value
 despite its void declaration. Size stays 800 bytes over the cap; checkbox and
 inventory stay open. Continue Q45-Q52.
 
+Q45 branching behavioural evidence passes with current Result/legacy Either
+advice and branch-preserving Match repairs. Size is 829 bytes over the unchanged
+cap; checkbox/inventory stay open. Continue Q46-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

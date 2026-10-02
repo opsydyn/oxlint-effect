@@ -3060,5 +3060,80 @@
       }
     },
     "runtime": "src/qualification/pipelineShapeAndSequencing/collection-values.contracts.ts"
+  },
+  {
+    "rule": "no-if-statement",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "ordinary/import-wide and unused callbacks; nested or fall-through decisions",
+      "no-import and late-import controls preserve structural gate limits",
+      "actual Match/Option and own-major result repair preserves value/error identity",
+      "compiler rejects incomplete exhaustive matching"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-if-statement.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/branching.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/branching-late-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/branching-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-if-statement.bad.ts": {
+        "linteffect/no-if-statement": 7
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/branching.contracts.ts"
+  },
+  {
+    "rule": "no-switch-statement",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "ordinary/import-wide and unused callbacks; nested or fall-through decisions",
+      "no-import and late-import controls preserve structural gate limits",
+      "actual Match/Option and own-major result repair preserves value/error identity",
+      "compiler rejects incomplete exhaustive matching"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-switch-statement.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/branching.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/branching-late-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/branching-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-switch-statement.bad.ts": {
+        "linteffect/no-switch-statement": 3
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/branching.contracts.ts"
+  },
+  {
+    "rule": "no-ternary",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "ordinary/import-wide and unused callbacks; nested or fall-through decisions",
+      "no-import and late-import controls preserve structural gate limits",
+      "actual Match/Option and own-major result repair preserves value/error identity",
+      "compiler rejects incomplete exhaustive matching"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-ternary.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/branching.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/branching-late-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/branching-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-ternary.bad.ts": {
+        "linteffect/no-ternary": 5
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/branching.contracts.ts"
   }
 ]

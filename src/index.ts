@@ -5269,7 +5269,7 @@ function importsEffectSchema(node: unknown): boolean {
 
 function createEffectGatedStatementRule(
   visitorName: "IfStatement" | "SwitchStatement" | "ConditionalExpression",
-  message: string,
+  message: string | ((version: EffectVersion) => string),
 ) {
   return defineRule({
     create(context: OxlintContext) {
@@ -5284,7 +5284,7 @@ function createEffectGatedStatementRule(
         },
         [visitorName](node: any) {
           if (hasEffectEcosystemImport) {
-            report(context, node, message);
+            report(context, node, typeof message === "string" ? message : message(effectVersionFor(context.options)));
           }
         },
       };
@@ -5339,7 +5339,7 @@ const noSwitchStatement = createEffectGatedStatementRule(
 
 const noTernary = createEffectGatedStatementRule(
   "ConditionalExpression",
-  "Rule: avoid ternary expressions. Why: they hide control flow inside expressions. Fix: use Option.match/Either.match/Match.value or data combinators, then run one Effect pipeline.",
+  (version) => `Rule: avoid ternary expressions. Why: they hide control flow inside expressions. Fix: use Option.match/${version === 3 ? "Either" : "Result"}.match/Match.value or data combinators, then run one Effect pipeline.`,
 );
 
 const noReturnNull = defineRule({
