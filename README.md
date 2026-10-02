@@ -478,9 +478,9 @@ malformed values through Effect.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-console-in-effect-flow` | `console.*` inside direct `Effect.gen`, `Effect.sync`, `Effect.try`, `Effect.tryPromise`, or `Effect.fn` callbacks, and `Effect.Service` implementations. | Logging through Effect preserves the runtime's observability context. |
-| `linteffect/no-effect-log-without-structured-context` | String-only `Effect.logError` and `Effect.logWarning` calls in direct error-handler callbacks or `Effect.Service` implementations. | Failure logs need an error, structured fields, or local `Effect.annotateLogs(...)` context for correlation. |
-| `linteffect/require-span-on-public-service-method` | Exported functions or function-valued variables with an explicit `Effect.Effect` return (on the function or variable declaration), plus `Effect.Service` methods directly returning an Effect, when any direct Effect return lacks `Effect.withSpan(...)`. | Public operations need visible trace boundaries. |
+| `linteffect/no-console-in-effect-flow` | `console.*` in supported constructors and selected-major service implementations: legacy `Effect.Service`, current `Context.Service.make`. | Logging through Effect preserves the runtime's observability context. |
+| `linteffect/no-effect-log-without-structured-context` | String-only `Effect.logError`/`logWarning` in selected-major recovery/observer callbacks and service implementations. | Failure logs need an error, structured fields, or local `Effect.annotateLogs(...)` context for correlation. |
+| `linteffect/require-span-on-public-service-method` | Explicit `Effect.Effect`-returning exports and selected-major service methods with visible Effect returns lacking `Effect.withSpan(...)`. | Public operations need visible trace boundaries. |
 | `linteffect/no-runpromise-in-non-async-test-body` | Discarded direct `Effect.runPromise(...)` calls in `*.test.*`, `*.spec.*`, and `__tests__` files. | Tests must await or return runtime execution so the framework observes completion. |
 | `linteffect/require-effect-flip-for-error-test` | Direct `await expect(Effect.runPromise(effect)).rejects...` assertions in conventional test files. | An expected typed Effect failure is clearer when `Effect.flip` yields the error as a value for structural assertions. |
 | `linteffect/no-test-mock-layer-when-default-available` | A direct `Layer.succeed(...)` or `Layer.effect(...)` sibling of `SomeService.Default` in the same `Layer.provide(...)` call. | An explicit default composition and a sibling replacement layer can hide which service contract the test exercises. |
@@ -488,7 +488,21 @@ malformed values through Effect.
 These rules are deliberately syntax-only. They require an Effect ecosystem import;
 they do not resolve aliases, infer Effect return types, or follow values through
 variables. `require-span-on-public-service-method` accepts either data-first
-`Effect.withSpan(program, "operation")` or `.pipe(Effect.withSpan("operation"))`.
+`Effect.withSpan(program, "operation")` or a visible Effect call followed by
+`.pipe(Effect.withSpan("operation"))`. A pipe on an opaque receiver can still warn.
+
+The [paired observability examples](examples/effect4-consumer/src/qualification/testingObservabilityAndQa)
+qualify current class, functional and class-expression `Context.Service.make`
+forms, untraced constructors and current catch/Cause/reason handlers, including
+literal handler maps. Select `effect3.testingObservabilityAndQa` to retain legacy
+`Effect.Service` and `catchAll` policy. Collection remains import-order independent
+and deduplicates report nodes. These are local syntax checks: unused callbacks
+can warn, empty context objects satisfy logging policy, and an unexecuted
+annotation can suppress it. Inferred exports and stored Effects remain opaque;
+`withSpan` syntax does not prove that tracing is enabled. Runtime contracts verify
+logger routing/annotations and spans ending once on value, failure and interruption.
+Legacy tracing proxies object failures; public `Cause.originalError` preserves
+access to the original instance. Current fixtures retain direct failure identity.
 
 The three test-shape rules are strict opt-in checks: use
 `testingObservabilityAndQa` when a repository follows this test style; they are

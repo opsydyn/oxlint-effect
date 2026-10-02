@@ -229,6 +229,9 @@ and inventory statuses remain open. Continue Q27 without a prompt.
 Q27 behavioural evidence passes; size remains 385 bytes over 30 KB. Its
 checkbox and inventory statuses remain open. Continue Q28 without a prompt.
 
+Q28 behavioural evidence passes; size is 600 bytes over 30 KB. Its checkbox
+and inventory statuses remain open. Continue Q29 without a prompt.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

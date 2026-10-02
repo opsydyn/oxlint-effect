@@ -1947,5 +1947,83 @@
       }
     },
     "runtime": "src/qualification/platformAndBoundaryHygiene/environment-config.contracts.ts"
+  },
+  {
+    "rule": "no-console-in-effect-flow",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "own-major constructor and service shapes",
+      "export callbacks methods and nearest legitimate controls",
+      "aliases unused markers and disabled tracing limitations",
+      "real logger propagation and original error identity",
+      "span pending lifetime value failure interruption and once-only end",
+      "checked ecosystem API negatives"
+    ],
+    "bad": [
+      "src/qualification/testingObservabilityAndQa/no-console-in-effect-flow.bad.ts"
+    ],
+    "good": [
+      "src/qualification/testingObservabilityAndQa/no-console-in-effect-flow.good.ts",
+      "src/qualification/testingObservabilityAndQa/no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/testingObservabilityAndQa/no-console-in-effect-flow.bad.ts": {
+        "linteffect/no-console-in-effect-flow": 13
+      }
+    },
+    "runtime": "src/qualification/testingObservabilityAndQa/log-span.contracts.ts"
+  },
+  {
+    "rule": "no-effect-log-without-structured-context",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "own-major constructor and service shapes",
+      "export callbacks methods and nearest legitimate controls",
+      "aliases unused markers and disabled tracing limitations",
+      "real logger propagation and original error identity",
+      "span pending lifetime value failure interruption and once-only end",
+      "checked ecosystem API negatives"
+    ],
+    "bad": [
+      "src/qualification/testingObservabilityAndQa/no-effect-log-without-structured-context.bad.ts"
+    ],
+    "good": [
+      "src/qualification/testingObservabilityAndQa/no-effect-log-without-structured-context.good.ts",
+      "src/qualification/testingObservabilityAndQa/no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/testingObservabilityAndQa/no-effect-log-without-structured-context.bad.ts": {
+        "linteffect/no-effect-log-without-structured-context": 8
+      }
+    },
+    "runtime": "src/qualification/testingObservabilityAndQa/log-span.contracts.ts"
+  },
+  {
+    "rule": "require-span-on-public-service-method",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "own-major constructor and service shapes",
+      "export callbacks methods and nearest legitimate controls",
+      "aliases unused markers and disabled tracing limitations",
+      "real logger propagation and original error identity",
+      "span pending lifetime value failure interruption and once-only end",
+      "checked ecosystem API negatives"
+    ],
+    "bad": [
+      "src/qualification/testingObservabilityAndQa/require-span-on-public-service-method.bad.ts"
+    ],
+    "good": [
+      "src/qualification/testingObservabilityAndQa/require-span-on-public-service-method.good.ts",
+      "src/qualification/testingObservabilityAndQa/no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/testingObservabilityAndQa/require-span-on-public-service-method.bad.ts": {
+        "linteffect/require-span-on-public-service-method": 10
+      }
+    },
+    "runtime": "src/qualification/testingObservabilityAndQa/log-span.contracts.ts"
   }
 ]

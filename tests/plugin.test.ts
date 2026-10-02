@@ -52,6 +52,30 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q28 sees current service implementations and recovery", () => {
+    const implementation = effectCall("succeed", objectLiteral(property("load", arrowCallback(effectCall("sync", arrowCallback(memberCall("console", "warn")))))));
+    const options = objectLiteral(property("make", implementation));
+    const service = callExpression(callExpression(memberExpression("Context", "Service")), stringLiteral("Q28"), options);
+    const inspect = (rule: string, node: unknown, version: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }, { visitorName: "Program:exit", node: {} }], { options: [{ effectVersion: version }] });
+    expect(inspect("no-console-in-effect-flow", service, 4)).toHaveLength(1);
+    expect(inspect("require-span-on-public-service-method", service, 4)).toHaveLength(1);
+    expect(inspect("require-span-on-public-service-method", service, 3)).toHaveLength(0);
+    const recover = effectCall("catch", identifier("program"), arrowCallback(effectCall("logError", stringLiteral("lost"))));
+    expect(inspect("no-effect-log-without-structured-context", recover, 4)).toHaveLength(1);
+    expect(inspect("no-effect-log-without-structured-context", recover, 3)).toHaveLength(0);
+    expect(inspect("no-effect-log-without-structured-context", effectCall("catchAll", identifier("program"), arrowCallback(effectCall("logError", stringLiteral("lost")))), 4)).toHaveLength(0);
+  });
+  it("Effect qualification Q28 supplies packed log and span evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-console-in-effect-flow", "no-effect-log-without-structured-context", "require-span-on-public-service-method"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q28 retains current error observers as log owners", () => {
+    const node = effectCall("tapError", identifier("program"), arrowCallback(effectCall("logWarning", stringLiteral("lost"))));
+    const reports = runRuleSequence("no-effect-log-without-structured-context", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }, { visitorName: "Program:exit", node: {} }], { options: [{ effectVersion: 4 }] });
+    expect(reports).toHaveLength(1);
+  });
   it("Effect qualification Q27 supplies packed environment/config evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

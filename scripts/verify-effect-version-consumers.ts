@@ -200,6 +200,12 @@ try {
         verifyLint(root, config, paths, { [`linteffect/${rule}`]: 2 }, 1);
       }
     }
+    for (const [rule, count] of [["no-console-in-effect-flow", 9], ["no-effect-log-without-structured-context", major === 3 ? 3 : 2], ["require-span-on-public-service-method", 7]] as const) {
+      const config = "oxlint.qualification.opposite.json";
+      const path = `src/qualification/testingObservabilityAndQa/${rule}.bad.ts`;
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, [path], { [`linteffect/${rule}`]: count }, 1, { [path]: { [`linteffect/${rule}`]: count } });
+    }
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
       "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },

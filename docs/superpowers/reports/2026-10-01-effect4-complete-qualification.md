@@ -727,6 +727,46 @@ Build stays 140.35 kB raw; unchanged 30 KB size cap fails by 385 bytes. Q22-Q27
 remain unchecked; 82 rules retain unqualified applicable versions. Continue
 Q28-Q52 and cross-group closure; no push, version bump or release.
 
+## Q28 Logger Context And Span Lifetime
+
+Behavioural evidence passes for three observability owners in both pinned
+consumers. Console reports nine legacy/thirteen current warnings (opposite nine
+per major), including current untraced constructors and class/functional/expression
+Context.Service.make shapes. Logging reports five legacy/eight current warnings
+(opposite three/two), selecting current recovery and observer callbacks, literal
+handler maps and selected-major service implementations. A current tapError owner
+regression from reusing a narrower callback helper was reproduced RED, corrected
+with explicit handler extraction and verified GREEN. Span policy reports eight
+legacy/ten current warnings (opposite seven/seven) across five exported function
+shapes, partial branches, stored values and own-major service methods.
+
+Legacy traversal and exact messages are retained. Three collectors share deferred
+import gating and node deduplication; imports declared later still activate the
+policy. Current service methods follow visible make constructions through plain
+functions, gen/fn, succeed/sync and pipes. No alias/type/whole-program proof is
+claimed. Unused console callbacks can warn; empty log objects and unused annotation
+markers remain clean correlation gaps. Inferred exports and disabled tracing stay
+clean, while stored Effects and pipes on opaque receivers can conservatively warn.
+
+Actual Logger APIs differ: v3 replace(defaultLogger, custom) versus current
+Logger.layer. Console bypass emits no captured logger event; the repair routes
+one event while retaining 42. Recovery retains 42, log payloads retain the original
+error, annotations retain requestId, and observers preserve typed failure identity.
+Real tracer wrappers record pending ownership, success/failure/interruption and
+one end per span. Source/runtime evidence shows v3 tracing proxies object failures;
+public Cause.originalError recovers the original instance. Untraced legacy and
+current fixture failures retain strict reference identity. Disabled tracing creates
+no captured span despite clean syntax. Checked ecosystem negatives compile.
+
+Fresh gates pass: 529 tests/3525 expectations, root types, both packed major
+consumers with exact own/opposite counts and runtime markers, publint, API docs
+and diff. Sandbox cache restrictions caused one pack-test failure; a writable
+temporary npm cache restored it. The network-restricted packed run was stopped
+and rerun with approved network access; no test was bypassed. Build is 140.81 kB
+raw; unchanged 30 KB cap fails by 600 bytes. Q22-Q28 remain unchecked, 82 rules
+retain unqualified applicable versions. Continue Q29-Q52 and cross-group closure;
+no push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

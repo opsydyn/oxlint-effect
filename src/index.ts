@@ -1083,6 +1083,16 @@ function effectServiceClassOptions(node: unknown): unknown | undefined {
   return effectServiceOptionsObject((node as Node).superClass);
 }
 
+function serviceConstructionOptions(node: unknown, version: EffectVersion): unknown | undefined {
+  if (version === 3) return effectServiceClassOptions(node);
+  const kind = (node as Node | undefined)?.type;
+  return effectServiceOptionsObject(kind === "ClassDeclaration" || kind === "ClassExpression" ? (node as Node).superClass : node, version);
+}
+
+function serviceConstructionImplementation(options: unknown, version: EffectVersion): unknown {
+  return version === 3 ? objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped") : objectPropertyValue(options, "make");
+}
+
 function isContextTagCall(node: unknown): boolean {
   return isMemberCall(node, "Context", "Tag") || isMemberCall(node, "Context", "GenericTag");
 }
@@ -1848,15 +1858,15 @@ function isConsoleCall(node: unknown): boolean {
   );
 }
 
-function consoleCallsInEffectFlow(node: unknown): unknown[] {
-  if (isEffectConstructionBoundary(node)) {
+function consoleCallsInEffectFlow(node: unknown, version: EffectVersion = 3): unknown[] {
+  if (isEffectConstructionBoundary(node, version)) {
     return findNodes((node as Node).arguments, isConsoleCall);
   }
 
-  const options = effectServiceClassOptions(node);
+  const options = serviceConstructionOptions(node, version);
   return options
     ? findNodes(
-        objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped"),
+        serviceConstructionImplementation(options, version),
         isConsoleCall,
       )
     : [];
@@ -1898,17 +1908,21 @@ function contextlessErrorLogs(node: unknown): unknown[] {
   ));
 }
 
-function errorHandlerBodies(node: unknown): unknown[] {
+function errorHandlerBodies(node: unknown, version: EffectVersion = 3): unknown[] {
   if (!isEffectMemberCall(node)) {
     return [];
   }
 
   const property = ((node as Node).callee as Node).property;
-  if (!isIdentifier(property) || !errorHandlingOperators.has(property.name)) {
+  if (!isIdentifier(property) || !(version === 3 ? errorHandlingOperators.has(property.name)
+    : property.name === "tapError" || property.name === "catchNoSuchElement" || (effect4RecoveryOperatorNames as readonly string[]).includes(property.name))) {
     return [];
   }
 
-  return ((node as Node).arguments as unknown[])
+  const arguments_ = (node as Node).arguments as unknown[];
+  return (version === 4 ? arguments_.flatMap(argument =>
+    (property.name === "catchTags" || property.name === "catchReasons") && isObjectExpression(argument)
+      ? ((argument as Node).properties as Node[]).map(entry => entry.value).filter(isFunctionLike) : [argument]) : arguments_)
     .map(callbackBody)
     .filter((body): body is unknown => body !== undefined);
 }
@@ -3414,7 +3428,25 @@ function exportedFunctionValues(node: unknown): ExportedFunctionValue[] {
   });
 }
 
-function serviceMethodFunctions(options: unknown): unknown[] {
+function serviceMethodFunctions(options: unknown, version: EffectVersion = 3): unknown[] {
+  if (version === 4) {
+    const seen = new WeakSet<object>();
+    const objects = (value: unknown): unknown[] => {
+      if (typeof value !== "object" || value === null || seen.has(value)) return [];
+      seen.add(value);
+      if (isObjectExpression(value)) return [value];
+      if (isFunctionLike(value)) return operationReturnExpressions(value).flatMap(objects);
+      const generator = getEffectGeneratorArgument(value, "gen", version) ?? getEffectGeneratorArgument(value, "fn", version);
+      if (generator) return objects(generator);
+      if (isEffectMemberCallNamed(value, "succeed") || isEffectMemberCallNamed(value, "sync") || isEffectMemberCallNamed(value, "suspend")) return objects(firstArgument(value as Node & { arguments: unknown[] }));
+      if (isPipeCall(value)) {
+        const callee = (value as Node).callee as Node;
+        return objects(callee.type === "MemberExpression" ? callee.object : firstArgument(value as Node & { arguments: unknown[] }));
+      }
+      return [];
+    };
+    return objects(objectPropertyValue(options, "make")).flatMap(value => ((value as Node).properties as Node[]).filter(entry => entry.type === "Property" && isFunctionLike(entry.value)).map(entry => entry.value));
+  }
   const implementation = objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped");
   const generator = getEffectGeneratorArgument(implementation, "gen");
   const returnedObject = generator
@@ -5526,172 +5558,66 @@ const noEffectSyncConsole = defineRule({
   },
 });
 
-const noConsoleInEffectFlow = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const consoleCalls: unknown[] = [];
-    const collectedConsoleCalls = new WeakSet<object>();
+function createCollectedEffectRule(
+  find: (node: unknown, version: EffectVersion) => unknown[],
+  message: string,
+  visitorNames: string[],
+) {
+  return defineRule({
+    create(context: OxlintContext) {
+      const version = effectVersionFor(context.options);
+      let imported = false;
+      const candidates: object[] = [];
+      const seen = new WeakSet<object>();
+      const collect = (node: unknown) => {
+        for (const target of find(node, version)) {
+          if (typeof target !== "object" || target === null || seen.has(target)) continue;
+          seen.add(target);
+          candidates.push(target);
+        }
+      };
+      return {
+        ImportDeclaration(node: unknown) {
+          const source = getImportSource(node);
+          if (source && isEffectEcosystemImport(source)) imported = true;
+        },
+        ...Object.fromEntries(visitorNames.map(name => [name, collect])),
+        "Program:exit"() {
+          if (imported) for (const target of candidates) report(context, target, message);
+        },
+      };
+    },
+  });
+}
 
-    const collectConsoleCalls = (node: unknown) => {
-      for (const consoleCall of consoleCallsInEffectFlow(node)) {
-        if (typeof consoleCall !== "object" || consoleCall === null || collectedConsoleCalls.has(consoleCall)) {
-          continue;
-        }
-        collectedConsoleCalls.add(consoleCall);
-        consoleCalls.push(consoleCall);
-      }
-    };
+const observabilityVisitors = ["CallExpression", "ClassDeclaration", "ClassExpression"];
+const noConsoleInEffectFlow = createCollectedEffectRule(
+  consoleCallsInEffectFlow,
+  "Rule: avoid console.* in Effect flow. Why: console output bypasses Effect observability. Fix: use Effect.log* with structured context.",
+  observabilityVisitors,
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        collectConsoleCalls(node);
-      },
-      ClassDeclaration(node: any) {
-        collectConsoleCalls(node);
-      },
-      "Program:exit"() {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        for (const consoleCall of consoleCalls) {
-          report(
-            context,
-            consoleCall,
-            "Rule: avoid console.* in Effect flow. Why: console output bypasses Effect observability. Fix: use Effect.log* with structured context.",
-          );
-        }
-      },
-    };
+const noEffectLogWithoutStructuredContext = createCollectedEffectRule(
+  (node, version) => {
+    const options = serviceConstructionOptions(node, version);
+    const implementation = options && serviceConstructionImplementation(options, version);
+    return [...errorHandlerBodies(node, version), ...(implementation ? [implementation] : [])].flatMap(contextlessErrorLogs);
   },
-});
+  "Rule: add structured context to Effect.logError or Effect.logWarning. Why: static failure messages cannot be correlated. Fix: include an error or context object, or use Effect.annotateLogs(...).",
+  observabilityVisitors,
+);
 
-const noEffectLogWithoutStructuredContext = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const logCalls: unknown[] = [];
-    const collectedLogCalls = new WeakSet<object>();
-
-    const collectLogCalls = (candidate: unknown) => {
-      for (const logCall of contextlessErrorLogs(candidate)) {
-        if (typeof logCall !== "object" || logCall === null || collectedLogCalls.has(logCall)) {
-          continue;
-        }
-        collectedLogCalls.add(logCall);
-        logCalls.push(logCall);
-      }
-    };
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        for (const handlerBody of errorHandlerBodies(node)) {
-          collectLogCalls(handlerBody);
-        }
-      },
-      ClassDeclaration(node: any) {
-        const options = effectServiceClassOptions(node);
-        if (!options) {
-          return;
-        }
-        collectLogCalls(
-          objectPropertyValue(options, "effect") ?? objectPropertyValue(options, "scoped"),
-        );
-      },
-      "Program:exit"() {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        for (const logCall of logCalls) {
-          report(
-            context,
-            logCall,
-            "Rule: add structured context to Effect.logError or Effect.logWarning. Why: static failure messages cannot be correlated. Fix: include an error or context object, or use Effect.annotateLogs(...).",
-          );
-        }
-      },
-    };
+const requireSpanOnPublicServiceMethod = createCollectedEffectRule(
+  (node, version) => {
+    const options = serviceConstructionOptions(node, version);
+    return [
+      ...exportedFunctionValues(node).map(operation => publicEffectOperationWithoutSpan(operation.functionNode, operation.declaredReturnType)),
+      ...(options ? serviceMethodFunctions(options, version).map(serviceEffectOperationWithoutSpan) : []),
+    ].filter(candidate => candidate !== undefined);
   },
-});
-
-const requireSpanOnPublicServiceMethod = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const operations: unknown[] = [];
-    const collectedOperations = new WeakSet<object>();
-
-    const collectOperation = (operation: unknown | undefined) => {
-      if (
-        typeof operation === "object" &&
-        operation !== null &&
-        !collectedOperations.has(operation)
-      ) {
-        collectedOperations.add(operation);
-        operations.push(operation);
-      }
-    };
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      ExportNamedDeclaration(node: any) {
-        for (const operation of exportedFunctionValues(node)) {
-          collectOperation(publicEffectOperationWithoutSpan(
-            operation.functionNode,
-            operation.declaredReturnType,
-          ));
-        }
-      },
-      ExportDefaultDeclaration(node: any) {
-        for (const operation of exportedFunctionValues(node)) {
-          collectOperation(publicEffectOperationWithoutSpan(
-            operation.functionNode,
-            operation.declaredReturnType,
-          ));
-        }
-      },
-      ClassDeclaration(node: any) {
-        const options = effectServiceClassOptions(node);
-        if (!options) {
-          return;
-        }
-
-        for (const method of serviceMethodFunctions(options)) {
-          collectOperation(serviceEffectOperationWithoutSpan(method));
-        }
-      },
-      "Program:exit"() {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        for (const operation of operations) {
-          report(
-            context,
-            operation,
-            "Rule: add Effect.withSpan to public Effect operations. Why: service work needs trace boundaries. Fix: wrap the returned Effect with Effect.withSpan(...).",
-          );
-        }
-      },
-    };
-  },
-});
+  "Rule: add Effect.withSpan to public Effect operations. Why: service work needs trace boundaries. Fix: wrap the returned Effect with Effect.withSpan(...).",
+  [...observabilityVisitors, "ExportNamedDeclaration", "ExportDefaultDeclaration"],
+);
 
 const noRunpromiseInNonAsyncTestBody = defineRule({
   create(context: OxlintContext) {

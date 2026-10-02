@@ -222,7 +222,7 @@
     },
     "evidence": [
       "src/index.ts: noConsoleInEffectFlow; transitive helpers: noConsoleInEffectFlow, consoleCallsInEffectFlow, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findNodes, isConsoleCall, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, objectPropertyValue, getImportSource, isEffectEcosystemImport",
-      "Recognition tokens: Effect, sync, try, tryPromise, Service; API and repair controls still require packed qualification."
+      "Q28: 9 legacy/13 current warnings, opposite 9/9. Current untraced constructors and class/functional/expression Context.Service.make implementations recognised; v3 exact Effect.Service policy retained. Nested report dedup and deferred import-order gating pass. Unused callbacks warn; named callbacks remain opaque. Real console bypass emits no logger event; Effect.log repair routes one event and preserves 42. Final 30 KB gate pending: 600 bytes over."
     ]
   },
   "no-effect-log-without-structured-context": {
@@ -237,7 +237,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectLogWithoutStructuredContext; transitive helpers: noEffectLogWithoutStructuredContext, contextlessErrorLogs, findNodes, isEffectErrorLogCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStaticLogMessage, isStringLiteral, firstArgument, hasStructuredLogContext, findNode, isObjectExpression, getImportSource, isEffectEcosystemImport, errorHandlerBodies, errorHandlingOperators, callbackBody, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, objectPropertyValue",
-      "Recognition tokens: Effect, catchAll, catchTag, catchTags, Service; API and repair controls still require packed qualification."
+      "Q28: 5 legacy/8 current warnings, opposite 3/2. Own-major catch, tapError, literal handler maps and selected service implementations; preserve legacy catchAll/handler-map gap. Current observer regression watched RED/GREEN. Empty objects and unused annotation markers remain clean correlation gaps. Real logger preserves original error payload, requestId annotation and typed observer failure identity. Final 30 KB gate pending: 600 bytes over."
     ]
   },
   "require-span-on-public-service-method": {
@@ -252,7 +252,7 @@
     },
     "evidence": [
       "src/index.ts: requireSpanOnPublicServiceMethod; transitive helpers: requireSpanOnPublicServiceMethod, getImportSource, isEffectEcosystemImport, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, publicEffectOperationWithoutSpan, hasExplicitEffectReturnType, isQualifiedTypeReference, isIdentifier, returnedEffectExpressions, operationReturnExpressions, isEffectMemberCall, isPipeStartingWithEffect, pipeParts, isPipeCall, containsEffectMemberCall, containsDirectEffectSpan, isEffectMemberCallNamed, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, serviceMethodFunctions, objectPropertyValue, getEffectGeneratorArgument, firstArgument, isGeneratorFunctionExpression, isObjectExpression, serviceEffectOperationWithoutSpan",
-      "Recognition tokens: Effect, Service; API and repair controls still require packed qualification."
+      "Q28: 8 legacy/10 current warnings, opposite 7/7. Five exported function forms, partial branches, opaque stored Effect and own-major service methods. Current make constructors followed through direct/gen/fn/function/sync forms; v3 exact traversal retained. Inferred exports and disabled tracer stay clean; opaque receiver pipes can conservatively warn. Real tracer records pending ownership and exactly one end on 42/failure/interruption; v3 Cause.originalError unwraps tracing proxies, v4 retains direct identity. Final 30 KB gate pending: 600 bytes over."
     ]
   },
   "no-runpromise-in-non-async-test-body": {
