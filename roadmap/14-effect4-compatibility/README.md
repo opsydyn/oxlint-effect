@@ -33,6 +33,10 @@ Q29 test ownership/failure/default-layer behavioural checks pass, including real
 Bun execution and typed failure identity. Size is 649 bytes over the unchanged
 cap; final qualification stays open. Continue Q30-Q52.
 
+Q30 branded identity/explicit commands/status vocabulary behavioural checks
+pass with unchanged detectors. Size remains 649 bytes over the cap; final
+qualification stays open. Continue Q31-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

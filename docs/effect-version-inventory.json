@@ -1404,7 +1404,7 @@
     },
     "evidence": [
       "src/index.ts: noRawDomainIdAlias; transitive helpers: noRawDomainIdAlias, getImportSource, isEffectEcosystemImport, isRawDomainIdAlias, isIdentifier",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q30: 4 direct primitive Id/ID alias warnings per major. Actual selected Schema brands plus nonempty validation reject swapped brands/raw IDs at compile time and invalid inputs at runtime, preserving string wire values. Union/indirect aliases and late/no imports remain clean gaps. Unchanged detector. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-boolean-domain-flag": {
@@ -1419,7 +1419,7 @@
     },
     "evidence": [
       "src/index.ts: noBooleanDomainFlag; transitive helpers: noBooleanDomainFlag, functionBooleanDomainFlagParameters, isBooleanDomainFlagParameter, isIdentifier, isBooleanTypeAnnotation, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q30: 10 warnings per major across every recognised prefix, function/arrow/expression and multiple parameters. Explicit commands preserve identity and notification intent; compiler rejects boolean commands. Defaults/destructuring/aliases remain clean gaps. Unchanged detector. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-magic-domain-string": {
@@ -1434,7 +1434,7 @@
     },
     "evidence": [
       "src/index.ts: noMagicDomainString; transitive helpers: noMagicDomainString, getImportSource, isEffectEcosystemImport, isStringLiteralComparison, isStringLiteral, isTypeofBooleanCheck",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q30: 8 warnings per major across equality operators, reversed literal, ordinary strings, valid tags and typeof-string. Only exact typeof-boolean excluded. Schema literal vocabulary and exhaustive Match preserve 42/0 and reject unknown status. Hidden vocabulary/import-order gaps retained. Unchanged detector. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-raw-domain-primitive-params": {

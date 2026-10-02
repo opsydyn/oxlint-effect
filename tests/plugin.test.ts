@@ -52,6 +52,12 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q30 supplies packed domain vocabulary evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-raw-domain-id-alias", "no-boolean-domain-flag", "no-magic-domain-string"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q29 recognises current contextual test execution", () => {
     const execution = callExpression(effectCall("runPromiseWith", identifier("context")), identifier("program"));
     const test = testCall("it", arrowCallback(blockStatement(expressionStatement(execution))));

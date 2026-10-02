@@ -800,6 +800,33 @@ docs and diff. Build is 140.96 kB raw; unchanged 30 KB cap fails by 649 bytes.
 Q22-Q29 and applicable inventory statuses remain open; 82 rules are unqualified.
 Continue Q30-Q52 and cross-group closure; no push, version bump or release.
 
+## Q30 Domain Identity, Commands And Vocabulary
+
+Both pinned majors emit 4 ID-alias, 10 boolean-flag and 8 string-comparison
+diagnostics with unchanged production detection. All prefix/function forms,
+multiple parameters, all equality operators and reversed literals are checked.
+No-import and import-after-declaration controls remain clean gaps. Indirect and
+union ID aliases, default/destructured/aliased booleans and stored vocabulary
+are opaque. The string rule conservatively reports legitimate discriminants,
+non-domain strings and typeof-string checks. Only exact typeof-boolean is exempt;
+the first packed run caught the mistaken broader exclusion and its fixture was
+corrected from source evidence, not by weakening the detector.
+
+Actual own-major repairs combine Schema nonempty validation with independent
+brands, explicit tagged commands and exhaustive Match mapping. V3 uses minLength,
+Schema.Schema.Type and variadic Literal; v4 uses check(isMinLength), schema.Type
+and Literals(array). Compiler negatives reject swapped brands, raw IDs, boolean
+commands and unknown statuses. Runtime contracts preserve string encoding,
+notification intent and 42/0 mapping, and invalid inputs fail through Effect.
+Branding alone is not validation. Group documentation distinguishes repairs from
+clean gaps. Local whole-consumer tsc without packed installation cannot resolve
+the plugin; isolated packed tsc is the authoritative consumer declaration gate.
+
+Fresh gates pass: 532 tests/3540 expectations, root types, both packed consumers,
+publint, API docs and diff. No production changes: build remains 140.96 kB raw,
+649 bytes over the unchanged 30 KB cap. Q22-Q30 and inventory statuses stay open;
+82 rules remain unqualified. Continue Q31-Q52 and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

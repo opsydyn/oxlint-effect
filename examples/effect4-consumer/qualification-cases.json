@@ -2103,5 +2103,83 @@
       }
     },
     "runtime": "src/qualification/testingObservabilityAndQa/test-ownership.contracts.ts"
+  },
+  {
+    "rule": "no-raw-domain-id-alias",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "direct primitive aliases and validated branded IDs",
+      "all boolean prefixes, function forms and alias/default/destructure gaps",
+      "four equality operators, reversed literal and typeof exclusion",
+      "actual selected-major Schema and Match repairs, wire values and invalid inputs",
+      "compiler rejects swapped brands, raw IDs and invalid commands/status"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-raw-domain-id-alias.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-raw-domain-id-alias.good.ts",
+      "src/qualification/domainModeling/domain-vocabulary-no-import.good.ts",
+      "src/qualification/domainModeling/domain-vocabulary-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-raw-domain-id-alias.bad.ts": {
+        "linteffect/no-raw-domain-id-alias": 4
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-vocabulary.contracts.ts"
+  },
+  {
+    "rule": "no-boolean-domain-flag",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "direct primitive aliases and validated branded IDs",
+      "all boolean prefixes, function forms and alias/default/destructure gaps",
+      "four equality operators, reversed literal and typeof exclusion",
+      "actual selected-major Schema and Match repairs, wire values and invalid inputs",
+      "compiler rejects swapped brands, raw IDs and invalid commands/status"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-boolean-domain-flag.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-boolean-domain-flag.good.ts",
+      "src/qualification/domainModeling/domain-vocabulary-no-import.good.ts",
+      "src/qualification/domainModeling/domain-vocabulary-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-boolean-domain-flag.bad.ts": {
+        "linteffect/no-boolean-domain-flag": 10
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-vocabulary.contracts.ts"
+  },
+  {
+    "rule": "no-magic-domain-string",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "direct primitive aliases and validated branded IDs",
+      "all boolean prefixes, function forms and alias/default/destructure gaps",
+      "four equality operators, reversed literal and typeof exclusion",
+      "actual selected-major Schema and Match repairs, wire values and invalid inputs",
+      "compiler rejects swapped brands, raw IDs and invalid commands/status"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-magic-domain-string.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-magic-domain-string.good.ts",
+      "src/qualification/domainModeling/domain-vocabulary-no-import.good.ts",
+      "src/qualification/domainModeling/domain-vocabulary-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-magic-domain-string.bad.ts": {
+        "linteffect/no-magic-domain-string": 8
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-vocabulary.contracts.ts"
   }
 ]
