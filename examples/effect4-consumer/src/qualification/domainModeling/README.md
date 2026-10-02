@@ -21,3 +21,23 @@ are explicitly documented gaps, not repairs. These rules have no version option.
 
 Run the repository's `test:effect-versions` packed harness. This is lint/type and
 runtime-contract QA, not a launched application or release qualification.
+
+## Q31 Commands And Time Units
+
+`no-raw-domain-primitive-params` checks three or more directly annotated
+string/number parameters with matched domain names, not all positional APIs.
+`no-raw-time-domain-field` checks its literal timestamp/duration field vocabulary
+in interfaces and type literals, including optional fields. Aliases/unions and
+renamed fields can conceal raw units. `no-overloaded-options-object` reports
+direct any/object annotations on opts/options/config; unknown alone does not
+establish decoding. No-import and late-import controls remain clean gaps.
+
+`domain-command.ts` repairs commands with named fields, branded validated IDs
+and a finite positive amount. Runtime contracts retain identity and encoded
+values, rejecting empty IDs, negative/infinite amounts and missing options.
+Options decode from unknown into a UTC DateTime timestamp and Duration timeout.
+Round trips retain epoch milliseconds and 1500 ms equals 1.5 seconds; string,
+negative and non-finite inputs fail rather than silently coercing. Compiler
+controls reject raw IDs/amounts and swapped timestamp/duration values. Current
+DateTime.makeUnsafe versus legacy unsafeMake is used only after checked boundary
+decoding; invalid boundary values are tested through the typed failure channel.

@@ -1449,7 +1449,7 @@
     },
     "evidence": [
       "src/index.ts: noRawDomainPrimitiveParams; transitive helpers: noRawDomainPrimitiveParams, hasPrimitiveHeavyDomainParameters, primitiveDomainParameters, isIdentifier, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q31: 4 warnings per major across function/arrow/expression and >=3 matched directly primitive parameters. Named Schema commands use branded IDs and finite positive amounts; raw IDs/amounts rejected by compiler, invalid values fail, encoded values and command identity preserved. Two parameters, unrelated names, aliases and object input remain clean gaps. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-raw-time-domain-field": {
@@ -1464,7 +1464,7 @@
     },
     "evidence": [
       "src/index.ts: noRawTimeDomainField; transitive helpers: noRawTimeDomainField, rawTimeDomainFields, typeMembers, isRawTimeDomainField, getPropertyName, isIdentifier, isRawTimeFieldName, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation, isDateTypeAnnotation, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q31: 15 warnings per major across all 13 recognised names, interface/literal/optional fields. Typed DateTime.Utc/Duration repair round-trips integer epoch milliseconds and 1500 ms/1.5 seconds; fractional/out-of-range/non-finite timestamps and negative/string durations fail at Schema boundary. Compiler rejects swapped time types. Aliases/unions/renaming remain gaps. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-hidden-effect-execution": {
@@ -1554,7 +1554,7 @@
     },
     "evidence": [
       "src/index.ts: noOverloadedOptionsObject; transitive helpers: noOverloadedOptionsObject, overloadedOptionsParameters, isOverloadedOptionsParameter, isIdentifier, isAnyOrObjectTypeAnnotation, unwrapTypeAnnotation, getImportSource, isEffectEcosystemImport",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q31: 5 warnings per major for opts/options/config any/object in function forms and multiple parameters. Actual unknown-input Schema decoding creates timestamp/duration domain values and rejects missing/invalid options. Unknown alone, aliases/defaults and other names are clean but not validation proof. Import-order/no-import gaps retained. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-domain-logic-in-conditional": {

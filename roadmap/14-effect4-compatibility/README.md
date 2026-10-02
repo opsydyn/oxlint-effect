@@ -37,6 +37,10 @@ Q30 branded identity/explicit commands/status vocabulary behavioural checks
 pass with unchanged detectors. Size remains 649 bytes over the cap; final
 qualification stays open. Continue Q31-Q52.
 
+Q31 commands/time/options behavioural checks pass with validated wire units
+and compiler controls. Size remains 649 bytes over the cap; final qualification
+stays open. Continue Q32-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

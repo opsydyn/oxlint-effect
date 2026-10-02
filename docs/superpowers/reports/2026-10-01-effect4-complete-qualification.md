@@ -827,6 +827,29 @@ publint, API docs and diff. No production changes: build remains 140.96 kB raw,
 649 bytes over the unchanged 30 KB cap. Q22-Q30 and inventory statuses stay open;
 82 rules remain unqualified. Continue Q31-Q52 and closure without release.
 
+## Q31 Primitive Commands, Time Models And Options
+
+Unchanged detectors emit 4 primitive-parameter, 15 raw-time-field and 5 overloaded
+options diagnostics per pinned major. Controls cover function forms, multiple
+parameters, all 13 time names and optional/type-literal fields. Threshold, name,
+alias, union, default, no-import and import-order gaps are explicitly labelled.
+An unknown options annotation alone does not prove decoding.
+
+Own-major Schema repairs validate named commands with branded IDs and finite
+positive amounts. Runtime checks preserve command identity and encoded fields,
+rejecting empty IDs and negative/infinite amounts. Checked options construct
+DateTime.Utc and Duration values; epoch milliseconds and 1500 ms/1.5 seconds
+round-trip unchanged. The final boundary additionally rejects fractional and
+out-of-range epochs before unsafe construction, plus missing/string/negative
+duration inputs. Compiler checks reject raw IDs/amounts and swapped time values.
+Current makeUnsafe versus legacy unsafeMake and matching Schema filter APIs are
+selected from pinned source; no casts conceal differences.
+
+Fresh gates pass: 533 tests/3546 expectations, root and selected source types,
+final packed majors, publint, API docs and diff. Build remains 140.96 kB raw,
+649 bytes over the unchanged 30 KB cap. Q22-Q31 and inventory statuses stay
+open; 82 rules remain unqualified. Continue Q32-Q52 and closure, no release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

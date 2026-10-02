@@ -55,7 +55,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds unchanged 30 KB by 649 bytes.
 - [ ] Close Q30 domain vocabulary qualification: behavioural gates pass;
   compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Complete and qualify Q31-Q52 in the
+- [ ] Close Q31 command/time/options qualification: behavioural gates pass;
+  compressed size exceeds unchanged 30 KB by 649 bytes.
+- [ ] Complete and qualify Q32-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition

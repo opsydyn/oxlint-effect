@@ -240,6 +240,9 @@ Q30 domain vocabulary behavioural evidence passes with unchanged detectors.
 Size remains 649 bytes over 30 KB; checkbox and inventory statuses stay open.
 Continue Q31 without a prompt.
 
+Q31 command/time/options behavioural evidence passes. Size remains 649 bytes
+over 30 KB; checkbox and inventory statuses stay open. Continue Q32.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

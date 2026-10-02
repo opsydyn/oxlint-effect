@@ -2108,5 +2108,83 @@
       }
     },
     "runtime": "src/qualification/domainModeling/domain-vocabulary.contracts.ts"
+  },
+  {
+    "rule": "no-raw-domain-primitive-params",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "threshold and names, function forms and direct annotations",
+      "all timestamp/duration field names, interfaces, literal and optional members",
+      "aliases, unknown, defaults and import-order counterexamples",
+      "own-major Schema command validation and timestamp/duration repairs",
+      "compiler rejects raw IDs/amounts and swapped time values; runtime wire unit round trips"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-raw-domain-primitive-params.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-raw-domain-primitive-params.good.ts",
+      "src/qualification/domainModeling/domain-command-no-import.good.ts",
+      "src/qualification/domainModeling/domain-command-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-raw-domain-primitive-params.bad.ts": {
+        "linteffect/no-raw-domain-primitive-params": 4
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-command.contracts.ts"
+  },
+  {
+    "rule": "no-raw-time-domain-field",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "threshold and names, function forms and direct annotations",
+      "all timestamp/duration field names, interfaces, literal and optional members",
+      "aliases, unknown, defaults and import-order counterexamples",
+      "own-major Schema command validation and timestamp/duration repairs",
+      "compiler rejects raw IDs/amounts and swapped time values; runtime wire unit round trips"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-raw-time-domain-field.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-raw-time-domain-field.good.ts",
+      "src/qualification/domainModeling/domain-command-no-import.good.ts",
+      "src/qualification/domainModeling/domain-command-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-raw-time-domain-field.bad.ts": {
+        "linteffect/no-raw-time-domain-field": 15
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-command.contracts.ts"
+  },
+  {
+    "rule": "no-overloaded-options-object",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "threshold and names, function forms and direct annotations",
+      "all timestamp/duration field names, interfaces, literal and optional members",
+      "aliases, unknown, defaults and import-order counterexamples",
+      "own-major Schema command validation and timestamp/duration repairs",
+      "compiler rejects raw IDs/amounts and swapped time values; runtime wire unit round trips"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-overloaded-options-object.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-overloaded-options-object.good.ts",
+      "src/qualification/domainModeling/domain-command-no-import.good.ts",
+      "src/qualification/domainModeling/domain-command-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-overloaded-options-object.bad.ts": {
+        "linteffect/no-overloaded-options-object": 5
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-command.contracts.ts"
   }
 ]
