@@ -278,6 +278,10 @@ Q41 ladder behavioural evidence passes for both majors, including current
 flatMapEager and exact opposite-policy counts. Size is 769 bytes over the
 unchanged 30 KB cap; checkbox/inventory stay open. Continue Q42-Q52.
 
+Q42 pipe/tower and legacy recovery behavioural evidence passes. Manual current
+orElse policy now correctly skips the removed API. Size is 771 bytes over the
+unchanged cap; checkbox/inventory stay open. Continue Q43-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

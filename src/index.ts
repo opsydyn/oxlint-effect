@@ -8150,6 +8150,7 @@ const noCallTower = defineRule({
 
 const noEffectOrElseLadder = defineRule({
   create(context: OxlintContext) {
+    if (effectVersionFor(context.options) === 4) return {};
     return {
       CallExpression(node: any) {
         if (hasOrElseSequencingFirstArgument(node)) {

@@ -216,6 +216,16 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-call-tower")) {
+      const config = "oxlint.qualification.opposite.json";
+      const path = major === 3 ? "src/qualification/pipelineShapeAndSequencing/no-effect-orElse-ladder.bad.ts" : "src/qualification/pipelineShapeAndSequencing/foreign-orElse.good.ts";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-effect-orElse-ladder": ["error", { effectVersion: 4 }] } }));
+      verifyLint(root, config, [path], {}, 0);
+      if (major === 4) {
+        await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-effect-orElse-ladder": ["error", { effectVersion: 3 }] } }));
+        verifyLint(root, config, [path], { "linteffect/no-effect-orElse-ladder": 1 }, 1);
+      }
+    }
     if (cases.some(entry => entry.rule === "no-flatmap-ladder")) {
       const config = "oxlint.qualification.opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-flatmap-ladder": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));

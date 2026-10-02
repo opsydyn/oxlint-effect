@@ -52,6 +52,17 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q42 disables removed orElse policy in current manual config", () => {
+    const node = effectCall("orElse", effectCall("flatMap", identifier("task"), identifier("step")), identifier("fallback"));
+    expect(runRule("no-effect-orElse-ladder", "CallExpression", node, { options: [{ effectVersion: 3 }] })).toHaveLength(1);
+    expect(runRule("no-effect-orElse-ladder", "CallExpression", node, { options: [{ effectVersion: 4 }] })).toHaveLength(0);
+  });
+  it("Effect qualification Q42 supplies packed pipe/tower and legacy recovery evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-pipe-ladder", "no-call-tower", ...(major === 3 ? ["no-effect-orElse-ladder"] : [])]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q41 supplies packed ladder evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

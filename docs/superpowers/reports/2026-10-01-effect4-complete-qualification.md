@@ -1088,6 +1088,31 @@ publint, API docs and diff checks. Raw build is 141.52 kB; the unchanged size ca
 fails by 769 bytes. Q22-Q41 and inventory statuses stay open, with 82 rules still
 unqualified. Continue Q42-Q52 and closure without release.
 
+## Q42 Nested Pipes, Direct Towers And Legacy Recovery
+
+Packed both majors emit 5 nested-pipe / 6 direct-tower warnings plus one
+ordinary-name false positive for each owner. Free/receiver pipes, depth-three
+multiple reports, unused callbacks and direct first/second argument boundaries
+are covered. No import gate exists; aliases, computed calls, third arguments
+and receiver-only pipe nesting remain documented syntax limits.
+
+The first packed opposite-policy check exposed a real defect: manually enabling
+the legacy-only orElse rule with effectVersion 4 still ran its legacy visitor.
+A failing unit regression preceded the added current-version guard. Legacy
+counts remain 6, including all four sequencing tokens and unused callbacks.
+Current policy is now a no-op; a current local foreign-shape object warns once
+under explicit legacy policy. The removed current export is compiler-negative.
+
+Actual flat/gen repairs retain 42 and the deliberate void result. Terminal
+orElse/catch recovery retains order, skips later work on failure and invokes
+fallback once; legacy original and repair are compared. Recovery deliberately
+consumes the error, with source error identity checked separately.
+
+Fresh gates pass: 551 tests / 3625 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 141.54 kB; size remains 771 bytes over
+the unchanged cap. Q22-Q42 and inventory statuses remain open, with 82 rules
+unqualified. Continue Q43-Q52 and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

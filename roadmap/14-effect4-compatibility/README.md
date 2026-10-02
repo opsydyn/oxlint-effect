@@ -80,6 +80,10 @@ Q41 ladder checks pass with current eager/mixed flatMap forms, generator repairs
 and sequencing/failure contracts. Size is 769 bytes over the unchanged cap;
 qualification stays open. Continue Q42-Q52 and campaign closure.
 
+Q42 nested-pipe/direct-tower and terminal recovery checks pass. Manual current
+configuration now skips the legacy-only orElse detector. Size is 771 bytes over
+the unchanged cap; qualification stays open. Continue Q43-Q52 and closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

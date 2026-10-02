@@ -2817,5 +2817,81 @@
       }
     },
     "runtime": "src/qualification/pipelineShapeAndSequencing/ladder.contracts.ts"
+  },
+  {
+    "rule": "no-pipe-ladder",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "actual free/receiver pipe or direct first/second Effect argument nesting",
+      "depth multiple reports, unused callback or third-argument scope controls",
+      "no-import ordinary-name false positives; aliases/computed gaps",
+      "actual flat/generator repairs retain value and source failure identity"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-pipe-ladder.bad.ts",
+      "src/qualification/pipelineShapeAndSequencing/ordinary-towers.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-pipe-ladder.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-pipe-ladder.bad.ts": {
+        "linteffect/no-pipe-ladder": 5
+      },
+      "src/qualification/pipelineShapeAndSequencing/ordinary-towers.bad.ts": {
+        "linteffect/no-pipe-ladder": 1
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/pipe-tower.contracts.ts"
+  },
+  {
+    "rule": "no-call-tower",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "actual free/receiver pipe or direct first/second Effect argument nesting",
+      "depth multiple reports, unused callback or third-argument scope controls",
+      "no-import ordinary-name false positives; aliases/computed gaps",
+      "actual flat/generator repairs retain value and source failure identity"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-call-tower.bad.ts",
+      "src/qualification/pipelineShapeAndSequencing/ordinary-towers.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/no-call-tower.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-call-tower.bad.ts": {
+        "linteffect/no-call-tower": 6
+      },
+      "src/qualification/pipelineShapeAndSequencing/ordinary-towers.bad.ts": {
+        "linteffect/no-call-tower": 1
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/pipe-tower.contracts.ts"
+  },
+  {
+    "rule": "no-effect-orElse-ladder",
+    "version": 3,
+    "classification": "legacy-only",
+    "variants": [
+      "all four legacy sequencing tokens, unused callback and stored sequence controls",
+      "terminal generator recovery preserves 42, order, short circuit and once-only fallback",
+      "current export absent, foreign receiver policy no-op"
+    ],
+    "bad": [
+      "src/qualification/pipelineShapeAndSequencing/no-effect-orElse-ladder.bad.ts"
+    ],
+    "good": [
+      "src/qualification/pipelineShapeAndSequencing/terminal-recovery.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/pipelineShapeAndSequencing/no-effect-orElse-ladder.bad.ts": {
+        "linteffect/no-effect-orElse-ladder": 6
+      }
+    },
+    "runtime": "src/qualification/pipelineShapeAndSequencing/pipe-tower.contracts.ts"
   }
 ]

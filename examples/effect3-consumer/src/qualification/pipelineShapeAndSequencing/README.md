@@ -1,4 +1,4 @@
-# Pipeline Shape And Sequencing: Q41
+# Pipeline Shape And Sequencing: Q41-Q42
 
 These are deliberately uncorrected anti-patterns for Effect 3. The packed
 consumer installs the built plugin and checks exact warnings per file. Behavioural
@@ -29,3 +29,27 @@ The runtime compares successful value 42, first/second/third sequencing and
 original typed failure identity with later work skipped. Eager success controls
 are executed in the current consumer. This is syntax/API qualification, not a
 whole-program purity, platform or application execution claim.
+
+## Nested Pipes And Call Towers
+
+[`no-pipe-ladder` failures](no-pipe-ladder.bad.ts) cover free/receiver calls,
+depth-three multiple reports and unused nested callbacks. The detector searches
+argument trees, not the receiver expression, and has no import gate.
+[`no-call-tower` failures](no-call-tower.bad.ts) cover unary and first/second
+arguments, both direct arguments (one report) and deeper multiple reports.
+Callbacks and third arguments are not direct candidates. Ordinary receiver-name
+false positives are in [ordinary-towers.bad.ts](ordinary-towers.bad.ts).
+
+Working [pipe](no-pipe-ladder.good.ts) and [tower](no-call-tower.good.ts) repairs
+use flat pipelines or generators; aliases/computed calls are labelled gaps,
+not endorsed repairs. [Runtime contracts](pipe-tower.contracts.ts) retain 42,
+the deliberate void result, source failure identity and terminal fallback order.
+
+## Terminal Recovery
+
+[`no-effect-orElse-ladder` failures](no-effect-orElse-ladder.bad.ts) cover all four legacy sequencing tokens, unused callbacks and real recovery.
+The [repair](terminal-recovery.good.ts) separates generator sequencing from
+terminal `orElse` recovery. Successful/failing paths both retain 42;
+failure skips the second step and invokes fallback once. Recovery intentionally
+consumes the error; the source error identity is checked before recovery.
+Stored first arguments are opaque to the legacy syntax search. Current policy is explicitly tested as a no-op on these legacy failures.

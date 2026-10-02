@@ -1781,7 +1781,7 @@
     },
     "evidence": [
       "src/index.ts: noPipeLadder; transitive helpers: noPipeLadder, isPipeCall, isIdentifier, containsPipeCall",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q42 packed both majors: 5 nested-pipe plus 1 ordinary receiver-name warnings. Free/receiver/depth/unused controls, aliases/computed gaps, actual flat/gen repairs retain 42. No import gate or receiver traversal. Size gate remains open."
     ]
   },
   "no-call-tower": {
@@ -1796,7 +1796,7 @@
     },
     "evidence": [
       "src/index.ts: noCallTower; transitive helpers: noCallTower, hasNestedEffectCallArgument, isEffectMemberCall, isIdentifier",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q42 packed both majors: 6 direct-argument plus 1 ordinary-name warnings. Unary/first/second/both/deep controls, third-argument/callback scope and alias/computed gaps; typed repairs retain value/void/source failure identity. Size gate remains open."
     ]
   },
   "no-effect-orElse-ladder": {
@@ -1811,7 +1811,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectOrElseLadder; transitive helpers: noEffectOrElseLadder, hasOrElseSequencingFirstArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, orElseSequencingCalls, containsEffectMemberCallNamed",
-      "Recognition tokens: Effect, orElse; API and repair controls still require packed qualification.",
+      "Q42 packed legacy: 6 warnings for all four sequencing tokens and unused callback; terminal gen/orElse repair preserves 42, short circuit and once-only fallback. Current policy no-op; foreign local object warns 1 under explicit legacy. Current removed export compiler-negative, catch terminal control. Size gate remains open.",
       "Effect 4.0.0 installed exports and official migration docs: target v3 API/options removed; retain registration for legacy configuration."
     ]
   },
