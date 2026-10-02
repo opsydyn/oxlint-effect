@@ -876,6 +876,31 @@ both packed majors, publint, API docs and diff. Build remains 140.96 kB raw;
 unchanged cap fails by 649 bytes. Q22-Q32 and inventory statuses stay open,
 82 rules unqualified. Continue Q33-Q52 and campaign closure without release.
 
+## Q33 Context Contracts And Clock Ownership
+
+Unchanged context detector emits 7 warnings per major across all context naming
+patterns and direct ID forms. It checks function declaration names, not folder
+semantics; arrows, renamed functions and branded annotations remain clean.
+Actual branded Admin commands, own-major Context.Tag/Service and explicit Layer
+provision preserve ID values and reject Public context at compiler/runtime.
+The first compiler/packed run caught the legacy factory-order mismatch; corrected
+Context.Tag(name)<Self, Shape>() passes without casts or suppressions.
+
+Date owner emits 8 direct warnings plus 2 before-late-import warnings per major.
+Explicit deterministic conversion, unused code and shadowed local Date classes
+still warn. Aliases, globalThis.Date and Date() are clean syntax gaps. Deferred
+import collection is retained; no-import code remains outside policy. Default
+main boundary, custom exemption, replacement and empty boundary lists are
+independently parsed under the packed plugin, without an unsupported version
+option. Actual selected TestClock and Clock/DateTime repair produce 1000/2000
+epoch milliseconds deterministically. This does not claim native clock control.
+
+Fresh gates pass: 535 tests/3556 expectations, root/source types, final packed
+majors and boundary variants, publint, API docs and diff. All 11 domain owners
+now have behavioural evidence. Build is 140.96 kB raw; unchanged 30 KB cap fails
+by 649 bytes. Q22-Q33 and inventory statuses remain open, 82 rules unqualified.
+Continue Q34-Q52 and campaign closure; no push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

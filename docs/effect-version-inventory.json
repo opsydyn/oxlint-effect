@@ -781,7 +781,7 @@
     },
     "evidence": [
       "src/index.ts: noNewDateInDomainLogic; transitive helpers: noNewDateInDomainLogic, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isIdentifier, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q33: 8 warnings plus 2 late-import warnings per major. Ambient/explicit Date construction, callbacks, unused code and shadowed constructors reported; global qualification/aliases/Date() clean gaps. Actual Clock/DateTime under selected TestClock yields 1000/2000 deterministically. Default/custom/replaced/empty boundaries independently verified; no version option added. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-match-effect-branch": {
@@ -1614,7 +1614,7 @@
     },
     "evidence": [
       "src/index.ts: noDomainMeaningByFolderOnly; transitive helpers: noDomainMeaningByFolderOnly, getImportSource, isEffectEcosystemImport, isContextEncodedDomainFunction, isIdentifier, hasRawDomainIdParameter, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q33: 7 warnings per major across context-name patterns/direct ID forms. Rule checks declaration names, not folder semantics; arrow/alternate names remain clean gaps. Real own-major Context Tag/Service and explicit Layer use branded Admin command, reject Public context at compiler/runtime and preserve ID. Import-order policy retained. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-effect-as": {

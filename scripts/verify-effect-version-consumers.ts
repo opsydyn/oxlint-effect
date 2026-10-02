@@ -216,6 +216,16 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-new-date-in-domain-logic")) {
+      const rule = "linteffect/no-new-date-in-domain-logic";
+      const config = "oxlint.qualification.date-boundary.json";
+      const main = "src/qualification/domainModeling/main.ts";
+      for (const [boundaryPaths, count] of [[[], 1], [["**/qualification/domainModeling/**"], 0], [["**/different/**"], 1]] as const) {
+        await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [rule]: ["error", { boundaryPaths }] } }));
+        verifyLint(root, config, [main], count ? { [rule]: count } : {}, count ? 1 : 0);
+      }
+      verifyLint(root, config, ["src/qualification/domainModeling/no-new-date-in-domain-logic.bad.ts"], { [rule]: 8 }, 1);
+    }
     const testFixtures = cases.filter(entry => ["no-runpromise-in-non-async-test-body", "require-effect-flip-for-error-test", "no-test-mock-layer-when-default-available"].includes(entry.rule)).flatMap(entry => [...entry.bad, ...entry.good]);
     if (testFixtures.length) assertCommandSuccess(run("bun", ["test", ...[...new Set(testFixtures)].map(path => `./${path}`)], root, 60_000), `Effect ${major} actual test fixtures`);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);

@@ -2264,5 +2264,62 @@
       }
     },
     "runtime": "src/qualification/domainModeling/domain-lifecycle.contracts.ts"
+  },
+  {
+    "rule": "no-domain-meaning-by-folder-only",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "all context name patterns and direct ID forms versus declaration/alias gaps",
+      "ambient, explicit, callback, unused and shadowed Date constructions",
+      "deferred Date import gating and custom/default/replaced/empty boundary options",
+      "own-major Context service, branded context command and injected TestClock repair",
+      "compiler context mismatch controls and runtime 1000/2000 clock values"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-domain-meaning-by-folder-only.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-domain-meaning-by-folder-only.good.ts",
+      "src/qualification/domainModeling/domain-context-no-import.good.ts",
+      "src/qualification/domainModeling/domain-context-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-domain-meaning-by-folder-only.bad.ts": {
+        "linteffect/no-domain-meaning-by-folder-only": 7
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-context.contracts.ts"
+  },
+  {
+    "rule": "no-new-date-in-domain-logic",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "all context name patterns and direct ID forms versus declaration/alias gaps",
+      "ambient, explicit, callback, unused and shadowed Date constructions",
+      "deferred Date import gating and custom/default/replaced/empty boundary options",
+      "own-major Context service, branded context command and injected TestClock repair",
+      "compiler context mismatch controls and runtime 1000/2000 clock values"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-new-date-in-domain-logic.bad.ts",
+      "src/qualification/domainModeling/domain-date-late-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-new-date-in-domain-logic.good.ts",
+      "src/qualification/domainModeling/domain-context-no-import.good.ts",
+      "src/qualification/domainModeling/domain-context-late-import.good.ts",
+      "src/qualification/domainModeling/main.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-new-date-in-domain-logic.bad.ts": {
+        "linteffect/no-new-date-in-domain-logic": 8
+      },
+      "src/qualification/domainModeling/domain-date-late-import.bad.ts": {
+        "linteffect/no-new-date-in-domain-logic": 2
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-context.contracts.ts"
   }
 ]

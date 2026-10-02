@@ -61,3 +61,26 @@ flag objects. Compiler controls require approved-state receipts.
 forms. Stored/template/dynamic errors remain opaque. Data.TaggedError carries
 user ID, reason and original cause; typed catchTag recovery preserves the exact
 failure instance and context. No-import and late-import gaps are retained.
+
+## Q33 Explicit Context And Clock Ownership
+
+`no-domain-meaning-by-folder-only` checks FunctionDeclaration names containing
+Admin/Public/Internal/External/Private/Backoffice/Panel plus direct raw ID
+parameters. It does not inspect folder semantics. Arrow declarations, alternate
+names and aliased/branded types are clean; not all clean controls prove policy.
+The repair carries a checked Admin command and branded ID through a typed
+Context.Service with explicit Layer provision. Legacy uses Context.Tag with its
+different factory order. Compiler/runtime controls reject Public context input.
+
+`no-new-date-in-domain-logic` reports every bare Date constructor outside
+configured boundaries, including deterministic explicit conversion, unused
+callbacks and unrelated shadowed Date classes. It defers import gating, so Date
+construction before a later Effect import still warns. Constructor aliases,
+globalThis.Date and Date() remain clean gaps. `main.ts` is a default boundary;
+custom paths replace defaults and an empty list removes exemptions. Packed
+checks cover all these policies without adding an effectVersion option.
+
+The injected Clock/DateTime repair reads 1000 then 2000 epoch milliseconds under
+actual TestClock. It demonstrates deterministic time ownership, not native clock
+control or application execution. All 11 domain owners now have behavioural
+evidence, but size and whole-campaign gates still prevent final qualification.
