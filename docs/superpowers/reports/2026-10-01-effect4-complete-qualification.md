@@ -601,6 +601,42 @@ remain unchecked and inventory statuses stay baseline/pending; 82 rules retain
 an unqualified applicable version. Q24-Q52 and cross-group closure remain.
 No push, version bump or release.
 
+## Q24 Nested Ownership, Visible Provision And Held-Resource Execution
+
+Behavioural evidence passes for all three owners in both pinned consumers;
+final qualification remains pending the unchanged 30 KB compressed-size gate.
+Nesting reports three warnings per major (opposite policy two/three), counting
+descendant acquisitions including siblings rather than depth alone. Current
+policy excludes removed acquireReleaseInterruptible; legacy text is unchanged.
+Named composition preserves value 127, original failures and interruption,
+reverse third/second/first release order and exactly one close per acquired pool.
+
+Provision reports eight legacy/eleven current warnings (opposite eight/eight).
+V4 uses native binding identity for stored programs, skips unused ordinary
+functions and no longer treats a run*With context as automatic visible provision.
+Legacy first-name traversal and diagnostics remain unchanged. This is strict
+syntax policy: valid fully populated contexts and ordinary Service-shaped effects
+can warn, while an unexecuted provide marker can suppress a warning. Actual
+typed service/Layer repairs compile and close once; context-only and marker-only
+controls execute successfully but need external teardown. No dependency
+completeness, type inference or whole-program provision proof is claimed.
+
+Open-resource execution reports ten legacy/thirteen current warnings (opposite
+ten/ten). Real With execution is included; lazy factory creation is not. Resource
+ownership selects major-specific APIs. Lexical co-occurrence retains warnings on
+acquisition after execution and manually closed handles, while opaque factories
+remain missed. This owner has no boundaryPaths option. Explicit Deferred
+readiness coordinates success, original failure and interruption: raw runners
+close zero times until teardown, managed runners close once, both return 43 on
+success. Typed stand-ins do not establish native I/O behaviour.
+
+Fresh gates pass: 521 tests/3479 expectations, root typecheck, both packed major
+consumers with exact own/opposite counts and runtime completion markers,
+publint, API docs and diff check. Build is 140.00 kB raw, compressed size 30.33 KB,
+330 bytes over the unchanged cap. Q22-Q24 statuses/checkmarks stay open; 82
+rules retain an unqualified applicable version. Q25-Q52 and cross-group closure
+remain. No push, cap increase, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

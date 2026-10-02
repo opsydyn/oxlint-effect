@@ -9,6 +9,10 @@ for both majors, but final qualification is blocked by the 30 KB size cap
 Q23 acquisition/request/global behavioural checks also pass; its build is 208
 bytes over the unchanged cap. Release waits for Q52 and campaign closure.
 
+Q24 nesting/provision/runner behavioural checks pass, including valid-context
+and lexical-order counterexamples. Its build is 330 bytes over the cap;
+qualification remains open. Continue Q25-Q52 before release.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

@@ -584,9 +584,9 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 | `linteffect/no-resource-without-acquire-release` | Runtime: resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls without a release owner. | Makes resource ownership explicit across failure, interruption, and shutdown. |
 | `linteffect/no-request-scoped-long-lived-resource` | Strict: resource acquisition/construction in named handlers; v4 follows inline gen/fn, mapping and sync/suspend/Promise callbacks. | Keeps long-lived pools in application Layers; intentionally request-owned resources can still warn. |
 | `linteffect/no-global-resource-singleton` | Strict: resource-shaped module constructors, including blocks/static fields. | Keeps shutdown owned by Layers; v4 advice uses Context.Service, legacy advice retains Effect.Service. |
-| `linteffect/no-run-with-open-resource` | Runtime: `Effect.run*` in a lexical scope containing an unowned resource creation. | Prevents runtime execution from finishing while an imperative resource remains open. |
-| `linteffect/no-nested-acquire-release` | Strict: `Effect.acquireRelease` / `acquireUseRelease` nesting deeper than two levels. | Encourages named Layers and manageable release boundaries instead of opaque release stacks. |
-| `linteffect/no-missing-layer-provision-at-run` | Strict: `Effect.run*` on a program that yields a service tag without a local `Effect.provide` or `Layer.provide`. | Makes runtime dependency provisioning visible at the application boundary. |
+| `linteffect/no-run-with-open-resource` | Runtime: `Effect.run*` alongside an unowned resource creation in the same lexical function. | Flags possible unmanaged lifetime; does not prove execution order or whether a handle remains open. |
+| `linteffect/no-nested-acquire-release` | Strict: three acquisition calls within one acquisition tree, including siblings. | Encourages named owners and manageable release boundaries; not a leak detector. |
+| `linteffect/no-missing-layer-provision-at-run` | Strict: a visible Service-shaped yield without a visible `Effect.provide` or `Layer.provide`. | Encourages visible Layer ownership; not compiler-proven dependency completeness. |
 
 Q22's cleanup, scope and success-value examples use pinned Effect 3.21.4/4.0.0
 consumers. Behavioural qualification is recorded in the
@@ -623,6 +623,18 @@ factory/constructor aliases and computed properties remain opaque. Raw acquisiti
 inside `Effect.scoped` retains a coarse clean marker but still needs real release.
 One application Layer shares a pool across requests and finalizes it once;
 separately providing that Layer per request is not that lifetime repair.
+
+Q24 adds paired nesting/provision/runner examples in the same directory. Named
+acquisition composition preserves reverse-order, once-only cleanup on success,
+failure and interruption. Nesting counts descendant acquisitions, not depth alone.
+V4 provision checks follow native binding identity and recognised inline workflows;
+legacy first-name resolution and unused-function traversal are retained. A valid
+`run*With` context can still warn under this strict visible-Layer policy, while an
+unexecuted provide marker can suppress it. Service-like names are not type proof.
+Open-resource checks have no `boundaryPaths` option and retain lexical
+co-occurrence warnings even when acquisition happens after execution or is closed
+manually. Opaque factories remain outside local analysis. Consult the examples
+before applying a repair; renaming or adding a lazy marker does not own a resource.
 
 `Scope.global` remains a deferred candidate because the supported Effect API does
 not currently expose it; it is not part of the v1 export surface.

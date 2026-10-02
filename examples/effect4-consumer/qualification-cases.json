@@ -1680,5 +1680,80 @@
       }
     },
     "runtime": "src/qualification/resourceLifetime/acquisition-request-global.contracts.ts"
+  },
+  {
+    "rule": "no-nested-acquire-release",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual supported runner and acquisition APIs",
+      "thresholds, shadowing and nearest legitimate counterexamples",
+      "explicit Layer ownership versus context/provision markers",
+      "owned and raw resource exit contracts",
+      "values/failures/interruption and reverse once-only release",
+      "checked environment/API negative controls"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-nested-acquire-release.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-nested-acquire-release.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-nested-acquire-release.bad.ts": {
+        "linteffect/no-nested-acquire-release": 3
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/nesting-provision-run.contracts.ts"
+  },
+  {
+    "rule": "no-missing-layer-provision-at-run",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual supported runner and acquisition APIs",
+      "thresholds, shadowing and nearest legitimate counterexamples",
+      "explicit Layer ownership versus context/provision markers",
+      "owned and raw resource exit contracts",
+      "values/failures/interruption and reverse once-only release",
+      "checked environment/API negative controls"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-missing-layer-provision-at-run.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-missing-layer-provision-at-run.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-missing-layer-provision-at-run.bad.ts": {
+        "linteffect/no-missing-layer-provision-at-run": 11
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/nesting-provision-run.contracts.ts"
+  },
+  {
+    "rule": "no-run-with-open-resource",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual supported runner and acquisition APIs",
+      "thresholds, shadowing and nearest legitimate counterexamples",
+      "explicit Layer ownership versus context/provision markers",
+      "owned and raw resource exit contracts",
+      "values/failures/interruption and reverse once-only release",
+      "checked environment/API negative controls"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-run-with-open-resource.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-run-with-open-resource.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-run-with-open-resource.bad.ts": {
+        "linteffect/no-run-with-open-resource": 13
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/nesting-provision-run.contracts.ts"
   }
 ]

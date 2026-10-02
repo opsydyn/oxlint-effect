@@ -6670,7 +6670,7 @@ const noEffectAllStepSequencing = defineRule({
 });
 
 function createVersionedEffectCallbackRule(
-  find: (node: unknown, version: EffectVersion) => unknown,
+  find: (node: unknown, version: EffectVersion, context: OxlintContext) => unknown,
   message: (version: EffectVersion) => string,
   multiple = false,
   boundary = false,
@@ -6683,7 +6683,7 @@ function createVersionedEffectCallbackRule(
       let imported = false;
       const reported = multiple ? new WeakSet<object>() : undefined;
       const visit = (node: unknown) => {
-        const target = imported && (!boundary || !isBoundaryPath(context)) ? find(node, version) : undefined;
+        const target = imported && (!boundary || !isBoundaryPath(context)) ? find(node, version, context) : undefined;
         if (!target) return;
         for (const entry of multiple ? target as object[] : [target]) {
           if (reported?.has(entry as object)) continue;
@@ -9080,20 +9080,20 @@ function resourceLexicalScope(node: unknown): Node | undefined {
   return resourceAncestor(node, current => isFunctionLike(current) || current.type === "Program");
 }
 
-function unownedResourcesInScope(scope: Node): unknown[] {
+function unownedResourcesInScope(scope: Node, version: EffectVersion = 3): unknown[] {
   return findNodes(scope, (candidate) => (
     isResourceLifecycleCandidate(candidate) &&
     resourceLexicalScope(candidate) === scope &&
-    !hasResourceLifecycleOwner(candidate)
+    !hasResourceLifecycleOwner(candidate, version)
   ));
 }
 
-function nestedAcquireReleaseNode(node: unknown): unknown | undefined {
-  if (!isResourceAcquireReleaseCall(node)) {
+function nestedAcquireReleaseNode(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  if (!isResourceAcquireReleaseCall(node, version)) {
     return undefined;
   }
 
-  return findNodes(node, isResourceAcquireReleaseCall).length >= 3 ? node : undefined;
+  return findNodes(node, candidate => isResourceAcquireReleaseCall(candidate, version)).length >= 3 ? node : undefined;
 }
 
 function requestLifecycleFunctionName(node: unknown): string | undefined {
@@ -9153,18 +9153,26 @@ function requestScopedResourceNodes(node: unknown, version: EffectVersion = 3): 
   ));
 }
 
-function openResourceInRunScope(node: unknown): unknown | undefined {
+function openResourceInRunScope(node: unknown, version: EffectVersion = 3): unknown | undefined {
   const scope = resourceLexicalScope(node);
   if (scope === undefined) {
     return undefined;
   }
 
-  return unownedResourcesInScope(scope)[0];
+  return unownedResourcesInScope(scope, version)[0];
 }
 
-function programInitializerForReference(reference: unknown): unknown | undefined {
+function programInitializerForReference(reference: unknown, version: EffectVersion = 3, context?: OxlintContext): unknown | undefined {
   if (!isIdentifier(reference)) {
     return undefined;
+  }
+
+  if (version === 4) {
+    const root = resourceAncestor(reference, node => node.type === "Program");
+    if (!root || !context?.sourceCode) return undefined;
+    const declaration = findNodes(root, node => typeof node === "object" && node !== null && (node as Node).type === "VariableDeclarator")
+      .find(node => context.sourceCode.getDeclaredVariables(node as ESTree.VariableDeclarator).some(variable => variable.references.some(entry => Object.is(entry.identifier, reference))));
+    return (declaration as Node | undefined)?.init;
   }
 
   const functionScope = enclosingFunction(reference);
@@ -9201,20 +9209,23 @@ function programInitializerForReference(reference: unknown): unknown | undefined
   return undefined;
 }
 
-function effectRunMissingLayerProvision(node: unknown, version: EffectVersion): boolean {
+function effectRunMissingLayerProvision(node: unknown, version: EffectVersion, context: OxlintContext): boolean {
   const execution = effectRunExecution(node, version);
-  if (!execution || execution.hasContext) {
+  if (!execution) {
     return false;
   }
 
   const argument = execution.program;
-  const program = findNode(argument, isYieldedServiceDependency) !== undefined
+  const search = (program: unknown, predicate: (node: unknown) => boolean) => version === 3
+    ? findNode(program, predicate)
+    : findNode(program, node => predicate(node) && requestResourceOwner(node, 4) === enclosingFunction(program));
+  const program = search(argument, isYieldedServiceDependency) !== undefined
     ? argument
-    : programInitializerForReference(argument) ?? argument;
+    : programInitializerForReference(argument, version, context) ?? argument;
 
   return (
-    findNode(program, isYieldedServiceDependency) !== undefined &&
-    findNode(program, isEffectOrLayerProvideCall) === undefined
+    search(program, isYieldedServiceDependency) !== undefined &&
+    search(program, isEffectOrLayerProvideCall) === undefined
   );
 }
 
@@ -9236,7 +9247,7 @@ const noGlobalResourceSingleton = createVersionedEffectCallbackRule(
 );
 
 const noRunWithOpenResource = createVersionedEffectCallbackRule(
-  (node, version) => isEffectRunCall(node, version) && openResourceInRunScope(node) !== undefined ? node : undefined,
+  (node, version) => isEffectRunCall(node, version) && openResourceInRunScope(node, version) !== undefined ? node : undefined,
   () => "Rule: do not run an Effect while an unowned resource is open in the same scope. Why: runtime execution can finish without closing the resource. Fix: move acquisition into acquireRelease/scoped ownership and run only the managed effect.",
 );
 
@@ -9246,8 +9257,10 @@ const noNestedAcquireRelease = createVersionedEffectCallbackRule(
 );
 
 const noMissingLayerProvisionAtRun = createVersionedEffectCallbackRule(
-  (node, version) => effectRunMissingLayerProvision(node, version) ? node : undefined,
-  () => "Rule: provide service layers before running an Effect that retrieves services. Why: an unprovided tag fails at runtime and hides the dependency contract at the boundary. Fix: compose the required Layer and use Effect.provide or Layer.provide before Effect.run*.",
+  (node, version, context) => effectRunMissingLayerProvision(node, version, context) ? node : undefined,
+  version => version === 3
+    ? "Rule: provide service layers before running an Effect that retrieves services. Why: an unprovided tag fails at runtime and hides the dependency contract at the boundary. Fix: compose the required Layer and use Effect.provide or Layer.provide before Effect.run*."
+    : "Rule: make service layer provision visible before running. Why: a context argument or Service-shaped yield does not prove Layer ownership. Fix: provide the required Layer before Effect.run*. This is syntax policy, not dependency type checking.",
 );
 
 const rules = {

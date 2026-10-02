@@ -217,6 +217,9 @@ authorised continuing through Q52 before release on 2026-10-02; do not pause
 between batches or publish an intermediate default-v4 package. Size remains
 an unresolved closure gate, not permission to raise the cap.
 
+Q24 behavioural evidence passes; size is 330 bytes over 30 KB. Its checkbox
+and applicable inventory statuses remain open. Continue Q25 without a prompt.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

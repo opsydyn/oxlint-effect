@@ -2142,7 +2142,7 @@
     },
     "evidence": [
       "src/index.ts: noRunWithOpenResource; transitive helpers: noRunWithOpenResource, getImportSource, isEffectEcosystemImport, openResourceInRunScope, resourceLexicalScope, isFunctionLike, unownedResourcesInScope, findNodes, isResourceLifecycleCandidate, resourceAcquisitionCall, isIdentifier, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, isResourceLikeConstruction, hasResourceLifecycleOwner, hasReleaseOwnership, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall, isResourceAcquireReleaseCall, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, isEffectRunCall, effectRunMethods",
-      "Recognition tokens: acquireRelease, acquireUseRelease, acquire, Effect, acquireReleaseInterruptible, Scope, Layer, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit; API and repair controls still require packed qualification."
+      "Q24: 10 legacy/13 current runner warnings, opposite 10/10. Version-selected ownership and actual With execution; factory creation stays clean. Lexical co-occurrence retains after-run/already-closed false positives; opaque factories are missed. Raw runners close zero times until teardown, managed runners once on value/failure/interruption preserving 43/original errors. No boundaryPaths or dominance proof. Final 30 KB gate pending: 330 bytes over."
     ]
   },
   "no-nested-acquire-release": {
@@ -2157,7 +2157,7 @@
     },
     "evidence": [
       "src/index.ts: noNestedAcquireRelease; transitive helpers: noNestedAcquireRelease, getImportSource, isEffectEcosystemImport, nestedAcquireReleaseNode, isResourceAcquireReleaseCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, findNodes",
-      "Recognition tokens: Effect, acquireRelease, acquireReleaseInterruptible, acquireUseRelease; API and repair controls still require packed qualification."
+      "Q24: 3 warnings per major, opposite 2/3. Counts three descendant acquisitions including siblings, not depth alone; two inline owners and named composition stay clean. Current policy excludes removed acquireReleaseInterruptible. Named composition retains 127/original errors/interruption, reverse third/second/first release and once-only cleanup. Final 30 KB gate pending: 330 bytes over."
     ]
   },
   "no-missing-layer-provision-at-run": {
@@ -2172,7 +2172,7 @@
     },
     "evidence": [
       "src/index.ts: noMissingLayerProvisionAtRun; transitive helpers: noMissingLayerProvisionAtRun, getImportSource, isEffectEcosystemImport, effectRunMissingLayerProvision, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, firstArgument, findNode, isYieldedServiceDependency, programInitializerForReference, enclosingFunction, isFunctionLike, isEffectOrLayerProvideCall, isEffectMemberCallNamed, isMemberCall",
-      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit, Service, provide, Layer; API and repair controls still require packed qualification."
+      "Q24: 8 legacy/11 current warnings, opposite 8/8. V4 resolves native binding identity, skips unused ordinary functions and checks actual With execution; v3 first-name traversal/messages preserved. Valid fully populated contexts can warn under strict visible-Layer policy; Service-shaped ordinary effects can warn and unexecuted provide markers can suppress. Real Layer repairs close once; context-only/marker controls require external teardown. Checked API negatives compile. Final 30 KB gate pending: 330 bytes over."
     ]
   },
   "no-yield-with-held-semaphore-permit": {

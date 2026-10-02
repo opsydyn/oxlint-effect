@@ -52,6 +52,39 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q24 counts only applicable acquisition APIs", () => {
+    const node = effectCall("acquireReleaseInterruptible", effectCall("acquireReleaseInterruptible", effectCall("acquireReleaseInterruptible", effectCall("succeed", numericLiteral(42)), arrowCallback(effectCall("void"))), arrowCallback(effectCall("void"))), arrowCallback(effectCall("void")));
+    const inspect = (version: 3 | 4) => runRuleSequence("no-nested-acquire-release", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });
+    expect(inspect(4)).toHaveLength(0);
+    expect(inspect(3)).toHaveLength(1);
+  });
+  it("Effect qualification Q24 rejects blanket contextual provision and skips unused workflows", () => {
+    const workflow = effectCall("gen", generatorCallback(blockStatement(yieldExpression(identifier("PoolService"), true))));
+    const factory = effectCall("runPromiseWith", identifier("context"));
+    const inspect = (node: unknown) => runRuleSequence("no-missing-layer-provision-at-run", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });
+    expect(inspect(callExpression(factory, workflow))).toHaveLength(1);
+    expect(inspect(factory)).toHaveLength(0);
+    const unused = effectCall("runPromise", effectCall("gen", generatorCallback(blockStatement(expressionStatement(arrowCallback(workflow)), returnStatement(numericLiteral(42))))));
+    linkParents(unused);
+    expect(inspect(unused)).toHaveLength(0);
+  });
+  it("Effect qualification Q24 resolves named runner programs by native binding identity", () => {
+    const reference = identifier("program");
+    const first = variableDeclaratorWithInit("program", effectCall("provide", effectCall("gen", generatorCallback(blockStatement(yieldExpression(identifier("PoolService"), true)))), identifier("live")));
+    const second = variableDeclaratorWithInit("program", effectCall("gen", generatorCallback(blockStatement(yieldExpression(identifier("LocalService"), true)))));
+    const execution = effectCall("runPromise", reference);
+    const owner = { type: "FunctionDeclaration", id: identifier("run"), body: blockStatement({ type: "VariableDeclaration", kind: "const", declarations: [first] }, blockStatement({ type: "VariableDeclaration", kind: "const", declarations: [second] }, returnStatement(execution))) };
+    linkParents({ type: "Program", body: [owner] });
+    const inspect = (version: 3 | 4) => runRuleSequence("no-missing-layer-provision-at-run", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: execution }], { options: [{ effectVersion: version }], sourceCode: { getDeclaredVariables: node => node === second ? [{ references: [{ identifier: reference }] }] : [] } });
+    expect(inspect(4)).toHaveLength(1);
+    expect(inspect(3)).toHaveLength(0);
+  });
+  it("Effect qualification Q24 supplies packed nesting, provision and open-resource evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-nested-acquire-release", "no-missing-layer-provision-at-run", "no-run-with-open-resource"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q23 separates current acquisition owners from legacy markers", () => {
     const inspect = (version: 3 | 4, method: string, namespace = "Effect") => {
       const acquisition = namedCall("openConnection");
@@ -691,7 +724,7 @@ describe("versioned runners", () => {
     expect(inspect("no-run-with-open-resource", [factory, execution], 3)).toHaveLength(0);
     const program = effectCall("gen", generatorCallback(blockStatement(yieldExpression(identifier("UserService"), true))));
     expect(inspect("no-missing-layer-provision-at-run", [effectCall("runPromise", program)], 4)).toHaveLength(1);
-    expect(inspect("no-missing-layer-provision-at-run", [callExpression(factory, program)], 4)).toHaveLength(0);
+    expect(inspect("no-missing-layer-provision-at-run", [callExpression(factory, program)], 4)).toHaveLength(1);
   });
 });
 
