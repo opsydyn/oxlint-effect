@@ -86,7 +86,7 @@
     },
     "evidence": [
       "src/index.ts: noOptionAs; transitive helpers: noOptionAs, getImportSource, isEffectEcosystemImport, isMemberExpression, isIdentifier",
-      "Recognition tokens: Option; API and repair controls still require packed qualification."
+      "Q34: 4 warnings per major for direct/data-last/mapper-creation/None Option.as. Actual supported APIs preserve presence and 42; Option.map repair retains None, aliases clean gap. Unchanged policy. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-effect-never": {
@@ -736,7 +736,7 @@
     },
     "evidence": [
       "src/index.ts: noMatchVoidBranch; transitive helpers: noMatchVoidBranch, getImportSource, isEffectEcosystemImport, isVoidMatchBranch, isMatchBranchCall, isIdentifier, isBooleanLiteral, isEffectVoidMember, isMemberExpression, arrowCallbackBody",
-      "Recognition tokens: orElse, Match, Effect; API and repair controls still require packed qualification."
+      "Q34: 3 warnings per major for literal boolean when/immediate orElse Effect.void. Block/string patterns remain clean gaps. Pure selected undefined/42 preserves original no-op values rather than inventing a default. Unchanged policy. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-json-parse-without-schema": {
@@ -796,7 +796,7 @@
     },
     "evidence": [
       "src/index.ts: noMatchEffectBranch; transitive helpers: noMatchEffectBranch, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression, containsSequencingMatchBranch, isMatchBranchCall, arrowCallbackBody, isSequencingBranchBody, containsEffectMemberCall, isEffectMemberCall, containsBranchSequencingCall, branchSequencingEffectCalls, isEffectMemberCallNamed, isStreamMemberCall, isOptionMatchCall",
-      "Recognition tokens: Match, orElse, Effect, Option; API and repair controls still require packed qualification."
+      "Q34: 3 warnings per major for Match.value().pipe and Option.match effect sequencing, including a single map conservative report. Leaves allowed; aliases/named/gen-only gaps retained, no import gate. Selected complete branch values preserve 42/0 and failure reference; unsafe common +41 is clean but changes false/absence. Current andThen requires Effect/callback, compiler negative captured. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "warn-effect-sync-wrapper": {

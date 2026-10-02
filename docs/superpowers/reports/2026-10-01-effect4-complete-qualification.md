@@ -901,6 +901,30 @@ now have behavioural evidence. Build is 140.96 kB raw; unchanged 30 KB cap fails
 by 649 bytes. Q22-Q33 and inventory statuses remain open, 82 rules unqualified.
 Continue Q34-Q52 and campaign closure; no push, version bump or release.
 
+## Q34 Option Presence And Match Selection
+
+Unchanged owners emit 4 Option.as, 3 void-branch and 3 sequencing-branch warnings
+per major. Actual Option.as is supported by both pinned versions and preserves
+None; explicit map repairs preserve presence and 42. Void detection only sees
+literal boolean when and immediate arrow Effect.void/orElse forms; block/string
+callbacks remain clean gaps. Pure selected undefined/42 retains the original
+no-op value without introducing a default.
+
+Match.value().pipe and Option.match sequencing is checked; a single map can
+conservatively warn, leaves are allowed, and aliases/named/gen-only callbacks
+remain opaque. This owner has no import gate. Selected complete branch values
+retain both 42/0 paths before common processing; a labelled clean unsafe +41
+control produces 41 on false, proving a naive rewrite is not equivalent. Typed
+failure reference is retained. The first run caught an immediate void fallback
+in a purported clean control, and current source/compiler rejected plain-value
+andThen. Final callback fixtures compile for both; dedicated compiler controls
+retain the legacy/current API distinction. No production policy is rewritten.
+
+Fresh gates pass: 536 tests/3562 expectations, root types, final packed majors,
+publint, API docs and diff. Build remains 140.96 kB raw; cap fails by 649 bytes.
+Q22-Q34 and inventory statuses stay open; 82 rules unqualified. Continue Q35-Q52
+and closure without push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

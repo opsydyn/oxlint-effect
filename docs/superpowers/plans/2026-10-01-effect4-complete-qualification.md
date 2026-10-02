@@ -250,6 +250,9 @@ Q33 context/clock behavioural evidence passes, finishing all 11 domain owners.
 Size remains 649 bytes over 30 KB; checkbox and inventory statuses stay open.
 Continue Q34 without a prompt.
 
+Q34 Option/Match behavioural evidence passes. Size remains 649 bytes over
+30 KB; checkbox and inventory statuses stay open. Continue Q35.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

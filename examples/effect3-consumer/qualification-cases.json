@@ -2321,5 +2321,77 @@
       }
     },
     "runtime": "src/qualification/domainModeling/domain-context.contracts.ts"
+  },
+  {
+    "rule": "no-option-as",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "actual dual Option.as and presence-preserving Option.map",
+      "literal boolean/Effect.void shapes and callback/alias controls",
+      "Match.value().pipe and Option.match sequencing versus leaves and gen-only gaps",
+      "common pipeline is not automatically equivalent across absent/no-op branches",
+      "runtime checks both presence/absence and selected/no-op paths"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-option-as.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-option-as.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-option-as.bad.ts": {
+        "linteffect/no-option-as": 4
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/selection.contracts.ts"
+  },
+  {
+    "rule": "no-match-void-branch",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "actual dual Option.as and presence-preserving Option.map",
+      "literal boolean/Effect.void shapes and callback/alias controls",
+      "Match.value().pipe and Option.match sequencing versus leaves and gen-only gaps",
+      "common pipeline is not automatically equivalent across absent/no-op branches",
+      "runtime checks both presence/absence and selected/no-op paths"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-match-void-branch.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-match-void-branch.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-match-void-branch.bad.ts": {
+        "linteffect/no-match-void-branch": 3
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/selection.contracts.ts"
+  },
+  {
+    "rule": "no-match-effect-branch",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "actual dual Option.as and presence-preserving Option.map",
+      "literal boolean/Effect.void shapes and callback/alias controls",
+      "Match.value().pipe and Option.match sequencing versus leaves and gen-only gaps",
+      "common pipeline is not automatically equivalent across absent/no-op branches",
+      "runtime checks both presence/absence and selected/no-op paths"
+    ],
+    "bad": [
+      "src/qualification/optionMatchAndDataNormalization/no-match-effect-branch.bad.ts"
+    ],
+    "good": [
+      "src/qualification/optionMatchAndDataNormalization/no-match-effect-branch.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/optionMatchAndDataNormalization/no-match-effect-branch.bad.ts": {
+        "linteffect/no-match-effect-branch": 3
+      }
+    },
+    "runtime": "src/qualification/optionMatchAndDataNormalization/selection.contracts.ts"
   }
 ]
