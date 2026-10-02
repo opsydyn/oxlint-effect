@@ -1,4 +1,4 @@
-# Branching And Local Control Flow: Q45
+# Branching And Local Control Flow: Q45-Q46
 
 These deliberately failing examples use pinned Effect 4. Exact warnings are
 checked against the packed plugin, not an editor restart or an application run.
@@ -27,3 +27,31 @@ repair preserves its own original. Option absence and own-major result error
 identity are retained. No platform/application or semantic branching-safety
 claim follows from these syntax checks. Final qualification remains open while
 the 30 KB size gate fails.
+
+## Exceptions And IIFEs
+
+[`no-try-catch` failures](no-try-catch.bad.ts) include ordinary adapters,
+nested try, finally and unused callbacks. Unlike the branching rules, it has
+no import gate: [no-import try](try-no-import.bad.ts) still warns. The owner
+reports every TryStatement, not only Effect callback logic.
+
+[`no-arrow-ladder` failures](no-arrow-ladder.bad.ts) cover nested arrow IIFEs,
+depth-three multiple reports, unused bodies and first nested candidate only.
+[Shape controls](arrow-shape.good.ts) show that mixed FunctionExpression IIFEs
+and ordinary nested arrows are not arrow ladders. They may still fail the
+separate general IIFE rule.
+
+[`no-iife-wrapper` failures](no-iife-wrapper.bad.ts) include direct arrow,
+regular, async, generator and Effect-returning invocations. Named calls and
+member `.call` are not direct inline invocations. Both IIFE owners have
+[no-import](iife-no-import.good.ts) and [late-import](iife-late-import.good.ts)
+scope gaps, not endorsed bypasses.
+
+[Working repairs](wrappers.good.ts) use explicit values/named transformations,
+actual Effect.try/match adapters and ensuring cleanup. Real asynchronous work
+stays deferred with tryPromise; do not move it to eager construction to hide a
+warning. [Runtime contracts](exception-iife.contracts.ts) retain 42, original
+error identity, cleanup once on success/failure, async/generator behaviour,
+member-call receiver context and a single deferred Promise invocation. This is
+not proof that all arbitrary IIFEs can be mechanically inlined without semantic
+changes or that callback cancellation has been qualified.

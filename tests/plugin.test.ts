@@ -52,6 +52,12 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q46 supplies packed exceptions and IIFE evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-try-catch", "no-arrow-ladder", "no-iife-wrapper"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q45 supplies packed branching evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

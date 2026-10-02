@@ -3135,5 +3135,79 @@
       }
     },
     "runtime": "src/qualification/branchingAndLocalControlFlow/branching.contracts.ts"
+  },
+  {
+    "rule": "no-try-catch",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "ordinary/nested/finally/unused try statements and no-import warning",
+      "actual Effect.try/match and ensuring retain value/error identity/cleanup once"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-try-catch.bad.ts",
+      "src/qualification/branchingAndLocalControlFlow/try-no-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/wrappers.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-try-catch.bad.ts": {
+        "linteffect/no-try-catch": 5
+      },
+      "src/qualification/branchingAndLocalControlFlow/try-no-import.bad.ts": {
+        "linteffect/no-try-catch": 1
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/exception-iife.contracts.ts"
+  },
+  {
+    "rule": "no-arrow-ladder",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "nested arrow/depth/unused/siblings or regular/async/generator IIFEs",
+      "flat/named repair retains value, deferral and async/generator semantics",
+      "function/member/no-import/late-import shape limits"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-arrow-ladder.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/wrappers.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/iife-no-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/iife-late-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/arrow-shape.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-arrow-ladder.bad.ts": {
+        "linteffect/no-arrow-ladder": 6
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/exception-iife.contracts.ts"
+  },
+  {
+    "rule": "no-iife-wrapper",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "nested arrow/depth/unused/siblings or regular/async/generator IIFEs",
+      "flat/named repair retains value, deferral and async/generator semantics",
+      "function/member/no-import/late-import shape limits"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-iife-wrapper.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/wrappers.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/iife-no-import.good.ts",
+      "src/qualification/branchingAndLocalControlFlow/iife-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-iife-wrapper.bad.ts": {
+        "linteffect/no-iife-wrapper": 7
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/exception-iife.contracts.ts"
   }
 ]

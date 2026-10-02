@@ -116,7 +116,7 @@
     },
     "evidence": [
       "src/index.ts: noArrowLadder; transitive helpers: noArrowLadder, getImportSource, isEffectEcosystemImport, isArrowIifeCall, findArrowIifeCall",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q46 packed both majors: 6 nested/depth/unused/sibling/Effect-returning arrow ladder warnings; first nested match only. Mixed function/ordinary-arrow/no/late-import controls and named repair preserve 42/semantics. Size gate remains open."
     ]
   },
   "no-branch-in-object": {
@@ -146,7 +146,7 @@
     },
     "evidence": [
       "src/index.ts: noIifeWrapper; transitive helpers: noIifeWrapper, getImportSource, isEffectEcosystemImport, isInlineFunctionIifeCall",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q46 packed both majors: 7 arrow/regular/async/generator/nested/Effect-returning warnings. Explicit/named repairs preserve 42, async/generator and receiver context; no/late-import/member-call gaps documented. Actual tryPromise deferral once qualified, not general cancellation. Size gate remains open."
     ]
   },
   "no-return-in-arrow": {
@@ -966,7 +966,7 @@
     },
     "evidence": [
       "src/index.ts: noTryCatch; transitive helpers: noTryCatch",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q46 packed both majors: 5 adapter/nested/finally/unused warnings plus 1 no-import try. Actual Effect.try/match and ensuring preserve value, original failure identity and cleanup once on each path. No import gate or callback-only restriction. Size gate remains open."
     ]
   },
   "no-effect-wrapper-alias": {

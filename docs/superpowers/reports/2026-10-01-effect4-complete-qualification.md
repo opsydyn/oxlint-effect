@@ -1185,6 +1185,25 @@ publint, API docs and diff. Raw build is 141.67 kB; cap fails by 829 bytes.
 Q22-Q45 and inventory statuses stay open, 82 unqualified. Continue Q46-Q52 and
 closure without release.
 
+## Q46 Exceptions And IIFE Shape
+
+Unchanged owners emit 5 try plus 1 no-import / 6 arrow-ladder / 7 general-IIFE
+warnings per major. Try is ungated and includes ordinary adapters, nested try,
+finally and unused callbacks. Arrow ladders search broad callback trees, report
+the first inner candidate per outer call and can emit multiple depth reports.
+General IIFEs include regular, async and generator FunctionExpressions. Mixed
+functions, named/member calls and no/late-import controls document shape limits.
+
+Actual explicit values/named transformations, Effect.try/match, ensuring and
+tryPromise repairs preserve 42, original error identity, once-only cleanup on
+success/failure, deferred Promise invocation, async/generator and receiver-context
+semantics. No general mechanical inlining or cancellation guarantee is inferred.
+
+Fresh gates pass: 557 tests / 3653 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build remains 141.67 kB; cap fails by 829 bytes.
+Q22-Q46 and inventory statuses stay open, 82 unqualified. Continue Q47-Q52 and
+closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
