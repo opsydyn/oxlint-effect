@@ -52,6 +52,43 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q23 separates current acquisition owners from legacy markers", () => {
+    const inspect = (version: 3 | 4, method: string, namespace = "Effect") => {
+      const acquisition = namedCall("openConnection");
+      linkParents(objectMethodCall(identifier(namespace), method, acquisition, arrowCallback(effectCall("void"))));
+      return runRuleSequence("no-resource-without-acquire-release", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: acquisition }], { options: [{ effectVersion: version }] });
+    };
+    expect(inspect(4, "acquireReleaseInterruptible")).toHaveLength(1);
+    expect(inspect(4, "scoped", "Layer")).toHaveLength(1);
+    expect(inspect(3, "acquireReleaseInterruptible")).toHaveLength(0);
+    expect(inspect(3, "scoped", "Layer")).toHaveLength(0);
+    expect(inspect(4, "acquireRelease")).toHaveLength(0);
+  });
+  it("Effect qualification Q23 follows current handler workflows but not unused functions", () => {
+    const acquisition = namedCall("openConnection");
+    const workflow = effectCall("gen", generatorCallback(blockStatement(expressionStatement(effectCall("sync", arrowCallback(acquisition))))));
+    const handler = { type: "FunctionDeclaration", id: identifier("requestHandler"), body: blockStatement(returnStatement(workflow)) };
+    linkParents(handler);
+    const inspect = (version: 3 | 4) => runRuleSequence("no-request-scoped-long-lived-resource", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "FunctionDeclaration", node: handler }, { visitorName: "FunctionExpression", node: handler }], { options: [{ effectVersion: version }] });
+    expect(inspect(4)[0]?.node).toBe(acquisition);
+    expect(inspect(4)).toHaveLength(1);
+    expect(inspect(3)).toHaveLength(0);
+    const unused = { type: "FunctionDeclaration", id: identifier("routeHandler"), body: blockStatement(expressionStatement(arrowCallback(namedCall("openConnection")))) };
+    linkParents(unused);
+    expect(runRuleSequence("no-request-scoped-long-lived-resource", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "FunctionDeclaration", node: unused }], { options: [{ effectVersion: 4 }] })).toHaveLength(0);
+  });
+  it("Effect qualification Q23 gives current singleton repair advice", () => {
+    const node = { type: "NewExpression", callee: identifier("DatabasePool"), arguments: [] };
+    const reports = runRuleSequence("no-global-resource-singleton", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "NewExpression", node }], { options: [{ effectVersion: 4 }] });
+    expect(reports[0]?.message).toContain("Context.Service");
+    expect(reports[0]?.message).not.toContain("Effect.Service");
+  });
+  it("Effect qualification Q23 supplies packed acquisition, request and singleton evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-resource-without-acquire-release", "no-request-scoped-long-lived-resource", "no-global-resource-singleton"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q22 recognises current effect-valued finalizers only", () => {
     const cleanup = objectMethodCall(identifier("client"), "close");
     const owner = objectMethodCall(identifier("Scope"), "addFinalizer", identifier("scope"), effectCall("sync", arrowCallback(cleanup)));

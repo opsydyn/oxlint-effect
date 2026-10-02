@@ -1602,5 +1602,83 @@
       }
     },
     "runtime": "src/qualification/resourceLifetime/cleanup-scope-escape.contracts.ts"
+  },
+  {
+    "rule": "no-resource-without-acquire-release",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual typed resource factories and constructors",
+      "direct/arrow/expression/property handler names",
+      "owned application layer and registered release",
+      "naming, alias and scope marker limitations",
+      "success/failure/interruption without double release",
+      "boundary and no-import controls"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-resource-without-acquire-release.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-resource-without-acquire-release.good.ts",
+      "src/qualification/resourceLifetime/acquisition-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-resource-without-acquire-release.bad.ts": {
+        "linteffect/no-resource-without-acquire-release": 8
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/acquisition-request-global.contracts.ts"
+  },
+  {
+    "rule": "no-request-scoped-long-lived-resource",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual typed resource factories and constructors",
+      "direct/arrow/expression/property handler names",
+      "owned application layer and registered release",
+      "naming, alias and scope marker limitations",
+      "success/failure/interruption without double release",
+      "boundary and no-import controls"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-request-scoped-long-lived-resource.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-request-scoped-long-lived-resource.good.ts",
+      "src/qualification/resourceLifetime/acquisition-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-request-scoped-long-lived-resource.bad.ts": {
+        "linteffect/no-request-scoped-long-lived-resource": 8
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/acquisition-request-global.contracts.ts"
+  },
+  {
+    "rule": "no-global-resource-singleton",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual typed resource factories and constructors",
+      "direct/arrow/expression/property handler names",
+      "owned application layer and registered release",
+      "naming, alias and scope marker limitations",
+      "success/failure/interruption without double release",
+      "boundary and no-import controls"
+    ],
+    "bad": [
+      "src/qualification/resourceLifetime/no-global-resource-singleton.bad.ts"
+    ],
+    "good": [
+      "src/qualification/resourceLifetime/no-global-resource-singleton.good.ts",
+      "src/qualification/resourceLifetime/acquisition-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/resourceLifetime/no-global-resource-singleton.bad.ts": {
+        "linteffect/no-global-resource-singleton": 5
+      }
+    },
+    "runtime": "src/qualification/resourceLifetime/acquisition-request-global.contracts.ts"
   }
 ]

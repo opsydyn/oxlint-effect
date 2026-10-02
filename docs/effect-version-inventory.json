@@ -2096,12 +2096,12 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noResourceWithoutAcquireRelease; transitive helpers: noResourceWithoutAcquireRelease, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, resourceAcquisitionCall, isIdentifier, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, hasResourceLifecycleOwner, hasReleaseOwnership, isFunctionLike, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall, isResourceAcquireReleaseCall, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed",
-      "Recognition tokens: acquireRelease, acquireUseRelease, acquire, Effect, acquireReleaseInterruptible, Scope, Layer; API and repair controls still require packed qualification."
+      "src/index.ts: noResourceWithoutAcquireRelease; explicit major selection in hasResourceLifecycleOwner, hasReleaseOwnership and acquisition API table. Shared boundary/import/report visitor preserves schema and legacy defaults for later owners.",
+      "Q23: 8 warnings per major/opposite policy across seven factory verbs and member forms. Current policy rejects removed legacy owner markers. Owned/interruptible acquisitions close once; raw scoped/pipe markers remain clean leak counterexamples. Application Layer/acquireUseRelease preserve values/errors/interruption and finalize once; raw acquisition needs teardown. Naming/aliases/computed properties are not type/execution proof. Final 30 KB gate pending: 208 bytes over."
     ]
   },
   "no-request-scoped-long-lived-resource": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -2111,12 +2111,12 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noRequestScopedLongLivedResource; transitive helpers: noRequestScopedLongLivedResource, boundaryPathOptionsSchema, requestScopedResourceNodes, isRequestLifecycleFunction, requestLifecycleFunctionName, isFunctionLike, isIdentifier, findNodes, isResourceLifecycleCandidate, resourceAcquisitionCall, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, isResourceLikeConstruction, enclosingFunction, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
-      "Recognition tokens: acquireRelease, acquireUseRelease, acquire; API and repair controls still require packed qualification."
+      "src/index.ts: noRequestScopedLongLivedResource; requestScopedResourceNodes/requestResourceOwner version-select literal workflow callback ownership. Sensitive schema/preset projection preserves boundaryPaths and legacy nearest-function traversal.",
+      "Q23: 4 legacy/8 current warnings, opposite 8/4, on declaration/expression/arrow/property handlers and current gen/fn/map/sync callbacks; deduplicate resource nodes. Unused functions, hidden factory bodies, generic names and no-import/boundary controls stay clean. One application Layer shares one pool across two requests (42/42, once-only shutdown); raw requests allocate distinct live pools. Intentional short-lived resources can warn by strict policy. Final 30 KB gate pending: 208 bytes over."
     ]
   },
   "no-global-resource-singleton": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -2126,8 +2126,8 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noGlobalResourceSingleton; transitive helpers: noGlobalResourceSingleton, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, enclosingFunction, isFunctionLike, isResourceLikeConstruction, isIdentifier, isResourceLikeName, identifierNameTokens, resourceLikeTerms",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "src/index.ts: noGlobalResourceSingleton; sensitive repair advice selects Context.Service/Layer for current policy, preserving exact legacy Effect.Service advice. Boundary schema/import and constructor naming gates remain.",
+      "Q23: 5 warnings per major/opposite policy, including member constructors, module blocks and static fields. Lazy constructions stay clean; aliased module constructors remain opaque but live. Owned Layer closes once on success/failure/interruption; eager globals require teardown. No native I/O/whole-program ownership claim. Final 30 KB gate pending: 208 bytes over."
     ]
   },
   "no-run-with-open-resource": {

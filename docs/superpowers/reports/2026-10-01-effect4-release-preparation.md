@@ -39,7 +39,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [ ] Close Q22 cleanup/manual-scope/resource-success qualification: behavioural
   checks pass, but its 139.04 kB raw build exceeds the unchanged 30 KB compressed
   cap by 123 bytes. Inventory entries remain unqualified pending this gate.
-- [ ] Complete and qualify Q22-Q52 in the
+- [ ] Close Q23 acquisition/request/global qualification: behavioural gates pass;
+  current compressed size exceeds unchanged 30 KB by 208 bytes.
+- [ ] Complete and qualify Q24-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition

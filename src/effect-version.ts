@@ -81,6 +81,8 @@ export const versionSensitiveRules = [
   "no-unbound-scope",
   "no-resource-succeed-escape",
   "no-resource-without-acquire-release",
+  "no-request-scoped-long-lived-resource",
+  "no-global-resource-singleton",
   "no-run-with-open-resource",
   "no-nested-acquire-release",
   "no-missing-layer-provision-at-run",

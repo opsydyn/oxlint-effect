@@ -582,8 +582,8 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 | `linteffect/no-unbound-scope` | `Scope.make()` without a same-function, same-binding `Scope.close`, or a matching acquire/release callback. Legacy policy also accepts `Effect.scoped`/`Layer.scoped` markers. | Exposes unowned manual scopes. V4 scoping alone does not close a separately created scope. |
 | `linteffect/no-resource-succeed-escape` | `Effect.succeed(resourceLike)` for client, connection, pool, file, socket, stream, server, subscription, or handle-shaped values. | Keeps live resource lifetimes inside scoped Effect ownership; this heuristic is focused-only rather than recommended. |
 | `linteffect/no-resource-without-acquire-release` | Runtime: resource-like `open` / `connect` / `create` / `start` / `listen` / `subscribe` / `acquire` calls without a release owner. | Makes resource ownership explicit across failure, interruption, and shutdown. |
-| `linteffect/no-request-scoped-long-lived-resource` | Strict: resource acquisition or construction inside request, route, endpoint, controller, or handler functions. | Keeps long-lived clients and pools in application Layers instead of multiplying them per request. |
-| `linteffect/no-global-resource-singleton` | Strict: module-level `new Client`, `new Pool`, `new Database`, and similar resource-like constructors. | Keeps construction, testing, and shutdown ownership in services and Layers. |
+| `linteffect/no-request-scoped-long-lived-resource` | Strict: resource acquisition/construction in named handlers; v4 follows inline gen/fn, mapping and sync/suspend/Promise callbacks. | Keeps long-lived pools in application Layers; intentionally request-owned resources can still warn. |
+| `linteffect/no-global-resource-singleton` | Strict: resource-shaped module constructors, including blocks/static fields. | Keeps shutdown owned by Layers; v4 advice uses Context.Service, legacy advice retains Effect.Service. |
 | `linteffect/no-run-with-open-resource` | Runtime: `Effect.run*` in a lexical scope containing an unowned resource creation. | Prevents runtime execution from finishing while an imperative resource remains open. |
 | `linteffect/no-nested-acquire-release` | Strict: `Effect.acquireRelease` / `acquireUseRelease` nesting deeper than two levels. | Encourages named Layers and manageable release boundaries instead of opaque release stacks. |
 | `linteffect/no-missing-layer-provision-at-run` | Strict: `Effect.run*` on a program that yields a service tag without a local `Effect.provide` or `Layer.provide`. | Makes runtime dependency provisioning visible at the application boundary. |
@@ -612,6 +612,17 @@ warning. Do not mechanically rename values to silence it. The repairs export dat
 after owned use; runtime controls demonstrate once-only release on success,
 failure and interruption, repeated scope close, premature double cleanup and an
 already-closed returned handle. Typed stand-ins do not qualify native I/O behaviour.
+
+Q23 adds [paired acquisition/request/singleton examples](examples/effect4-consumer/src/qualification/resourceLifetime)
+and application-layer lifetime contracts. V4 rejects removed
+`Layer.scoped`/`acquireReleaseInterruptible` ownership markers. Request/global
+rules accept `effectVersion` alongside `boundaryPaths`; select
+`effect3.resourceLifetime` for legacy traversal and repair advice. Current request
+analysis follows recognised inline callbacks but skips unused ordinary functions;
+factory/constructor aliases and computed properties remain opaque. Raw acquisition
+inside `Effect.scoped` retains a coarse clean marker but still needs real release.
+One application Layer shares a pool across requests and finalizes it once;
+separately providing that Layer per request is not that lifetime repair.
 
 `Scope.global` remains a deferred candidate because the supported Effect API does
 not currently expose it; it is not part of the v1 export surface.

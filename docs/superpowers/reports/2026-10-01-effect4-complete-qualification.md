@@ -557,6 +557,50 @@ bundle-reduction gate is required before marking Q22 qualified. Q22-Q52 and
 cross-group closure remain open; 82 rules retain an unqualified applicable
 version. No push, version bump or release.
 
+## Q23 Acquisition, Request Lifetime And Global Resources
+
+Behavioural evidence is complete for `no-resource-without-acquire-release`,
+`no-request-scoped-long-lived-resource` and `no-global-resource-singleton` in
+both pinned consumers. Final qualification remains pending the size gate.
+
+Acquisition reports eight calls per major, spanning all seven factory verbs
+and namespace/member forms. V4 release ownership selects current APIs and
+rejects removed legacy markers; legacy predicates/messages remain unchanged.
+Direct/scoped/interruptible acquisition typechecks and releases once. Bare
+Effect.scoped and terminal scoped pipes retain coarse marker exclusions:
+clean controls still allocate unclosed raw resources. Naming is not type proof.
+
+Requests report four legacy/eight current resource nodes. Declarations, function
+expressions, arrows and property handlers are covered. V4 crosses recognised
+inline gen/fn, mapping and sync/suspend/Promise callbacks, not unused ordinary
+functions. Report on resources and deduplicate visitor roots. Preserve legacy
+nearest-function traversal. Intentional request-local resources can warn by
+strict policy, not leak proof; application-owned service retrieval is clean.
+
+Singletons report five nodes per major, including direct/namespace constructors,
+module blocks and static fields. Lazy construction stays clean; aliased
+constructors remain opaque, with a live clean counterexample. V4 repair advice
+uses Context.Service plus a Layer; legacy Effect.Service advice stays exact.
+Request/global sensitivity, inventory, schemas and preset projections change
+together. Own/opposite counts: acquisition 8/8, requests 4/8 versus 8/4, globals
+5/5. No-import and custom/replaced boundary controls are checked per rule.
+
+Checked types distinguish legacy Layer.scoped from current Layer.effect scope
+removal and reject running an acquisition without Scope. Runtime stand-ins prove
+raw acquisition releases zero times on success/failure/interruption until manual
+teardown, while acquireUseRelease and the application Layer release once and
+preserve 43/original errors/interruption. Raw requests allocate distinct live
+pools; two requests under one Layer share a pool and return 42/42 before one
+shutdown. Eager global and aliased constructors are explicitly torn down. No
+native I/O or whole-program alias ownership is claimed.
+
+Fresh gates: 517 tests/3466 expectations, root types, both packed major contracts,
+exact own/opposite counts, clean controls, publint, API docs and diff check pass.
+Build is 139.41 kB raw; size exceeds unchanged 30 KB by 208 bytes. Q22/Q23
+remain unchecked and inventory statuses stay baseline/pending; 82 rules retain
+an unqualified applicable version. Q24-Q52 and cross-group closure remain.
+No push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

@@ -9063,15 +9063,15 @@ function isResourceAcquireReleaseCall(node: unknown, version: EffectVersion = 3)
   );
 }
 
-function hasResourceLifecycleOwner(node: unknown): boolean {
-  if (hasReleaseOwnership(node)) {
+function hasResourceLifecycleOwner(node: unknown, version: EffectVersion = 3): boolean {
+  if (hasReleaseOwnership(node, version)) {
     return true;
   }
 
   return resourceAncestor(node, current => (
-      isResourceAcquireReleaseCall(current) ||
+      isResourceAcquireReleaseCall(current, version) ||
       isEffectMemberCallNamed(current, "scoped") ||
-      isMemberCall(current, "Layer", "scoped") ||
+      (version === 3 && isMemberCall(current, "Layer", "scoped")) ||
       isEffectScopedPipeCall(current)
   )) !== undefined;
 }
@@ -9130,14 +9130,26 @@ function isRequestLifecycleFunction(node: unknown): boolean {
   return name !== undefined && /(?:handler|route|request|endpoint|controller)$/i.test(name);
 }
 
-function requestScopedResourceNodes(node: unknown): unknown[] {
+function requestResourceOwner(node: unknown, version: EffectVersion): Node | undefined {
+  if (version === 3) return enclosingFunction(node);
+  return resourceAncestor(node, current => {
+    if (!isFunctionLike(current)) return false;
+    const parent = current.parent;
+    return getEffectGeneratorArgument(parent, "gen", 4) !== current &&
+      getEffectGeneratorArgument(parent, "fn", 4) !== current &&
+      !effectLogicCallbacks(parent, 4).includes(current) &&
+      !["sync", "suspend", "promise", "tryPromise"].some(name => isEffectMemberCallNamed(parent, name) && parent.arguments.includes(current));
+  });
+}
+
+function requestScopedResourceNodes(node: unknown, version: EffectVersion = 3): unknown[] {
   if (!isRequestLifecycleFunction(node) || typeof node !== "object" || node === null) {
     return [];
   }
 
   const functionNode = node as Node;
   return findNodes(functionNode.body, (candidate) => (
-    isResourceLifecycleCandidate(candidate) && enclosingFunction(candidate) === functionNode
+    isResourceLifecycleCandidate(candidate) && requestResourceOwner(candidate, version) === functionNode
   ));
 }
 
@@ -9207,8 +9219,8 @@ function effectRunMissingLayerProvision(node: unknown, version: EffectVersion): 
 }
 
 const noResourceWithoutAcquireRelease = createResourceLifetimeRule(
-  node => resourceAcquisitionCall(node) && !hasResourceLifecycleOwner(node),
-  () => "Rule: acquire resources with an Effect release owner. Why: open/connect/create calls can leak across failure and interruption when they are ordinary calls. Fix: use Effect.acquireRelease, Effect.acquireUseRelease, Effect.scoped, or a matching finalizer.",
+  (node, version) => resourceAcquisitionCall(node) && !hasResourceLifecycleOwner(node, version),
+  version => `Rule: acquire resources with an Effect release owner. Why: open/connect/create calls can leak across failure and interruption when they are ordinary calls. Fix: use Effect.acquireRelease, Effect.acquireUseRelease, ${version === 3 ? "Effect.scoped, " : ""}or a matching finalizer.`,
 );
 
 const noRequestScopedLongLivedResource = createVersionedEffectCallbackRule(
@@ -9219,7 +9231,7 @@ const noRequestScopedLongLivedResource = createVersionedEffectCallbackRule(
 
 const noGlobalResourceSingleton = createVersionedEffectCallbackRule(
   node => enclosingFunction(node) === undefined && isResourceLikeConstruction(node) ? node : undefined,
-  () => "Rule: do not create global resource singletons in Effect modules. Why: module-level clients and pools bypass Layer ownership and make tests and shutdown order implicit. Fix: construct the resource in a Layer or Effect.Service and provide it at the application boundary.",
+  version => `Rule: do not create global resource singletons in Effect modules. Why: module-level clients and pools bypass Layer ownership and make tests and shutdown order implicit. Fix: construct the resource in a Layer${version === 3 ? " or Effect.Service" : " using Context.Service"} and provide it at the application boundary.`,
   false, true, ["NewExpression"],
 );
 

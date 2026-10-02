@@ -212,6 +212,11 @@ blocked by the unchanged 30 KB compressed budget (123 bytes over). Leave its
 checkbox and inventory statuses open until that gate is resolved; see the
 [Q22 report](../reports/2026-10-01-effect4-complete-qualification.md#q22-cleanup-manual-scopes-and-resource-success-values).
 
+Q23 behavioural evidence passes; size is 208 bytes over 30 KB. The user
+authorised continuing through Q52 before release on 2026-10-02; do not pause
+between batches or publish an intermediate default-v4 package. Size remains
+an unresolved closure gate, not permission to raise the cap.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

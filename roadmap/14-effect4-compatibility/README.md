@@ -6,6 +6,9 @@ Q22 cleanup/manual-scope/resource-success behavioural checks and examples pass
 for both majors, but final qualification is blocked by the 30 KB size cap
 (123 bytes over). Its completion checkbox and inventory statuses remain open.
 
+Q23 acquisition/request/global behavioural checks also pass; its build is 208
+bytes over the unchanged cap. Release waits for Q52 and campaign closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).
