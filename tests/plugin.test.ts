@@ -52,6 +52,44 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q20 protects the current Deferred timeout fallback form", () => {
+    const binding = variableDeclaratorWithInit("ready", objectMethodCall(identifier("Deferred"), "makeUnsafe"));
+    const reference = identifier("ready");
+    const awaitNode = objectMethodCall(identifier("Deferred"), "await", reference);
+    Object.assign(reference, { parent: awaitNode });
+    Object.assign(awaitNode, { parent: effectCall("timeoutOrElse", awaitNode, objectLiteral()) });
+    const reports = runRuleSequence("no-manual-deferred-coordination", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "VariableDeclarator", node: binding }, { visitorName: "CallExpression", node: awaitNode }, { visitorName: "Program:exit", node: { type: "Program" } }], { options: [{ effectVersion: 4 }], sourceCode: { getDeclaredVariables: () => [{ identifiers: [binding.id], references: [{ identifier: reference }] }] } });
+    expect(reports).toHaveLength(0);
+  });
+  it("Effect qualification Q20 uses module binding identity for current global state", () => {
+    const id = identifier("values");
+    const reference = identifier("values");
+    const callee = { type: "MemberExpression", object: reference, property: identifier("push"), computed: false };
+    const mutation = callExpression(callee, numericLiteral(1));
+    Object.assign(reference, { parent: callee });
+    Object.assign(callee, { parent: mutation });
+    const task = effectCall("sync", arrowCallback(mutation));
+    Object.assign(mutation, { parent: task });
+    const declaration = { type: "VariableDeclaration", kind: "const", declarations: [{ type: "VariableDeclarator", id, init: arrayLiteral() }] };
+    const inspect = (scope: string) => runRuleSequence("no-global-mutable-concurrency-state", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "VariableDeclaration", node: declaration }, { visitorName: "CallExpression", node: effectCall("forkChild", task) }, { visitorName: "Program:exit", node: { type: "Program" } }], { options: [{ effectVersion: 4 }], sourceCode: { getDeclaredVariables: () => [{ name: "values", scope: { type: scope }, identifiers: [id], references: [{ identifier: reference }] }] } });
+    expect(inspect("module")[0]?.node).toBe(mutation);
+    expect(inspect("function")).toHaveLength(0);
+  });
+  it("Effect qualification Q20 covers current permit operators and owned generator suspension", () => {
+    const inspect = (node: unknown) => runRuleSequence("no-yield-with-held-semaphore-permit", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: 4 }] });
+    const work = effectCall("gen", generatorCallback(blockStatement(expressionStatement(effectCall("forkChild", identifier("task"))))));
+    expect(inspect(objectMethodCall(identifier("Semaphore"), "withPermit", identifier("semaphore"), work))).toHaveLength(1);
+    expect(inspect(methodPipeCall(work, objectMethodCall(identifier("Semaphore"), "withPermit", identifier("semaphore"))))).toHaveLength(1);
+    expect(inspect(callExpression(objectMethodCall(identifier("TSemaphore"), "withPermit", identifier("semaphore")), effectCall("sleep", numericLiteral(1))))).toHaveLength(0);
+    const nested = effectCall("gen", generatorCallback(blockStatement(expressionStatement(arrowCallback(effectCall("sleep", numericLiteral(1)))))));
+    expect(inspect(objectMethodCall(identifier("semaphore"), "withPermits", nested))).toHaveLength(0);
+  });
+  it("Effect qualification Q20 supplies packed global, coordination and permit evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-global-mutable-concurrency-state", "no-manual-deferred-coordination", "no-yield-with-held-semaphore-permit"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q19 selects promise signal and timeout construction policy", () => {
     const inspect = (node: unknown, major: 3 | 4) => runRuleSequence("no-timeout-with-noninterruptible-promise", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
     const raw = effectCall("promise", { ...arrowCallback(identifier("pending")), params: [] });

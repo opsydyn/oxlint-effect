@@ -2293,7 +2293,12 @@ function isAnyObjectMemberCallNamed(node: unknown, propertyName: string): node i
   );
 }
 
-function heldSemaphoreWork(node: unknown): unknown | undefined {
+function heldSemaphoreWork(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  if (version === 4 && isPipeCall(node)) {
+    const operator = ((node as Node).arguments as unknown[]).at(-1);
+    return isAnyObjectMemberCallNamed(operator, "withPermit") || isAnyObjectMemberCallNamed(operator, "withPermits") ? pipeSource(node as Node) : undefined;
+  }
+  if (version === 4 && [node, typeof node === "object" && node !== null ? (node as Node).callee : undefined].some(call => isMemberCall(call, "TSemaphore", "withPermit") || isMemberCall(call, "TSemaphore", "withPermits"))) return undefined;
   if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
     return undefined;
   }
@@ -2459,7 +2464,7 @@ function isEffectScopedPipeCall(node: unknown): boolean {
   return Array.isArray(arguments_) && arguments_.some((argument) => isEffectMemberExpressionNamed(argument, "scoped"));
 }
 
-function isDeferredAwaitProtected(node: unknown, bindingName: string): boolean {
+function isDeferredAwaitProtected(node: unknown, bindingName: string, version: EffectVersion = 3, references: readonly { identifier: unknown }[] = []): boolean {
   let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
 
@@ -2473,17 +2478,32 @@ function isDeferredAwaitProtected(node: unknown, bindingName: string): boolean {
       (isEffectMemberCall(current) && (() => {
         const property = ((current as Node).callee as Node).property;
         return isIdentifier(property) && (
-          deferredTimeoutMembers.has(property.name) ||
-          deferredInterruptionMembers.has(property.name)
+          (version === 4 ? effect4TimeoutMembers.has(property.name) || v4RaceMembers.has(property.name) || property.name === "interruptible" || property.name === "scoped" : deferredTimeoutMembers.has(property.name) || deferredInterruptionMembers.has(property.name))
         );
       })()) ||
-      isEffectScopedPipeCall(current)
+      (version === 3 ? isEffectScopedPipeCall(current) : isPipeCall(current) && (() => {
+        const operator = ((current as Node).arguments as unknown[]).at(-1);
+        return [...effect4TimeoutMembers, ...v4RaceMembers, "interruptible", "scoped"].some(name => isEffectMemberCallNamed(operator, name) || isEffectMemberExpressionNamed(operator, name));
+      })()) ||
+      (version === 4 && (current as Node).type === "CallExpression" && isEffectMemberCall((current as Node).callee) && (() => {
+        const name = (((current as Node).callee as Node).callee as Node).property;
+        return isIdentifier(name) && (effect4TimeoutMembers.has(name.name) || v4RaceMembers.has(name.name));
+      })())
     ) {
       return true;
     }
 
-    if (isFunctionLike(current) && hasMatchingDeferredFinalizer(current, bindingName)) {
-      return true;
+    if (isFunctionLike(current)) {
+      if (version === 3 ? hasMatchingDeferredFinalizer(current, bindingName) : references.some(reference => {
+        for (let owner = (reference.identifier as Node).parent as Node | undefined; owner && nodeWithin(owner, current); owner = owner.parent as Node | undefined) {
+          if (isMemberCall(owner, "Effect", "addFinalizer") || isMemberCall(owner, "Scope", "addFinalizer")) return true;
+        }
+        return false;
+      })) return true;
+      if (version === 4) {
+        const parent = (current as Node).parent;
+        if (getEffectGeneratorArgument(parent, "gen", 4) !== current && getEffectGeneratorArgument(parent, "fn", 4) !== current && !effectLogicCallbacks(parent, 4).includes(current)) return false;
+      }
     }
 
     current = (current as Node).parent;
@@ -2747,6 +2767,15 @@ function mutationAtReference(reference: unknown): unknown | undefined {
     isIdentifier(parent.property) && mutatingCollectionMethods.has(parent.property.name)) {
     const call = parent.parent as Node | undefined;
     if (call?.type === "CallExpression" && call.callee === parent) return call;
+  }
+  return undefined;
+}
+
+function lexicalWorkMutation(work: unknown, variables: ReturnType<OxlintContext["sourceCode"]["getDeclaredVariables"]>): unknown | undefined {
+  for (const variable of variables) {
+    if (variable.identifiers.some(identifier => nodeWithin(identifier, work))) continue;
+    const mutation = variable.references.map(reference => mutationAtReference(reference.identifier)).find(node => node && nodeWithin(node, work));
+    if (mutation) return mutation;
   }
   return undefined;
 }
@@ -3019,6 +3048,14 @@ function containsEffect4ConcurrentOperation(node: unknown): boolean {
     const generator = getEffectGeneratorArgument(child, "gen", 4) ?? getEffectGeneratorArgument(child, "fn", 4);
     if (generator && containsEffect4ConcurrentOperation(generator.body)) return true;
     return effectLogicCallbacks(child, 4).some(callback => containsEffect4ConcurrentOperation(callbackBody(callback)));
+  });
+}
+
+function containsEffect4PermitSuspension(node: unknown): boolean {
+  return containsEffect4ConcurrentOperation(node) || !!findOwnCallbackNode(node, child => {
+    if (["sleep", "promise", "tryPromise"].some(name => isEffectMemberCallNamed(child, name)) || isMemberCall(child, "Deferred", "await")) return true;
+    const generator = getEffectGeneratorArgument(child, "gen", 4) ?? getEffectGeneratorArgument(child, "fn", 4);
+    return (generator !== undefined && containsEffect4PermitSuspension(generator.body)) || effectLogicCallbacks(child, 4).some(callback => containsEffect4PermitSuspension(callbackBody(callback)));
   });
 }
 
@@ -8518,12 +8555,7 @@ const noSharedMutableStateAcrossFibers = defineRule({
         if (!hasEffectEcosystemImport || effectVersionFor(context.options) !== 4) return;
         const variables = declarations.flatMap(node => context.sourceCode.getDeclaredVariables(node));
         for (const work of workNodes) {
-          let mutation: unknown;
-          for (const variable of variables) {
-            if (variable.identifiers.some(identifier => nodeWithin(identifier, work))) continue;
-            mutation = variable.references.map(reference => mutationAtReference(reference.identifier)).find(node => node && nodeWithin(node, work));
-            if (mutation) break;
-          }
+          const mutation = lexicalWorkMutation(work, variables);
           if (mutation) report(context, mutation, "Rule: avoid mutating shared state across fibers. Why: outer let/var writes in child/detached or collection work couple workers through mutable state. Fix: use Ref updates or aggregate immutable results. This checks lexical inline work, not execution or a proven data race; collections default to sequential execution.");
         }
       },
@@ -8612,6 +8644,8 @@ const noGlobalMutableConcurrencyState = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
     const globalMutableNames = new Set<string>();
+    const declarations: any[] = [];
+    const workNodes: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -8621,6 +8655,7 @@ const noGlobalMutableConcurrencyState = defineRule({
         }
       },
       VariableDeclaration(node: any) {
+        if (effectVersionFor(context.options) === 4) { declarations.push(node); return; }
         for (const name of mutableGlobalDeclarationNames(node)) {
           globalMutableNames.add(name);
         }
@@ -8630,6 +8665,11 @@ const noGlobalMutableConcurrencyState = defineRule({
           return;
         }
 
+        if (effectVersionFor(context.options) === 4) {
+          const work = v4SharedStateWork(node);
+          if (work) workNodes.push(work);
+          return;
+        }
         const workNode = concurrentEffectWorkNode(node);
         if (!workNode) {
           return;
@@ -8644,6 +8684,15 @@ const noGlobalMutableConcurrencyState = defineRule({
           );
         }
       },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || effectVersionFor(context.options) !== 4) return;
+        const variables = declarations.flatMap(node => context.sourceCode.getDeclaredVariables(node).filter(variable =>
+          (variable.scope.type === "module" || variable.scope.type === "global") && mutableGlobalDeclarationNames(node).includes(variable.name)));
+        for (const work of workNodes) {
+          const mutation = lexicalWorkMutation(work, variables);
+          if (mutation) report(context, mutation, "Rule: avoid global mutable concurrency state. Why: module-owned let/var or mutable containers couple inline workers. Fix: own Ref or immutable results in a service/layer. Lexical syntax does not prove execution or a data race; default collections are sequential.");
+        }
+      },
     };
   },
 });
@@ -8653,6 +8702,7 @@ const noManualDeferredCoordination = defineRule({
     let hasEffectEcosystemImport = false;
     const deferredScopes = [new Set<string>()];
     const reported = new WeakSet<object>();
+    const bindings: any[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -8680,12 +8730,18 @@ const noManualDeferredCoordination = defineRule({
         deferredScopes.pop();
       },
       VariableDeclarator(node: any) {
+        if (effectVersionFor(context.options) === 4) {
+          const init = node.init?.type === "YieldExpression" ? node.init.argument : node.init;
+          if (isIdentifier(node.id) && (isMemberCall(init, "Deferred", "make") || isMemberCall(init, "Deferred", "makeUnsafe"))) bindings.push(node);
+          return;
+        }
         const name = deferredBindingName(node);
         if (name) {
           deferredScopes.at(-1)?.add(name);
         }
       },
       CallExpression(node: any) {
+        if (effectVersionFor(context.options) === 4) return;
         if (!hasEffectEcosystemImport || !isDeferredAwaitCall(node)) {
           return;
         }
@@ -8705,6 +8761,15 @@ const noManualDeferredCoordination = defineRule({
           node,
           "Rule: avoid unbounded manual Deferred coordination. Why: a local latch can wait forever and make shutdown or failure ownership implicit. Fix: bound the await with a timeout/race, keep it interruptible, or tie completion and cleanup to a scope finalizer.",
         );
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || effectVersionFor(context.options) !== 4) return;
+        for (const binding of bindings) for (const variable of context.sourceCode.getDeclaredVariables(binding)) for (const reference of variable.references) {
+          const call = (reference.identifier as unknown as Node).parent;
+          if (isDeferredAwaitCall(call) && firstArgument(call) === reference.identifier && !isDeferredAwaitProtected(call, variable.name, 4, variable.references)) {
+            report(context, call, "Rule: avoid unbounded manual Deferred coordination. Why: a local latch needs visible completion or cancellation ownership. Fix: use a timeout/race or an interruptible owner with a same-binding finalizer. Scope/interruptibility/finalizer markers alone do not prove eventual completion.");
+          }
+        }
       },
     };
   },
@@ -8765,12 +8830,13 @@ const noYieldWithHeldSemaphorePermit = defineRule({
           return;
         }
 
-        const work = heldSemaphoreWork(node);
-        if (work && containsHighRiskSuspension(work)) {
+        const version = effectVersionFor(context.options);
+        const work = heldSemaphoreWork(node, version);
+        if (work && (version === 4 ? containsEffect4PermitSuspension(work) : containsHighRiskSuspension(work))) {
           report(
             context,
             node,
-            "Rule: avoid suspension while holding a semaphore permit. Why: sleeping, awaiting, or forking under a permit holds capacity while unrelated work waits. Fix: narrow the permit-protected section and perform interruptible or concurrent work outside it.",
+            "Rule: avoid suspension while holding a semaphore permit. Why: unrelated waits hold capacity needed by other work. Fix: narrow coordination critical sections when semantics allow. Async work may intentionally be permit-bound; moving it outside changes concurrency limits. This strict policy is not leak detection.",
           );
         }
       },

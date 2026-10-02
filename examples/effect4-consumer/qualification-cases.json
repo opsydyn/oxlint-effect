@@ -1383,5 +1383,76 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
+  },
+  {
+    "rule": "no-global-mutable-concurrency-state",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "scalar/array/Map/Set",
+      "immutable/per-owner Ref repair",
+      "module lexical binding identity and shadows",
+      "child/detached/curried/terminal forks"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.bad.ts": {
+        "linteffect/no-global-mutable-concurrency-state": 10
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
+  },
+  {
+    "rule": "no-manual-deferred-coordination",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "made/unsafe local latches and unprotected pipes",
+      "completion/failure/interruption and actual timeout",
+      "captured bindings and shadow finalizers",
+      "timeoutOrElse/direct-curried-terminal protection",
+      "fallback callback ownership"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-manual-deferred-coordination.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-manual-deferred-coordination.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-manual-deferred-coordination.bad.ts": {
+        "linteffect/no-manual-deferred-coordination": 6
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
+  },
+  {
+    "rule": "no-yield-with-held-semaphore-permit",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "instance withPermits and sleep/promise/Deferred waits",
+      "critical-section contention/release on exit",
+      "Semaphore namespace, withPermit, pipes and currying",
+      "child and named generator suspension",
+      "own-scope clean control"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-yield-with-held-semaphore-permit.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-yield-with-held-semaphore-permit.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-yield-with-held-semaphore-permit.bad.ts": {
+        "linteffect/no-yield-with-held-semaphore-permit": 10
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
   }
 ]

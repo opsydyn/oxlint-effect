@@ -378,6 +378,59 @@ completion markers and checked API-negative fixtures, build 138.28 kB raw,
 size 29.24 KB under 30 KB and diff check pass. Q20-Q52 and cross-group closure
 remain open; 88 rules retain an unqualified applicable version. No push/release.
 
+## Q20 Ownership, Coordination And Permits
+
+Qualified `no-global-mutable-concurrency-state`,
+`no-manual-deferred-coordination` and `no-yield-with-held-semaphore-permit`
+against the pinned Effect 3.21.4/4.0.0 and Oxlint 1.71.0 consumers.
+
+- Global state: seven legacy/ten v4 warnings. Preserve legacy file-wide names,
+  including its function-local false positive. V4 requires lexical module/global
+  bindings and recognises inline collections and direct/curried/terminal-pipe
+  child/detached work, including Array/Map/Set mutations. Local/shadowed bindings
+  stay clean; object-property writes and stored task bodies remain outside scope.
+  Runtime uses a paired-read handshake to demonstrate a lost module update;
+  owned Ref.update retains two updates in separate executions, and immutable
+  aggregation retains ordered results. Lazy syntax is not execution/data-race
+  proof, and collection defaults remain sequential.
+- Deferred: three legacy/six v4 warnings. Native references support captured
+  awaits and distinguish a same-name finalizer's different latch. V4 uses
+  make/makeUnsafe and current direct/curried/terminal timeout/race forms;
+  timeoutOrElse's fallback callback is not protected by the source timeout.
+  Legacy constructor spellings, function-scope matching and protection tables
+  remain unchanged. Runtime retains 42, original failure identity, external
+  interruption and once-only completion. TestClock verifies timeout, None and
+  fallback results; a timed-out waiter does not complete the latch. An actual
+  registered finalizer interrupts its owned latch on teardown. Scope,
+  interruptibility and finalizer reference presence remain syntax markers,
+  not proof of execution or eventual completion; a scoped bare-await clean
+  control needs explicit caller interruption.
+- Permits: six legacy/ten v4 warnings. Legacy Effect.Semaphore exposes
+  withPermits, not withPermit. Real TSemaphore forms wrap Effect work, with
+  work-first direct and semaphore-first curried arguments. V4 covers current
+  instance/namespace APIs, curried/terminal pipes and recognised gen/fn bodies,
+  excludes the removed TSemaphore namespace and skips unused ordinary helpers.
+  Runtime proves a waiting contender stays blocked by unrelated held work,
+  while narrowing the section lets it finish before the external gate releases.
+  Success, original failure and interruption retain exactly-once finalization
+  and balanced capacity. This strict coordination policy is not leak detection:
+  moving intentionally permit-bound async work outside changes concurrency limits.
+  Named tasks and other acquisition APIs remain outside inference.
+
+Source audit corrected the runtime probe: both installed implementations return
+the acquired count 1 from take(1), not remaining capacity 0. Taking all capacity
+and checking withPermitsIfAvailable returns None catches double release; the
+subsequent release confirms balance. No watchdog or diagnostic gate was weakened.
+Checked compiler-negative controls distinguish Deferred constructor, semaphore
+module and permit method differences. Opposite-policy counts are five/two/three
+in the legacy consumer and five/three/eight in the v4 consumer.
+
+Fresh gates: 506 tests/3417 expectations, root typecheck, both packed consumers
+with exact warning/clean/opposite-policy counts, runtime completion markers and
+API-negative controls pass. Build is 140.76 kB raw; size is 29.77 KB under the
+approved 30 KB cap. Q21-Q52 and cross-group closure remain open; 85 rules retain
+an unqualified applicable version. No push/release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

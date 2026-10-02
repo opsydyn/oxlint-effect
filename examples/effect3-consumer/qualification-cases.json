@@ -1315,5 +1315,71 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
+  },
+  {
+    "rule": "no-global-mutable-concurrency-state",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "scalar/array/Map/Set",
+      "immutable/per-owner Ref repair",
+      "legacy local-name warning retained"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.bad.ts": {
+        "linteffect/no-global-mutable-concurrency-state": 7
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
+  },
+  {
+    "rule": "no-manual-deferred-coordination",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "made/unsafe local latches and unprotected pipes",
+      "completion/failure/interruption and actual timeout",
+      "unsafeMake(FiberId.none)"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-manual-deferred-coordination.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-manual-deferred-coordination.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-manual-deferred-coordination.bad.ts": {
+        "linteffect/no-manual-deferred-coordination": 3
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
+  },
+  {
+    "rule": "no-yield-with-held-semaphore-permit",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "instance withPermits and sleep/promise/Deferred waits",
+      "critical-section contention/release on exit",
+      "transactional direct/curried Effect work-first forms"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-yield-with-held-semaphore-permit.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-yield-with-held-semaphore-permit.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-yield-with-held-semaphore-permit.bad.ts": {
+        "linteffect/no-yield-with-held-semaphore-permit": 6
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"
   }
 ]

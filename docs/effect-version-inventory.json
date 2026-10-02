@@ -2002,12 +2002,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noGlobalMutableConcurrencyState; transitive helpers: noGlobalMutableConcurrencyState, getImportSource, isEffectEcosystemImport, mutableGlobalDeclarationNames, variableDeclarationIdentifierNames, isIdentifier, isMutableContainerInit, concurrentEffectWorkNode, isEffectMemberCallNamed, isEffectMemberCall, findSharedMutableStateMutation, collectDeclaredIdentifierNames, mutatedIdentifierName, mutatingCollectionMethods",
-      "Recognition tokens: Effect, fork, all, forEach; API and repair controls still require packed qualification."
+      "Q20: 7 legacy/10 v4 parsed warnings; opposite policy retains 5 each. Preserve legacy file-wide names including function-local declarations. V4 uses native lexical module/global bindings and direct/curried/terminal-pipe child/detached work; local/shadow bindings stay clean. Known Array/Map/Set operations are covered, not object-property writes or stored tasks. Runtime demonstrates paired module read/write losing an update, per-execution Ref.update preserving two updates and ordered immutable aggregation. Syntax is not execution or data-race proof; default collections remain sequential."
     ]
   },
   "no-manual-deferred-coordination": {
@@ -2017,12 +2017,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noManualDeferredCoordination; transitive helpers: noManualDeferredCoordination, getImportSource, isEffectEcosystemImport, deferredBindingName, isIdentifier, findNode, isDeferredConstructorCall, deferredConstructorMembers, isDeferredAwaitCall, isMemberCall, firstArgument, isDeferredAwaitProtected, isEffectMemberCall, deferredTimeoutMembers, deferredInterruptionMembers, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, isFunctionLike, hasMatchingDeferredFinalizer, callbackBody, containsIdentifierNamed",
-      "Recognition tokens: Deferred, Effect, timeout, timeoutOption, timeoutFail, timeoutFailCause, timeoutTo, race, raceFirst, raceAll, Scope; API and repair controls still require packed qualification."
+      "Q20: 3 legacy/6 v4 parsed warnings; opposite policy 2 legacy/3 v4. Preserve legacy function-scope names/protection tables. V4 make/makeUnsafe binding references include captured closures, distinguish shadowed finalizer latches and stop timeout fallback ancestry at ordinary callbacks. Current timeout/race direct/curried/terminal-pipe markers and same-binding finalizer references are recognised; markers do not prove execution or eventual completion. Runtime retains value 42, original error identity, external interruption and once-only completion; TestClock verifies timeout/None/fallback without completing the latch. Scoped bare-await clean control needs explicit caller interruption. Checked API negatives distinguish unsafeMake(FiberId) from makeUnsafe()."
     ]
   },
   "no-acquire-without-scoped-release": {
@@ -2182,12 +2182,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noYieldWithHeldSemaphorePermit; transitive helpers: noYieldWithHeldSemaphorePermit, getImportSource, isEffectEcosystemImport, heldSemaphoreWork, isAnyObjectMemberCallNamed, isIdentifier, isMemberCall, containsHighRiskSuspension, isEffectMemberCall, highRiskEffectMembers",
-      "Recognition tokens: withPermits, Effect, promise, tryPromise, fork, forkDaemon, forkScoped, all, forEach, race, raceAll, Queue, Deferred; API and repair controls still require packed qualification."
+      "Q20: 6 legacy/10 v4 parsed warnings; opposite policy 3 legacy/8 v4. Legacy actual Effect.Semaphore.withPermits plus work-first direct/semaphore-first curried TSemaphore wrap Effect work. V4 current instance/namespace withPermit/withPermits, curried/terminal pipes and recognised gen/fn own callbacks cover visible waits and concurrent operations; removed TSemaphore is excluded. Named tasks and ordinary unused nested definitions stay outside current inference. Runtime proves held-permit contender blocking, narrow-section contender progress before gate release, original success/failure, interruption, exactly-once finalizers and balanced release using full-capacity take plus nonwaiting acquisition probe. Both majors take(1) return acquired count 1, not remaining capacity. Strict-only coordination policy is not leak detection; moving intentional async concurrency limiting outside changes semantics. Checked compiler negatives cover permit module and method differences."
     ]
   },
   "no-yield-with-held-mutable-ref": {
