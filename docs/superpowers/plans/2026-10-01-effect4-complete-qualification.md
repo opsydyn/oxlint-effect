@@ -311,6 +311,11 @@ Q49 React/runtime behavioural evidence passes with real pinned SSR and joined
 fibers. Runtime.runFork is a fifth legacy-only rule; current orDieWith is ignored.
 Size is 977 bytes over the cap; checkbox/inventory stay open. Continue Q50-Q52.
 
+Q50 loading/render/provision behavioural evidence passes: 567 tests / 3690
+expectations, types, both packed majors, publint, API docs and diff. Real SSR
+repeated-work and deferred-action controls retain loading/provision semantics.
+Size is 944 bytes over the cap; checkbox/inventory stay open. Continue Q51-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

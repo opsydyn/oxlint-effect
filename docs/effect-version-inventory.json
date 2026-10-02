@@ -1027,7 +1027,7 @@
     },
     "evidence": [
       "src/index.ts: noRenderSideEffects; transitive helpers: noRenderSideEffects, getImportSource, isEffectEcosystemImport, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression, containsMatchBranchCall, isMatchBranchCall",
-      "Recognition tokens: Match, orElse; API and repair controls still require packed qualification."
+      "Q50 packed both majors: 4 actual view/ordinary pure/unused/top-level Match statement warnings. Real repeated SSR retains button markup but bad mutation twice moves to one deferred action; not client event proof. Assigned/free/alias/computed/import-order scope limits documented. Size gate remains open."
     ]
   },
   "no-atom-registry-effect-sync": {
@@ -1061,7 +1061,7 @@
     ]
   },
   "no-inline-runtime-provide": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -1072,7 +1072,7 @@
     },
     "evidence": [
       "src/index.ts: noInlineRuntimeProvide; transitive helpers: noInlineRuntimeProvide, getImportSource, isEffectEcosystemImport, findInlineRuntimeProvide, isPipeCall, isIdentifier, pipeParts, isEffectProvideWithSingleArgument, isEffectMemberCallNamed, isEffectMemberCall",
-      "Recognition tokens: Effect, provide; API and repair controls still require packed qualification."
+      "Q50 packed both majors: 5 receiver/free/yielded/multiple/empty/exported provision warnings. First provide only; valid boundary pipes can warn. Current Context.Service advice adapted with exact legacy Effect.Service message; actual own-major Tag/Service/Layer direct boundary preserves 42/original failure. Curried/alias/import-order gaps labelled. Size gate remains open."
     ]
   },
   "no-naked-object-state-update": {
@@ -1721,7 +1721,7 @@
     },
     "evidence": [
       "src/index.ts: preventDynamicImports; transitive helpers: preventDynamicImports",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q50 packed both majors: 4 literal/await/template/variable dynamic imports without ecosystem gate. Actual local module/static repair retains 42; type-only import is clean. Only known local fixture is executed. Size gate remains open."
     ]
   },
   "no-nested-effect-call": {

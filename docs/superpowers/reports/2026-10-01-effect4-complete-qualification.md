@@ -1277,6 +1277,22 @@ publint, API docs and diff. Raw build is 142.16 kB; cap fails by 977 bytes.
 Q22-Q49 and inventory statuses remain open, 82 unqualified. Continue Q50-Q52 and
 closure without release.
 
+## Q50 Loading, Rendering And Provision Ownership
+
+Both pinned consumers verify four dynamic-import warnings, four Match statement
+warnings and five inline provision warnings. Actual static/dynamic local loads
+retain 42; repeated React server rendering exposes repeated render work while
+the repaired action remains deferred and runs once. Real explicit service
+provision retains value 42 and original typed failure identity. Current advice
+uses Context.Service; legacy advice remains exact. Conservative pure-statement
+and exported-boundary warnings, aliases, computed names and import-order gaps
+are documented rather than represented as semantic ownership analysis.
+
+Fresh gates pass: 567 tests / 3690 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 142.24 kB; cap fails by 944 bytes.
+Q22-Q50 and inventory statuses remain open, 82 unqualified. Continue Q51-Q52
+and closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

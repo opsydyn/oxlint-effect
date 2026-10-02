@@ -52,6 +52,17 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q50 supplies packed loading/render/provision evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["prevent-dynamic-imports", "no-render-side-effects", "no-inline-runtime-provide"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q50 gives current service provision advice", () => {
+    const inspect = (version: 3 | 4) => runRuleSequence("no-inline-runtime-provide", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: pipeCall(identifier("task"), effectCall("provide", identifier("live"))) }], { options: [{ effectVersion: version }] })[0].message;
+    expect(inspect(4)).toContain("Context.Service");
+    expect(inspect(3)).toContain("Effect.Service");
+  });
   it("Effect qualification Q49 avoids prescribing a legacy-only React adapter to current users", () => {
     const inspect = (version: 3 | 4) => runRule("no-react-state", "CallExpression", callExpression(identifier("useState")), { options: [{ effectVersion: version }] })[0].message;
     expect(inspect(4)).toContain("compatible reactive adapter");

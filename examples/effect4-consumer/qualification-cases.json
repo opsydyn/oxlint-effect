@@ -3367,5 +3367,72 @@
       }
     },
     "runtime": "src/qualification/reactAndRuntimeBoundaries/react-runtime.contracts.ts"
+  },
+  {
+    "rule": "prevent-dynamic-imports",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "literal/await/template/variable actual dynamic imports without Effect gate",
+      "actual static repair and type-only import retain module value"
+    ],
+    "bad": [
+      "src/qualification/reactAndRuntimeBoundaries/prevent-dynamic-imports.bad.ts"
+    ],
+    "good": [
+      "src/qualification/reactAndRuntimeBoundaries/static-loading.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/reactAndRuntimeBoundaries/prevent-dynamic-imports.bad.ts": {
+        "linteffect/prevent-dynamic-imports": 4
+      }
+    },
+    "runtime": "src/qualification/reactAndRuntimeBoundaries/loading-render-provision.contracts.ts"
+  },
+  {
+    "rule": "no-render-side-effects",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "actual React SSR side effect twice versus deferred owned action once",
+      "ordinary pure/unused/top-level Match statement false positives",
+      "assigned/free/alias/computed/import-order shape controls"
+    ],
+    "bad": [
+      "src/qualification/reactAndRuntimeBoundaries/no-render-side-effects.bad.ts"
+    ],
+    "good": [
+      "src/qualification/reactAndRuntimeBoundaries/render-action.good.ts",
+      "src/qualification/reactAndRuntimeBoundaries/render-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/reactAndRuntimeBoundaries/no-render-side-effects.bad.ts": {
+        "linteffect/no-render-side-effects": 4
+      }
+    },
+    "runtime": "src/qualification/reactAndRuntimeBoundaries/loading-render-provision.contracts.ts"
+  },
+  {
+    "rule": "no-inline-runtime-provide",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "receiver/free/yielded/multiple/empty/exported provision controls",
+      "actual own-major Tag/Service/Layer boundary repair retains value/failure identity",
+      "curried/alias/import-order gaps and current service advice"
+    ],
+    "bad": [
+      "src/qualification/reactAndRuntimeBoundaries/no-inline-runtime-provide.bad.ts"
+    ],
+    "good": [
+      "src/qualification/reactAndRuntimeBoundaries/runtime-boundary.good.ts",
+      "src/qualification/reactAndRuntimeBoundaries/provide-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/reactAndRuntimeBoundaries/no-inline-runtime-provide.bad.ts": {
+        "linteffect/no-inline-runtime-provide": 5
+      }
+    },
+    "runtime": "src/qualification/reactAndRuntimeBoundaries/loading-render-provision.contracts.ts"
   }
 ]

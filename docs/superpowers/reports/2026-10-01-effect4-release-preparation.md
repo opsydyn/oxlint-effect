@@ -93,7 +93,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds the unchanged 30 KB cap by 879 bytes.
 - [ ] Close Q49 React/runtime qualification: behavioural gates pass;
   compressed size exceeds the unchanged 30 KB cap by 977 bytes.
-- [ ] Complete and qualify Q50-Q52 in the
+- [ ] Close Q50 loading/render/provision qualification: behavioural gates pass;
+  compressed size exceeds the unchanged 30 KB cap by 944 bytes.
+- [ ] Complete and qualify Q51-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition

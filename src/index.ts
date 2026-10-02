@@ -7008,6 +7008,7 @@ const noFamilyCollectionRead = defineRule({
 
 const noInlineRuntimeProvide = defineRule({
   create(context: OxlintContext) {
+    const service = effectVersionFor(context.options) === 3 ? "an Effect.Service" : "a Context.Service";
     let hasEffectEcosystemImport = false;
 
     return {
@@ -7023,7 +7024,7 @@ const noInlineRuntimeProvide = defineRule({
           report(
             context,
             provide,
-            "Rule: do not inline runtime provisioning inside local helper Effect code. Why: `yield* SomeRuntime.pipe(Effect.provide(SomeRuntimeLive))` and equivalent inline provide chains hide dependency assembly instead of owning it at an Effect.Service boundary or one exported Effect boundary. Fix: declare the live dependency on the owning service or provide it once at the exported boundary, then `yield*` the runtime or service directly inside the body.",
+            `Rule: do not inline runtime provisioning inside local helper Effect code. Why: \`yield* SomeRuntime.pipe(Effect.provide(SomeRuntimeLive))\` and equivalent inline provide chains hide dependency assembly instead of owning it at ${service} boundary or one exported Effect boundary. Fix: declare the live dependency on the owning service or provide it once at the exported boundary, then \`yield*\` the runtime or service directly inside the body.`,
           );
         }
       },

@@ -23,6 +23,7 @@ export const versionSensitiveRules = [
   "no-react-state",
   "no-runtime-runfork",
   "no-or-die-outside-boundary",
+  "no-inline-runtime-provide",
   "no-console-in-effect-flow",
   "no-effect-log-without-structured-context",
   "require-span-on-public-service-method",
