@@ -344,7 +344,7 @@
     },
     "evidence": [
       "src/index.ts: noPipedYieldInGen; transitive helpers: noPipedYieldInGen, getImportSource, isEffectEcosystemImport, repeatedPipedYieldInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPipedYields, isPipeCall",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q37: 5 warnings per major for >=2 piped yields; second yield reported, nested owner duplication and unused ordinary generator traversal retained. Named decorated steps and one-yield control clean. Real tasks preserve 42, no execution proof inferred from warning. Final 30 KB gate pending: 752 bytes over."
     ]
   },
   "no-gen-for-mapping": {
@@ -359,11 +359,11 @@
     },
     "evidence": [
       "src/index.ts: noGenForMapping; transitive helpers: noGenForMapping, getImportSource, isEffectEcosystemImport, genForMappingNode, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, singleYieldVariableName, isPureMappingReturn, containsNodeType, containsEffectMemberCall, containsIdentifierNamed",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q37: 4 warnings per major for exactly yielded binding/transformed return. Actual map repair preserves 42/object shape/original failure. Identity/extra statements/named generator opaque. Called transform can have observable side effects despite pure heuristic; runtime calls it once. Final 30 KB gate pending: 752 bytes over."
     ]
   },
   "prefer-gen-for-workflow": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -374,7 +374,7 @@
     },
     "evidence": [
       "src/index.ts: preferGenForWorkflow; transitive helpers: preferGenForWorkflow, getImportSource, isEffectEcosystemImport, workflowSequencingPipeline, isPipeCall, isIdentifier, pipeOperatorArguments, isWorkflowSequencingOperator, isEffectMemberCall, workflowSequencingCombinators",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q37: 3 warnings per major; opposite policy 2. Shared selector now wired into owner: current flatMapEager and no removed zipRight, exact legacy operator set retained. Free/receiver pipe, three-operator threshold and aliases checked. Generator repair preserves event order,42 and failure identity/short circuit. Compiler rejects foreign operators. Final 30 KB gate pending: 752 bytes over."
     ]
   },
   "no-business-logic-in-pipe": {

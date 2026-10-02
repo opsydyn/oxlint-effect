@@ -261,6 +261,10 @@ Q36 boolean/outcome behavioural evidence passes, completing all nine
 normalisation owners. Size is 696 bytes over 30 KB; checkbox and inventory
 statuses stay open. Continue Q37.
 
+Q37 workflow behavioural evidence passes with own-major operator selection.
+Size is 752 bytes over 30 KB; checkbox and inventory statuses stay open.
+Continue Q38.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

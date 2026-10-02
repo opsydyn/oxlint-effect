@@ -52,6 +52,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q37 selects current workflow operators", () => {
+    const inspect = (operator: string, version: 3 | 4) => runRuleSequence("prefer-gen-for-workflow", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: pipeCall(effectCall("succeed", identifier("value")), effectCall(operator, identifier("step")), effectCall(operator, identifier("step")), effectCall(operator, identifier("step"))) }], { options: [{ effectVersion: version }] });
+    expect(inspect("flatMapEager", 4)).toHaveLength(1);
+    expect(inspect("zipRight", 4)).toHaveLength(0);
+    expect(inspect("flatMapEager", 3)).toHaveLength(0);
+    expect(inspect("zipRight", 3)).toHaveLength(1);
+  });
+  it("Effect qualification Q37 supplies packed workflow evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-piped-yield-in-gen", "no-gen-for-mapping", "prefer-gen-for-workflow"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q36 supplies packed boolean and result evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

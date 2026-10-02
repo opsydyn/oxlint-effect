@@ -2538,5 +2538,83 @@
       }
     },
     "runtime": "src/qualification/optionMatchAndDataNormalization/normalization.contracts.ts"
+  },
+  {
+    "rule": "no-piped-yield-in-gen",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "repeated piped yields, nested/unused traversal and named decorated steps",
+      "exact two-statement generator versus identity/extra/named callback gaps",
+      "three sequencing operators, free/receiver pipe and selected eager/legacy forms",
+      "actual value/shape/event order, failure identity and short circuit contracts",
+      "compiler negatives for removed/foreign workflow operators"
+    ],
+    "bad": [
+      "src/qualification/effectFlow/no-piped-yield-in-gen.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectFlow/no-piped-yield-in-gen.good.ts",
+      "src/qualification/effectFlow/workflow-no-import.good.ts",
+      "src/qualification/effectFlow/workflow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectFlow/no-piped-yield-in-gen.bad.ts": {
+        "linteffect/no-piped-yield-in-gen": 5
+      }
+    },
+    "runtime": "src/qualification/effectFlow/workflow.contracts.ts"
+  },
+  {
+    "rule": "no-gen-for-mapping",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "repeated piped yields, nested/unused traversal and named decorated steps",
+      "exact two-statement generator versus identity/extra/named callback gaps",
+      "three sequencing operators, free/receiver pipe and selected eager/legacy forms",
+      "actual value/shape/event order, failure identity and short circuit contracts",
+      "compiler negatives for removed/foreign workflow operators"
+    ],
+    "bad": [
+      "src/qualification/effectFlow/no-gen-for-mapping.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectFlow/no-gen-for-mapping.good.ts",
+      "src/qualification/effectFlow/workflow-no-import.good.ts",
+      "src/qualification/effectFlow/workflow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectFlow/no-gen-for-mapping.bad.ts": {
+        "linteffect/no-gen-for-mapping": 4
+      }
+    },
+    "runtime": "src/qualification/effectFlow/workflow.contracts.ts"
+  },
+  {
+    "rule": "prefer-gen-for-workflow",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "repeated piped yields, nested/unused traversal and named decorated steps",
+      "exact two-statement generator versus identity/extra/named callback gaps",
+      "three sequencing operators, free/receiver pipe and selected eager/legacy forms",
+      "actual value/shape/event order, failure identity and short circuit contracts",
+      "compiler negatives for removed/foreign workflow operators"
+    ],
+    "bad": [
+      "src/qualification/effectFlow/prefer-gen-for-workflow.bad.ts"
+    ],
+    "good": [
+      "src/qualification/effectFlow/prefer-gen-for-workflow.good.ts",
+      "src/qualification/effectFlow/workflow-no-import.good.ts",
+      "src/qualification/effectFlow/workflow-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/effectFlow/prefer-gen-for-workflow.bad.ts": {
+        "linteffect/prefer-gen-for-workflow": 3
+      }
+    },
+    "runtime": "src/qualification/effectFlow/workflow.contracts.ts"
   }
 ]

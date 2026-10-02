@@ -617,13 +617,13 @@ function isWorkflowSequencingOperator(node: unknown, version: EffectVersion = 3)
     : property.name === "flatMapEager" || (property.name !== "zipRight" && workflowSequencingCombinators.has(property.name)));
 }
 
-function workflowSequencingPipeline(node: unknown): unknown | undefined {
+function workflowSequencingPipeline(node: unknown, version: EffectVersion = 3): unknown | undefined {
   if (!isPipeCall(node)) {
     return undefined;
   }
 
   const sequencingCount = pipeOperatorArguments(node)
-    .filter((argument) => isWorkflowSequencingOperator(argument))
+    .filter((argument) => isWorkflowSequencingOperator(argument, version))
     .length;
 
   return sequencingCount >= 3 ? node : undefined;
@@ -5867,6 +5867,7 @@ const noGenForMapping = defineRule({
 
 const preferGenForWorkflow = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -5881,7 +5882,7 @@ const preferGenForWorkflow = defineRule({
           return;
         }
 
-        const workflow = workflowSequencingPipeline(node);
+        const workflow = workflowSequencingPipeline(node, version);
         if (workflow) {
           report(
             context,

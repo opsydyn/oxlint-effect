@@ -981,6 +981,29 @@ evidence. Build is 141.28 kB raw; unchanged 30 KB cap fails by 696 bytes.
 Q22-Q36 and inventory statuses remain open, 82 rules unqualified. Continue
 Q37-Q52 and closure without push, version bump or release.
 
+## Q37 Workflow Shape And Mapping
+
+Owners emit 5 piped-yield, 4 tiny-generator and 3 workflow warnings per major.
+Workflow opposite policy emits 2. The existing shared selector was not wired to
+this owner; current policy now counts flatMapEager and excludes removed zipRight,
+preserving the exact legacy set. Regression watched RED/GREEN, sensitivity and
+projections updated together. Compiler negatives verify foreign operators.
+
+Piped-yield traversal reports the second yield, includes unused generators and
+can duplicate a nested yield under both owners. Named decorated steps preserve
+42; one piped yield is below threshold. Mapping requires exactly two statements;
+identity/extra/named callbacks remain clean. Arbitrary called transforms are not
+proven pure; an observable callback contract records one call. Actual map/gen
+repairs preserve 42, object shape, event order and original failure identity;
+failed sources short-circuit subsequent events. Free/receiver pipe and aliases
+have parsed controls. Documentation states syntax-local limits, not execution
+or purity proof.
+
+Fresh gates pass: 543 tests/3594 expectations, root/source types, both packed
+majors/opposite/runtime controls, publint, API docs and diff. Build is 141.33 kB
+raw; cap fails by 752 bytes. Q22-Q37 and inventory statuses remain open,
+82 rules unqualified. Continue Q38-Q52 and campaign closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
