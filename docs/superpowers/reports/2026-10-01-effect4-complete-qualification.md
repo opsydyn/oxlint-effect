@@ -672,6 +672,38 @@ API docs and diff. Build 140.20 kB raw; unchanged 30 KB cap fails by 398 bytes.
 Q22-Q25 remain unchecked; 82 rules retain unqualified applicable versions.
 Continue Q26-Q52 and cross-group closure; no push, version bump or release.
 
+## Q26 Schema Boundaries, Clock And Shared Platform Imports
+
+Behavioural evidence passes for three owners in both pinned consumers; final
+qualification remains pending the unchanged compressed-size cap. JSON parsing
+reports four warnings per major/opposite policy. Root, deep, aliased and type-only
+Schema import controls retain the import-presence exclusion. Marker-only examples
+accept invalid field values, demonstrating that an import does not prove decoding.
+Real string codecs use legacy parseJson/decodeUnknown versus current
+fromJsonString/decodeUnknownEffect; v4 advice now matches that API, while legacy
+text remains exact. Valid count 42 passes and malformed JSON/shape fail in the
+Effect channel, not via an eager parser exception. Checked API negatives pass.
+
+Clock reads report eight legacy/ten current warnings (opposite nine/eight).
+Current fnUntraced/fnUntracedEager forms are recognised; legacy retains its valid
+untraced-function gap. Sensitivity, schema and preset inventory agree. Common
+constructors, curried fn, nested dedup and no-import controls pass. Broad traversal
+retains an unused-callback false positive; named callbacks and aliases remain
+opaque. TestClock verifies reads 1000 then 2000 and deterministic named fn time.
+Wall-clock controls are type/value checks, not determinism evidence.
+
+Shared-platform imports report six nodes per major, including prefixed, bare,
+subpath and type-only imports in files without an Effect import. Default/custom,
+replaced and empty boundary controls pass. Require remains opaque. A real typed
+path service returns the fixture basename like the native boundary; this injected
+stand-in does not qualify OS-wide path semantics or portability of opaque code.
+
+Fresh gates pass: 525 tests/3510 expectations, root types, both packed majors
+including final opposite/boundary/runtime markers, publint, API docs and diff.
+Build 140.35 kB raw; unchanged 30 KB compressed cap fails by 385 bytes. Q22-Q26
+remain unchecked, 82 rules retain unqualified applicable versions. Continue
+Q27-Q52 and cross-group closure; no push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

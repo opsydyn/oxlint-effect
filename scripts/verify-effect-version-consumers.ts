@@ -170,6 +170,23 @@ try {
       verifyLint(root, config, [shared], rule === "no-boundary-try-catch-without-effect-map" ? { [`linteffect/${rule}`]: 1 } : {}, rule === "no-boundary-try-catch-without-effect-map" ? 1 : 0);
       verifyLint(root, config, [path], rule === "no-hidden-effect-execution" ? { [`linteffect/${rule}`]: major === 3 ? 6 : 12 } : {}, rule === "no-hidden-effect-execution" ? 1 : 0);
     }
+    for (const [rule, count] of [["no-json-parse-without-schema", 4], ["no-date-now-in-effect", major === 3 ? 9 : 8]] as const) {
+      const config = "oxlint.qualification.opposite.json";
+      const path = `src/qualification/platformAndBoundaryHygiene/${rule}.bad.ts`;
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, [path], { [`linteffect/${rule}`]: count }, 1, { [path]: { [`linteffect/${rule}`]: count } });
+    }
+    {
+      const rule = "no-node-platform-in-shared-code";
+      const config = "oxlint.qualification.boundary.json";
+      const boundary = "src/qualification/platformAndBoundaryHygiene/server/platform.good.ts";
+      const shared = "src/qualification/platformAndBoundaryHygiene/no-node-platform-in-shared-code.bad.ts";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { boundaryPaths: [] }] } }));
+      verifyLint(root, config, [boundary], { [`linteffect/${rule}`]: 1 }, 1);
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { boundaryPaths: ["**/no-node-platform-in-shared-code.bad.ts"] }] } }));
+      verifyLint(root, config, [shared], {}, 0);
+      verifyLint(root, config, [boundary], { [`linteffect/${rule}`]: 1 }, 1);
+    }
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
       "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },

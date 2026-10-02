@@ -451,6 +451,18 @@ retains its function-local `require` gap. V3 filesystem repairs use
 `@effect/platform/FileSystem`; v4 uses `effect/FileSystem` (or the root export).
 No-op FileSystem Layers demonstrate the service seam, not native cancellation.
 
+The same examples cover JSON codecs, Clock and platform services. Legacy codecs
+use `Schema.parseJson` with `Schema.decodeUnknown`; v4 uses
+`Schema.fromJsonString` with `Schema.decodeUnknownEffect`. Schema import presence
+(including aliases and type-only imports) suppresses raw-parse warnings, but does
+not establish that decoding occurred. Current clock policy includes
+`Effect.fnUntraced` and `fnUntracedEager`; legacy selection preserves its existing
+gap. Unused nested callbacks can still warn, while named callbacks and clock
+aliases remain opaque. TestClock repairs demonstrate deterministic time rather
+than renaming wall-clock access. Shared-platform policy needs no Effect import,
+reports type-only Node imports, and does not inspect `require`; configure genuine
+application boundaries or depend on typed services.
+
 ### Testing, Observability, and QA
 
 | Rule | Catches | Why |

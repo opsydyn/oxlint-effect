@@ -381,10 +381,11 @@ function isEffectGeneratorCall(node: unknown, propertyName: "fn" | "gen", versio
 
 const effectConstructionBoundaries = new Set(["gen", "sync", "try", "tryPromise", "fn"]);
 
-function isEffectConstructionBoundary(node: unknown): node is Node & { arguments: unknown[] } {
+function isEffectConstructionBoundary(node: unknown, version: EffectVersion = 3): node is Node & { arguments: unknown[] } {
   if (isEffectMemberCall(node)) {
     const property = (node.callee as Node).property;
-    if (isIdentifier(property) && effectConstructionBoundaries.has(property.name)) {
+    if (isIdentifier(property) && (effectConstructionBoundaries.has(property.name) ||
+      (version === 4 && (property.name === "fnUntraced" || property.name === "fnUntracedEager")))) {
       return true;
     }
   }
@@ -404,25 +405,6 @@ function isDateNowCall(node: unknown): boolean {
     (node as Node).type === "CallExpression" &&
     isMemberExpression((node as Node).callee, "Date", "now")
   );
-}
-
-function findDateNowCalls(node: unknown, seen = new WeakSet<object>()): unknown[] {
-  if (Array.isArray(node)) {
-    return node.flatMap((child) => findDateNowCalls(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null || seen.has(node)) {
-    return [];
-  }
-  seen.add(node);
-
-  if (isDateNowCall(node)) {
-    return [node];
-  }
-
-  return Object.entries(node).flatMap(([key, child]) => (
-    key === "parent" ? [] : findDateNowCalls(child, seen)
-  ));
 }
 
 function findYieldWithoutStarInEffectGen(node: unknown, version: EffectVersion): unknown | undefined {
@@ -7801,6 +7783,7 @@ const noBoundaryTryCatchWithoutEffectMap = defineRule({
 
 const noJsonParseWithoutSchema = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
     let hasEffectSchemaImport = false;
     const jsonParseCalls: unknown[] = [];
@@ -7822,7 +7805,9 @@ const noJsonParseWithoutSchema = defineRule({
           report(
             context,
             node,
-            "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: decode unknown input with Schema.decodeUnknown at the boundary.",
+            version === 3
+              ? "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: decode unknown input with Schema.decodeUnknown at the boundary."
+              : "Rule: avoid JSON.parse without an Effect Schema boundary. Why: parsed JSON is unknown input and unchecked casts hide malformed data. Fix: use Schema.fromJsonString with Schema.decodeUnknownEffect at the boundary.",
           );
         }
       },
@@ -7832,6 +7817,7 @@ const noJsonParseWithoutSchema = defineRule({
 
 const noDateNowInEffect = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
     const collectedDateCalls = new WeakSet<object>();
     const dateNowCalls: unknown[] = [];
@@ -7842,9 +7828,9 @@ const noDateNowInEffect = defineRule({
         if (source && isEffectEcosystemImport(source)) hasEffectEcosystemImport = true;
       },
       CallExpression(node: any) {
-        if (!isEffectConstructionBoundary(node)) return;
+        if (!isEffectConstructionBoundary(node, version)) return;
 
-        for (const dateNowCall of findDateNowCalls(node.arguments)) {
+        for (const dateNowCall of findNodes(node.arguments, isDateNowCall)) {
           if (collectedDateCalls.has(dateNowCall as object)) continue;
           collectedDateCalls.add(dateNowCall as object);
           dateNowCalls.push(dateNowCall);

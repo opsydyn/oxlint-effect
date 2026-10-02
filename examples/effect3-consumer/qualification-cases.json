@@ -1767,5 +1767,85 @@
       }
     },
     "runtime": "src/qualification/platformAndBoundaryHygiene/execution-filesystem.contracts.ts"
+  },
+  {
+    "rule": "no-json-parse-without-schema",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct sync workflow and async raw parse",
+      "root deep alias and type-only Schema imports",
+      "import-only invalid-value counterexamples",
+      "own-major JSON schema codec and malformed input"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/no-json-parse-without-schema.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/no-json-parse-without-schema.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/json-deep.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/json-alias.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/json-type-only.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/json-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/no-json-parse-without-schema.bad.ts": {
+        "linteffect/no-json-parse-without-schema": 4
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/decoding-clock-platform.contracts.ts"
+  },
+  {
+    "rule": "no-date-now-in-effect",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "six constructor forms and nested deduplication",
+      "unused callback conservative warning",
+      "current untraced and eager untraced functions",
+      "aliases and named callbacks remain opaque",
+      "TestClock deterministic service repair"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/no-date-now-in-effect.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/no-date-now-in-effect.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/clock-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/no-date-now-in-effect.bad.ts": {
+        "linteffect/no-date-now-in-effect": 8
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/decoding-clock-platform.contracts.ts"
+  },
+  {
+    "rule": "no-node-platform-in-shared-code",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "prefixed bare subpath and type-only imports",
+      "no Effect import gate",
+      "boundary path versus import-only require gap",
+      "injected typed service repair"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/no-node-platform-in-shared-code.bad.ts",
+      "src/qualification/platformAndBoundaryHygiene/platform-no-effect.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/no-node-platform-in-shared-code.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/server/platform.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/no-node-platform-in-shared-code.bad.ts": {
+        "linteffect/no-node-platform-in-shared-code": 5
+      },
+      "src/qualification/platformAndBoundaryHygiene/platform-no-effect.bad.ts": {
+        "linteffect/no-node-platform-in-shared-code": 1
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/decoding-clock-platform.contracts.ts"
   }
 ]

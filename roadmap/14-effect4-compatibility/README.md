@@ -17,6 +17,10 @@ Q25 hidden execution/boundary recovery/filesystem behavioural checks pass.
 Current recovery selects current APIs; v3 messages remain unchanged. Size is
 398 bytes over the cap; final qualification stays open. Continue Q26-Q52.
 
+Q26 decoding/clock/platform behavioural checks pass; current clock policy and
+schema advice use pinned v4 APIs. Size is 385 bytes over the unchanged cap;
+qualification remains open. Continue Q27-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

@@ -751,11 +751,11 @@
     },
     "evidence": [
       "src/index.ts: noJsonParseWithoutSchema; transitive helpers: noJsonParseWithoutSchema, getImportSource, isEffectEcosystemImport, importsEffectSchema, isIdentifier, isMemberExpression",
-      "Recognition tokens: Schema; API and repair controls still require packed qualification."
+      "Q26: 4 warnings per major/opposite policy across raw, sync, gen and async functions. Root/deep/aliased/type-only Schema imports suppress; marker-only controls accept invalid count. Real JSON schema codecs use parseJson/decodeUnknown in v3 and fromJsonString/decodeUnknownEffect in v4; valid 42 and typed malformed JSON/shape failures pass with no eager parser exception. Legacy advice unchanged. Final 30 KB gate pending: 385 bytes over."
     ]
   },
   "no-date-now-in-effect": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -765,8 +765,8 @@
       "4": "pending"
     },
     "evidence": [
-      "src/index.ts: noDateNowInEffect; transitive helpers: noDateNowInEffect, getImportSource, isEffectEcosystemImport, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findDateNowCalls, isDateNowCall, isMemberExpression",
-      "Recognition tokens: Effect, sync, try, tryPromise; API and repair controls still require packed qualification."
+      "src/index.ts: noDateNowInEffect; transitive helpers: noDateNowInEffect, getImportSource, isEffectEcosystemImport, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findNodes, isDateNowCall, isMemberExpression",
+      "Q26: 8 legacy/10 current warnings, opposite 9/8. Current fnUntraced/fnUntracedEager calls recognised; v3 existing gap retained. Common constructors, curried fn, nested dedup, import order and no-import controls pass. Unused callbacks conservatively warn; named callbacks and aliases remain opaque. TestClock reads 1000 then 2000, own fn retains deterministic time. Sensitivity/schema/preset inventory updated together. Final 30 KB gate pending: 385 bytes over."
     ]
   },
   "no-new-date-in-domain-logic": {
@@ -1524,7 +1524,7 @@
     },
     "evidence": [
       "src/index.ts: noNodePlatformInSharedCode; transitive helpers: noNodePlatformInSharedCode, boundaryPathOptionsSchema, getImportSource, isNodeBuiltinImport, nodeBuiltinImportSources, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
-      "Recognition tokens: async_hooks; API and repair controls still require packed qualification."
+      "Q26: 6 warnings per major across prefixed, bare, subpath and type-only Node imports, including no-Effect module. Default/custom/replaced/empty boundary controls pass. Require stays opaque, not portable. Typed injected path service returns fixture like the native boundary; stand-in does not qualify all OS path semantics. Final 30 KB gate pending: 385 bytes over."
     ]
   },
   "no-process-env-direct-read": {

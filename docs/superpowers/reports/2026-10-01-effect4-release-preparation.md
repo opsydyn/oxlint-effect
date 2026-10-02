@@ -45,7 +45,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds unchanged 30 KB by 330 bytes.
 - [ ] Close Q25 hidden execution/boundary/filesystem qualification: behavioural
   gates pass; compressed size exceeds unchanged 30 KB by 398 bytes.
-- [ ] Complete and qualify Q26-Q52 in the
+- [ ] Close Q26 decoding/clock/platform qualification: behavioural gates pass;
+  compressed size exceeds unchanged 30 KB by 385 bytes.
+- [ ] Complete and qualify Q27-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition

@@ -43,6 +43,7 @@ export const versionSensitiveRules = [
   "prefer-layer-mergeall-for-infrastructure",
   "no-service-layer-scatter",
   "no-json-parse-without-schema",
+  "no-date-now-in-effect",
   "no-effect-all-step-sequencing",
   "no-async-effect-combinator-callback",
   "no-throw-in-effect-logic",

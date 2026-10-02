@@ -52,6 +52,20 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q26 recognises current untraced function clock reads", () => {
+    const node = effectCall("fnUntraced", generatorCallback(blockStatement(returnStatement(dateNowCall()))));
+    const inspect = (version: 3 | 4) => runRuleSequence("no-date-now-in-effect", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }, { visitorName: "Program:exit", node: {} }], { options: [{ effectVersion: version }] });
+    expect(inspect(4)).toHaveLength(1);
+    expect(inspect(3)).toHaveLength(0);
+    const reports = runRuleSequence("no-json-parse-without-schema", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: memberCall("JSON", "parse") }, { visitorName: "Program:exit", node: {} }], { options: [{ effectVersion: 4 }] });
+    expect(reports[0]?.message).toContain("Schema.decodeUnknownEffect");
+  });
+  it("Effect qualification Q26 supplies packed decoding, clock and portability evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-json-parse-without-schema", "no-date-now-in-effect", "no-node-platform-in-shared-code"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q25 selects current boundary recovery and repair advice", () => {
     const inspect = (method: string, version: 3 | 4) => runRule("no-boundary-try-catch-without-effect-map", "TryStatement", tryStatement(expressionStatement(effectCall(method, identifier("program"), identifier("recover")))), { filename: "/repo/server/entry.ts", options: [{ effectVersion: version }] });
     for (const method of ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchReason", "catchReasons", "catchNoSuchElement"]) expect(inspect(method, 4)).toHaveLength(0);
