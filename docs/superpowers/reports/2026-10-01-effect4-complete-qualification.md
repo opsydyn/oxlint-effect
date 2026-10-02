@@ -850,6 +850,32 @@ final packed majors, publint, API docs and diff. Build remains 140.96 kB raw,
 649 bytes over the unchanged 30 KB cap. Q22-Q31 and inventory statuses stay
 open; 82 rules remain unqualified. Continue Q32-Q52 and closure, no release.
 
+## Q32 Eligibility, Lifecycle And Failure Context
+
+Unchanged detectors emit 5 compound-condition, 4 lifecycle-flag and 4 ad-hoc
+error warnings per major. Nested logical expressions deliberately retain their
+report multiplicity. Merely naming a three-comparison predicate is not a clean
+repair; the fixture records that advice limit and uses Predicate.every over
+individual named checks. Runtime controls preserve valid eligibility and reject
+negative/unfunded/unverified candidates without claiming all domain invariants.
+
+The state owner checks recognised non-computed flags on one identifier; repeated,
+computed, different-object and aliased flags remain clean. Actual own-major
+Schema tagged unions and exhaustive Match transitions preserve IDs, terminal
+state identity and idempotence. Contradictory flag objects fail decoding; compiler
+checks require receipt context. V3 uses variadic Union; v4 uses array Union.
+
+Literal Effect.fail/thrown new Error forms warn, while stored/template/dynamic
+errors remain opaque. Data.TaggedError carries user ID, reason and original cause;
+catchTag recovery preserves the exact instance and fields, while an unrecovered
+error remains failure. Compiler checks require context. No-import and late-import
+controls remain explicit gaps rather than semantic repairs.
+
+Fresh gates pass: 534 tests/3552 expectations, root and selected source types,
+both packed majors, publint, API docs and diff. Build remains 140.96 kB raw;
+unchanged cap fails by 649 bytes. Q22-Q32 and inventory statuses stay open,
+82 rules unqualified. Continue Q33-Q52 and campaign closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

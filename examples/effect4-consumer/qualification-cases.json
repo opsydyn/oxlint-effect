@@ -2259,5 +2259,83 @@
       }
     },
     "runtime": "src/qualification/domainModeling/domain-command.contracts.ts"
+  },
+  {
+    "rule": "no-domain-logic-in-conditional",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "logical-expression thresholds and nested report multiplicity",
+      "same-object flag names versus computed/aliased/different-object controls",
+      "literal fail/throw forms versus stored/template gaps",
+      "actual Predicate composition, Schema lifecycle and Data.TaggedError repairs",
+      "compiler invalid state/error controls; runtime eligibility/transitions/failure cause identity"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-domain-logic-in-conditional.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-domain-logic-in-conditional.good.ts",
+      "src/qualification/domainModeling/domain-lifecycle-no-import.good.ts",
+      "src/qualification/domainModeling/domain-lifecycle-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-domain-logic-in-conditional.bad.ts": {
+        "linteffect/no-domain-logic-in-conditional": 5
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-lifecycle.contracts.ts"
+  },
+  {
+    "rule": "no-implicit-state-machine-object",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "logical-expression thresholds and nested report multiplicity",
+      "same-object flag names versus computed/aliased/different-object controls",
+      "literal fail/throw forms versus stored/template gaps",
+      "actual Predicate composition, Schema lifecycle and Data.TaggedError repairs",
+      "compiler invalid state/error controls; runtime eligibility/transitions/failure cause identity"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-implicit-state-machine-object.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-implicit-state-machine-object.good.ts",
+      "src/qualification/domainModeling/domain-lifecycle-no-import.good.ts",
+      "src/qualification/domainModeling/domain-lifecycle-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-implicit-state-machine-object.bad.ts": {
+        "linteffect/no-implicit-state-machine-object": 4
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-lifecycle.contracts.ts"
+  },
+  {
+    "rule": "no-adhoc-domain-error",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "logical-expression thresholds and nested report multiplicity",
+      "same-object flag names versus computed/aliased/different-object controls",
+      "literal fail/throw forms versus stored/template gaps",
+      "actual Predicate composition, Schema lifecycle and Data.TaggedError repairs",
+      "compiler invalid state/error controls; runtime eligibility/transitions/failure cause identity"
+    ],
+    "bad": [
+      "src/qualification/domainModeling/no-adhoc-domain-error.bad.ts"
+    ],
+    "good": [
+      "src/qualification/domainModeling/no-adhoc-domain-error.good.ts",
+      "src/qualification/domainModeling/domain-lifecycle-no-import.good.ts",
+      "src/qualification/domainModeling/domain-lifecycle-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/domainModeling/no-adhoc-domain-error.bad.ts": {
+        "linteffect/no-adhoc-domain-error": 4
+      }
+    },
+    "runtime": "src/qualification/domainModeling/domain-lifecycle.contracts.ts"
   }
 ]

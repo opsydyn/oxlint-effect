@@ -41,3 +41,23 @@ negative and non-finite inputs fail rather than silently coercing. Compiler
 controls reject raw IDs/amounts and swapped timestamp/duration values. Current
 DateTime.makeUnsafe versus legacy unsafeMake is used only after checked boundary
 decoding; invalid boundary values are tested through the typed failure channel.
+
+## Q32 Eligibility, Lifecycle And Structured Errors
+
+`no-domain-logic-in-conditional` counts comparisons inside logical expressions;
+nested four-clause chains produce two reports. Naming a compound predicate alone
+does not silence the rule. `domain-lifecycle.ts` composes separately named checks
+with Predicate.every instead. Runtime controls cover valid, unfunded, negative
+and unverified candidates, not every possible domain invariant.
+
+`no-implicit-state-machine-object` counts distinct recognised non-computed flags
+on the same identifier. Nested chains can warn more than once. Computed members,
+aliases and different objects remain clean controls, not lifecycle safety proof.
+The repair is a checked tagged Schema union with exhaustive Match transitions;
+tests preserve IDs, terminal identity and idempotence, and reject contradictory
+flag objects. Compiler controls require approved-state receipts.
+
+`no-adhoc-domain-error` catches direct literal Effect.fail and thrown new Error
+forms. Stored/template/dynamic errors remain opaque. Data.TaggedError carries
+user ID, reason and original cause; typed catchTag recovery preserves the exact
+failure instance and context. No-import and late-import gaps are retained.

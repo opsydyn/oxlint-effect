@@ -1569,7 +1569,7 @@
     },
     "evidence": [
       "src/index.ts: noDomainLogicInConditional; transitive helpers: noDomainLogicInConditional, getImportSource, isEffectEcosystemImport, isDomainLogicConditional, comparisonCount, comparisonOperators",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q32: 5 warnings per major; three-comparison threshold, nested four-clause multiplicity and named/non-domain predicates covered. Naming alone still warns; Predicate.every of individual named checks is the working repair. Runtime preserves valid eligibility and rejects negative/unfunded/unverified controls. Opaque booleans, late/no imports clean. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-implicit-state-machine-object": {
@@ -1584,7 +1584,7 @@
     },
     "evidence": [
       "src/index.ts: noImplicitStateMachineObject; transitive helpers: noImplicitStateMachineObject, getImportSource, isEffectEcosystemImport, isImplicitStateMachineObject, collectStateFlagMembers, stateFlagMember, isIdentifier",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q32: 4 warnings per major for distinct same-object recognised flags with nested multiplicity. Schema tagged union plus exhaustive Match transition preserves IDs, terminal identity/idempotence; contradictory flags fail and missing receipt rejected by compiler. Computed/different-object/repeated/aliased flags stay documented controls. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-adhoc-domain-error": {
@@ -1599,7 +1599,7 @@
     },
     "evidence": [
       "src/index.ts: noAdhocDomainError; transitive helpers: noAdhocDomainError, getImportSource, isEffectEcosystemImport, isAdhocEffectFail, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringLiteral, firstArgument, isThrowNewStringError",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q32: 4 warnings per major for literal fail and thrown new Error forms. Actual Data.TaggedError carries ID/reason/original cause, catchTag preserves original instance and context, unrecovered error stays failure. Compiler requires context; stored/template/dynamic and late/no-import syntax remain gaps. Final 30 KB gate pending: 649 bytes over."
     ]
   },
   "no-domain-meaning-by-folder-only": {
