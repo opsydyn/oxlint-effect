@@ -303,6 +303,10 @@ Q47 callback/absence behavioural evidence passes with current makeFilter/legacy
 filter exemption and actual decoding controls. Size is 861 bytes over the
 unchanged cap; checkbox/inventory stay open. Continue Q48-Q52.
 
+Q48 object-value behavioural evidence passes with current Result/legacy Either
+and actual context/absence/error controls, completing all ten branching owners.
+Size is 879 bytes over the cap; checkbox/inventory stay open. Continue Q49-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

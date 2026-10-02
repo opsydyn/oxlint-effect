@@ -120,7 +120,7 @@
     ]
   },
   "no-branch-in-object": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -131,7 +131,7 @@
     },
     "evidence": [
       "src/index.ts: noBranchInObject; transitive helpers: noBranchInObject, objectPropertyValues, containsObjectBranchCall, isObjectBranchCall, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression",
-      "Recognition tokens: Match, Option, Either; API and repair controls still require packed qualification."
+      "Q48 packed both majors: 12 object-value decisions plus 1 ordinary-name warning; current Result adapted, legacy Either and exact advice preserved, opposite 10/10. Nested/multiple/callback/method/array/spread granularity, key/alias/computed/free-pipe/opaque gaps. Actual precomputed context preserves 42/absence 0/original result error identity. Size gate remains open."
     ]
   },
   "no-iife-wrapper": {

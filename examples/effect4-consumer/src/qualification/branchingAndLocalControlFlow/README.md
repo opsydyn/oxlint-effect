@@ -1,4 +1,4 @@
-# Branching And Local Control Flow: Q45-Q47
+# Branching And Local Control Flow: Q45-Q48
 
 These deliberately failing examples use pinned Effect 4. Exact warnings are
 checked against the packed plugin, not an editor restart or an application run.
@@ -86,3 +86,23 @@ failure is not an equivalent repair unless the domain contract demands it.
 callback results, null wire encoding, present Option data and schema acceptance
 of 42 with rejection of zero, negatives and strings. No runtime application or
 general callback purity claim is made.
+
+## Decisions Inside Object Values
+
+[`no-branch-in-object` failures](no-branch-in-object.bad.ts) cover Match's
+receiver pipe, Option present/absent and own-major Result.match.
+Current Result recognition/advice replaces legacy Either; opposite-version
+counts exclude the two result-specific fields. Detection is syntax-only and
+ungated: [ordinary Option names](ordinary-object.bad.ts) still warn.
+
+Nested objects report outer and inner; multiple matching fields report once
+per object. Callback/method/array values are recursively searched, even unused.
+Spread ignores the outer spread value, but an inner literal still has its own
+visitor. [Repairs](object-selection.good.ts) precompute decisions before building
+context. Computed keys, namespace aliases, computed calls, free Match pipe and
+named callback values are labelled gaps, not endorsed bypasses.
+
+[Runtime contracts](object-selection.contracts.ts) retain 42, absence fallback 0,
+context fields/arrays/callback values and original result error identity. All
+ten branching-group owners now have behavioural evidence; final qualification
+still waits for the size gate and campaign closure.

@@ -52,6 +52,19 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q48 supplies packed object decision evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      expect(cases.some((entry: { rule: string }) => entry.rule === "no-branch-in-object")).toBe(true);
+    }
+  });
+  it("Effect qualification Q48 selects current Result decisions", () => {
+    const inspect = (name: string, version: 3 | 4) => runRule("no-branch-in-object", "ObjectExpression", objectExpression(memberCall(name, "match")), { options: [{ effectVersion: version }] });
+    expect(inspect("Result", 4)).toHaveLength(1);
+    expect(inspect("Either", 4)).toHaveLength(0);
+    expect(inspect("Either", 3)).toHaveLength(1);
+    expect(inspect("Result", 3)).toHaveLength(0);
+  });
   it("Effect qualification Q47 supplies packed callback and absence evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

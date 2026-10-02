@@ -104,6 +104,10 @@ Q47 callback/absence checks pass with current makeFilter/legacy filter exemption
 actual decoding and Option wire controls. Size is 861 bytes over the unchanged
 cap; qualification stays open. Continue Q48-Q52 and closure.
 
+Q48 object-value checks pass with current Result/legacy Either and actual
+context/absence/error controls, completing all ten branching owners. Size is
+879 bytes over the cap; qualification stays open. Continue Q49-Q52 and closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

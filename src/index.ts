@@ -4329,24 +4329,24 @@ function isMatchValuePipeCall(node: unknown): boolean {
   );
 }
 
-function isObjectBranchCall(node: unknown): boolean {
+function isObjectBranchCall(node: unknown, version: EffectVersion): boolean {
   return (
     isMatchValuePipeCall(node) ||
     (typeof node === "object" &&
       node !== null &&
       (node as Node).type === "CallExpression" &&
       (isMemberExpression((node as Node).callee, "Option", "match") ||
-        isMemberExpression((node as Node).callee, "Either", "match")))
+        isMemberExpression((node as Node).callee, version === 3 ? "Either" : "Result", "match")))
   );
 }
 
-function containsObjectBranchCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isObjectBranchCall(node)) {
+function containsObjectBranchCall(node: unknown, version: EffectVersion, seen = new WeakSet<object>()): boolean {
+  if (isObjectBranchCall(node, version)) {
     return true;
   }
 
   if (Array.isArray(node)) {
-    return node.some((child) => containsObjectBranchCall(child, seen));
+    return node.some((child) => containsObjectBranchCall(child, version, seen));
   }
 
   if (typeof node !== "object" || node === null) {
@@ -4359,7 +4359,7 @@ function containsObjectBranchCall(node: unknown, seen = new WeakSet<object>()): 
   seen.add(node);
 
   return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsObjectBranchCall(child, seen)
+    key !== "parent" && containsObjectBranchCall(child, version, seen)
   ));
 }
 
@@ -5446,13 +5446,14 @@ const noArrowLadder = defineRule({
 
 const noBranchInObject = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       ObjectExpression(node: any) {
-        if (objectPropertyValues(node).some((value) => containsObjectBranchCall(value))) {
+        if (objectPropertyValues(node).some((value) => containsObjectBranchCall(value, version))) {
           report(
             context,
             node,
-            "Rule: avoid Match/Option/Either inside object literals. Why: it hides the decision and invites workaround scaffolding. Fix: compute the value first (context), then build the object from named values with one flat decision.",
+            `Rule: avoid Match/Option/${version === 3 ? "Either" : "Result"} inside object literals. Why: it hides the decision and invites workaround scaffolding. Fix: compute the value first (context), then build the object from named values with one flat decision.`,
           );
         }
       },

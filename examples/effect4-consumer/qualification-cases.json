@@ -3287,5 +3287,32 @@
       }
     },
     "runtime": "src/qualification/branchingAndLocalControlFlow/callback-absence.contracts.ts"
+  },
+  {
+    "rule": "no-branch-in-object",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "Match/Option/own-major result decisions inside object properties",
+      "nested outer/inner, multiple fields, callback/method/array/spread report granularity",
+      "ordinary name/no-import false positive and key/alias/computed/free-pipe/opaque gaps",
+      "actual precomputed data preserves context value and original error identity"
+    ],
+    "bad": [
+      "src/qualification/branchingAndLocalControlFlow/no-branch-in-object.bad.ts",
+      "src/qualification/branchingAndLocalControlFlow/ordinary-object.bad.ts"
+    ],
+    "good": [
+      "src/qualification/branchingAndLocalControlFlow/object-selection.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/branchingAndLocalControlFlow/no-branch-in-object.bad.ts": {
+        "linteffect/no-branch-in-object": 12
+      },
+      "src/qualification/branchingAndLocalControlFlow/ordinary-object.bad.ts": {
+        "linteffect/no-branch-in-object": 1
+      }
+    },
+    "runtime": "src/qualification/branchingAndLocalControlFlow/object-selection.contracts.ts"
   }
 ]

@@ -1225,6 +1225,26 @@ publint, API docs and diff. Raw build is 141.74 kB; cap fails by 861 bytes.
 Q22-Q47 and inventory statuses stay open, 82 unqualified. Continue Q48-Q52 and
 closure without release.
 
+## Q48 Object-Value Decisions
+
+Packed both majors emit 12 object-value plus 1 ordinary-name warning. Current
+Result.match recognition/advice replaces legacy Either.match while exact legacy
+behaviour is preserved; opposite counts are 10/10. Match receiver pipe and
+Option present/absent controls remain common. No import or symbol-resolution
+gate exists, so local same-name objects can warn.
+
+Nested objects report both levels; multiple fields report once per object.
+Callback/method/array values are recursively searched; spread ignores the outer
+spread but the inner literal still reports. Computed keys, aliases, computed
+calls, free Match pipe and named callback values document gaps, not repairs.
+Actual precomputed context retains 42, absent fallback 0 and original result
+error identity. All ten branching owners now have behavioural evidence.
+
+Fresh gates pass: 561 tests / 3669 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 141.82 kB; cap fails by 879 bytes.
+Q22-Q48 and inventory statuses stay open, 82 unqualified. Continue Q49-Q52 and
+closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type
