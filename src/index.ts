@@ -1781,22 +1781,21 @@ function isEffectRunCall(node: unknown, version: EffectVersion): boolean {
   return effectRunExecution(node, version) !== undefined;
 }
 
-function isEffectOrDieReference(node: unknown): boolean {
+function isEffectOrDieReference(node: unknown, version: EffectVersion): boolean {
   return (
     isMemberExpression(node, "Effect", "orDie") ||
-    isMemberExpression(node, "Effect", "orDieWith") ||
     isEffectMemberCallNamed(node, "orDie") ||
-    isEffectMemberCallNamed(node, "orDieWith")
+    (version === 3 && (isMemberExpression(node, "Effect", "orDieWith") || isEffectMemberCallNamed(node, "orDieWith")))
   );
 }
 
-function findEffectOrDieOutsideBoundary(node: unknown): unknown | undefined {
-  if (isEffectOrDieReference(node)) {
+function findEffectOrDieOutsideBoundary(node: unknown, version: EffectVersion): unknown | undefined {
+  if (isEffectOrDieReference(node, version)) {
     return node;
   }
 
   if (isPipeCall(node)) {
-    return pipeParts(node).find((part) => isEffectOrDieReference(part));
+    return pipeParts(node).find((part) => isEffectOrDieReference(part, version));
   }
 
   return undefined;
@@ -5304,6 +5303,7 @@ const reactStateHooks = new Set([
 
 const noReactState = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     return {
       CallExpression(node: any) {
         const callee = node.callee;
@@ -5320,7 +5320,9 @@ const noReactState = defineRule({
           report(
             context,
             callee,
-            "Rule: avoid React state hooks. Why: they bypass the atom runtime and break reactive flow. Fix: use @effect-atom/atom-react instead.",
+            version === 3
+              ? "Rule: avoid React state hooks. Why: they bypass the atom runtime and break reactive flow. Fix: use @effect-atom/atom-react instead."
+              : "Rule: avoid React state hooks. Why: they bypass externally owned reactive state. Fix: pass explicit state as props or use a compatible reactive adapter at the UI boundary.",
           );
         }
       },
@@ -6638,6 +6640,7 @@ const noThrowInEffectLogic = createVersionedEffectCallbackRule(
 );
 const noOrDieOutsideBoundary = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6652,12 +6655,12 @@ const noOrDieOutsideBoundary = defineRule({
           return;
         }
 
-        const target = findEffectOrDieOutsideBoundary(node);
+        const target = findEffectOrDieOutsideBoundary(node, version);
         if (target) {
           report(
             context,
             target,
-            "Rule: avoid Effect.orDie outside runtime boundaries. Why: converting typed failures into defects hides recoverable domain errors. Fix: keep typed errors in domain logic and reserve orDie/orDieWith for explicit application boundaries.",
+            `Rule: avoid Effect.orDie outside runtime boundaries. Why: converting typed failures into defects hides recoverable domain errors. Fix: keep typed errors in domain logic and reserve ${version === 3 ? "orDie/orDieWith" : "orDie"} for explicit application boundaries.`,
           );
         }
       },
@@ -8020,6 +8023,7 @@ const noRuntimeRunFork = createForbiddenMemberCallRule(
   "Runtime",
   "runFork",
   "Rule: avoid Runtime.runFork. Why: detached fibers hide lifetime and interruption ownership. Fix: run effects through the application runtime boundary.",
+  true,
 );
 
 const noRunEffectOutsideBoundary = defineRule({

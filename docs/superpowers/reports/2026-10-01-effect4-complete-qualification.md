@@ -1245,6 +1245,38 @@ publint, API docs and diff. Raw build is 141.82 kB; cap fails by 879 bytes.
 Q22-Q48 and inventory statuses stay open, 82 unqualified. Continue Q49-Q52 and
 closure without release.
 
+## Q49 React, Legacy Runtime And Defect Conversion
+
+Both pinned consumers now include React/React DOM 19.2.7, React types 19.2.17
+and DOM types 19.2.7. Frozen locks and every installed/transitive version remain
+checked by the packed harness. Twelve real bare/member hook warnings plus one
+ordinary-name control preserve detector behaviour. Current advice avoids the
+repository's Effect 3-only adapter version, recommending explicit props or a
+compatible adapter without claiming unqualified integration.
+
+Real server rendering matches externally Effect Ref-owned props at span 42,
+with no server effect execution. Alias/computed controls remain gaps. SSR does
+not prove client subscriptions, cleanup, hydration, browser or visual acceptance.
+
+Actual legacy Runtime.runFork data-first/curried/factory forms emit 3 warnings;
+all test fibers are joined and retain value/failure identity. Current Runtime
+has no runFork export, so this fifth legacy-only rule is registered but excluded
+from current maps and manually no-op. Compiler/foreign-local controls prove
+that distinction, not the safety of every current fork. An old CLI fixture now
+explicitly opts into legacy policy rather than losing its warning assertion.
+
+orDie emits 6/3 plus main.ts 1 per major; opposite counts are 3/3. Current ignores
+removed orDieWith while legacy messages remain exact. Actual defect identity
+and recoverable typed repair identity are checked separately. Historical policy
+is path-unaware: main.ts warns unless explicitly overridden off; the harness
+tests that override. This limitation is documented rather than silently changing
+legacy boundary behaviour during qualification.
+
+Fresh gates pass: 565 tests / 3682 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 142.16 kB; cap fails by 977 bytes.
+Q22-Q49 and inventory statuses remain open, 82 unqualified. Continue Q50-Q52 and
+closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

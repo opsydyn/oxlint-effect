@@ -108,6 +108,10 @@ Q48 object-value checks pass with current Result/legacy Either and actual
 context/absence/error controls, completing all ten branching owners. Size is
 879 bytes over the cap; qualification stays open. Continue Q49-Q52 and closure.
 
+Q49 real React SSR and runtime/error checks pass. Runtime.runFork is legacy-only;
+current policy ignores removed orDieWith and avoids unqualified legacy adapter
+advice. Size is 977 bytes over the cap; qualification stays open. Continue Q50-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

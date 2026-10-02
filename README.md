@@ -93,9 +93,10 @@ For Effect 4 manual policy, use `["error", { effectVersion: 4 }]`. Ordinary Oxli
 override/merge rules apply; there is no process-wide version detection.
 Version-neutral rules keep severity-only entries and existing options.
 `allRules` includes all rules applicable to the selected major, not every
-registered rule. The four currently identified v3-only rules remain registered
+registered rule. The five currently identified v3-only rules remain registered
 and available in `effect3`: `require-service-accessors`,
-`require-service-dependencies`, `no-effect-async` and `no-effect-orElse-ladder`.
+`require-service-dependencies`, `no-effect-async`, `no-effect-orElse-ladder` and
+`no-runtime-runfork` (current Runtime has no runFork export).
 `no-fromnullable-nullish-coalesce` applies to both majors: it recognises current
 `Option.fromNullishOr` and legacy `Option.fromNullable` under the same stable ID.
 The audit may identify further restrictions.
@@ -347,10 +348,10 @@ Effect flow, domain meaning, or runtime boundaries.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-react-state` | React state hooks such as `useState`, `useReducer`, and `useEffect`. | Keeps React UI state in the atom/runtime model instead of bypassing it. |
-| `linteffect/no-runtime-runfork` | `Runtime.runFork(...)`. | Detached fibers hide ownership, interruption, and lifecycle boundaries. |
+| `linteffect/no-react-state` | Six bare/member React hook names; receiver/import ownership is not resolved. | Use externally owned props or a compatible adapter in v4; legacy advice names its Effect 3 atom-react adapter. SSR fixtures do not prove client integration. |
+| `linteffect/no-runtime-runfork` | Legacy `Runtime.runFork(...)`, including factories. Excluded from current presets because the export is removed. | Return Effect from domain logic and let an explicit boundary own execution and observation. |
 | `linteffect/no-run-effect-outside-boundary` | Six direct `Effect.run*` calls and, in v4, immediate curried `run*With(context)(program)` execution outside configured boundaries. | Keeps runtime ownership at recognised boundaries; context factory creation is clean. |
-| `linteffect/no-or-die-outside-boundary` | `Effect.orDie(...)`, `Effect.orDieWith(...)`, and pipe arguments such as `Effect.orDie`. | Prevents recoverable typed failures from being converted to defects inside domain logic. |
+| `linteffect/no-or-die-outside-boundary` | `Effect.orDie` calls/pipe arguments and legacy-only `orDieWith`. This historical owner is path-unaware; use explicit boundary overrides. | Keep domain errors typed; reserve intentional defect conversion for an explicitly owned boundary. |
 | `linteffect/prevent-dynamic-imports` | Dynamic `import(...)`. | Static imports keep dependency boundaries visible. |
 | `linteffect/no-render-side-effects` | `Match.value(...).pipe(...)` used as a render-time statement. | Prevents side effects from running during render. |
 | `linteffect/no-inline-runtime-provide` | Inline `Effect.provide(...)` inside local runtime/generator chains. | Keeps dependency assembly at service or application boundaries. |

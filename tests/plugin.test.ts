@@ -52,6 +52,27 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q49 avoids prescribing a legacy-only React adapter to current users", () => {
+    const inspect = (version: 3 | 4) => runRule("no-react-state", "CallExpression", callExpression(identifier("useState")), { options: [{ effectVersion: version }] })[0].message;
+    expect(inspect(4)).toContain("compatible reactive adapter");
+    expect(inspect(3)).toContain("@effect-atom/atom-react");
+  });
+  it("Effect qualification Q49 supplies packed React/runtime evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-react-state", "no-or-die-outside-boundary", ...(major === 3 ? ["no-runtime-runfork"] : [])]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q49 skips removed Runtime execution under current policy", () => {
+    const inspect = (version: 3 | 4) => runRule("no-runtime-runfork", "CallExpression", memberCall("Runtime", "runFork"), { options: [{ effectVersion: version }] });
+    expect(inspect(3)).toHaveLength(1);
+    expect(inspect(4)).toHaveLength(0);
+  });
+  it("Effect qualification Q49 skips removed orDieWith under current policy", () => {
+    const inspect = (version: 3 | 4) => runRuleSequence("no-or-die-outside-boundary", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: effectCall("orDieWith", identifier("task"), identifier("convert")) }], { options: [{ effectVersion: version }] });
+    expect(inspect(3)).toHaveLength(1);
+    expect(inspect(4)).toHaveLength(0);
+  });
   it("Effect qualification Q48 supplies packed object decision evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

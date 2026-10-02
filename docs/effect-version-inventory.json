@@ -1,6 +1,6 @@
 {
   "no-react-state": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -11,7 +11,7 @@
     },
     "evidence": [
       "src/index.ts: noReactState; transitive helpers: noReactState, isIdentifier, reactStateHooks",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q49 packed both majors: 12 bare/member hooks plus 1 ordinary receiver warning. Actual pinned React/DOM/types SSR equals externally Effect Ref-owned props markup; no server effects. Aliased/computed/no-import ownership limits labelled. Current advice avoids legacy-only adapter; no client/adapter/browser qualification claimed. Size gate remains open."
     ]
   },
   "no-if-statement": {
@@ -877,7 +877,7 @@
     ]
   },
   "no-or-die-outside-boundary": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -888,7 +888,7 @@
     },
     "evidence": [
       "src/index.ts: noOrDieOutsideBoundary; transitive helpers: noOrDieOutsideBoundary, getImportSource, isEffectEcosystemImport, findEffectOrDieOutsideBoundary, isEffectOrDieReference, isMemberExpression, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, isPipeCall, pipeParts",
-      "Recognition tokens: Effect; API and repair controls still require packed qualification."
+      "Q49 packed legacy/current: 6/3 actual orDie/legacy orDieWith plus main.ts 1 each; opposite 3/3. Current ignores removed orDieWith; legacy messages preserved. Actual defect vs typed repair identity, explicit boundary-off override, path-unaware/import-order/alias limits documented. Size gate remains open."
     ]
   },
   "no-swallowed-catch-all": {
@@ -1663,18 +1663,18 @@
     ]
   },
   "no-runtime-runfork": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
-      "4": true
+      "4": false
     },
     "qualification": {
       "3": "baseline",
-      "4": "pending"
+      "4": "not-applicable"
     },
     "evidence": [
       "src/index.ts: noRuntimeRunFork; transitive helpers: noRuntimeRunFork, createForbiddenMemberCallRule, isMemberExpression, isIdentifier",
-      "Recognition tokens: Runtime, runFork; API and repair controls still require packed qualification."
+      "Q49 packed legacy: 3 data-first/curried/factory-only warnings, observed joined fibers preserve 42/original failure. Current Runtime has no runFork export: current manual policy no-op and presets exclude ID; compiler-negative and local foreign legacy-1 controls. Returned Effect leaves execution with boundary owner. Size gate remains open."
     ]
   },
   "no-run-effect-outside-boundary": {

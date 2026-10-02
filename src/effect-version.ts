@@ -20,6 +20,9 @@ export function withEffectVersionSchema(schema: readonly unknown[]): readonly un
 
 // Compact runtime projection; tests require exact agreement with the evidence inventory.
 export const versionSensitiveRules = [
+  "no-react-state",
+  "no-runtime-runfork",
+  "no-or-die-outside-boundary",
   "no-console-in-effect-flow",
   "no-effect-log-without-structured-context",
   "require-span-on-public-service-method",
@@ -103,6 +106,7 @@ export const versionSensitiveRules = [
 ] as const;
 
 export const legacyOnlyRules = [
+  "no-runtime-runfork",
   "require-service-accessors",
   "require-service-dependencies",
   "no-effect-async",

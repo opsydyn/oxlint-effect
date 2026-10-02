@@ -3314,5 +3314,58 @@
       }
     },
     "runtime": "src/qualification/branchingAndLocalControlFlow/object-selection.contracts.ts"
+  },
+  {
+    "rule": "no-react-state",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "all six recognised hooks, bare/member and ordinary receiver-name false positive",
+      "actual React/types/server rendering with externally owned Effect Ref props",
+      "alias/computed gaps; SSR not client subscription/effect qualification"
+    ],
+    "bad": [
+      "src/qualification/reactAndRuntimeBoundaries/no-react-state.bad.ts",
+      "src/qualification/reactAndRuntimeBoundaries/ordinary-hooks.bad.ts"
+    ],
+    "good": [
+      "src/qualification/reactAndRuntimeBoundaries/react-state.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/reactAndRuntimeBoundaries/no-react-state.bad.ts": {
+        "linteffect/no-react-state": 12
+      },
+      "src/qualification/reactAndRuntimeBoundaries/ordinary-hooks.bad.ts": {
+        "linteffect/no-react-state": 1
+      }
+    },
+    "runtime": "src/qualification/reactAndRuntimeBoundaries/react-runtime.contracts.ts"
+  },
+  {
+    "rule": "no-or-die-outside-boundary",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "actual direct/receiver/free orDie, legacy direct/curried orDieWith",
+      "main.ts path-unaware conservative policy and explicit override boundary",
+      "typed repair retains recoverable failure; defect identity checked separately"
+    ],
+    "bad": [
+      "src/qualification/reactAndRuntimeBoundaries/no-or-die-outside-boundary.bad.ts",
+      "src/qualification/reactAndRuntimeBoundaries/main.ts"
+    ],
+    "good": [
+      "src/qualification/reactAndRuntimeBoundaries/typed-failure.good.ts",
+      "src/qualification/reactAndRuntimeBoundaries/or-die-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/reactAndRuntimeBoundaries/no-or-die-outside-boundary.bad.ts": {
+        "linteffect/no-or-die-outside-boundary": 3
+      },
+      "src/qualification/reactAndRuntimeBoundaries/main.ts": {
+        "linteffect/no-or-die-outside-boundary": 1
+      }
+    },
+    "runtime": "src/qualification/reactAndRuntimeBoundaries/react-runtime.contracts.ts"
   }
 ]

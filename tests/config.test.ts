@@ -309,7 +309,7 @@ describe("linteffect config exports", () => {
   });
   it("allRules excludes v4-inapplicable rules without removing registration", () => {
     expect(allRules["linteffect/no-fromnullable-nullish-coalesce"]).toEqual(["error", { effectVersion: 4 }]);
-    for (const name of ["require-service-accessors", "require-service-dependencies", "no-effect-async", "no-effect-orElse-ladder"]) {
+    for (const name of ["require-service-accessors", "require-service-dependencies", "no-effect-async", "no-effect-orElse-ladder", "no-runtime-runfork"]) {
       expect(allRules).not.toHaveProperty(`linteffect/${name}`);
       expect(effect3.allRules).toHaveProperty(`linteffect/${name}`);
       expect(plugin.rules).toHaveProperty(name);

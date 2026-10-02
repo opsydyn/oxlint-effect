@@ -15,7 +15,7 @@ export default defineConfig({
     "linteffect/no-effect-as": "error",
     "linteffect/no-effect-do": "error",
     "linteffect/no-effect-bind": "error",
-    "linteffect/no-runtime-runfork": "error",
+    "linteffect/no-runtime-runfork": ["error", { effectVersion: 3 }],
     "linteffect/no-effect-async": ["error", { effectVersion: 3 }],
     "linteffect/prevent-dynamic-imports": "error",
     "linteffect/no-nested-effect-call": "error",

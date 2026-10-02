@@ -307,6 +307,10 @@ Q48 object-value behavioural evidence passes with current Result/legacy Either
 and actual context/absence/error controls, completing all ten branching owners.
 Size is 879 bytes over the cap; checkbox/inventory stay open. Continue Q49-Q52.
 
+Q49 React/runtime behavioural evidence passes with real pinned SSR and joined
+fibers. Runtime.runFork is a fifth legacy-only rule; current orDieWith is ignored.
+Size is 977 bytes over the cap; checkbox/inventory stay open. Continue Q50-Q52.
+
 ## Task 3: Primary Examples, Skill And Group Composition
 
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing

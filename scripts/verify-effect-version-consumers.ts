@@ -216,6 +216,22 @@ try {
       await cp(join(root, path), join(root, source));
       verifyLint(root, config, [source], {}, 0);
     }
+    if (cases.some(entry => entry.rule === "no-react-state")) {
+      const config = "oxlint.qualification.opposite.json";
+      const forkPath = major === 3 ? "src/qualification/reactAndRuntimeBoundaries/no-runtime-runfork.bad.ts" : "src/qualification/reactAndRuntimeBoundaries/foreign-runtime.good.ts";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-runtime-runfork": ["error", { effectVersion: 4 }] } }));
+      verifyLint(root, config, [forkPath], {}, 0);
+      if (major === 4) {
+        await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-runtime-runfork": ["error", { effectVersion: 3 }], "linteffect/no-or-die-outside-boundary": ["error", { effectVersion: 3 }] } }));
+        verifyLint(root, config, [forkPath], { "linteffect/no-runtime-runfork": 1, "linteffect/no-or-die-outside-boundary": 1 }, 1);
+      }
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-or-die-outside-boundary": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
+      verifyLint(root, config, ["src/qualification/reactAndRuntimeBoundaries/no-or-die-outside-boundary.bad.ts"], { "linteffect/no-or-die-outside-boundary": 3 }, 1);
+      // This historical owner is path-unaware; explicit overrides own conversion.
+      const mainPath = "src/qualification/reactAndRuntimeBoundaries/main.ts";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-or-die-outside-boundary": ["error", { effectVersion: major }] }, overrides: [{ files: [mainPath], rules: { "linteffect/no-or-die-outside-boundary": "off" } }] }));
+      verifyLint(root, config, [mainPath], {}, 0);
+    }
     if (cases.some(entry => entry.rule === "no-branch-in-object")) {
       const config = "oxlint.qualification.opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-branch-in-object": ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
