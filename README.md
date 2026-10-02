@@ -439,6 +439,18 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-hidden-effect-execution` | Direct `Effect.run*` calls in Effect modules outside configured boundary paths. | Reusable code should return Effects and leave runtime execution ownership at an application boundary. |
 | `linteffect/no-boundary-try-catch-without-effect-map` | `try`/`catch` blocks in configured boundaries with no direct `Effect.try`, error mapping, recovery, or `Effect.run*` call. | Boundary failure handling should stay in Effect's typed error channel rather than becoming imperative control flow. |
 
+The [paired platform/boundary examples](examples/effect4-consumer/src/qualification/platformAndBoundaryHygiene)
+cover direct and contextual runners, native filesystem forms and typed service
+repairs. V4 recognises actual `run*With(context)(program)` execution, not factory
+creation, and current `Effect.catch`/Cause/reason recovery. Legacy `effect3`
+retains `catchAll` handling and advice. Boundary catch policy has no Effect import
+gate and checks visible marker presence, not whether handling executes; unused
+callbacks can suppress it. Hidden execution requires an Effect ecosystem import;
+aliased runners stay opaque. Filesystem policy has no boundary exemption and
+retains its function-local `require` gap. V3 filesystem repairs use
+`@effect/platform/FileSystem`; v4 uses `effect/FileSystem` (or the root export).
+No-op FileSystem Layers demonstrate the service seam, not native cancellation.
+
 ### Testing, Observability, and QA
 
 | Rule | Catches | Why |

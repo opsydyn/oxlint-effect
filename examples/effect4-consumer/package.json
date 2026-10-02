@@ -8,6 +8,7 @@
     "lint:valid": "oxlint --config oxlint.config.ts src/valid.ts"
   },
   "devDependencies": {
+    "@types/node": "22.19.7",
     "@oxlint/plugins": "1.71.0",
     "effect": "4.0.0",
     "oxlint": "1.71.0",

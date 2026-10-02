@@ -52,6 +52,21 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q25 selects current boundary recovery and repair advice", () => {
+    const inspect = (method: string, version: 3 | 4) => runRule("no-boundary-try-catch-without-effect-map", "TryStatement", tryStatement(expressionStatement(effectCall(method, identifier("program"), identifier("recover")))), { filename: "/repo/server/entry.ts", options: [{ effectVersion: version }] });
+    for (const method of ["catch", "catchEager", "catchCause", "catchDefect", "catchIf", "catchFilter", "catchCauseIf", "catchCauseFilter", "catchReason", "catchReasons", "catchNoSuchElement"]) expect(inspect(method, 4)).toHaveLength(0);
+    expect(inspect("catchAll", 4)).toHaveLength(1);
+    expect(inspect("catch", 3)).toHaveLength(1);
+    expect(inspect("catchAll", 3)).toHaveLength(0);
+    expect(inspect("ordinary", 4)[0]?.message).toContain("Effect.catch");
+    expect(inspect("ordinary", 3)[0]?.message).toContain("catchAll");
+  });
+  it("Effect qualification Q25 supplies packed boundary and filesystem evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-hidden-effect-execution", "no-boundary-try-catch-without-effect-map", "no-node-fs-in-effect-code"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q24 counts only applicable acquisition APIs", () => {
     const node = effectCall("acquireReleaseInterruptible", effectCall("acquireReleaseInterruptible", effectCall("acquireReleaseInterruptible", effectCall("succeed", numericLiteral(42)), arrowCallback(effectCall("void"))), arrowCallback(effectCall("void"))), arrowCallback(effectCall("void")));
     const inspect = (version: 3 | 4) => runRuleSequence("no-nested-acquire-release", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: version }] });

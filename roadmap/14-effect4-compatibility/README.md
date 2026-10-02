@@ -13,6 +13,10 @@ Q24 nesting/provision/runner behavioural checks pass, including valid-context
 and lexical-order counterexamples. Its build is 330 bytes over the cap;
 qualification remains open. Continue Q25-Q52 before release.
 
+Q25 hidden execution/boundary recovery/filesystem behavioural checks pass.
+Current recovery selects current APIs; v3 messages remain unchanged. Size is
+398 bytes over the cap; final qualification stays open. Continue Q26-Q52.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

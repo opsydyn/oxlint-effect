@@ -7765,29 +7765,16 @@ const boundaryEffectHandlingMethods = new Set([
 function containsBoundaryEffectHandling(
   node: unknown,
   version: EffectVersion,
-  seen = new WeakSet<object>(),
 ): boolean {
-  if (isEffectRunCall(node, version)) return true;
-
-  if (isEffectMemberCall(node)) {
-    const property = ((node as Node).callee as Node).property;
-    if (isIdentifier(property) && boundaryEffectHandlingMethods.has(property.name)) {
-      return true;
-    }
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsBoundaryEffectHandling(child, version, seen));
-  }
-
-  if (typeof node !== "object" || node === null || seen.has(node)) {
-    return false;
-  }
-
-  seen.add(node);
-  return Object.entries(node).some(
-    ([key, child]) => key !== "parent" && containsBoundaryEffectHandling(child, version, seen),
-  );
+  return findNode(node, candidate => {
+    if (isEffectRunCall(candidate, version)) return true;
+    if (!isEffectMemberCall(candidate)) return false;
+    const property = ((candidate as Node).callee as Node).property;
+    if (!isIdentifier(property)) return false;
+    return version === 3 ? boundaryEffectHandlingMethods.has(property.name)
+      : (property.name !== "catchAll" && boundaryEffectHandlingMethods.has(property.name)) ||
+        (effect4RecoveryOperatorNames as readonly string[]).includes(property.name) || property.name === "catchNoSuchElement";
+  }) !== undefined;
 }
 
 const noBoundaryTryCatchWithoutEffectMap = defineRule({
@@ -7803,7 +7790,9 @@ const noBoundaryTryCatchWithoutEffectMap = defineRule({
         report(
           context,
           node,
-          "Rule: map failures through Effect at application boundaries. Why: imperative try/catch hides typed failure handling and recovery policy. Fix: use Effect.try, Effect.tryPromise, mapError, catchAll, or execute a mapped Effect program.",
+          version === 3
+            ? "Rule: map failures through Effect at application boundaries. Why: imperative try/catch hides typed failure handling and recovery policy. Fix: use Effect.try, Effect.tryPromise, mapError, catchAll, or execute a mapped Effect program."
+            : "Rule: map failures through Effect at application boundaries. Why: imperative try/catch hides typed failure handling and recovery policy. Fix: use Effect.try, Effect.tryPromise, mapError, Effect.catch, or execute a mapped Effect program.",
         );
       },
     };

@@ -1682,5 +1682,90 @@
       }
     },
     "runtime": "src/qualification/resourceLifetime/nesting-provision-run.contracts.ts"
+  },
+  {
+    "rule": "no-hidden-effect-execution",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "six direct runners",
+      "current contextual execution versus factory creation",
+      "boundary and no-import controls",
+      "aliases remain opaque",
+      "runner values and callback/fiber exits"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/no-hidden-effect-execution.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/no-hidden-effect-execution.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/server/no-hidden-effect-execution.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/hidden-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/no-hidden-effect-execution.bad.ts": {
+        "linteffect/no-hidden-effect-execution": 6
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/execution-filesystem.contracts.ts"
+  },
+  {
+    "rule": "no-boundary-try-catch-without-effect-map",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "boundary raw and Promise catches without an import gate",
+      "own-major recovery and mapping",
+      "factory creation is not execution",
+      "unused marker counterexample",
+      "value original error identity and mapped interruption"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/server/no-boundary-try-catch-without-effect-map.bad.ts",
+      "src/qualification/platformAndBoundaryHygiene/server/boundary-no-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/server/no-boundary-try-catch-without-effect-map.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/boundary-shared.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/server/no-boundary-try-catch-without-effect-map.bad.ts": {
+        "linteffect/no-boundary-try-catch-without-effect-map": 3
+      },
+      "src/qualification/platformAndBoundaryHygiene/server/boundary-no-import.bad.ts": {
+        "linteffect/no-boundary-try-catch-without-effect-map": 1
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/execution-filesystem.contracts.ts"
+  },
+  {
+    "rule": "no-node-fs-in-effect-code",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "four Node filesystem imports",
+      "four module-scope require calls",
+      "function-local require and non-Effect module gaps",
+      "own-major typed FileSystem service repair",
+      "real temporary-file reads and missing-file failure",
+      "no-op service seam does not prove native cancellation"
+    ],
+    "bad": [
+      "src/qualification/platformAndBoundaryHygiene/no-node-fs-in-effect-code.bad.ts",
+      "src/qualification/platformAndBoundaryHygiene/server/fs.bad.ts"
+    ],
+    "good": [
+      "src/qualification/platformAndBoundaryHygiene/no-node-fs-in-effect-code.good.ts",
+      "src/qualification/platformAndBoundaryHygiene/fs-no-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/platformAndBoundaryHygiene/no-node-fs-in-effect-code.bad.ts": {
+        "linteffect/no-node-fs-in-effect-code": 8
+      },
+      "src/qualification/platformAndBoundaryHygiene/server/fs.bad.ts": {
+        "linteffect/no-node-fs-in-effect-code": 1
+      }
+    },
+    "runtime": "src/qualification/platformAndBoundaryHygiene/execution-filesystem.contracts.ts"
   }
 ]

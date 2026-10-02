@@ -637,6 +637,41 @@ publint, API docs and diff check. Build is 140.00 kB raw, compressed size 30.33 
 rules retain an unqualified applicable version. Q25-Q52 and cross-group closure
 remain. No push, cap increase, version bump or release.
 
+## Q25 Execution, Boundary Recovery And Filesystem Portability
+
+Behavioural evidence passes for all three owners in both pinned consumers.
+Hidden execution reports six legacy/twelve current warnings (opposite six/six),
+covering six runner forms and actual current With execution, not factories.
+Default/custom/replaced boundaries and no-import controls pass. Literal runner
+aliases remain opaque. Runtime callbacks, fiber exits, direct/contextual runners
+and the returned-program repair all preserve 42.
+
+Boundary catches report four legacy/five current warnings, including a separate
+no-import boundary file. V4 now recognises current catch/Cause/reason recovery,
+not removed catchAll; legacy detection and exact advice remain unchanged. The
+opposite policy reports one warning in each repaired recovery file. Empty/custom
+boundary replacements are verified. The policy checks handling marker presence,
+not execution: an unused callback still suppresses it. Typed mapping preserves
+original error identity; recovery returns the original tagged error. Raw catches
+erase identity. Deferred readiness verifies mapped interruption without timing.
+
+Filesystem policy reports nine nodes per major: four imports, four module-scope
+require calls and one application-boundary import. There is no boundary exemption;
+function-local require and non-Effect modules retain clean gaps. Repairs use real
+typed FileSystem services: pinned @effect/platform 0.96.2 for v3, builtin FileSystem
+for v4. Pinned Node declarations qualify native module types. No-op service reads
+return 42; real temporary files exercise every import/require variant and missing
+file failure with finally cleanup. No native adapter cancellation claim is made.
+
+Compiler evidence corrected fixture assumptions: both majors take callback
+runner options; current Fiber.interrupt returns void, so await the fiber to inspect
+its exit. No casts, API suppressions in failure examples or weakened gates.
+Fresh gates pass: 523 tests/3501 expectations, root types, both packed majors
+including final own/opposite/boundary counts and runtime markers, publint,
+API docs and diff. Build 140.20 kB raw; unchanged 30 KB cap fails by 398 bytes.
+Q22-Q25 remain unchecked; 82 rules retain unqualified applicable versions.
+Continue Q26-Q52 and cross-group closure; no push, version bump or release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

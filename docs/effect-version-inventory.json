@@ -1479,7 +1479,7 @@
     },
     "evidence": [
       "src/index.ts: noHiddenEffectExecution; transitive helpers: noHiddenEffectExecution, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
-      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit; API and repair controls still require packed qualification."
+      "Q25: 6 legacy/12 current warnings, opposite 6/6; direct six runners plus actual current With execution, not factories. Default/custom/replaced boundary and no-import controls pass; aliases remain opaque. All runner values/callback/fiber exits retain 42. Final 30 KB gate pending: 398 bytes over."
     ]
   },
   "no-boundary-try-catch-without-effect-map": {
@@ -1494,7 +1494,7 @@
     },
     "evidence": [
       "src/index.ts: noBoundaryTryCatchWithoutEffectMap; transitive helpers: noBoundaryTryCatchWithoutEffectMap, boundaryPathOptionsSchema, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, containsBoundaryEffectHandling, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, boundaryEffectHandlingMethods",
-      "Recognition tokens: Effect, runCallback, runFork, runPromise, runPromiseExit, runSync, runSyncExit, try, tryPromise, catchAll, catchTag, catchTags; API and repair controls still require packed qualification."
+      "Q25: 4 legacy/5 current warnings across raw, Promise, unrelated/no-import and factory-only boundary catches. Current recovery operators replace legacy catchAll recognition/advice; opposite-policy repaired file reports 1/1. Empty/custom boundary replacements pass. Marker presence is not execution: unused callback remains clean. Typed repairs preserve original failure identity/recovered value and deterministic interruption; raw catches erase identity. Final 30 KB gate pending: 398 bytes over."
     ]
   },
   "no-node-fs-in-effect-code": {
@@ -1509,7 +1509,7 @@
     },
     "evidence": [
       "src/index.ts: noNodeFsInEffectCode; transitive helpers: noNodeFsInEffectCode, getImportSource, isEffectEcosystemImport, nodeFsImportSources, getNodeFsRequireSource, isIdentifier, isStringLiteral",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q25: 9 warnings per major: four imports, four module-scope require calls and one boundary import. No boundary exemption; function-local require and non-Effect module controls remain clean gaps. Pinned v3 @effect/platform 0.96.2 versus builtin v4 FileSystem repairs compile and return 42 from a no-op service; real temporary-file reads across all forms and missing-file failure pass. Native cancellation is not qualified. Final 30 KB gate pending: 398 bytes over."
     ]
   },
   "no-node-platform-in-shared-code": {
