@@ -1906,18 +1906,18 @@
     ]
   },
   "no-blocking-call-in-effect": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noBlockingCallInEffect; transitive helpers: noBlockingCallInEffect, getImportSource, isEffectEcosystemImport, findBlockingSyncCallInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findBlockingSyncCall, isBlockingSyncCall, blockingSyncObjectNames, callbackBody",
-      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+      "Q18: 3 legacy/6 v4 packed warnings; preserve v3 gen/sync broad traversal, add v4 self-bound gen/direct and named fn with own-callback scope. Sync suffix and literal fs/crypto/zlib names are heuristics, not import or performance analysis. Callback repairs use legacy async/current callback, real asynchronous scheduling, tryPromise value/error identity; a Promise around blocking work is not offloading. Opposite policy keeps three common warnings. Version-sensitive projection/schema added with the inventory."
     ]
   },
   "no-promise-concurrency-in-effect": {
@@ -1927,12 +1927,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noPromiseConcurrencyInEffect; transitive helpers: noPromiseConcurrencyInEffect, getImportSource, isEffectEcosystemImport, findPromiseConcurrencyInEffectLogic, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPromiseConcurrencyCall, isPromiseConcurrencyCall, promiseConcurrencyMethods, callbackBody, effectAsyncCallbackCombinators",
-      "Recognition tokens: Effect, all, allSettled, race, sync, catchAll, catchTag, forEach, orElse; API and repair controls still require packed qualification."
+      "Q18: 6 legacy/8 v4 packed warnings cover four Promise aggregators, map and major-correct recovery callbacks, plus v4 self/named generators; v4 skips nested definitions. Uses findEffectLogicNode/effectLogicCallbacks and own-callback search; preserves v3 broad traversal. Opposite policy keeps five common warnings. Typed legacy either/current result retain ordered typed outcomes; defects/interruption are not settled data. Runtime proves first-completion failure identity, first-success recovery and exactly-once cooperative loser abort; raw Promise loser stays live until explicit settlement. AggregateError/cause equivalence is not assumed."
     ]
   },
   "no-shared-mutable-state-across-fibers": {
@@ -1942,12 +1942,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noSharedMutableStateAcrossFibers; transitive helpers: noSharedMutableStateAcrossFibers, getImportSource, isEffectEcosystemImport, variableDeclarationIdentifierNames, isIdentifier, concurrentEffectWorkNode, isEffectMemberCallNamed, isEffectMemberCall, findSharedMutableStateMutation, collectDeclaredIdentifierNames, mutatedIdentifierName, mutatingCollectionMethods",
-      "Recognition tokens: Effect, fork, all, forEach; API and repair controls still require packed qualification."
+      "Q18: 5 legacy/9 v4 packed warnings. V3 keeps broad file-name/local-name detection; v4 v4SharedStateWork/nodeWithin/mutationAtReference use native getDeclaredVariables references for direct all/forEach and direct/curried/terminal-pipe child/detached work. Actual lexical identity retains outer writes despite block namesakes and excludes worker-local/parameter shadow bindings. Let/var scalar writes and known collection mutators only; const containers, property writes and named task bodies remain outside scope. Opposite policy retains four common collection warnings. Deterministic paired reads demonstrate lost update; Ref.update repair gives two, immutable collection retains order. Default sequential collection still warns by syntax policy, not a data-race proof."
     ]
   },
   "no-timeout-with-noninterruptible-promise": {

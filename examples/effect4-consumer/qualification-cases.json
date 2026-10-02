@@ -1237,5 +1237,78 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/race-fiber-retry.contracts.ts"
+  },
+  {
+    "rule": "no-blocking-call-in-effect",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "sync and gen",
+      "Sync suffix and literal platform port",
+      "self-bound gen",
+      "direct and named fn",
+      "nested-scope clean control"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-blocking-call-in-effect.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-blocking-call-in-effect.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-blocking-call-in-effect.bad.ts": {
+        "linteffect/no-blocking-call-in-effect": 6
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"
+  },
+  {
+    "rule": "no-promise-concurrency-in-effect",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "all/allSettled/race/any",
+      "map callback",
+      "typed outcomes and cancellation adapters",
+      "self-bound gen and named fn",
+      "nested-scope clean control"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-promise-concurrency-in-effect.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-promise-concurrency-in-effect.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-promise-concurrency-in-effect.bad.ts": {
+        "linteffect/no-promise-concurrency-in-effect": 8
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"
+  },
+  {
+    "rule": "no-shared-mutable-state-across-fibers",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "fork and inline collection work",
+      "let scalar and collection mutation",
+      "default sequential collection heuristic",
+      "deterministic lost-update counterexample",
+      "child/detached, curried and terminal pipe forks",
+      "lexical shadowing and parameter controls"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-shared-mutable-state-across-fibers.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-shared-mutable-state-across-fibers.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-shared-mutable-state-across-fibers.bad.ts": {
+        "linteffect/no-shared-mutable-state-across-fibers": 9
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"
   }
 ]

@@ -279,6 +279,51 @@ Fresh 496 tests, root types, both packed majors with completion evidence, build,
 size 28.46 KB under 30 KB and diff check pass. Q18-Q52 and cross-group closure
 remain open; 94 rules retain an unqualified applicable version.
 
+## Q18 Async Boundaries And Shared State
+
+Qualified `no-blocking-call-in-effect`, `no-promise-concurrency-in-effect` and
+`no-shared-mutable-state-across-fibers` against Effect 3.21.4, Effect 4.0.0
+and native Oxlint 1.71.0 lexical references.
+
+- Blocking: three legacy/six v4 parsed warnings. V3 keeps gen/sync traversal;
+  v4 adds self-bound gen and direct/named generator fn, owning only the callback
+  scope. Sync suffixes/literal platform-port names are heuristics, not proof of
+  imported APIs or blocking latency. Repairs compile/run using legacy async or
+  current callback with queueMicrotask, and tryPromise preserves value/error
+  identity. A Promise wrapper around a blocking call is not offloading.
+- Promise concurrency: six legacy/eight v4 warnings cover all four aggregators,
+  map and major-correct catch callbacks, plus v4 self/named generators. Five
+  common warnings remain under opposite policy; foreign recovery/generator forms
+  are excluded. Legacy either/current result represent typed outcomes, not
+  defects or interruption. Ordered values and typed outcomes survive repairs.
+  raceFirst retains first-completion failure identity; race preserves first
+  success after a failure. Raw Promise.race leaves the loser active; the repaired
+  signal-aware adapter aborts an actually started loser exactly once. No claim
+  of AggregateError/cause equivalence or cancellation of signal-ignorant APIs.
+- Shared state: five legacy/nine v4 warnings cover scalar/collection mutations,
+  a deterministic split read/write, and default sequential collection syntax.
+  V4 adds child/detached direct/curried/terminal-pipe work. Native binding
+  references avoid shadow suppression and exclude worker-local/parameter
+  bindings without TypeScript typeAware. V3 name-set behaviour is retained.
+  The paired-read handshake produces one instead of two; atomic Ref.update
+  repairs it to two and immutable aggregation retains order. Runtime controls
+  verify executed fork mutations and untouched shadowed outer state.
+
+Source audit: installed Effect constructor docs specify cooperative AbortSignal
+handling and callback cleanup; result captures only typed failures; Ref.update
+is atomic. These are narrow repairs, not blanket allSettled/any or shared-memory
+equivalence claims. Direct collection argument syntax remains the contract:
+stored tasks, const containers, property writes and arbitrary decorated pipes
+are not inferred. Collection omission is sequential; lazy fork construction
+alone launches nothing. This rule flags coupling, not a proven data race.
+
+Opposite-policy shared/blocking counts are four/three in each consumer.
+All bad/good fixtures typecheck in isolated packed consumers without casts or
+suppressions; exact per-file counts and runtime completion markers pass.
+Fresh gates: 499 tests, root typecheck, both packed consumers, build 136.83 kB
+raw, size 28.9 KB under 30 KB, and diff check pass. Q19-Q52 and cross-group
+closure remain open; 91 rules retain an unqualified applicable version.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

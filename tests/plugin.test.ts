@@ -7,6 +7,7 @@ type Visitor = Record<string, (node: any) => void>;
 type RuleContextInput = {
   readonly filename?: string;
   readonly options?: readonly unknown[];
+  readonly sourceCode?: { getDeclaredVariables(node: unknown): any[] };
 };
 
 function runRule(
@@ -31,6 +32,7 @@ function runRuleSequence(
   }
 
   const visitor = rule.create({
+    sourceCode: contextInput.sourceCode,
     filename: contextInput.filename ?? "/repo/src/domain/order.ts",
     options: (versionSensitiveRules as readonly string[]).includes(ruleName)
       ? [{ effectVersion: 3, ...(contextInput.options?.[0] as object ?? {}) }]
@@ -50,6 +52,49 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q18 resolves v4 writes to lexical bindings in fork work", () => {
+    const outer = identifier("completed");
+    const reference = identifier("completed");
+    const mutation = updateExpression(reference);
+    const body = blockStatement(expressionStatement(mutation));
+    const callback = arrowCallback(body);
+    const task = effectCall("sync", callback);
+    Object.assign(reference, { parent: mutation });
+    Object.assign(mutation, { parent: body });
+    Object.assign(body, { parent: callback });
+    Object.assign(callback, { parent: task });
+    const declaration = { type: "VariableDeclaration", kind: "let", declarations: [] };
+    const inspect = (node: unknown, binding: unknown) => runRuleSequence("no-shared-mutable-state-across-fibers", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "VariableDeclaration", node: declaration },
+      { visitorName: "CallExpression", node },
+      { visitorName: "Program:exit", node: { type: "Program" } },
+    ], { options: [{ effectVersion: 4 }], sourceCode: { getDeclaredVariables: () => [{ identifiers: [binding], references: [{ identifier: reference }] }] } });
+    for (const node of [effectCall("forkChild", task), effectCall("forkDetach", task), callExpression(effectCall("forkChild", objectLiteral()), task), methodPipeCall(task, memberExpression("Effect", "forkChild")), pipeCall(task, memberExpression("Effect", "forkDetach"))]) expect(inspect(node, outer)[0]?.node).toBe(mutation);
+    // The same spelling in a different binding is not shared state.
+    expect(inspect(effectCall("forkChild", task), reference)).toHaveLength(0);
+    expect(inspect(effectCall("fork", task), outer)).toHaveLength(0);
+  });
+  it("Effect qualification Q18 recognises v4 generators and owns only their callback scope", () => {
+    for (const [rule, operation] of [["no-blocking-call-in-effect", callExpression(identifier("readFileSync"))], ["no-promise-concurrency-in-effect", memberCall("Promise", "all")]] as const) {
+      const inspect = (node: unknown, major: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
+      const body = blockStatement(expressionStatement(operation));
+      const self = effectCall("gen", objectLiteral(property("self", identifier("owner"))), generatorCallback(body));
+      expect(inspect(self, 4)[0]?.node).toBe(operation);
+      expect(inspect(self, 3)).toHaveLength(0);
+      expect(inspect(effectCall("fn", generatorCallback(body)), 4)[0]?.node).toBe(operation);
+      expect(inspect(callExpression(effectCall("fn", stringLiteral("job")), generatorCallback(body)), 4)[0]?.node).toBe(operation);
+      const nested = effectCall("sync", arrowCallback(blockStatement(expressionStatement(arrowCallback(operation)))));
+      expect(inspect(nested, 4)).toHaveLength(0);
+      expect(inspect(nested, 3)).toHaveLength(1);
+    }
+  });
+  it("Effect qualification Q18 supplies packed evidence for async work and shared state", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-blocking-call-in-effect", "no-promise-concurrency-in-effect", "no-shared-mutable-state-across-fibers"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q17 recognises first-completion races and enclosing cleanup", () => {
     const inspect = (node: unknown, major: 3 | 4) => runRuleSequence("no-race-without-cleanup", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
     for (const name of ["race", "raceAll", "raceFirst", "raceAllFirst"]) {

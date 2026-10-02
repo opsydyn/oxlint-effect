@@ -1582,7 +1582,11 @@ function findPromiseConcurrencyCall(node: unknown, seen = new WeakSet<object>())
   return undefined;
 }
 
-function findPromiseConcurrencyInEffectLogic(node: unknown): unknown | undefined {
+function findPromiseConcurrencyInEffectLogic(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  if (version === 4) {
+    const callback = getEffectGeneratorArgument(node, "fn", version) ?? (isEffectMemberCallNamed(node, "sync") ? firstArgument(node) : undefined);
+    return (callback ? findOwnCallbackNode(callbackBody(callback), isPromiseConcurrencyCall) : undefined) ?? findEffectLogicNode(node, version, isPromiseConcurrencyCall);
+  }
   const generator = getEffectGeneratorArgument(node, "gen");
   if (generator) {
     return findPromiseConcurrencyCall(generator.body);
@@ -1723,15 +1727,16 @@ function findBlockingSyncCall(node: unknown, seen = new WeakSet<object>()): unkn
   return undefined;
 }
 
-function findBlockingSyncCallInEffectLogic(node: unknown): unknown | undefined {
-  const generator = getEffectGeneratorArgument(node, "gen");
+function findBlockingSyncCallInEffectLogic(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  const generator = getEffectGeneratorArgument(node, "gen", version) ?? (version === 4 ? getEffectGeneratorArgument(node, "fn", version) : undefined);
+  const search = version === 4 ? (body: unknown) => findOwnCallbackNode(body, isBlockingSyncCall) : findBlockingSyncCall;
   if (generator) {
-    return findBlockingSyncCall(generator.body);
+    return search(generator.body);
   }
 
   if (isEffectMemberCallNamed(node, "sync")) {
     const body = callbackBody(firstArgument(node));
-    return body ? findBlockingSyncCall(body) : undefined;
+    return body ? search(body) : undefined;
   }
 
   return undefined;
@@ -2699,6 +2704,35 @@ function concurrentEffectWorkNode(node: unknown): unknown | undefined {
     return (node as Node & { arguments: unknown[] }).arguments;
   }
 
+  return undefined;
+}
+
+function v4SharedStateWork(node: unknown): unknown | undefined {
+  if (isEffectMemberCallNamed(node, "all") || isEffectMemberCallNamed(node, "forEach")) return (node as Node).arguments;
+  if (!v4ForkConstruction(node)) return undefined;
+  if (!isPipeCall(node)) return firstArgument(node as Node & { arguments: unknown[] });
+  const receiver = ((node as Node).callee as Node).object;
+  return isIdentifier((node as Node).callee, "pipe") ? firstArgument(node as Node & { arguments: unknown[] }) : receiver;
+}
+
+function nodeWithin(node: unknown, owner: unknown): boolean {
+  if (Array.isArray(owner)) return owner.some(entry => nodeWithin(node, entry));
+  for (let current = node as Node | undefined; current; current = current.parent as Node | undefined) {
+    if (current === owner) return true;
+  }
+  return false;
+}
+
+function mutationAtReference(reference: unknown): unknown | undefined {
+  const identifier = reference as Node;
+  const parent = identifier.parent as Node | undefined;
+  if (parent?.type === "AssignmentExpression" && parent.left === identifier) return parent;
+  if (parent?.type === "UpdateExpression" && parent.argument === identifier) return parent;
+  if (parent?.type === "MemberExpression" && parent.object === identifier && parent.computed !== true &&
+    isIdentifier(parent.property) && mutatingCollectionMethods.has(parent.property.name)) {
+    const call = parent.parent as Node | undefined;
+    if (call?.type === "CallExpression" && call.callee === parent) return call;
+  }
   return undefined;
 }
 
@@ -8340,12 +8374,13 @@ const noBlockingCallInEffect = defineRule({
           return;
         }
 
-        const blockingNode = findBlockingSyncCallInEffectLogic(node);
+        const version = effectVersionFor(context.options);
+        const blockingNode = findBlockingSyncCallInEffectLogic(node, version);
         if (blockingNode) {
           report(
             context,
             blockingNode,
-            "Rule: avoid blocking sync calls inside Effect logic. Why: sync fs/crypto/zlib calls block the runtime worker and hide throughput costs. Fix: use Effect.async/tryPromise at a platform boundary, stream APIs, or a dedicated blocking executor.",
+            `Rule: avoid blocking sync calls inside Effect logic. Why: synchronous I/O or CPU work blocks the executing JavaScript thread; wrapping it in a Promise does not offload it. Fix: use genuinely asynchronous platform APIs via Effect.${version === 4 ? "callback" : "async"}/tryPromise, or a dedicated worker for blocking work. Sync suffix recognition is a heuristic.`,
           );
         }
       },
@@ -8369,12 +8404,12 @@ const noPromiseConcurrencyInEffect = defineRule({
           return;
         }
 
-        const promiseNode = findPromiseConcurrencyInEffectLogic(node);
+        const promiseNode = findPromiseConcurrencyInEffectLogic(node, effectVersionFor(context.options));
         if (promiseNode) {
           report(
             context,
             promiseNode,
-            "Rule: avoid Promise concurrency APIs inside Effect logic. Why: Promise.all/allSettled/race/any bypass Effect concurrency, interruption, tracing, and error channels. Fix: use Effect.all, Effect.forEach, Effect.race, or a boundary adapter with explicit cancellation ownership.",
+            `Rule: avoid Promise concurrency APIs inside Effect logic. Why: raw Promise aggregation does not own interruption of its underlying operations. Fix: use bounded Effect.all/forEach, Effect.${effectVersionFor(context.options) === 4 ? "result" : "either"} for settled outcomes, raceFirst for first completion or race for first success, with signal-aware boundary adapters. Preserve application error semantics explicitly.`,
           );
         }
       },
@@ -8386,6 +8421,8 @@ const noSharedMutableStateAcrossFibers = defineRule({
   create(context: OxlintContext) {
     let hasEffectEcosystemImport = false;
     const mutableNames = new Set<string>();
+    const declarations: any[] = [];
+    const workNodes: unknown[] = [];
 
     return {
       ImportDeclaration(node: any) {
@@ -8399,12 +8436,23 @@ const noSharedMutableStateAcrossFibers = defineRule({
           return;
         }
 
+        if (effectVersionFor(context.options) === 4) {
+          declarations.push(node);
+          return;
+        }
+
         for (const name of variableDeclarationIdentifierNames(node)) {
           mutableNames.add(name);
         }
       },
       CallExpression(node: any) {
         if (!hasEffectEcosystemImport) {
+          return;
+        }
+
+        if (effectVersionFor(context.options) === 4) {
+          const work = v4SharedStateWork(node);
+          if (work) workNodes.push(work);
           return;
         }
 
@@ -8420,6 +8468,19 @@ const noSharedMutableStateAcrossFibers = defineRule({
             mutationNode,
             "Rule: avoid mutating shared state across fibers. Why: outer let/var state mutated from forked or parallel work creates nondeterministic races. Fix: model shared state with Ref/SynchronizedRef/Queue or aggregate immutable results with bounded Effect.all/forEach.",
           );
+        }
+      },
+      "Program:exit"() {
+        if (!hasEffectEcosystemImport || effectVersionFor(context.options) !== 4) return;
+        const variables = declarations.flatMap(node => context.sourceCode.getDeclaredVariables(node));
+        for (const work of workNodes) {
+          let mutation: unknown;
+          for (const variable of variables) {
+            if (variable.identifiers.some(identifier => nodeWithin(identifier, work))) continue;
+            mutation = variable.references.map(reference => mutationAtReference(reference.identifier)).find(node => node && nodeWithin(node, work));
+            if (mutation) break;
+          }
+          if (mutation) report(context, mutation, "Rule: avoid mutating shared state across fibers. Why: outer let/var writes in child/detached or collection work couple workers through mutable state. Fix: use Ref updates or aggregate immutable results. This checks lexical inline work, not execution or a proven data race; collections default to sequential execution.");
         }
       },
     };

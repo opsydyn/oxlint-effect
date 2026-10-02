@@ -68,6 +68,7 @@ export const versionSensitiveRules = [
   "no-fork-in-loop",
   "no-race-without-cleanup",
   "no-unobserved-fiber",
+  "no-blocking-call-in-effect",
   "no-promise-concurrency-in-effect",
   "no-shared-mutable-state-across-fibers",
   "no-timeout-with-noninterruptible-promise",

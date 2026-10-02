@@ -1,6 +1,6 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: foundation, recovery/runtime batch and Q01-Q17 locally verified; Q18-Q52 and cross-group closure remain outstanding.
+Status: foundation, recovery/runtime batch and Q01-Q18 locally verified; Q19-Q52 and cross-group closure remain outstanding.
 
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
@@ -23,7 +23,7 @@ Qualification scope: `no-effect-fail-error-message` has pinned packed failure
 and clean controls for both majors. The mixed-major boundary probe proves
 configuration isolation with common runner syntax, not all v4 runner variants.
 The three headline recovery/runtime rules now also have scoped qualification;
-94 rules still have an unqualified applicable version. Presets accepting
+91 rules still have an unqualified applicable version. Presets accepting
 `effectVersion` does not imply that pending detectors already branch on it.
 The release/prepublish guard blocks this checkout until a major bump and
 all applicable major-specific qualifications are complete.

@@ -32,9 +32,10 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Qualify Q15 workflow provisioning, infrastructure merges and scatter thresholds.
 - [x] Qualify Q16 explicit collection scheduling and fork construction/loop ownership.
 - [x] Qualify Q17 race cleanup, lexical fiber observation and retry scheduling.
-- [ ] Complete and qualify Q18-Q52 in the
+- [x] Qualify Q18 async boundaries, Promise aggregation and lexical shared-state work.
+- [ ] Complete and qualify Q19-Q52 in the
   [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 94 rules with an unqualified applicable version.
+  Current inventory has 91 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.
