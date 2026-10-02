@@ -52,6 +52,40 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q19 selects promise signal and timeout construction policy", () => {
+    const inspect = (node: unknown, major: 3 | 4) => runRuleSequence("no-timeout-with-noninterruptible-promise", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
+    const raw = effectCall("promise", { ...arrowCallback(identifier("pending")), params: [] });
+    for (const name of ["timeout", "timeoutOption", "timeoutOrElse"]) {
+      expect(inspect(effectCall(name, raw, numericLiteral(10)), 4)[0]?.node).toBe(raw);
+      expect(inspect(methodPipeCall(raw, effectCall(name, numericLiteral(10))), 4)[0]?.node).toBe(raw);
+      expect(inspect(callExpression(effectCall(name, numericLiteral(10)), raw), 4)[0]?.node).toBe(raw);
+    }
+    const aware = effectCall("promise", { ...arrowCallback(identifier("pending")), params: [identifier("signal")] });
+    expect(inspect(effectCall("timeout", aware, numericLiteral(10)), 4)).toHaveLength(0);
+    expect(inspect(effectCall("timeout", aware, numericLiteral(10)), 3)).toHaveLength(1);
+  });
+  it("Effect qualification Q19 recognises v4 unbounded defaults and masked concurrency", () => {
+    const inspect = (rule: string, node: unknown, major: 3 | 4) => runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
+    for (const node of [objectMethodCall(identifier("Queue"), "make"), objectMethodCall(identifier("Queue"), "make", objectLiteral(property("strategy", stringLiteral("suspend")))), objectMethodCall(identifier("Queue"), "make", objectLiteral(property("capacity", identifier("Infinity")))), memberCall("PubSub", "makeAtomicUnbounded")]) {
+      expect(inspect("no-unbounded-queue-or-pubsub", node, 4)).toHaveLength(1);
+      expect(inspect("no-unbounded-queue-or-pubsub", node, 3)).toHaveLength(0);
+    }
+    expect(inspect("no-unbounded-queue-or-pubsub", objectMethodCall(identifier("Queue"), "make", objectLiteral(property("capacity", numericLiteral(2)))), 4)).toHaveLength(0);
+    expect(inspect("no-unbounded-queue-or-pubsub", objectMethodCall(identifier("Queue"), "make", objectLiteral(property("capacity", identifier("Infinity")), { type: "SpreadElement", argument: identifier("options") })), 4)).toHaveLength(0);
+    for (const name of ["forkChild", "forkDetach", "forkScoped", "forkIn", "raceFirst", "raceAllFirst"]) {
+      const work = effectCall(name, identifier("task"));
+      expect(inspect("no-uninterruptible-concurrent-region", effectCall("uninterruptible", work), 4)).toHaveLength(1);
+      expect(inspect("no-uninterruptible-concurrent-region", effectCall("uninterruptible", work), 3)).toHaveLength(0);
+    }
+    const nested = effectCall("uninterruptible", effectCall("gen", generatorCallback(blockStatement(expressionStatement(effectCall("forkChild", identifier("task")))))));
+    expect(inspect("no-uninterruptible-concurrent-region", nested, 4)).toHaveLength(1);
+  });
+  it("Effect qualification Q19 supplies packed evidence for cancellation and buffer policies", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-timeout-with-noninterruptible-promise", "no-uninterruptible-concurrent-region", "no-unbounded-queue-or-pubsub"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
   it("Effect qualification Q18 resolves v4 writes to lexical bindings in fork work", () => {
     const outer = identifier("completed");
     const reference = identifier("completed");

@@ -1310,5 +1310,78 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"
+  },
+  {
+    "rule": "no-timeout-with-noninterruptible-promise",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "direct promise and both tryPromise constructors",
+      "cooperative signal adapter",
+      "TestClock-driven timeout",
+      "timeoutOption/timeoutOrElse",
+      "curried and terminal pipes",
+      "signal-aware promise clean control"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-timeout-with-noninterruptible-promise.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-timeout-with-noninterruptible-promise.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-timeout-with-noninterruptible-promise.bad.ts": {
+        "linteffect/no-timeout-with-noninterruptible-promise": 12
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
+  },
+  {
+    "rule": "no-uninterruptible-concurrent-region",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "direct collection/race/queue waits",
+      "masked versus restored shutdown",
+      "child/detached/scoped/in forks and first-completion races",
+      "self-bound generator and terminal pipe",
+      "PubSub.take and own-scope control"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-uninterruptible-concurrent-region.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-uninterruptible-concurrent-region.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-uninterruptible-concurrent-region.bad.ts": {
+        "linteffect/no-uninterruptible-concurrent-region": 14
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
+  },
+  {
+    "rule": "no-unbounded-queue-or-pubsub",
+    "version": 4,
+    "classification": "adapted",
+    "variants": [
+      "unbounded Queue/PubSub",
+      "bounded backpressure/FIFO",
+      "Queue.make default/missing/undefined/Infinity capacity",
+      "atomic unbounded PubSub",
+      "opaque/spread capacity limits"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unbounded-queue-or-pubsub.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unbounded-queue-or-pubsub.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unbounded-queue-or-pubsub.bad.ts": {
+        "linteffect/no-unbounded-queue-or-pubsub": 9
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
   }
 ]

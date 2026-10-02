@@ -324,6 +324,60 @@ Fresh gates: 499 tests, root typecheck, both packed consumers, build 136.83 kB
 raw, size 28.9 KB under 30 KB, and diff check pass. Q19-Q52 and cross-group
 closure remain open; 91 rules retain an unqualified applicable version.
 
+## Q19 Cancellation, Masking And Buffers
+
+Qualified `no-timeout-with-noninterruptible-promise`,
+`no-uninterruptible-concurrent-region` and `no-unbounded-queue-or-pubsub`
+against the pinned Effect 3.21.4/4.0.0 and Oxlint 1.71.0 consumers.
+
+- Timeout: four legacy/twelve v4 warnings. Legacy direct-timeout policy remains
+  unchanged, including its signal-aware promise warning. Both installed majors
+  accept signals; the legacy warning is retained policy, not evidence the API
+  is intrinsically uncancellable. V4 supports direct, curried and terminal
+  method/function pipes for timeout, timeoutOption and timeoutOrElse, accepting
+  promise/tryPromise signal parameters. TestClock drives actual timeout, None
+  and fallback outcomes; underlying raw work stays open until explicit teardown,
+  cooperative work aborts once. An ignored parameter stays lint-clean but does
+  not stop its operation. Repairs retain values, original application errors
+  and major-specific TimeoutException/TimeoutError failure channels.
+- Masking: five legacy/fourteen v4 warnings. Current fork families, success and
+  first-completion races, collections and Queue/PubSub waits are covered, with
+  own-scope traversal through recognised gen/fn and logic callbacks. Ordinary
+  unused helpers stay clean. Terminal uninterruptible pipes are supported;
+  legacy broad traversal is preserved. A controlled masked Deferred wait cannot
+  finish on interruption until released; restored work finishes before release
+  and finalizes exactly once. Restore reinstates ambient status, not forced
+  interruption in already-masked callers. Scoping alone does not restore it.
+- Buffers: two legacy/nine v4 warnings. V4 Queue.make defaults, missing/undefined
+  capacity and literal Infinity spellings are covered, plus atomic unbounded
+  PubSub construction. Named/spread/computed options remain opaque. A failing
+  regression caught a visible Infinity overwritten by a spread; spreads now
+  remain outside inference, avoiding a false claim about the final capacity.
+  Runtime checks verify FIFO and unbounded constructor sentinel values, then
+  prove bounded Queue/PubSub producers suspend until a consumer drains capacity.
+  PubSub has a live scoped subscriber; v4 uses PubSub.take, legacy Queue.take.
+  Owned shutdown completes. Dropping/sliding is not a semantics-preserving swap.
+
+Source audit: legacy timeout fails with Cause.TimeoutException, current with
+Cause.TimeoutError. Legacy Queue.make is an internal backing-queue/strategy
+constructor; current make has capacity/strategy options and defaults to Infinity.
+Unbounded PubSub/atomic PubSub reports MAX_SAFE_INTEGER in both majors, not
+Infinity. Compiler-negative controls verify Queue constructor, subscription
+and timeoutTo/timeoutOrElse differences without casts or lint suppressions.
+
+The watchdog rejected a masked race against a never-ending loser. Tracing showed
+the restored wait had completed; the later masked race could not await loser
+interruption. Bad race fixtures now use finite branches and still warn; the
+controlled masked wait demonstrates delayed shutdown without an unbounded test.
+No watchdog, completion marker or warning-count gate was weakened.
+
+Opposite-policy counts are three/four/two in each consumer, retaining common
+syntax while excluding foreign generator/fork/timeout/constructor forms.
+Fresh gates: 502 tests, root typecheck, both packed consumers including runtime
+completion markers and checked API-negative fixtures, build 138.28 kB raw,
+size 29.24 KB under 30 KB and diff check pass. Q20-Q52 and cross-group closure
+remain open; 88 rules retain an unqualified applicable version. No push/release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

@@ -1957,12 +1957,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noTimeoutWithNoninterruptiblePromise; transitive helpers: noTimeoutWithNoninterruptiblePromise, getImportSource, isEffectEcosystemImport, noninterruptiblePromiseTimeoutNode, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isNoninterruptiblePromiseEffect, isCancellationAwareTryPromise, callbackHasParameter, objectPropertyValue",
-      "Recognition tokens: Effect, timeout, promise, tryPromise, try; API and repair controls still require packed qualification."
+      "Q19: 4 legacy/12 v4 parsed warnings. Legacy direct timeout policy preserved, including its existing signal-aware promise warning; runtime proves that case can cancel cooperatively. V4 selects effect4TimeoutMembers and pipeSource for direct/curried/terminal pipes of timeout/timeoutOption/timeoutOrElse; both promise and tryPromise callbacks may accept signals. Parameter presence is not forwarding proof; ignored-signal clean control remains live after timeout until manual settlement. TestClock-driven contracts retain legacy TimeoutException/current TimeoutError, None/fallback outcomes, original error identity and exactly-once abort. Opposite policy keeps three common warnings. Stored inputs/nonterminal pipes stay outside scope."
     ]
   },
   "no-uninterruptible-concurrent-region": {
@@ -1972,12 +1972,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noUninterruptibleConcurrentRegion; transitive helpers: noUninterruptibleConcurrentRegion, getImportSource, isEffectEcosystemImport, isUninterruptibleConcurrentRegion, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsConcurrentOperation, containsEffectMemberCallInSet, concurrentEffectCalls, isMemberCall",
-      "Recognition tokens: Effect, all, forEach, fork, race, raceAll, Queue; API and repair controls still require packed qualification."
+      "Q19: 5 legacy/14 v4 parsed warnings. Preserve legacy broad traversal and old fork/race table. V4 containsEffect4ConcurrentOperation selects current fork/scoped/in and first-completion race names, Queue.take/PubSub.take, direct or terminal uninterruptible pipes, own scope with recognised gen/fn and logic callbacks. Unused ordinary nested helper stays clean. Opposite policy retains four common warnings. Controlled masked Deferred wait ignores interruption until release; uninterruptibleMask restore repair settles before release, finalizing once. Restore uses ambient status, not forced interruption inside an already-masked caller. Scoping alone is not a repair. A masked race against never triggered the watchdog; finite bad branches remain lint-invalid, controlled release demonstrates the risk without hanging qualification. Lazy syntax does not prove execution or child masking."
     ]
   },
   "no-unbounded-queue-or-pubsub": {
@@ -1987,12 +1987,12 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noUnboundedQueueOrPubSub; transitive helpers: noUnboundedQueueOrPubSub, getImportSource, isEffectEcosystemImport, isUnboundedQueueOrPubSub, isMemberCall, isIdentifier",
-      "Recognition tokens: Queue, unbounded, PubSub; API and repair controls still require packed qualification."
+      "Q19: 2 legacy/9 v4 parsed warnings. Preserve explicit unbounded constructors; v4 adds Queue.make omitted/undefined options, no capacity in inline options, undefined/Infinity/Number.POSITIVE_INFINITY capacity, and PubSub.makeAtomicUnbounded. Named/spread/computed capacities stay opaque; finite-looking syntax is not validation. Opposite policy retains two explicit warnings. Runtime verifies Queue Infinity and PubSub MAX_SAFE_INTEGER unbounded sentinel, FIFO retention, actual bounded producer suspension and acknowledgement after draining. PubSub requires live scoped subscriber; v4 subscription uses PubSub.take, legacy uses Queue.take. Shutdown and scope teardown complete. Dropping/sliding are not semantics-preserving repairs; compiler negatives cover constructor/subscription and timeout API differences."
     ]
   },
   "no-global-mutable-concurrency-state": {

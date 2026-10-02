@@ -1652,7 +1652,22 @@ function isNoninterruptiblePromiseEffect(node: unknown): boolean {
   return isEffectMemberCallNamed(node, "tryPromise") && !isCancellationAwareTryPromise(node);
 }
 
-function noninterruptiblePromiseTimeoutNode(node: unknown): unknown | undefined {
+const effect4TimeoutMembers = new Set(["timeout", "timeoutOption", "timeoutOrElse"]);
+
+function pipeSource(node: Node): unknown {
+  return isIdentifier(node.callee, "pipe") ? (node.arguments as unknown[])[0] : (node.callee as Node).object;
+}
+
+function noninterruptiblePromiseTimeoutNode(node: unknown, version: EffectVersion = 3): unknown | undefined {
+  if (version === 4) {
+    let effect: unknown;
+    if ([...effect4TimeoutMembers].some(name => isEffectMemberCallNamed(node, name))) effect = firstArgument(node as Node & { arguments: unknown[] });
+    else if (typeof node === "object" && node !== null && (node as Node).type === "CallExpression" &&
+      [...effect4TimeoutMembers].some(name => isEffectMemberCallNamed((node as Node).callee, name))) effect = firstArgument(node as Node & { arguments: unknown[] });
+    else if (isPipeCall(node) && [...effect4TimeoutMembers].some(name => isEffectMemberCallNamed(((node as Node).arguments as unknown[]).at(-1), name))) effect = pipeSource(node as Node);
+    if (isEffectMemberCallNamed(effect, "promise")) return callbackHasParameter(firstArgument(effect as Node & { arguments: unknown[] })) ? undefined : effect;
+    return isEffectMemberCallNamed(effect, "tryPromise") && !isCancellationAwareTryPromise(effect) ? effect : undefined;
+  }
   if (!isEffectMemberCallNamed(node, "timeout")) {
     return undefined;
   }
@@ -2995,15 +3010,44 @@ function containsConcurrentOperation(node: unknown, seen = new WeakSet<object>()
   ));
 }
 
-function isUninterruptibleConcurrentRegion(node: unknown): boolean {
+const effect4ConcurrentCalls = new Set(["all", "forEach", "forkChild", "forkDetach", "forkScoped", "forkIn", "race", "raceAll", "raceFirst", "raceAllFirst"]);
+
+function containsEffect4ConcurrentOperation(node: unknown): boolean {
+  return !!findOwnCallbackNode(node, child => {
+    if (isMemberCall(child, "Queue", "take") || isMemberCall(child, "PubSub", "take") ||
+      [...effect4ConcurrentCalls].some(name => isEffectMemberCallNamed(child, name) || isEffectMemberExpressionNamed(child, name))) return true;
+    const generator = getEffectGeneratorArgument(child, "gen", 4) ?? getEffectGeneratorArgument(child, "fn", 4);
+    if (generator && containsEffect4ConcurrentOperation(generator.body)) return true;
+    return effectLogicCallbacks(child, 4).some(callback => containsEffect4ConcurrentOperation(callbackBody(callback)));
+  });
+}
+
+function isUninterruptibleConcurrentRegion(node: unknown, version: EffectVersion = 3): boolean {
+  if (version === 4) {
+    const work = isEffectMemberCallNamed(node, "uninterruptible") ? firstArgument(node as Node & { arguments: unknown[] }) :
+      isPipeCall(node) && isEffectMemberExpressionNamed(((node as Node).arguments as unknown[]).at(-1), "uninterruptible") ? pipeSource(node as Node) : undefined;
+    return work !== undefined && containsEffect4ConcurrentOperation(work);
+  }
   return (
     isEffectMemberCallNamed(node, "uninterruptible") &&
     containsConcurrentOperation((node as Node & { arguments: unknown[] }).arguments[0])
   );
 }
 
-function isUnboundedQueueOrPubSub(node: unknown): boolean {
-  return isMemberCall(node, "Queue", "unbounded") || isMemberCall(node, "PubSub", "unbounded");
+function isUnboundedQueueOrPubSub(node: unknown, version: EffectVersion = 3): boolean {
+  if (isMemberCall(node, "Queue", "unbounded") || isMemberCall(node, "PubSub", "unbounded")) return true;
+  if (version !== 4) return false;
+  if (isMemberCall(node, "PubSub", "makeAtomicUnbounded")) return true;
+  if (!isMemberCall(node, "Queue", "make")) return false;
+  const options = firstArgument(node as Node & { arguments: unknown[] });
+  if (!options || isIdentifier(options, "undefined")) return true;
+  if (!isObjectExpression(options)) return false;
+  if (((options as Node).properties as Node[]).some(entry => entry.type === "SpreadElement")) return false;
+  const capacity = objectPropertyValue(options, "capacity");
+  return !capacity ||
+    isIdentifier(capacity, "undefined") || isIdentifier(capacity, "Infinity") ||
+    (typeof capacity === "object" && capacity !== null && (capacity as Node).type === "MemberExpression" &&
+      (capacity as Node).computed !== true && isIdentifier((capacity as Node).object, "Number") && isIdentifier((capacity as Node).property, "POSITIVE_INFINITY"));
 }
 
 function isMutableContainerInit(node: unknown): boolean {
@@ -8503,12 +8547,12 @@ const noTimeoutWithNoninterruptiblePromise = defineRule({
           return;
         }
 
-        const promiseNode = noninterruptiblePromiseTimeoutNode(node);
+        const promiseNode = noninterruptiblePromiseTimeoutNode(node, effectVersionFor(context.options));
         if (promiseNode) {
           report(
             context,
             promiseNode,
-            "Rule: avoid timeout around noninterruptible Promise effects. Why: timing out Effect.promise or tryPromise without a signal leaves the underlying Promise running after interruption. Fix: use Effect.tryPromise with an AbortSignal parameter and pass it to the async API.",
+            "Rule: avoid timeout around noninterruptible Promise effects. Why: Effect timeout interrupts the wrapper, but the underlying operation stops only if it observes cancellation. Fix: accept and forward AbortSignal in the adapter to an API that honours it. Parameter presence is a syntax heuristic, not proof of cancellation.",
           );
         }
       },
@@ -8528,11 +8572,11 @@ const noUninterruptibleConcurrentRegion = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isUninterruptibleConcurrentRegion(node)) {
+        if (hasEffectEcosystemImport && isUninterruptibleConcurrentRegion(node, effectVersionFor(context.options))) {
           report(
             context,
             node,
-            "Rule: avoid uninterruptible concurrent regions. Why: wrapping fork/race/all/forEach or queue work in uninterruptible blocks cancellation and can strand work under shutdown. Fix: keep only the critical section uninterruptible and leave concurrent work interruptible or scoped.",
+            "Rule: avoid uninterruptible concurrent regions. Why: broad masking around collection, fork, race or waiting work can defer cancellation and shutdown. Fix: keep only a short critical section masked and explicitly restore interruption for long-running work. Scoping alone does not restore interruptibility; syntax does not prove the mask is actually executed.",
           );
         }
       },
@@ -8552,7 +8596,7 @@ const noUnboundedQueueOrPubSub = defineRule({
         }
       },
       CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isUnboundedQueueOrPubSub(node)) {
+        if (hasEffectEcosystemImport && isUnboundedQueueOrPubSub(node, effectVersionFor(context.options))) {
           report(
             context,
             node,

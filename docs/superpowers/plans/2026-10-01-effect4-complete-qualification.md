@@ -172,7 +172,7 @@ For every row, use this same ordered TDD contract:
 | [x] | Q16 | `concurrencySafety` | `no-unbounded-effect-all`, `no-fire-and-forget-fork`, `no-fork-in-loop` |
 | [x] | Q17 | `concurrencySafety` | `no-race-without-cleanup`, `no-unobserved-fiber`, `no-unbounded-concurrent-retry` |
 | [x] | Q18 | `concurrencySafety` | `no-blocking-call-in-effect`, `no-promise-concurrency-in-effect`, `no-shared-mutable-state-across-fibers` |
-| [ ] | Q19 | `concurrencySafety` | `no-timeout-with-noninterruptible-promise`, `no-uninterruptible-concurrent-region`, `no-unbounded-queue-or-pubsub` |
+| [x] | Q19 | `concurrencySafety` | `no-timeout-with-noninterruptible-promise`, `no-uninterruptible-concurrent-region`, `no-unbounded-queue-or-pubsub` |
 | [ ] | Q20 | `concurrencySafety` | `no-global-mutable-concurrency-state`, `no-manual-deferred-coordination`, `no-yield-with-held-semaphore-permit` |
 | [ ] | Q21 | `concurrencySafety` | `no-yield-with-held-mutable-ref`, `no-unscoped-background-fiber`, `no-acquire-without-scoped-release` |
 | [ ] | Q22 | `resourceLifetime` | `no-manual-resource-close`, `no-unbound-scope`, `no-resource-succeed-escape` |

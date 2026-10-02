@@ -105,7 +105,7 @@ try {
       assertCommandSuccess(run("bun", ["-e", script], root, 60_000), `Effect ${major} runtime contract ${path}`, marker);
     }
     // Common syntax stays active; foreign generator/recovery/fork forms do not.
-    for (const [rule, count] of [["no-blocking-call-in-effect", 3], ["no-promise-concurrency-in-effect", 5], ["no-shared-mutable-state-across-fibers", 4]] as const) {
+    for (const [rule, count] of [["no-blocking-call-in-effect", 3], ["no-promise-concurrency-in-effect", 5], ["no-shared-mutable-state-across-fibers", 4], ["no-timeout-with-noninterruptible-promise", 3], ["no-uninterruptible-concurrent-region", 4], ["no-unbounded-queue-or-pubsub", 2]] as const) {
       const config = "oxlint.qualification.opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
       const path = `src/qualification/concurrencySafety/${rule}.bad.ts`;

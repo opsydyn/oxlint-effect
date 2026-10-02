@@ -1249,5 +1249,71 @@
       }
     },
     "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"
+  },
+  {
+    "rule": "no-timeout-with-noninterruptible-promise",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct promise and both tryPromise constructors",
+      "cooperative signal adapter",
+      "TestClock-driven timeout",
+      "legacy promise signal warning retained"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-timeout-with-noninterruptible-promise.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-timeout-with-noninterruptible-promise.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-timeout-with-noninterruptible-promise.bad.ts": {
+        "linteffect/no-timeout-with-noninterruptible-promise": 4
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
+  },
+  {
+    "rule": "no-uninterruptible-concurrent-region",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "direct collection/race/queue waits",
+      "masked versus restored shutdown",
+      "legacy fork"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-uninterruptible-concurrent-region.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-uninterruptible-concurrent-region.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-uninterruptible-concurrent-region.bad.ts": {
+        "linteffect/no-uninterruptible-concurrent-region": 5
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
+  },
+  {
+    "rule": "no-unbounded-queue-or-pubsub",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "unbounded Queue/PubSub",
+      "bounded backpressure/FIFO"
+    ],
+    "bad": [
+      "src/qualification/concurrencySafety/no-unbounded-queue-or-pubsub.bad.ts"
+    ],
+    "good": [
+      "src/qualification/concurrencySafety/no-unbounded-queue-or-pubsub.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/concurrencySafety/no-unbounded-queue-or-pubsub.bad.ts": {
+        "linteffect/no-unbounded-queue-or-pubsub": 2
+      }
+    },
+    "runtime": "src/qualification/concurrencySafety/cancellation-buffers.contracts.ts"
   }
 ]
