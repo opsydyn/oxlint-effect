@@ -79,7 +79,27 @@ try {
     }
     const installedPlugin = await Bun.file(join(root, "node_modules/@opsydyn/oxlint-effect/package.json")).json();
     if (installedPlugin.version !== rootPackage.version || installedPlugin.name !== rootPackage.name) throw new Error("Consumer did not install the packed plugin version");
+    const packedSkill = join(root, "node_modules/@opsydyn/oxlint-effect/skills/oxlint-effect/assets", ...(major === 4 ? ["effect4"] : []));
+    await cp(packedSkill, join(root, "src/skill-assets"), { recursive: true, filter: path => major === 4 || basename(path) !== "effect4" });
     assertCommandSuccess(run("bun", ["run", "typecheck"], root), `Effect ${major} typecheck`);
+    assertCommandSuccess(run("bun", ["-e", 'await import("./src/composition.contracts.ts"); console.log("Packed composition completed")'], root), `Effect ${major} group composition`, "Packed composition completed");
+    const skillConfig = "oxlint.skill.generated.json";
+    await writeFile(join(root, skillConfig), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: major === 3 ? (await import("../src/index.ts")).effect3.dddRules : (await import("../src/index.ts")).dddRules }));
+    for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation", "expected-state"]) {
+      const bad = `src/skill-assets/${pair}.bad.ts`;
+      const expected: Record<string, number> = {};
+      for (const match of (await Bun.file(join(root, bad)).text()).matchAll(/EXPECT: (linteffect\/[a-z0-9-]+)/g)) expected[match[1]!] = (expected[match[1]!] ?? 0) + 1;
+      if (!Object.keys(expected).length) throw new Error(`Missing skill annotations: ${pair}`);
+      verifyLint(root, skillConfig, [bad], expected, 1, { [bad]: expected });
+      verifyLint(root, skillConfig, [`src/skill-assets/${pair}.good.ts`], {}, 0);
+    }
+    assertCommandSuccess(run("bun", ["-e", 'await import("./src/skill-assets/contracts.ts"); console.log("Packed skill repairs completed")'], root), `Effect ${major} skill runtime`, "Packed skill repairs completed");
+    for (const [version, count] of [[undefined, major === 4 ? 7 : 0], [3, major === 3 ? 5 : 0], [4, major === 4 ? 7 : 0]] as const) {
+      const config = "oxlint.manual.generated.json";
+      await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-wrapgraphql-catchall": version === undefined ? "error" : ["error", { effectVersion: version }] } }));
+      const file = "src/qualification/atomStateAndPlatformBoundaries/no-wrapgraphql-catchall.bad.ts";
+      verifyLint(root, config, [file], count ? { "linteffect/no-wrapgraphql-catchall": count } : {}, count ? 1 : 0, count ? { [file]: { "linteffect/no-wrapgraphql-catchall": count } } : undefined);
+    }
     const cases = validateQualificationCases(await Bun.file(join(root, "qualification-cases.json")).json(), major, Object.keys(plugin.rules));
     assertQualificationCoverage(cases, inventory, major);
     const runtimeChecks = new Set<string>();

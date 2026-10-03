@@ -1,5 +1,10 @@
 # Domain Variants, Predicates, And State Machines
 
+API examples in this reference retain the labelled legacy Effect 3 corpus.
+For Effect 4 use [versioned guidance](versioned-rules.md) and the paired
+current assets linked from the skill entrypoint. Preserve the domain contract,
+not legacy API spelling; matching packed consumers verify both corpora.
+
 Read the paired [failures](../assets/domain-decisions.bad.ts) and
 [repairs](../assets/domain-decisions.good.ts). Each failure has one intentional
 DDD diagnostic; the complete repair is linted with the full `ddd` preset.

@@ -101,8 +101,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds the unchanged 30 KB cap by 1,004 bytes. All Q batches
   now have evidence in the [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
-- [ ] Complete all group/preset and packaged skill/documentation composition
-  checks, including failures and repairs for both supported majors.
+- [x] Complete group/preset and packaged skill/documentation composition checks,
+  including failures and repairs for both supported majors. Group qualification
+  remains conjunctive with pending members and the unchanged size gate.
 - [ ] Obtain the fresh whole-campaign review required by the approved plan.
 - [ ] Pass the complete Effect version gate, unit tests, typecheck, packed
   consumers, type-aware consumer, publint, API docs, size and package inspection.

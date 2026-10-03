@@ -1,0 +1,4242 @@
+{
+  "reactAndRuntimeBoundaries": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-react-state": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-react-state"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-react-state"
+          ]
+        }
+      },
+      "no-runtime-runfork": {
+        "applicability": {
+          "3": true,
+          "4": false
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "not-applicable"
+        },
+        "classification": {
+          "3": "legacy-only",
+          "4": "legacy-only"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-runtime-runfork"
+          ],
+          "4": []
+        }
+      },
+      "no-run-effect-outside-boundary": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "adapted",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-run-effect-outside-boundary"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-run-effect-outside-boundary"
+          ]
+        }
+      },
+      "no-or-die-outside-boundary": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-or-die-outside-boundary"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-or-die-outside-boundary"
+          ]
+        }
+      },
+      "prevent-dynamic-imports": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prevent-dynamic-imports"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prevent-dynamic-imports"
+          ]
+        }
+      },
+      "no-render-side-effects": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-render-side-effects"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-render-side-effects"
+          ]
+        }
+      },
+      "no-inline-runtime-provide": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-inline-runtime-provide"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-inline-runtime-provide"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "effectComposition": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-effect-as": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-as"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-as"
+          ]
+        }
+      },
+      "no-effect-do": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-do"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-do"
+          ]
+        }
+      },
+      "no-effect-bind": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-bind"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-bind"
+          ]
+        }
+      },
+      "no-effect-async": {
+        "applicability": {
+          "3": true,
+          "4": false
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "not-applicable"
+        },
+        "classification": {
+          "3": "legacy-only",
+          "4": "legacy-only"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-async"
+          ],
+          "4": []
+        }
+      },
+      "no-effect-ignore": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-ignore"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-ignore"
+          ]
+        }
+      },
+      "no-effect-never": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-never"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-never"
+          ]
+        }
+      },
+      "no-effect-fn-generator": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-fn-generator"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-fn-generator"
+          ]
+        }
+      },
+      "no-nested-effect-gen": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-nested-effect-gen"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-nested-effect-gen"
+          ]
+        }
+      },
+      "no-yield-without-star-in-effect-gen": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-yield-without-star-in-effect-gen"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-yield-without-star-in-effect-gen"
+          ]
+        }
+      },
+      "no-async-effect-combinator-callback": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-async-effect-combinator-callback"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-async-effect-combinator-callback"
+          ]
+        }
+      },
+      "no-throw-in-effect-logic": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-throw-in-effect-logic"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-throw-in-effect-logic"
+          ]
+        }
+      },
+      "no-try-catch-in-effect-logic": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-try-catch-in-effect-logic"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-try-catch-in-effect-logic"
+          ]
+        }
+      },
+      "no-promise-api-in-effect-logic": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-promise-api-in-effect-logic"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-promise-api-in-effect-logic"
+          ]
+        }
+      },
+      "no-swallowed-catch-all": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-swallowed-catch-all"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-swallowed-catch-all"
+          ]
+        }
+      },
+      "no-manual-effect-channels": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-manual-effect-channels"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-manual-effect-channels"
+          ]
+        }
+      },
+      "no-effect-type-alias": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-type-alias"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-type-alias"
+          ]
+        }
+      },
+      "no-public-generic-effect-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-public-generic-effect-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-public-generic-effect-error"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "concurrencySafety": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-unbounded-effect-all": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unbounded-effect-all"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unbounded-effect-all"
+          ]
+        }
+      },
+      "no-fire-and-forget-fork": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-fire-and-forget-fork"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-fire-and-forget-fork"
+          ]
+        }
+      },
+      "no-fork-in-loop": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-fork-in-loop"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-fork-in-loop"
+          ]
+        }
+      },
+      "no-race-without-cleanup": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-race-without-cleanup"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-race-without-cleanup"
+          ]
+        }
+      },
+      "no-unobserved-fiber": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unobserved-fiber"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unobserved-fiber"
+          ]
+        }
+      },
+      "no-unbounded-concurrent-retry": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unbounded-concurrent-retry"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unbounded-concurrent-retry"
+          ]
+        }
+      },
+      "no-blocking-call-in-effect": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-blocking-call-in-effect"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-blocking-call-in-effect"
+          ]
+        }
+      },
+      "no-promise-concurrency-in-effect": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-promise-concurrency-in-effect"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-promise-concurrency-in-effect"
+          ]
+        }
+      },
+      "no-shared-mutable-state-across-fibers": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-shared-mutable-state-across-fibers"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-shared-mutable-state-across-fibers"
+          ]
+        }
+      },
+      "no-timeout-with-noninterruptible-promise": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-timeout-with-noninterruptible-promise"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-timeout-with-noninterruptible-promise"
+          ]
+        }
+      },
+      "no-uninterruptible-concurrent-region": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-uninterruptible-concurrent-region"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-uninterruptible-concurrent-region"
+          ]
+        }
+      },
+      "no-unbounded-queue-or-pubsub": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unbounded-queue-or-pubsub"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unbounded-queue-or-pubsub"
+          ]
+        }
+      },
+      "no-global-mutable-concurrency-state": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-global-mutable-concurrency-state"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-global-mutable-concurrency-state"
+          ]
+        }
+      },
+      "no-manual-deferred-coordination": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-manual-deferred-coordination"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-manual-deferred-coordination"
+          ]
+        }
+      },
+      "no-yield-with-held-semaphore-permit": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-yield-with-held-semaphore-permit"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-yield-with-held-semaphore-permit"
+          ]
+        }
+      },
+      "no-yield-with-held-mutable-ref": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-yield-with-held-mutable-ref"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-yield-with-held-mutable-ref"
+          ]
+        }
+      },
+      "no-unscoped-background-fiber": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unscoped-background-fiber"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unscoped-background-fiber"
+          ]
+        }
+      },
+      "no-acquire-without-scoped-release": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-acquire-without-scoped-release"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-acquire-without-scoped-release"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "resourceLifetime": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-manual-resource-close": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-manual-resource-close"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-manual-resource-close"
+          ]
+        }
+      },
+      "no-unbound-scope": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unbound-scope"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unbound-scope"
+          ]
+        }
+      },
+      "no-resource-succeed-escape": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-resource-succeed-escape"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-resource-succeed-escape"
+          ]
+        }
+      },
+      "no-resource-without-acquire-release": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-resource-without-acquire-release"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-resource-without-acquire-release"
+          ]
+        }
+      },
+      "no-request-scoped-long-lived-resource": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-request-scoped-long-lived-resource"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-request-scoped-long-lived-resource"
+          ]
+        }
+      },
+      "no-global-resource-singleton": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-global-resource-singleton"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-global-resource-singleton"
+          ]
+        }
+      },
+      "no-nested-acquire-release": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-nested-acquire-release"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-nested-acquire-release"
+          ]
+        }
+      },
+      "no-missing-layer-provision-at-run": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-missing-layer-provision-at-run"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-missing-layer-provision-at-run"
+          ]
+        }
+      },
+      "no-run-with-open-resource": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-run-with-open-resource"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-run-with-open-resource"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "pipelineShapeAndSequencing": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-nested-effect-call": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-nested-effect-call"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-nested-effect-call"
+          ]
+        }
+      },
+      "no-effect-ladder": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-ladder"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-ladder"
+          ]
+        }
+      },
+      "no-flatmap-ladder": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-flatmap-ladder"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-flatmap-ladder"
+          ]
+        }
+      },
+      "no-pipe-ladder": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-pipe-ladder"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-pipe-ladder"
+          ]
+        }
+      },
+      "no-call-tower": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-call-tower"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-call-tower"
+          ]
+        }
+      },
+      "no-effect-orElse-ladder": {
+        "applicability": {
+          "3": true,
+          "4": false
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "not-applicable"
+        },
+        "classification": {
+          "3": "legacy-only",
+          "4": "legacy-only"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-orElse-ladder"
+          ],
+          "4": []
+        }
+      },
+      "no-effect-wrapper-alias": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-wrapper-alias"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-wrapper-alias"
+          ]
+        }
+      },
+      "warn-effect-sync-wrapper": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: warn-effect-sync-wrapper"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: warn-effect-sync-wrapper"
+          ]
+        }
+      },
+      "no-effect-side-effect-wrapper": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-side-effect-wrapper"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-side-effect-wrapper"
+          ]
+        }
+      },
+      "no-effect-all-step-sequencing": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-all-step-sequencing"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-all-step-sequencing"
+          ]
+        }
+      },
+      "no-effect-succeed-variable": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-succeed-variable"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-succeed-variable"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "branchingAndLocalControlFlow": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-if-statement": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-if-statement"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-if-statement"
+          ]
+        }
+      },
+      "no-switch-statement": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-switch-statement"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-switch-statement"
+          ]
+        }
+      },
+      "no-ternary": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-ternary"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-ternary"
+          ]
+        }
+      },
+      "no-try-catch": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-try-catch"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-try-catch"
+          ]
+        }
+      },
+      "no-arrow-ladder": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-arrow-ladder"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-arrow-ladder"
+          ]
+        }
+      },
+      "no-iife-wrapper": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-iife-wrapper"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-iife-wrapper"
+          ]
+        }
+      },
+      "no-return-in-arrow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-return-in-arrow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-return-in-arrow"
+          ]
+        }
+      },
+      "no-return-in-callback": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-return-in-callback"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-return-in-callback"
+          ]
+        }
+      },
+      "no-return-null": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-return-null"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-return-null"
+          ]
+        }
+      },
+      "no-branch-in-object": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-branch-in-object"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-branch-in-object"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "optionMatchAndDataNormalization": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-option-as": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-option-as"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-option-as"
+          ]
+        }
+      },
+      "no-match-void-branch": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-match-void-branch"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-match-void-branch"
+          ]
+        }
+      },
+      "no-match-effect-branch": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-match-effect-branch"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-match-effect-branch"
+          ]
+        }
+      },
+      "no-model-overlay-cast": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-model-overlay-cast"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-model-overlay-cast"
+          ]
+        }
+      },
+      "no-unknown-boolean-coercion-helper": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unknown-boolean-coercion-helper"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unknown-boolean-coercion-helper"
+          ]
+        }
+      },
+      "no-fromnullable-nullish-coalesce": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-fromnullable-nullish-coalesce"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-fromnullable-nullish-coalesce"
+          ]
+        }
+      },
+      "no-option-boolean-normalization": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-option-boolean-normalization"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-option-boolean-normalization"
+          ]
+        }
+      },
+      "no-string-sentinel-return": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-string-sentinel-return"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-string-sentinel-return"
+          ]
+        }
+      },
+      "no-string-sentinel-const": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-string-sentinel-const"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-string-sentinel-const"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "atomStateAndPlatformBoundaries": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-effect-sync-console": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-sync-console"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-sync-console"
+          ]
+        }
+      },
+      "no-atom-registry-effect-sync": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-atom-registry-effect-sync"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-atom-registry-effect-sync"
+          ]
+        }
+      },
+      "no-family-collection-read": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-family-collection-read"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-family-collection-read"
+          ]
+        }
+      },
+      "no-naked-object-state-update": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-naked-object-state-update"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-naked-object-state-update"
+          ]
+        }
+      },
+      "no-wrapgraphql-catchall": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-wrapgraphql-catchall"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-wrapgraphql-catchall"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "domainModeling": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-raw-domain-id-alias": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-raw-domain-id-alias"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-raw-domain-id-alias"
+          ]
+        }
+      },
+      "no-boolean-domain-flag": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-boolean-domain-flag"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-boolean-domain-flag"
+          ]
+        }
+      },
+      "no-magic-domain-string": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-magic-domain-string"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-magic-domain-string"
+          ]
+        }
+      },
+      "no-raw-domain-primitive-params": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-raw-domain-primitive-params"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-raw-domain-primitive-params"
+          ]
+        }
+      },
+      "no-raw-time-domain-field": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-raw-time-domain-field"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-raw-time-domain-field"
+          ]
+        }
+      },
+      "no-overloaded-options-object": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-overloaded-options-object"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-overloaded-options-object"
+          ]
+        }
+      },
+      "no-domain-logic-in-conditional": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-domain-logic-in-conditional"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-domain-logic-in-conditional"
+          ]
+        }
+      },
+      "no-implicit-state-machine-object": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-implicit-state-machine-object"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-implicit-state-machine-object"
+          ]
+        }
+      },
+      "no-adhoc-domain-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-adhoc-domain-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-adhoc-domain-error"
+          ]
+        }
+      },
+      "no-domain-meaning-by-folder-only": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-domain-meaning-by-folder-only"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-domain-meaning-by-folder-only"
+          ]
+        }
+      },
+      "no-new-date-in-domain-logic": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-new-date-in-domain-logic"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-new-date-in-domain-logic"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "errorModeling": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-error-as-public-effect-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-error-as-public-effect-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-error-as-public-effect-error"
+          ]
+        }
+      },
+      "no-unknown-public-error-channel": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unknown-public-error-channel"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unknown-public-error-channel"
+          ]
+        }
+      },
+      "no-mixed-effect-error-shapes": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-mixed-effect-error-shapes"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-mixed-effect-error-shapes"
+          ]
+        }
+      },
+      "no-expected-state-as-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-expected-state-as-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-expected-state-as-error"
+          ]
+        }
+      },
+      "no-early-catchall-null": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-early-catchall-null"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-early-catchall-null"
+          ]
+        }
+      },
+      "no-empty-error-tag": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-empty-error-tag"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-empty-error-tag"
+          ]
+        }
+      },
+      "no-exception-domain-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-exception-domain-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-exception-domain-error"
+          ]
+        }
+      },
+      "no-effect-fail-error-message": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-fail-error-message"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-fail-error-message"
+          ]
+        }
+      },
+      "no-catchall-generic-rethrow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-catchall-generic-rethrow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-catchall-generic-rethrow"
+          ]
+        }
+      },
+      "no-log-only-error-handling": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-log-only-error-handling"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-log-only-error-handling"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "ddd": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-raw-domain-id-alias": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-raw-domain-id-alias"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-raw-domain-id-alias"
+          ]
+        }
+      },
+      "no-boolean-domain-flag": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-boolean-domain-flag"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-boolean-domain-flag"
+          ]
+        }
+      },
+      "no-magic-domain-string": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-magic-domain-string"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-magic-domain-string"
+          ]
+        }
+      },
+      "no-raw-domain-primitive-params": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-raw-domain-primitive-params"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-raw-domain-primitive-params"
+          ]
+        }
+      },
+      "no-raw-time-domain-field": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-raw-time-domain-field"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-raw-time-domain-field"
+          ]
+        }
+      },
+      "no-overloaded-options-object": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-overloaded-options-object"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-overloaded-options-object"
+          ]
+        }
+      },
+      "no-domain-logic-in-conditional": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-domain-logic-in-conditional"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-domain-logic-in-conditional"
+          ]
+        }
+      },
+      "no-implicit-state-machine-object": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-implicit-state-machine-object"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-implicit-state-machine-object"
+          ]
+        }
+      },
+      "no-adhoc-domain-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-adhoc-domain-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-adhoc-domain-error"
+          ]
+        }
+      },
+      "no-domain-meaning-by-folder-only": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-domain-meaning-by-folder-only"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-domain-meaning-by-folder-only"
+          ]
+        }
+      },
+      "no-new-date-in-domain-logic": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-new-date-in-domain-logic"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-new-date-in-domain-logic"
+          ]
+        }
+      },
+      "no-error-as-public-effect-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-error-as-public-effect-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-error-as-public-effect-error"
+          ]
+        }
+      },
+      "no-unknown-public-error-channel": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-unknown-public-error-channel"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-unknown-public-error-channel"
+          ]
+        }
+      },
+      "no-mixed-effect-error-shapes": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-mixed-effect-error-shapes"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-mixed-effect-error-shapes"
+          ]
+        }
+      },
+      "no-expected-state-as-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-expected-state-as-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-expected-state-as-error"
+          ]
+        }
+      },
+      "no-early-catchall-null": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-early-catchall-null"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-early-catchall-null"
+          ]
+        }
+      },
+      "no-empty-error-tag": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-empty-error-tag"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-empty-error-tag"
+          ]
+        }
+      },
+      "no-exception-domain-error": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-exception-domain-error"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-exception-domain-error"
+          ]
+        }
+      },
+      "no-effect-fail-error-message": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-fail-error-message"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-fail-error-message"
+          ]
+        }
+      },
+      "no-catchall-generic-rethrow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-catchall-generic-rethrow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-catchall-generic-rethrow"
+          ]
+        }
+      },
+      "no-log-only-error-handling": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-log-only-error-handling"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-log-only-error-handling"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "effectFlow": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-piped-yield-in-gen": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-piped-yield-in-gen"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-piped-yield-in-gen"
+          ]
+        }
+      },
+      "no-gen-for-mapping": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-gen-for-mapping"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-gen-for-mapping"
+          ]
+        }
+      },
+      "prefer-gen-for-workflow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-gen-for-workflow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-gen-for-workflow"
+          ]
+        }
+      },
+      "no-business-logic-in-pipe": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-business-logic-in-pipe"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-business-logic-in-pipe"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "pureTransformation": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-large-anonymous-flow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-large-anonymous-flow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-large-anonymous-flow"
+          ]
+        }
+      },
+      "no-effect-in-flow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-in-flow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-in-flow"
+          ]
+        }
+      },
+      "prefer-named-flow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-named-flow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-named-flow"
+          ]
+        }
+      },
+      "prefer-flow-for-pure-pipeline": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-flow-for-pure-pipeline"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-flow-for-pure-pipeline"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "behaviorDecoration": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "prefer-pipe-for-behavior": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-pipe-for-behavior"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-pipe-for-behavior"
+          ]
+        }
+      },
+      "prefer-decorated-effect-before-gen": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-decorated-effect-before-gen"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-decorated-effect-before-gen"
+          ]
+        }
+      },
+      "no-workflow-in-behavior-pipe": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-workflow-in-behavior-pipe"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-workflow-in-behavior-pipe"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "styleSeparation": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-mixed-pillar-function": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-mixed-pillar-function"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-mixed-pillar-function"
+          ]
+        }
+      },
+      "no-clever-effect-expression": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-clever-effect-expression"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-clever-effect-expression"
+          ]
+        }
+      },
+      "prefer-extracted-concept": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-extracted-concept"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-extracted-concept"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "serviceAndLayerArchitecture": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "prefer-effect-service": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-effect-service"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-effect-service"
+          ]
+        }
+      },
+      "no-layer-provide-in-service-definition": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-layer-provide-in-service-definition"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-layer-provide-in-service-definition"
+          ]
+        }
+      },
+      "require-service-accessors": {
+        "applicability": {
+          "3": true,
+          "4": false
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "not-applicable"
+        },
+        "classification": {
+          "3": "legacy-only",
+          "4": "legacy-only"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: require-service-accessors"
+          ],
+          "4": []
+        }
+      },
+      "require-service-dependencies": {
+        "applicability": {
+          "3": true,
+          "4": false
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "not-applicable"
+        },
+        "classification": {
+          "3": "legacy-only",
+          "4": "legacy-only"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: require-service-dependencies"
+          ],
+          "4": []
+        }
+      },
+      "no-namespace-effect-import": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-namespace-effect-import"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-namespace-effect-import"
+          ]
+        }
+      },
+      "no-manual-service-object-export": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-manual-service-object-export"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-manual-service-object-export"
+          ]
+        }
+      },
+      "no-layer-merge-in-request-handler": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-layer-merge-in-request-handler"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-layer-merge-in-request-handler"
+          ]
+        }
+      },
+      "no-service-method-returning-promise": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-service-method-returning-promise"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-service-method-returning-promise"
+          ]
+        }
+      },
+      "prefer-layer-pipe": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-layer-pipe"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-layer-pipe"
+          ]
+        }
+      },
+      "no-inline-layer-provide-in-program": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-inline-layer-provide-in-program"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-inline-layer-provide-in-program"
+          ]
+        }
+      },
+      "prefer-layer-mergeall-for-infrastructure": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: prefer-layer-mergeall-for-infrastructure"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: prefer-layer-mergeall-for-infrastructure"
+          ]
+        }
+      },
+      "no-service-layer-scatter": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-service-layer-scatter"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-service-layer-scatter"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "platformAndBoundaryHygiene": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-hidden-effect-execution": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-hidden-effect-execution"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-hidden-effect-execution"
+          ]
+        }
+      },
+      "no-boundary-try-catch-without-effect-map": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-boundary-try-catch-without-effect-map"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-boundary-try-catch-without-effect-map"
+          ]
+        }
+      },
+      "no-node-fs-in-effect-code": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-node-fs-in-effect-code"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-node-fs-in-effect-code"
+          ]
+        }
+      },
+      "no-json-parse-without-schema": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-json-parse-without-schema"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-json-parse-without-schema"
+          ]
+        }
+      },
+      "no-date-now-in-effect": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-date-now-in-effect"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-date-now-in-effect"
+          ]
+        }
+      },
+      "no-node-platform-in-shared-code": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-node-platform-in-shared-code"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-node-platform-in-shared-code"
+          ]
+        }
+      },
+      "no-process-env-direct-read": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-process-env-direct-read"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-process-env-direct-read"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  },
+  "testingObservabilityAndQa": {
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "pending",
+      "4": "pending"
+    },
+    "members": {
+      "no-console-in-effect-flow": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-console-in-effect-flow"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-console-in-effect-flow"
+          ]
+        }
+      },
+      "no-effect-log-without-structured-context": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-effect-log-without-structured-context"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-effect-log-without-structured-context"
+          ]
+        }
+      },
+      "require-span-on-public-service-method": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: require-span-on-public-service-method"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: require-span-on-public-service-method"
+          ]
+        }
+      },
+      "no-runpromise-in-non-async-test-body": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-runpromise-in-non-async-test-body"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-runpromise-in-non-async-test-body"
+          ]
+        }
+      },
+      "require-effect-flip-for-error-test": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: require-effect-flip-for-error-test"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: require-effect-flip-for-error-test"
+          ]
+        }
+      },
+      "no-test-mock-layer-when-default-available": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "baseline",
+          "4": "pending"
+        },
+        "classification": {
+          "3": "unchanged",
+          "4": "unchanged"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-test-mock-layer-when-default-available"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-test-mock-layer-when-default-available"
+          ]
+        }
+      }
+    },
+    "configEvidence": {
+      "3": [
+        "examples/effect3-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ],
+      "4": [
+        "examples/effect4-consumer/src/composition.contracts.ts",
+        "scripts/verify-effect-version-consumers.ts"
+      ]
+    },
+    "skillEvidence": {
+      "3": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/contracts.ts"
+      ],
+      "4": [
+        "skills/oxlint-effect/references/versioned-rules.md",
+        "skills/oxlint-effect/assets/effect4/contracts.ts"
+      ]
+    }
+  }
+}

@@ -1,9 +1,9 @@
-// Legacy Effect 3 asset; use assets/effect4 for current policy.
+// Effect 4 first-class asset; qualify against the pinned current consumer.
 import { Data, Effect, Option } from "effect";
 import { type ProfileUnavailable } from "./public-errors.good";
 
 export function lookupSelection(selection: string | undefined) {
-  return Effect.succeed(Option.fromNullable(selection));
+  return Effect.succeed(Option.fromNullishOr(selection));
 }
 
 export function recoverProfile(operation: Effect.Effect<string, ProfileUnavailable>) {

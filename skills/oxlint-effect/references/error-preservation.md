@@ -1,5 +1,10 @@
 # Recovery Ownership And Error Preservation
 
+API examples in this reference retain the labelled legacy Effect 3 corpus.
+For Effect 4 use [versioned guidance](versioned-rules.md) and the paired
+current assets linked from the skill entrypoint. Preserve the domain contract,
+not legacy API spelling; matching packed consumers verify both corpora.
+
 Read the paired [failures](../assets/error-preservation.bad.ts) and
 [repairs](../assets/error-preservation.good.ts). These wrap a supplied profile
 Effect; they do not implement persistence or choose a production recovery policy.

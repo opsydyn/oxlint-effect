@@ -1,4 +1,4 @@
-// Legacy Effect 3 asset; use assets/effect4 for current policy.
+// Effect 4 first-class asset; qualify against the pinned current consumer.
 import { Data, Effect } from "effect";
 
 // EXPECT: linteffect/no-domain-meaning-by-folder-only

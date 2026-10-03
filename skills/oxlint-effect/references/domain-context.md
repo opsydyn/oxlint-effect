@@ -1,5 +1,10 @@
 # Domain Context, Time, And Failure Ownership
 
+API examples in this reference retain the labelled legacy Effect 3 corpus.
+For Effect 4 use [versioned guidance](versioned-rules.md) and the paired
+current assets linked from the skill entrypoint. Preserve the domain contract,
+not legacy API spelling; matching packed consumers verify both corpora.
+
 Read the paired [failures](../assets/domain-context.bad.ts) and
 [repairs](../assets/domain-context.good.ts). The three annotated failures are
 checked against the full DDD preset; the passing control also typechecks.

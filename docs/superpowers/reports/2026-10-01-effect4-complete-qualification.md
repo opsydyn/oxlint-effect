@@ -1342,6 +1342,30 @@ bytes, 1,004 over the unchanged cap. All Q01-Q52 have behavioural evidence;
 Q22-Q52 and 82 applicable-rule qualification statuses remain open until the
 size gate and Task 3/4 cross-group closure pass. No release was made.
 
+## Task 3 Group Composition And Packaged Guidance
+
+All 18 groups and rules-only companions are typechecked and runtime-compared
+in both packed consumers. DDD is the exact 21-member union; recommended strict
+exclusions, five legacy-only omissions, typeAware opt-in, custom boundary/config
+paths and same-process major isolation are asserted. Parsed manual policy proves
+default 4 versus explicit 3/4 for current and legacy envelope recovery.
+
+Both packed skill corpora now compile against their actual matching dependency,
+emit exact annotated DDD failures, keep passing repairs clean and execute actual
+repair contracts. All current files ship under assets/effect4; original assets
+are explicitly legacy. Pinned compiler failures exposed and corrected Predicate,
+Option and unknown-input schema signatures. Initial asset-copy filtering excluded
+the current root; corrected before final evidence. The skill rule-reference test
+now accepts actual uppercase rule IDs, including no-effect-orElse-ladder.
+Package/file/link tests are not model/agent adherence or browser acceptance.
+
+Fresh gates pass: 575 tests / 4773 expectations, root types, both packed majors,
+packed typeAware, API docs, package inspection and diff. Index links resolve;
+versioned guidance covers every group. Group inventory records exact union
+membership and config/skill evidence, but remains pending conjunctively with
+member qualification. Raw build stays 142.47 kB, 31,004 bytes compressed;
+Task 4 still must resolve the unchanged cap, guard groups and review closure.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

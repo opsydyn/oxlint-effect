@@ -124,6 +124,11 @@ Q52 state/envelope checks pass with current broad/eager recovery recognition and
 valid own-major schema repairs. All 52 batches have behavioural evidence; formal
 qualification remains open. Size is 1,004 bytes over the cap; Tasks 3/4 remain.
 
+Task 3 group/preset, rules-only, exact DDD and packaged current/legacy skill
+contracts pass, including type-aware opt-in and resolvable QA indexes. Group
+inventory is present but pending alongside member qualification. Task 4 remains:
+unchanged size cap, group release guard, whole-campaign review and final gates.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

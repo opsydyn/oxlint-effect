@@ -1,5 +1,26 @@
 # Consumer Configuration
 
+## Effect Major
+
+In this unreleased 2.0 checkout default groups target Effect 4; published 1.x
+remains legacy. Every preset and rules-only companion is available under
+`effect3` for Effect 3. See [all versioned groups](versioned-rules.md) for the
+matching failure/repair corpus. Verify the installed package before selecting it.
+
+```ts
+import { defineConfig } from "oxlint";
+import { effect3 } from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  jsPlugins: [...effect3.ddd.jsPlugins],
+  rules: effect3.dddRules,
+});
+```
+
+Sensitive manual entries default to Effect 4. Preserve the selected major when
+overriding severity, `boundaryPaths` or `configPaths`; apply overrides after maps.
+An explicit override does not make removed APIs applicable to current Effect.
+
 ## Install Or Upgrade
 
 Use the consumer's package manager and lockfile. Inspect the installed Oxlint

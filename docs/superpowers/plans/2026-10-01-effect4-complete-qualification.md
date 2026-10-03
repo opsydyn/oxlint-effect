@@ -336,11 +336,11 @@ Size stays 944 bytes over the cap; checkbox/inventory stay open. Continue Q52.
 `docs/effect-version-groups.json` and
 `docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md`.
 
-- [ ] Add RED tests requiring every exported group/preset and rules-only companion in both packed config contracts, plus DDD's exact 21-member union. Prove default/manual v4, legacy namespace, strict/recommended exclusions, boundary/config option retention and same-process mixed majors.
-- [ ] Write version-correct guidance for every rule repair; make the pinned Effect 4 consumer and its group index the primary examples. Retain labelled v3 reference app/assets; link each bad control to its rule and repair. Do not claim an application runtime was launched: this is lint/type/runtime-contract QA.
-- [ ] Package v4-first skill assets under `skills/oxlint-effect/assets/effect4/` and retain legacy assets under their existing names with explicit labels. Update skill guidance to select the installed major and consumer config, not prescribe v3 API options universally. Typecheck assets against each matching pinned consumer in the packed harness.
-- [ ] Populate group evidence from completed rule cases: unchanged/adapted/legacy-only classification plus member applicability and scope. Group qualification is conjunctive over every applicable member and config-composition tests, not the fraction that warns.
-- [ ] Run `bun run test`, both packed majors, packed type-aware gate, TypeDoc and relative-link checks; inspect tarball skill assets and commit `docs: complete versioned Effect guidance and group evidence`.
+- [x] Add RED tests requiring every exported group/preset and rules-only companion in both packed config contracts, plus DDD's exact 21-member union. Prove default/manual v4, legacy namespace, strict/recommended exclusions, boundary/config option retention and same-process mixed majors.
+- [x] Write version-correct guidance for every rule repair; make the pinned Effect 4 consumer and its group index the primary examples. Retain labelled v3 reference app/assets; link each bad control to its rule and repair. Do not claim an application runtime was launched: this is lint/type/runtime-contract QA.
+- [x] Package v4-first skill assets under `skills/oxlint-effect/assets/effect4/` and retain legacy assets under their existing names with explicit labels. Update skill guidance to select the installed major and consumer config, not prescribe v3 API options universally. Typecheck assets against each matching pinned consumer in the packed harness.
+- [x] Populate group evidence from completed rule cases: unchanged/adapted/legacy-only classification plus member applicability and scope. Group qualification is conjunctive over every applicable member and config-composition tests, not the fraction that warns.
+- [x] Run `bun run test`, both packed majors, packed type-aware gate, TypeDoc and relative-link checks; inspect tarball skill assets and commit `docs: complete versioned Effect guidance and group evidence`.
 
 ## Task 4: Closure Review And Release Preparation
 

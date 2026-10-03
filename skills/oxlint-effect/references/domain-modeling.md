@@ -1,5 +1,10 @@
 # Domain Modeling And Structured Errors
 
+API examples in this reference retain the labelled legacy Effect 3 corpus.
+For Effect 4 use [versioned guidance](versioned-rules.md) and the paired
+current assets linked from the skill entrypoint. Preserve the domain contract,
+not legacy API spelling; matching packed consumers verify both corpora.
+
 These are syntax-based design-smell detectors. Confirm the installed rule's
 documented trigger and the actual business contract before deciding on a repair.
 `ddd` includes both domain and error modeling; `domainModeling` is narrower.

@@ -17,6 +17,29 @@ overrides, and lint/typecheck commands. Match guidance to those installed
 versions. A skill obtained from GitHub may describe exports newer than the
 consumer package; verify exports before adding them.
 
+This unreleased 2.0 checkout defaults to Effect 4. Published 1.x remains Effect 3.
+For every group, consult [versioned rule guidance](references/versioned-rules.md)
+and the matching pinned consumer's annotated failures, repairs and scope notes.
+Legacy uses `effect3`; manual sensitive rules default to 4. Do not mix a legacy
+repair with current APIs merely because the rule ID is stable.
+
+## Choose The Matching Corpus
+
+Effect 4 assets are first-class and verified with the pinned current dependency:
+
+- Identifiers and failures: [bad](assets/effect4/domain.bad.ts), [good](assets/effect4/domain.good.ts).
+- Commands, units and options: [bad](assets/effect4/domain-shapes.bad.ts), [good](assets/effect4/domain-shapes.good.ts).
+- Vocabulary and lifecycles: [bad](assets/effect4/domain-decisions.bad.ts), [good](assets/effect4/domain-decisions.good.ts).
+- Context and clock: [bad](assets/effect4/domain-context.bad.ts), [good](assets/effect4/domain-context.good.ts).
+- Public error channels: [bad](assets/effect4/public-errors.bad.ts), [good](assets/effect4/public-errors.good.ts).
+- Error identity: [bad](assets/effect4/error-preservation.bad.ts), [good](assets/effect4/error-preservation.good.ts).
+- Expected state: [bad](assets/effect4/expected-state.bad.ts), [good](assets/effect4/expected-state.good.ts).
+
+The original assets below are explicitly **legacy Effect 3**. Retain them for
+legacy consumers; use the current counterparts above for Effect 4. Both corpora
+are packed, typechecked, linted and runtime-tested against their matching major.
+These are executable contract checks, not proof of an agent's live adherence.
+
 ## Configure
 
 Read [configuration](references/configuration.md) when installing, upgrading,
@@ -68,6 +91,8 @@ keep defects and interruptions distinct from typed failures.
 For message-only failures, generic rethrows, or log-only handlers, read
 [error preservation](references/error-preservation.md). Establish recovery
 ownership and distinguish `catchAll` from `tapError` before changing semantics.
+For current Effect use the versioned guide: broad `catch`/`catchEager` differs
+from failure-preserving observers, and legacy `catch` is discriminator-specific.
 
 For ordinary absence, broad null fallback, or thrown expected rejection, read
 [expected state](references/expected-state.md). Classify the outcome with its

@@ -1,4 +1,4 @@
-// Legacy Effect 3 asset; use assets/effect4 for current policy.
+// Effect 4 first-class asset; qualify against the pinned current consumer.
 import { Data, Effect, Schema } from "effect";
 
 export const UserId = Schema.NonEmptyString.pipe(Schema.brand("UserId"));
@@ -9,7 +9,7 @@ export const InvoiceId = Schema.NonEmptyString.pipe(Schema.brand("InvoiceId"));
 export type InvoiceId = typeof InvoiceId.Type;
 export const decodeInvoiceId = Schema.decodeUnknownSync(InvoiceId);
 
-export const NotificationMode = Schema.Literal("Notify", "Silent");
+export const NotificationMode = Schema.Literals(["Notify", "Silent"]);
 export type NotificationMode = typeof NotificationMode.Type;
 
 const notificationSettings: Record<NotificationMode, boolean> = {

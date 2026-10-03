@@ -1,5 +1,10 @@
 # Public Error-Channel Contracts
 
+API examples in this reference retain the labelled legacy Effect 3 corpus.
+For Effect 4 use [versioned guidance](versioned-rules.md) and the paired
+current assets linked from the skill entrypoint. Preserve the domain contract,
+not legacy API spelling; matching packed consumers verify both corpora.
+
 Read the paired [failures](../assets/public-errors.bad.ts) and
 [repairs](../assets/public-errors.good.ts). Each is an adapter around an injected
 Effect, not a working profile, session or inventory service. The failing control

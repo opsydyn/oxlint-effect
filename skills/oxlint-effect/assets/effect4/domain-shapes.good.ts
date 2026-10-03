@@ -1,4 +1,4 @@
-// Legacy Effect 3 asset; use assets/effect4 for current policy.
+// Effect 4 first-class asset; qualify against the pinned current consumer.
 import { Schema } from "effect";
 
 export const AccountId = Schema.String.pipe(Schema.brand("AccountId"));
@@ -26,7 +26,7 @@ export const encodeSessionLease = Schema.encodeSync(SessionLease);
 export const PaymentIntent = Schema.Struct({
   invoiceId: Schema.String,
   amount: Schema.Number,
-  memo: Schema.optional(Schema.String),
+  memo: Schema.optionalKey(Schema.UndefinedOr(Schema.String)),
 });
 export type PaymentIntent = typeof PaymentIntent.Type;
 export const decodePaymentIntent = Schema.decodeUnknownSync(PaymentIntent, {

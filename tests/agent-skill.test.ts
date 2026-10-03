@@ -57,6 +57,10 @@ const skillFiles = [
   `${skillRoot}/assets/error-preservation.good.ts`,
   `${skillRoot}/assets/expected-state.bad.ts`,
   `${skillRoot}/assets/expected-state.good.ts`,
+  `${skillRoot}/references/versioned-rules.md`,
+  `${skillRoot}/assets/contracts.ts`,
+  `${skillRoot}/assets/effect4/contracts.ts`,
+  ...["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation", "expected-state"].flatMap(pair => ["bad", "good"].map(kind => `${skillRoot}/assets/effect4/${pair}.${kind}.ts`)),
 ];
 
 describe("agent skill contract", () => {
@@ -64,7 +68,7 @@ describe("agent skill contract", () => {
     for (const file of skillFiles) {
       expect(await Bun.file(file).exists()).toBe(true);
       const text = await Bun.file(file).text();
-      for (const match of text.matchAll(/linteffect\/([a-z0-9-]+)/g)) {
+      for (const match of text.matchAll(/linteffect\/([a-zA-Z0-9-]+)/g)) {
         expect(plugin.rules).toHaveProperty(match[1]!);
       }
       if (!file.endsWith(".md")) continue;

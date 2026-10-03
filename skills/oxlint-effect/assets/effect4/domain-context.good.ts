@@ -1,4 +1,4 @@
-// Legacy Effect 3 asset; use assets/effect4 for current policy.
+// Effect 4 first-class asset; qualify against the pinned current consumer.
 import { Context, Data, Effect, Schema } from "effect";
 import { type UserId } from "./domain.good";
 import { EpochMillis, type SessionLease } from "./domain-shapes.good";
@@ -8,12 +8,12 @@ export class DeletionDenied extends Data.TaggedError("DeletionDenied")<{
   readonly reason: string;
 }> {}
 
-export class DeletionPolicy extends Context.Tag("agent-skill/DeletionPolicy")<
+export class DeletionPolicy extends Context.Service<
   DeletionPolicy,
   {
     readonly authorizeDelete: (userId: UserId) => Effect.Effect<void, DeletionDenied>;
   }
->() {}
+>()("agent-skill/DeletionPolicy") {}
 
 export function deleteUserFromAdminPanel(userId: UserId) {
   return Effect.gen(function* () {
@@ -23,9 +23,9 @@ export function deleteUserFromAdminPanel(userId: UserId) {
   });
 }
 
-const FiniteEpochMillis = EpochMillis.pipe(Schema.finite());
+const FiniteEpochMillis = EpochMillis.check(Schema.isFinite());
 export const decodeEpochMillis = Schema.decodeUnknownSync(FiniteEpochMillis);
-const validateEpochMillis = Schema.validateSync(FiniteEpochMillis);
+const validateEpochMillis = Schema.decodeUnknownSync(FiniteEpochMillis);
 
 export function isLeaseExpired(lease: SessionLease, now: typeof EpochMillis.Type) {
   return validateEpochMillis(now) >= validateEpochMillis(lease.expiresAt);

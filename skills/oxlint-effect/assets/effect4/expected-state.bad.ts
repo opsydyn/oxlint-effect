@@ -1,4 +1,4 @@
-// Legacy Effect 3 asset; use assets/effect4 for current policy.
+// Effect 4 first-class asset; qualify against the pinned current consumer.
 import { Effect } from "effect";
 import { type ProfileUnavailable } from "./public-errors.good";
 import { CheckoutRejectedError } from "./expected-state.good";
@@ -16,7 +16,7 @@ export function lookupSelection(selection: string | undefined) {
 // EXPECT: linteffect/no-early-catchall-null
 // QA: Storage failures become indistinguishable from successful absence.
 export function recoverProfile(operation: Effect.Effect<string, ProfileUnavailable>) {
-  return Effect.catchAll(operation, () => Effect.succeed(null));
+  return Effect.catch(operation, () => Effect.succeed(null));
 }
 
 // EXPECT: linteffect/no-exception-domain-error

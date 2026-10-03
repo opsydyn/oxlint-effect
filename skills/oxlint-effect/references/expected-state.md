@@ -1,5 +1,10 @@
 # Expected State And Failure Boundaries
 
+API examples in this reference retain the labelled legacy Effect 3 corpus.
+For Effect 4 use [versioned guidance](versioned-rules.md) and the paired
+current assets linked from the skill entrypoint. Preserve the domain contract,
+not legacy API spelling; matching packed consumers verify both corpora.
+
 Read the paired [failures](../assets/expected-state.bad.ts) and
 [repairs](../assets/expected-state.good.ts). Three targeted rules produce four
 diagnostics: the string `NotFound` also triggers `no-adhoc-domain-error`. The

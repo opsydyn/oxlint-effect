@@ -15,10 +15,10 @@ The staged major changeset and outstanding publication gates are tracked in the
 
 `bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
-The initial probes qualify documented variants of `no-effect-fail-error-message`,
-`no-catchall-generic-rethrow`, `no-early-catchall-null` and
-`no-run-effect-outside-boundary`; accepting a version option is not proof that a
-pending detector has been adapted. `release` and `prepublishOnly` are blocked until a major bump and
+All Q01-Q52 now have behavioural evidence in the matching packed consumers.
+Formal qualification remains open on bundle size and cross-group closure;
+accepting a version option is not proof of adaptation. `release` and
+`prepublishOnly` are blocked until a major bump and
 all applicable major-specific inventory entries qualify.
 
 Additional group-by-group evidence is tracked in the
@@ -28,6 +28,13 @@ sources, passing clean controls and literal per-file diagnostic counts. Run
 `bun scripts/verify-effect-version-consumers.ts --require-complete` after a build
 to reject any remaining unqualified applicable rule; it currently rejects this
 unfinished campaign.
+
+The [Effect 4 qualification index](examples/effect4-consumer/src/qualification/README.md)
+is the primary QA corpus. The [legacy index](examples/effect3-consumer/src/qualification/README.md)
+and original reference app remain explicitly Effect 3. The packaged skill has
+current [versioned guidance](skills/oxlint-effect/references/versioned-rules.md)
+and paired Effect 4 assets, with legacy assets retained. This is lint/type/runtime
+contract QA, not a launched application or browser/React adapter acceptance.
 
 ## Install
 
@@ -353,7 +360,7 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-run-effect-outside-boundary` | Six direct `Effect.run*` calls and, in v4, immediate curried `run*With(context)(program)` execution outside configured boundaries. | Keeps runtime ownership at recognised boundaries; context factory creation is clean. |
 | `linteffect/no-or-die-outside-boundary` | `Effect.orDie` calls/pipe arguments and legacy-only `orDieWith`. This historical owner is path-unaware; use explicit boundary overrides. | Keep domain errors typed; reserve intentional defect conversion for an explicitly owned boundary. |
 | `linteffect/prevent-dynamic-imports` | Dynamic `import(...)`. | Static imports keep dependency boundaries visible. |
-| `linteffect/no-render-side-effects` | `Match.value(...).pipe(...)` used as a render-time statement. | Prevents side effects from running during render. |
+| `linteffect/no-render-side-effects` | Import-gated `Match.value(...).pipe(...)` expression statements with branch operators, including ordinary pure statements. | Keep selection as a value and defer actual side effects to owned actions; syntax does not prove render context or purity. |
 | `linteffect/no-inline-runtime-provide` | Inline `Effect.provide(...)` inside local runtime/generator chains. | Keeps dependency assembly at service or application boundaries. |
 
 ### Effect Composition
@@ -711,7 +718,7 @@ not currently expose it; it is not part of the v1 export surface.
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-if-statement` | Imperative `if` statements in Effect files. | Pushes branching toward typed Match/Option/Either decisions. |
+| `linteffect/no-if-statement` | Imperative `if` statements in Effect-imported files, including ordinary logic. | Use Match/Option/Result decisions (legacy Either); this is a file-wide syntax policy. |
 | `linteffect/no-switch-statement` | Imperative `switch` statements in Effect files. | Encourages exhaustive domain matching. |
 | `linteffect/no-ternary` | Ternary expressions in Effect files. | Keeps decisions explicit and named. |
 | `linteffect/no-try-catch` | `try/catch`. | Keeps failures in typed Effect error channels. |
@@ -720,7 +727,7 @@ not currently expose it; it is not part of the v1 export surface.
 | `linteffect/no-return-in-arrow` | `return` inside block-bodied arrow callbacks. | Prefers expression callbacks for simple pipeline steps. |
 | `linteffect/no-return-in-callback` | `return` inside inline function callbacks. | Reduces hidden local control flow. |
 | `linteffect/no-return-null` | `return null` in Effect files. | Uses `Option.none` or typed failures instead of null sentinels. |
-| `linteffect/no-branch-in-object` | Match/Option/Either decisions inside object literals. | Computes decisions first, then builds data from named values. |
+| `linteffect/no-branch-in-object` | Match/Option/Result decisions inside object values; legacy selects Either. | Compute decisions first, then build data; recursive object scanning includes nested/unused callbacks, not resolved binding ownership. |
 
 ### Option, Match, and Data Normalization
 
@@ -743,8 +750,8 @@ not currently expose it; it is not part of the v1 export surface.
 | `linteffect/no-effect-sync-console` | `console.*` inside `Effect.sync`. | Uses `Effect.log*` or a real logging boundary. |
 | `linteffect/no-atom-registry-effect-sync` | Atom or atom registry operations wrapped in `Effect.sync`. | Keeps atom operations in the atom flow. |
 | `linteffect/no-family-collection-read` | `Atom.family` projections that read broad collection atoms. | Keeps keyed atoms keyed instead of coupling to whole collections. |
-| `linteffect/no-naked-object-state-update` | Raw object spreading, `Object.assign`, JSON rebuilds, and similar state shortcuts. | Preserves explicit model transitions and schema boundaries. |
-| `linteffect/no-wrapgraphql-catchall` | `Effect.catchAll` after `wrapGraphqlCall` or `applyResponse`. | Handles GraphQL envelope errors at the response mapping boundary. |
+| `linteffect/no-naked-object-state-update` | Ref.update/modify callback spreads, three-argument empty-target Object.assign, fromEntries containing entries and every direct JSON parse/stringify; no import gate. | Use explicit Struct/Record transitions and data-schema .make plus own-major JSON codecs. Current Record.modify returns Option; preserve missing keys. Current Schema.make builds ASTs, not data. |
+| `linteffect/no-wrapgraphql-catchall` | Recursive pipe scan combining wrapGraphqlCall/applyResponse with current catch/catchEager (legacy catchAll); v4 recognises eager response mapping. | Preserve structured errors at the response boundary. The name/pipe heuristic does not prove ordering or actual GraphQL ownership; data-first, alias and import-order gaps remain. |
 
 ### Domain Modeling
 
