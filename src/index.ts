@@ -3637,20 +3637,20 @@ function containsWrapGraphqlCall(node: unknown, seen = new WeakSet<object>()): b
   ));
 }
 
-function isApplyResponseFlatMap(node: unknown): boolean {
+function isApplyResponseFlatMap(node: unknown, version: EffectVersion): boolean {
   return (
-    isEffectMemberCallNamed(node, "flatMap") &&
+    (isEffectMemberCallNamed(node, "flatMap") || (version === 4 && isEffectMemberCallNamed(node, "flatMapEager"))) &&
     isIdentifier(firstArgument(node), "applyResponse")
   );
 }
 
-function containsApplyResponseFlatMap(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isApplyResponseFlatMap(node)) {
+function containsApplyResponseFlatMap(node: unknown, version: EffectVersion, seen = new WeakSet<object>()): boolean {
+  if (isApplyResponseFlatMap(node, version)) {
     return true;
   }
 
   if (Array.isArray(node)) {
-    return node.some((child) => containsApplyResponseFlatMap(child, seen));
+    return node.some((child) => containsApplyResponseFlatMap(child, version, seen));
   }
 
   if (typeof node !== "object" || node === null) {
@@ -3663,18 +3663,18 @@ function containsApplyResponseFlatMap(node: unknown, seen = new WeakSet<object>(
   seen.add(node);
 
   return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsApplyResponseFlatMap(child, seen)
+    key !== "parent" && containsApplyResponseFlatMap(child, version, seen)
   ));
 }
 
-function findEffectCatchAll(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (isEffectMemberCallNamed(node, "catchAll")) {
+function findEffectCatchAll(node: unknown, version: EffectVersion, seen = new WeakSet<object>()): unknown | undefined {
+  if (isEffectMemberCall(node) && plainCatchOperators(version).has(((node.callee as Node).property as { name: string }).name)) {
     return node;
   }
 
   if (Array.isArray(node)) {
     for (const child of node) {
-      const match = findEffectCatchAll(child, seen);
+      const match = findEffectCatchAll(child, version, seen);
       if (match) {
         return match;
       }
@@ -3696,7 +3696,7 @@ function findEffectCatchAll(node: unknown, seen = new WeakSet<object>()): unknow
       continue;
     }
 
-    const match = findEffectCatchAll(child, seen);
+    const match = findEffectCatchAll(child, version, seen);
     if (match) {
       return match;
     }
@@ -3705,18 +3705,18 @@ function findEffectCatchAll(node: unknown, seen = new WeakSet<object>()): unknow
   return undefined;
 }
 
-function getWrapGraphqlCatchAll(node: unknown): unknown | undefined {
+function getWrapGraphqlCatchAll(node: unknown, version: EffectVersion): unknown | undefined {
   const parts = pipeParts(node);
   if (parts.length === 0) {
     return undefined;
   }
 
-  const catchAll = findEffectCatchAll(parts);
+  const catchAll = findEffectCatchAll(parts, version);
   if (!catchAll) {
     return undefined;
   }
 
-  return containsWrapGraphqlCall(parts) || containsApplyResponseFlatMap(parts)
+  return containsWrapGraphqlCall(parts) || containsApplyResponseFlatMap(parts, version)
     ? catchAll
     : undefined;
 }
@@ -6907,6 +6907,7 @@ const noManualEffectChannels = defineRule({
 
 const noWrapgraphqlCatchall = defineRule({
   create(context: OxlintContext) {
+    const version = effectVersionFor(context.options);
     let hasEffectEcosystemImport = false;
 
     return {
@@ -6917,12 +6918,12 @@ const noWrapgraphqlCatchall = defineRule({
         }
       },
       CallExpression(node: any) {
-        const catchAll = hasEffectEcosystemImport ? getWrapGraphqlCatchAll(node) : undefined;
+        const catchAll = hasEffectEcosystemImport ? getWrapGraphqlCatchAll(node, version) : undefined;
         if (catchAll) {
           report(
             context,
             catchAll,
-            "Rule: avoid catchAll after wrapGraphqlCall/applyResponse. Why: the envelope already surfaces structured errors. Fix: handle errors in the response mapping instead of catchAll.",
+            `Rule: avoid ${version === 3 ? "catchAll" : "catch/catchEager"} after wrapGraphqlCall/applyResponse. Why: the envelope already surfaces structured errors. Fix: handle errors in the response mapping instead of ${version === 3 ? "catchAll" : "catch/catchEager"}.`,
           );
         }
       },
@@ -7034,13 +7035,14 @@ const noInlineRuntimeProvide = defineRule({
 
 const noNakedObjectStateUpdate = defineRule({
   create(context: OxlintContext) {
+    const constructors = effectVersionFor(context.options) === 3 ? "Schema.make` or field `.make" : "schema .make";
     return {
       CallExpression(node: any) {
         if (isNakedObjectStateUpdate(node)) {
           report(
             context,
             node,
-            "Rule: avoid naked JS state patching/rebuild and raw JSON shortcuts in Effect transitions. Why: spread/Object.assign/fromEntries and inline JSON parse/stringify hide state intent and bypass explicit model contracts. Fix: use `effect/Record` combinators (`Record.set` / `Record.modify` / `Record.remove`) inside `Struct.evolve`, rebuild with schema constructors (`Schema.make` or field `.make`), and keep serialization at boundaries with schema encode/decode flows. Use `linting.md` guidance when available.",
+            `Rule: avoid naked JS state patching/rebuild and raw JSON shortcuts in Effect transitions. Why: spread/Object.assign/fromEntries and inline JSON parse/stringify hide state intent and bypass explicit model contracts. Fix: use \`effect/Record\` combinators (\`Record.set\` / \`Record.modify\` / \`Record.remove\`) inside \`Struct.evolve\`, rebuild with schema constructors (\`${constructors}\`), and keep serialization at boundaries with schema encode/decode flows. Use \`linting.md\` guidance when available.`,
           );
         }
       },

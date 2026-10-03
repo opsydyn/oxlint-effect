@@ -97,8 +97,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
   compressed size exceeds the unchanged 30 KB cap by 944 bytes.
 - [ ] Close Q51 atom/logging qualification: behavioural gates pass;
   compressed size exceeds the unchanged 30 KB cap by 944 bytes.
-- [ ] Complete and qualify Q52 in the
-  [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
+- [ ] Close Q52 state/envelope qualification: behavioural gates pass;
+  compressed size exceeds the unchanged 30 KB cap by 1,004 bytes. All Q batches
+  now have evidence in the [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
   Current inventory has 82 rules with an unqualified applicable version.
 - [ ] Complete all group/preset and packaged skill/documentation composition
   checks, including failures and repairs for both supported majors.

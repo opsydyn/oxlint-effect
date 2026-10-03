@@ -52,6 +52,29 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("Effect qualification Q52 supplies packed state and envelope evidence", async () => {
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const rule of ["no-naked-object-state-update", "no-wrapgraphql-catchall"]) expect(cases.some((entry: { rule: string }) => entry.rule === rule)).toBe(true);
+    }
+  });
+  it("Effect qualification Q52 selects current broad envelope recovery and eager response mapping", () => {
+    const inspect = (name: string, version: 3 | 4, response = false) => runRuleSequence("no-wrapgraphql-catchall", [
+      { visitorName: "ImportDeclaration", node: importFrom("effect") },
+      { visitorName: "CallExpression", node: pipeCall(identifier("task"), response ? effectCall("flatMapEager", identifier("applyResponse")) : callExpression(identifier("wrapGraphqlCall")), effectCall(name, identifier("recover"))) },
+    ], { options: [{ effectVersion: version }] });
+    expect(inspect("catch", 4)).toHaveLength(1);
+    expect(inspect("catchEager", 4, true)).toHaveLength(1);
+    expect(inspect("catchAll", 4)).toHaveLength(0);
+    expect(inspect("catchAll", 3)).toHaveLength(1);
+    expect(inspect("catch", 3)).toHaveLength(0);
+  });
+  it("Effect qualification Q52 distinguishes data constructors from current Schema.make AST construction", () => {
+    const inspect = (version: 3 | 4) => runRule("no-naked-object-state-update", "CallExpression", memberCall("JSON", "parse"), { options: [{ effectVersion: version }] })[0].message;
+    expect(inspect(4)).toContain("schema .make");
+    expect(inspect(4)).not.toContain("Schema.make");
+    expect(inspect(3)).toContain("Schema.make");
+  });
   it("Effect qualification Q51 supplies packed atom and logging evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();

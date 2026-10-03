@@ -55,6 +55,7 @@ export const versionSensitiveRules = [
   "no-try-catch-in-effect-logic",
   "no-promise-api-in-effect-logic",
   "no-wrapgraphql-catchall",
+  "no-naked-object-state-update",
   "no-early-catchall-null",
   "no-exception-domain-error",
   "no-expected-state-as-error",

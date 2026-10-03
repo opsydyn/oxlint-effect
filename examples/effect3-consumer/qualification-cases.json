@@ -3477,5 +3477,54 @@
       }
     },
     "runtime": "src/qualification/atomStateAndPlatformBoundaries/atoms.contracts.ts"
+  },
+  {
+    "rule": "no-naked-object-state-update",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "own-major typed state/JSON and envelope recovery APIs",
+      "recursive first-match/ordering/unused and import/alias controls",
+      "actual immutable transitions/wire validation/original error identity"
+    ],
+    "bad": [
+      "src/qualification/atomStateAndPlatformBoundaries/no-naked-object-state-update.bad.ts",
+      "src/qualification/atomStateAndPlatformBoundaries/state-no-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/atomStateAndPlatformBoundaries/state-rebuild.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/atomStateAndPlatformBoundaries/no-naked-object-state-update.bad.ts": {
+        "linteffect/no-naked-object-state-update": 7
+      },
+      "src/qualification/atomStateAndPlatformBoundaries/state-no-import.bad.ts": {
+        "linteffect/no-naked-object-state-update": 2
+      }
+    },
+    "runtime": "src/qualification/atomStateAndPlatformBoundaries/state-envelope.contracts.ts"
+  },
+  {
+    "rule": "no-wrapgraphql-catchall",
+    "version": 3,
+    "classification": "unchanged",
+    "variants": [
+      "own-major typed state/JSON and envelope recovery APIs",
+      "recursive first-match/ordering/unused and import/alias controls",
+      "actual immutable transitions/wire validation/original error identity"
+    ],
+    "bad": [
+      "src/qualification/atomStateAndPlatformBoundaries/no-wrapgraphql-catchall.bad.ts"
+    ],
+    "good": [
+      "src/qualification/atomStateAndPlatformBoundaries/envelope-mapping.good.ts",
+      "src/qualification/atomStateAndPlatformBoundaries/envelope-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/atomStateAndPlatformBoundaries/no-wrapgraphql-catchall.bad.ts": {
+        "linteffect/no-wrapgraphql-catchall": 5
+      }
+    },
+    "runtime": "src/qualification/atomStateAndPlatformBoundaries/state-envelope.contracts.ts"
   }
 ]

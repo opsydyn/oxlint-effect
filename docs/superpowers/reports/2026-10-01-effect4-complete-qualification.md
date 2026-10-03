@@ -1316,6 +1316,32 @@ publint, API docs and diff. Raw build stays 142.24 kB; cap fails by 944 bytes.
 Q22-Q51 and inventory statuses remain open, 82 unqualified. Continue Q52 and
 cross-group closure without release.
 
+## Q52 State Rebuilds And Envelope Recovery
+
+Both pinned majors prove seven state warnings plus two ordinary JSON warnings,
+five legacy/seven current envelope warnings, and clean typed repairs. Current
+broad catch/catchEager and eager applyResponse mapping are now recognised;
+legacy detection and diagnostic strings remain unchanged. Constructor advice
+distinguishes schema .make data construction from current Schema.make ASTs.
+
+Actual Ref update/modify preserves state and returned values. Struct/Record
+transitions retain immutability and missing-key semantics; current Record.modify
+returns Option and requires explicit fallback. Own-major JSON schemas preserve
+valid wire output and deliberately strengthen invalid-input validation. Local
+typed envelope helpers retain success 42 and original structured failure rather
+than swallowed fallback success; they do not claim external GraphQL integration.
+The initial compiler check disproved an absent legacy catch assumption: legacy
+catch is discriminator-specific, not current broad recovery, now represented by
+valid targeted and compiler-negative broad controls. Recursive unused wrappers,
+recovery-before-wrapper, no-import JSON and alias/curried/import-order limits
+are documented rather than semantic ownership guarantees.
+
+Fresh gates pass: 571 tests / 3708 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build is 142.47 kB; compressed build is 31,004
+bytes, 1,004 over the unchanged cap. All Q01-Q52 have behavioural evidence;
+Q22-Q52 and 82 applicable-rule qualification statuses remain open until the
+size gate and Task 3/4 cross-group closure pass. No release was made.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

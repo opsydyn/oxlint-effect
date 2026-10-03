@@ -318,6 +318,12 @@ Size is 944 bytes over the cap; checkbox/inventory stay open. Continue Q51-Q52.
 
 ## Task 3: Primary Examples, Skill And Group Composition
 
+Q52 behavioural gates pass: 571 tests / 3708 expectations, types, both packed
+majors, publint, API docs and diff. Current broad/eager envelope recognition
+and schema constructor advice corrected; real state/wire/error contracts pass.
+Size is 1,004 bytes over the cap; Q22-Q52/inventory stay open. All 52 batches
+have behavioural evidence; continue Tasks 3/4 before release qualification.
+
 Q51 behavioural gates pass: 568 tests / 3696 expectations, types, both packed
 majors, publint, API docs and diff. Real own-major atoms prove deferred/native
 execution and mounted lifetimes; legacy peers are compatible and pinned.

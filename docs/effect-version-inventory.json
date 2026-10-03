@@ -1012,7 +1012,7 @@
     },
     "evidence": [
       "src/index.ts: noWrapgraphqlCatchall; transitive helpers: noWrapgraphqlCatchall, getImportSource, isEffectEcosystemImport, getWrapGraphqlCatchAll, pipeParts, isPipeCall, isIdentifier, findEffectCatchAll, isEffectMemberCallNamed, isEffectMemberCall, containsWrapGraphqlCall, isIdentifierCall, containsApplyResponseFlatMap, isApplyResponseFlatMap, firstArgument",
-      "Recognition tokens: Effect, catchAll; API and repair controls still require packed qualification."
+      "Q52: own-major state-envelope cases, typed API controls, actual Ref/Struct/Record/schema JSON and envelope failure-identity contracts. Current constructor advice and catch/catchEager/eager response recognition differ; legacy text/policy retained. Syntax and acceptance/channel corrections are documented; final qualification remains open under the size cap."
     ]
   },
   "no-render-side-effects": {
@@ -1076,7 +1076,7 @@
     ]
   },
   "no-naked-object-state-update": {
-    "sensitive": false,
+    "sensitive": true,
     "applicability": {
       "3": true,
       "4": true
@@ -1087,7 +1087,7 @@
     },
     "evidence": [
       "src/index.ts: noNakedObjectStateUpdate; transitive helpers: noNakedObjectStateUpdate, isNakedObjectStateUpdate, isRefStateUpdateWithSpread, isMemberCall, isIdentifier, callbackBody, hasObjectSpread, isEmptyObjectExpression, containsObjectEntriesCall",
-      "Recognition tokens: Ref; API and repair controls still require packed qualification."
+      "Q52: own-major state-envelope cases, typed API controls, actual Ref/Struct/Record/schema JSON and envelope failure-identity contracts. Current constructor advice and catch/catchEager/eager response recognition differ; legacy text/policy retained. Syntax and acceptance/channel corrections are documented; final qualification remains open under the size cap."
     ]
   },
   "no-effect-succeed-variable": {
