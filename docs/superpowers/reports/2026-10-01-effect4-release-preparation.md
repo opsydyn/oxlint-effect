@@ -5,6 +5,13 @@ Status: **blocked; not ready to publish**. Package version remains 1.2.0 until
 qualification is complete and the release PR is prepared. No tag, push or
 publication is part of this preparation.
 
+Latest local gate (2026-10-03): all 52 behavioural batches and group/skill
+composition pass. 581 tests / 4806 expectations, root types, both packed majors,
+packed typeAware, publint, API docs, pack inspection and diff pass. Size remains
+829 bytes over the unchanged 30 KB cap; 82 rule entries and group qualification
+remain open. Group release guards are implemented. Author self-review is not
+independent review, remote CI or publication evidence.
+
 ## Migration Notes
 
 - Default exports select Effect 4 policy; this requires a major release.

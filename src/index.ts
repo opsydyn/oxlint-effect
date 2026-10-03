@@ -94,26 +94,7 @@ function containsEffectMemberCallNamed(
   propertyName: string,
   seen = new WeakSet<object>(),
 ): boolean {
-  if (isEffectMemberCallNamed(node, propertyName)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsEffectMemberCallNamed(child, propertyName, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-
-  seen.add(node);
-  return Object.entries(node).some(
-    ([key, child]) => key !== "parent" && containsEffectMemberCallNamed(child, propertyName, seen),
-  );
+  return findNode(node, (node) => isEffectMemberCallNamed(node, propertyName), seen) !== undefined;
 }
 
 function getFlatMapLadderMessage(node: unknown, version: EffectVersion): string | undefined {
@@ -172,26 +153,7 @@ function isPipeCall(node: unknown): boolean {
 }
 
 function containsPipeCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isPipeCall(node)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsPipeCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsPipeCall(child, seen)
-  ));
+  return findNode(node, (node) => isPipeCall(node), seen) !== undefined;
 }
 
 function isArrowIifeCall(node: unknown): node is Node & { callee: Node; arguments: unknown[] } {
@@ -474,49 +436,11 @@ function containsNodeType(node: unknown, type: string, seen = new WeakSet<object
 }
 
 function containsIdentifierNamed(node: unknown, name: string, seen = new WeakSet<object>()): boolean {
-  if (isIdentifier(node, name)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsIdentifierNamed(child, name, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsIdentifierNamed(child, name, seen)
-  ));
+  return findNode(node, (node) => isIdentifier(node, name), seen) !== undefined;
 }
 
 function containsEffectMemberCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isEffectMemberCall(node)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsEffectMemberCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsEffectMemberCall(child, seen)
-  ));
+  return findNode(node, (node) => isEffectMemberCall(node), seen) !== undefined;
 }
 
 function singleYieldVariableName(node: unknown): string | undefined {
@@ -645,32 +569,11 @@ function isLargeFlowCall(node: unknown): boolean {
 }
 
 function containsAsyncFunction(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (
-    typeof node === "object" &&
+  return findNode(node, (node) => typeof node === "object" &&
     node !== null &&
     ((node as Node).type === "ArrowFunctionExpression" ||
       (node as Node).type === "FunctionExpression") &&
-    (node as Node).async === true
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsAsyncFunction(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsAsyncFunction(child, seen)
-  ));
+    (node as Node).async === true, seen) !== undefined;
 }
 
 function isEffectfulFlowArgument(node: unknown): boolean {
@@ -1100,26 +1003,7 @@ function isContextTagCall(node: unknown): boolean {
 }
 
 function containsLayerProvideCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isMemberCall(node, "Layer", "provide")) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsLayerProvideCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsLayerProvideCall(child, seen)
-  ));
+  return findNode(node, (node) => isMemberCall(node, "Layer", "provide"), seen) !== undefined;
 }
 
 function hasAccessorsTrue(options: unknown): boolean {
@@ -1977,85 +1861,24 @@ function isEffectLogCall(node: unknown): boolean {
 }
 
 function containsConsoleCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isConsoleCall(node)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsConsoleCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsConsoleCall(child, seen)
-  ));
+  return findNode(node, isConsoleCall, seen) !== undefined;
 }
 
 function containsWrapperSideEffect(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (
-    isIdentifierCall(node, "setState") ||
+  return findNode(node, (node) => isIdentifierCall(node, "setState") ||
     isMemberCall(node, "Atom", "set") ||
     isIdentifierCall(node, "invalidate") ||
     isEffectLogCall(node) ||
-    isConsoleCall(node)
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsWrapperSideEffect(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsWrapperSideEffect(child, seen)
-  ));
+    isConsoleCall(node), seen) !== undefined;
 }
 
 function containsAllStepSideEffect(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (
-    isMemberCall(node, "Ref", "set") ||
+  return findNode(node, (node) => isMemberCall(node, "Ref", "set") ||
     isMemberCall(node, "Atom", "set") ||
     isMemberCall(node, "SubscriptionRef", "set") ||
     isMemberCall(node, "Reactivity", "invalidate") ||
     isMemberCall(node, "Fiber", "interrupt") ||
-    isEffectLogCall(node)
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsAllStepSideEffect(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsAllStepSideEffect(child, seen)
-  ));
+    isEffectLogCall(node), seen) !== undefined;
 }
 
 function hasConcurrencyOne(node: unknown): boolean {
@@ -3592,49 +3415,11 @@ function containsQualifiedTypeReference(
   rightName: string,
   seen = new WeakSet<object>(),
 ): boolean {
-  if (isQualifiedTypeReference(node, leftName, rightName)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsQualifiedTypeReference(child, leftName, rightName, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsQualifiedTypeReference(child, leftName, rightName, seen)
-  ));
+  return findNode(node, (node) => isQualifiedTypeReference(node, leftName, rightName), seen) !== undefined;
 }
 
 function containsWrapGraphqlCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isIdentifierCall(node, "wrapGraphqlCall")) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsWrapGraphqlCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsWrapGraphqlCall(child, seen)
-  ));
+  return findNode(node, child => isIdentifierCall(child, "wrapGraphqlCall"), seen) !== undefined;
 }
 
 function isApplyResponseFlatMap(node: unknown, version: EffectVersion): boolean {
@@ -3645,64 +3430,11 @@ function isApplyResponseFlatMap(node: unknown, version: EffectVersion): boolean 
 }
 
 function containsApplyResponseFlatMap(node: unknown, version: EffectVersion, seen = new WeakSet<object>()): boolean {
-  if (isApplyResponseFlatMap(node, version)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsApplyResponseFlatMap(child, version, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsApplyResponseFlatMap(child, version, seen)
-  ));
+  return findNode(node, child => isApplyResponseFlatMap(child, version), seen) !== undefined;
 }
 
 function findEffectCatchAll(node: unknown, version: EffectVersion, seen = new WeakSet<object>()): unknown | undefined {
-  if (isEffectMemberCall(node) && plainCatchOperators(version).has(((node.callee as Node).property as { name: string }).name)) {
-    return node;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findEffectCatchAll(child, version, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findEffectCatchAll(child, version, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+  return findNode(node, child => isEffectMemberCall(child) && plainCatchOperators(version).has(((child.callee as Node).property as { name: string }).name), seen);
 }
 
 function getWrapGraphqlCatchAll(node: unknown, version: EffectVersion): unknown | undefined {
@@ -3762,41 +3494,7 @@ function isAtomOperationCall(node: unknown): node is Node & { arguments: unknown
 }
 
 function findAtomOperationCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (isAtomOperationCall(node)) {
-    return node;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findAtomOperationCall(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findAtomOperationCall(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+  return findNode(node, isAtomOperationCall, seen);
 }
 
 function findAtomOperationInsideEffectSync(node: unknown): unknown | undefined {
@@ -3840,42 +3538,7 @@ function getCollectionAtomReadTarget(node: unknown): unknown | undefined {
 }
 
 function findFamilyCollectionRead(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  const target = getCollectionAtomReadTarget(node);
-  if (target) {
-    return target;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findFamilyCollectionRead(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findFamilyCollectionRead(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+  return getCollectionAtomReadTarget(findNode(node, child => getCollectionAtomReadTarget(child) !== undefined, seen));
 }
 
 function isEffectProvideWithSingleArgument(node: unknown): boolean {
@@ -3891,26 +3554,7 @@ function findInlineRuntimeProvide(node: unknown): unknown | undefined {
 }
 
 function hasObjectSpread(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (typeof node === "object" && node !== null && (node as Node).type === "SpreadElement") {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => hasObjectSpread(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && hasObjectSpread(child, seen)
-  ));
+  return findNode(node, child => typeof child === "object" && child !== null && (child as Node).type === "SpreadElement", seen) !== undefined;
 }
 
 function isRefStateUpdateWithSpread(node: unknown): boolean {
@@ -3934,26 +3578,7 @@ function isEmptyObjectExpression(node: unknown): boolean {
 }
 
 function containsObjectEntriesCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isMemberCall(node, "Object", "entries")) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsObjectEntriesCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsObjectEntriesCall(child, seen)
-  ));
+  return findNode(node, child => isMemberCall(child, "Object", "entries"), seen) !== undefined;
 }
 
 function isNakedObjectStateUpdate(node: unknown): boolean {
@@ -4207,30 +3832,9 @@ function isStreamMemberCall(node: unknown): boolean {
 }
 
 function containsBranchSequencingCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (
-    branchSequencingEffectCalls.some((propertyName) => isEffectMemberCallNamed(node, propertyName)) ||
+  return findNode(node, (node) => branchSequencingEffectCalls.some((propertyName) => isEffectMemberCallNamed(node, propertyName)) ||
     isPipeCall(node) ||
-    isStreamMemberCall(node)
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsBranchSequencingCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsBranchSequencingCall(child, seen)
-  ));
+    isStreamMemberCall(node), seen) !== undefined;
 }
 
 function isSequencingBranchBody(node: unknown): boolean {
@@ -4267,26 +3871,7 @@ function containsSequencingMatchBranch(node: unknown, seen = new WeakSet<object>
 }
 
 function containsMatchBranchCall(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isMatchBranchCall(node)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsMatchBranchCall(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsMatchBranchCall(child, seen)
-  ));
+  return findNode(node, (node) => isMatchBranchCall(node), seen) !== undefined;
 }
 
 function isOptionMatchCall(node: unknown): node is Node & { arguments: unknown[] } {
@@ -4340,26 +3925,7 @@ function isObjectBranchCall(node: unknown, version: EffectVersion): boolean {
 }
 
 function containsObjectBranchCall(node: unknown, version: EffectVersion, seen = new WeakSet<object>()): boolean {
-  if (isObjectBranchCall(node, version)) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsObjectBranchCall(child, version, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsObjectBranchCall(child, version, seen)
-  ));
+  return findNode(node, (node) => isObjectBranchCall(node, version), seen) !== undefined;
 }
 
 function objectPropertyValues(node: unknown): unknown[] {
@@ -5345,77 +4911,26 @@ const noTernary = createEffectGatedStatementRule(
   (version) => `Rule: avoid ternary expressions. Why: they hide control flow inside expressions. Fix: use Option.match/${version === 3 ? "Either" : "Result"}.match/Match.value or data combinators, then run one Effect pipeline.`,
 );
 
-const noReturnNull = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noReturnNull = createVersionedEffectCallbackRule(
+  (node: any) => isNullLiteral(node.argument) ? node : undefined,
+  () => "Rule: avoid returning null. Why: null is a sentinel that forces defensive guards. Fix: use Option.none for absence or Effect.fail for errors.",
+  false,
+  false,
+  ["ReturnStatement"],
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      ReturnStatement(node: any) {
-        if (hasEffectEcosystemImport && isNullLiteral(node.argument)) {
-          report(
-            context,
-            node,
-            "Rule: avoid returning null. Why: null is a sentinel that forces defensive guards. Fix: use Option.none for absence or Effect.fail for errors.",
-          );
-        }
-      },
-    };
-  },
-});
+const noOptionAs = createVersionedEffectCallbackRule(
+  (node: any) => isMemberExpression(node.callee, "Option", "as") ? node : undefined,
+  () => "Rule: avoid Option.as. Why: it hides selection and encourages placeholder flows. Fix: use Option.map or Option.match and return the value explicitly.",
+);
 
-const noOptionAs = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isMemberExpression(node.callee, "Option", "as")) {
-          report(
-            context,
-            node,
-            "Rule: avoid Option.as. Why: it hides selection and encourages placeholder flows. Fix: use Option.map or Option.match and return the value explicitly.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noEffectNever = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      MemberExpression(node: any) {
-        if (hasEffectEcosystemImport && isMemberExpression(node, "Effect", "never")) {
-          report(
-            context,
-            node,
-            "Rule: avoid Effect.never. Why: it hides lifecycle and leaks resources. Fix: use Stream or explicit acquire/release lifecycles with clear teardown.",
-          );
-        }
-      },
-    };
-  },
-});
+const noEffectNever = createVersionedEffectCallbackRule(
+  (node) => isMemberExpression(node, "Effect", "never") ? node : undefined,
+  () => "Rule: avoid Effect.never. Why: it hides lifecycle and leaks resources. Fix: use Stream or explicit acquire/release lifecycles with clear teardown.",
+  false,
+  false,
+  ["MemberExpression"],
+);
 
 const noArrowLadder = defineRule({
   create(context: OxlintContext) {
@@ -5463,29 +4978,10 @@ const noBranchInObject = defineRule({
   },
 });
 
-const noIifeWrapper = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isInlineFunctionIifeCall(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid immediate invocation of inline functions. Why: it hides decisions and sequencing. Fix: bind a named context with const and keep one Match/Option decision in a flat pipeline.",
-          );
-        }
-      },
-    };
-  },
-});
+const noIifeWrapper = createVersionedEffectCallbackRule(
+  (node) => isInlineFunctionIifeCall(node) ? node : undefined,
+  () => "Rule: avoid immediate invocation of inline functions. Why: it hides decisions and sequencing. Fix: bind a named context with const and keep one Match/Option decision in a flat pipeline.",
+);
 
 const noReturnInArrow = defineRule({
   create(context: OxlintContext) {
@@ -5520,58 +5016,15 @@ const noReturnInCallback = defineRule({
   },
 });
 
-const noEffectFnGenerator = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
+const noEffectFnGenerator = createVersionedEffectCallbackRule(
+  (node, version) => isEffectGeneratorCall(node, "fn", version) ? node : undefined,
+  () => "Rule: avoid Effect.fn generator wrappers. Why: they hide sequencing and dodge ladder rules. Fix: keep a single flat pipeline or use one Effect.gen.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isEffectGeneratorCall(node, "fn", version)) {
-          report(
-            context,
-            node,
-            "Rule: avoid Effect.fn generator wrappers. Why: they hide sequencing and dodge ladder rules. Fix: keep a single flat pipeline or use one Effect.gen.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noEffectSyncConsole = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          hasEffectEcosystemImport &&
-          isEffectMemberCallNamed(node, "sync") &&
-          containsConsoleCall(firstArgument(node))
-        ) {
-          report(
-            context,
-            node,
-            "Rule: avoid console.* inside Effect.sync. Why: it hides side effects. Fix: replace with Effect.log* or remove the console call.",
-          );
-        }
-      },
-    };
-  },
-});
+const noEffectSyncConsole = createVersionedEffectCallbackRule(
+  (node) => isEffectMemberCallNamed(node, "sync") && containsConsoleCall(firstArgument(node)) ? node : undefined,
+  () => "Rule: avoid console.* inside Effect.sync. Why: it hides side effects. Fix: replace with Effect.log* or remove the console call.",
+);
 
 function createCollectedEffectRule(
   find: (node: unknown, version: EffectVersion) => unknown[],
@@ -6752,90 +6205,24 @@ const noExceptionDomainError = createVersionedEffectCallbackRule(
   findDomainExceptionInEffectLogic,
   () => "Rule: do not use exceptions for domain errors. Why: throw new *Error inside Effect logic bypasses typed failure channels, supervision, and structured recovery. Fix: return Effect.fail with a Data.TaggedError or structured domain error.",
 );
-const noEffectFailErrorMessage = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noEffectFailErrorMessage = createVersionedEffectCallbackRule(
+  (node) => isEffectFailFromErrorMessage(node) ? node : undefined,
+  () => "Rule: preserve structured errors instead of strings. Why: converting error.message to a string loses the original tag, cause, and context. Fix: fail with the error or map it to a structured Data.TaggedError.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isEffectFailFromErrorMessage(node)) {
-          report(
-            context,
-            node,
-            "Rule: preserve structured errors instead of strings. Why: converting error.message to a string loses the original tag, cause, and context. Fix: fail with the error or map it to a structured Data.TaggedError.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noCatchallGenericRethrow = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) return;
-
-        const target = catchAllGenericRethrow(node, version);
-        if (target) {
-          report(
-            context,
-            target,
-            `Rule: do not rethrow generic Error from ${version === 3 ? "catchAll" : "catch"}. Why: ${version === 3 ? "catchAll" : "catch"} should preserve or model the original failure instead of erasing its domain type. Fix: use mapError, catchTag, or Effect.fail with a structured tagged error and cause.`,
-          );
-        }
-      },
-    };
-  },
-});
+const noCatchallGenericRethrow = createVersionedEffectCallbackRule(
+  catchAllGenericRethrow,
+  (version) => `Rule: do not rethrow generic Error from ${version === 3 ? "catchAll" : "catch"}. Why: ${version === 3 ? "catchAll" : "catch"} should preserve or model the original failure instead of erasing its domain type. Fix: use mapError, catchTag, or Effect.fail with a structured tagged error and cause.`,
+);
 
 const noLogOnlyErrorHandling = createVersionedEffectCallbackRule(
   logOnlyErrorHandler,
   () => "Rule: do not stop at logging an Effect error. Why: logs alone do not preserve a typed failure or define recovery ownership. Fix: map or re-fail with a structured domain error after adding observability.",
 );
-const noEffectIgnore = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const target = findEffectIgnore(node);
-        if (target) {
-          report(
-            context,
-            target,
-            "Rule: avoid Effect.ignore. Why: ignoring failable effects hides failure ownership. Fix: handle the error with typed recovery, log and re-fail, or isolate the ignore at an explicit boundary with a documented reason.",
-          );
-        }
-      },
-    };
-  },
-});
+const noEffectIgnore = createVersionedEffectCallbackRule(
+  findEffectIgnore,
+  () => "Rule: avoid Effect.ignore. Why: ignoring failable effects hides failure ownership. Fix: handle the error with typed recovery, log and re-fail, or isolate the ignore at an explicit boundary with a documented reason.",
+);
 
 const noTryCatchInEffectLogic = createVersionedEffectCallbackRule(
   (node, version) => findEffectStatement(node, version, "TryStatement"),
@@ -6905,31 +6292,10 @@ const noManualEffectChannels = defineRule({
   },
 });
 
-const noWrapgraphqlCatchall = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const catchAll = hasEffectEcosystemImport ? getWrapGraphqlCatchAll(node, version) : undefined;
-        if (catchAll) {
-          report(
-            context,
-            catchAll,
-            `Rule: avoid ${version === 3 ? "catchAll" : "catch/catchEager"} after wrapGraphqlCall/applyResponse. Why: the envelope already surfaces structured errors. Fix: handle errors in the response mapping instead of ${version === 3 ? "catchAll" : "catch/catchEager"}.`,
-          );
-        }
-      },
-    };
-  },
-});
+const noWrapgraphqlCatchall = createVersionedEffectCallbackRule(
+  getWrapGraphqlCatchAll,
+  (version) => `Rule: avoid ${version === 3 ? "catchAll" : "catch/catchEager"} after wrapGraphqlCall/applyResponse. Why: the envelope already surfaces structured errors. Fix: handle errors in the response mapping instead of ${version === 3 ? "catchAll" : "catch/catchEager"}.`,
+);
 
 const noRenderSideEffects = defineRule({
   create(context: OxlintContext) {
@@ -6959,32 +6325,10 @@ const noRenderSideEffects = defineRule({
   },
 });
 
-const noAtomRegistryEffectSync = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const atomOperation = hasEffectEcosystemImport
-          ? findAtomOperationInsideEffectSync(node)
-          : undefined;
-        if (atomOperation) {
-          report(
-            context,
-            atomOperation,
-            "Rule: do not wrap Atom/atomRegistry ops in Effect.sync. Why: it hides side effects and breaks atom flow. Fix: call Atom.get/Atom.set/Atom.update/Atom.modify/Atom.refresh directly.",
-          );
-        }
-      },
-    };
-  },
-});
+const noAtomRegistryEffectSync = createVersionedEffectCallbackRule(
+  findAtomOperationInsideEffectSync,
+  () => "Rule: do not wrap Atom/atomRegistry ops in Effect.sync. Why: it hides side effects and breaks atom flow. Fix: call Atom.get/Atom.set/Atom.update/Atom.modify/Atom.refresh directly.",
+);
 
 const noFamilyCollectionRead = defineRule({
   create(context: OxlintContext) {
@@ -7007,31 +6351,10 @@ const noFamilyCollectionRead = defineRule({
   },
 });
 
-const noInlineRuntimeProvide = defineRule({
-  create(context: OxlintContext) {
-    const service = effectVersionFor(context.options) === 3 ? "an Effect.Service" : "a Context.Service";
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const provide = hasEffectEcosystemImport ? findInlineRuntimeProvide(node) : undefined;
-        if (provide) {
-          report(
-            context,
-            provide,
-            `Rule: do not inline runtime provisioning inside local helper Effect code. Why: \`yield* SomeRuntime.pipe(Effect.provide(SomeRuntimeLive))\` and equivalent inline provide chains hide dependency assembly instead of owning it at ${service} boundary or one exported Effect boundary. Fix: declare the live dependency on the owning service or provide it once at the exported boundary, then \`yield*\` the runtime or service directly inside the body.`,
-          );
-        }
-      },
-    };
-  },
-});
+const noInlineRuntimeProvide = createVersionedEffectCallbackRule(
+  findInlineRuntimeProvide,
+  (version) => `Rule: do not inline runtime provisioning inside local helper Effect code. Why: \`yield* SomeRuntime.pipe(Effect.provide(SomeRuntimeLive))\` and equivalent inline provide chains hide dependency assembly instead of owning it at ${version === 3 ? "an Effect.Service" : "a Context.Service"} boundary or one exported Effect boundary. Fix: declare the live dependency on the owning service or provide it once at the exported boundary, then \`yield*\` the runtime or service directly inside the body.`,
+);
 
 const noNakedObjectStateUpdate = defineRule({
   create(context: OxlintContext) {
@@ -7050,33 +6373,10 @@ const noNakedObjectStateUpdate = defineRule({
   },
 });
 
-const noEffectSucceedVariable = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (
-          hasEffectEcosystemImport &&
-          isEffectMemberCallNamed(node, "succeed") &&
-          isEffectSucceedVariableArgument(firstArgument(node))
-        ) {
-          report(
-            context,
-            node,
-            "Rule: avoid Effect.succeed(variable) as a branch placeholder. Why: it hides a decision and turns data into pseudo-control flow. Fix: select a plain value (Option/Match) and then run one Effect pipeline after the decision; if you already read the state, return it as a value. Avoid Option.toArray/forEach hacks that just re-encode the branch.",
-          );
-        }
-      },
-    };
-  },
-});
+const noEffectSucceedVariable = createVersionedEffectCallbackRule(
+  (node) => isEffectMemberCallNamed(node, "succeed") && isEffectSucceedVariableArgument(firstArgument(node)) ? node : undefined,
+  () => "Rule: avoid Effect.succeed(variable) as a branch placeholder. Why: it hides a decision and turns data into pseudo-control flow. Fix: select a plain value (Option/Match) and then run one Effect pipeline after the decision; if you already read the state, return it as a value. Avoid Option.toArray/forEach hacks that just re-encode the branch.",
+);
 
 const noEffectTypeAlias = defineRule({
   create(context: OxlintContext) {

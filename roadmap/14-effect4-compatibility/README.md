@@ -1,6 +1,13 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: foundation, recovery/runtime batch and Q01-Q21 locally verified; Q22-Q52 and cross-group closure remain outstanding.
+Status: all 52 behavioural batches and Task 3 group/skill composition verified; formal Q22-Q52 and release closure remain open.
+
+Current gate (2026-10-03): 581 tests / 4806 expectations and both packed majors,
+types, packed typeAware, publint, API docs, package inspection and diff pass.
+Build is 30,829 compressed bytes, 829 over the unchanged 30 KB cap. Group release
+guards are implemented; 82 applicable-rule entries and all group statuses remain
+pending. No version bump, push or publication. The batch notes below retain
+their historical measurements; they are not the current size result.
 
 Q22 cleanup/manual-scope/resource-success behavioural checks and examples pass
 for both majors, but final qualification is blocked by the 30 KB size cap

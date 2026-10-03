@@ -3,6 +3,35 @@
 Status: in progress; not a compatibility-completion or publication claim.
 Baseline: b159eb8. Approved inline execution on main; no push or publish.
 
+## Current Gate (2026-10-03)
+
+All 52 batches and Task 3 composition/skill contracts have behavioural evidence.
+Final gates: 581 tests / 4806 expectations, both packed majors, packed typeAware,
+root types, publint, API docs, package inspection and diff pass. The build is
+138.38 kB raw / 30,829 bytes compressed, **829 bytes over the unchanged 30 KB
+cap**. Formal Q22-Q52 qualification, 82 applicable-rule statuses and all group
+statuses remain open. The complete gate rejects them; publication remains
+blocked at package 1.2.0. This is not release completion.
+
+Task 4's group guard now rejects missing/extra groups, empty members, pending
+member/group status, absent config/skill evidence, malformed applicability and
+legacy-only classifications claiming current applicability. The real verifier
+also checks exported membership, source evidence paths and consistency with the
+rule inventory. The existing three-argument rule guard is unchanged.
+
+Bundle work reuses the existing import-gated callback factory for 13 identical
+owners and the cycle-aware findNode traversal for 20 identical walkers. Own
+scope, import ordering, first-match report targets, all diagnostic strings and
+version selection are retained by the full unit and packed corpora. Reduction
+from 31,004 to 30,829 bytes did not close the cap, so no qualification flag was
+promoted. Do not conceal size by splitting uncounted chunks or raising the cap.
+
+Final review: self-review (no subagent tool), weaker than independent review.
+The new guard initially accepted current-applicable legacy-only classification;
+its persistent regression was observed RED then GREEN. Behavioural qualification
+and author review are not external review, remote CI or publication evidence.
+Further bundle reduction and a fresh complete gate remain required.
+
 ## Harness
 
 - Case manifests validate registered rule, major, classification, nonempty

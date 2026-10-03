@@ -5,13 +5,16 @@ import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { assertCommandSuccess, assertDiagnosticCounts, assertDiagnosticCountsByFile, diagnosticCounts, diagnosticCountsByFile, qualificationSelection } from "./effect-version-consumer.ts";
 import { assertQualificationCoverage, resolveQualificationPath, validateQualificationCases } from "./effect-version-qualification.ts";
-import { assertEffectVersionReleaseReady } from "./effect-version-release.ts";
-import plugin from "../src/index.ts";
+import { assertEffectGroupReleaseReady, assertEffectVersionReleaseReady } from "./effect-version-release.ts";
+import plugin, { ruleGroups } from "../src/index.ts";
 
 const { majors, requireComplete } = qualificationSelection(process.argv.slice(2));
 const repoRoot = resolve(import.meta.dir, "..");
 const inventory = await Bun.file(join(repoRoot, "docs/effect-version-inventory.json")).json();
-if (requireComplete) assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "2.0.0");
+if (requireComplete) {
+  assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "2.0.0");
+  assertEffectGroupReleaseReady(await Bun.file(join(repoRoot, "docs/effect-version-groups.json")).json(), Object.keys(ruleGroups));
+}
 const workspace = await mkdtemp(join(tmpdir(), "oxlint-effect-versions-"));
 
 function run(command: string, args: string[], cwd: string, timeout?: number) {

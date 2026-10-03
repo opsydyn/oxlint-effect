@@ -1,6 +1,6 @@
 # Effect 4 First-Class Compatibility
 
-Status: approved by the user on 2026-10-01; foundation implemented, adaptation and release qualification pending.
+Status: approved by the user on 2026-10-01; all 52 behavioural batches and group/skill composition evidenced. Formal release qualification remains pending the unchanged size cap and final complete gate.
 
 ## Intent
 

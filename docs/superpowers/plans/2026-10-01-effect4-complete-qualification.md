@@ -344,6 +344,16 @@ Size stays 944 bytes over the cap; checkbox/inventory stay open. Continue Q52.
 
 ## Task 4: Closure Review And Release Preparation
 
+2026-10-03: group guard and malformed/legacy-classification regressions pass.
+13 identical owner visitors and 20 identical walkers were factored through
+existing helpers, preserving full unit/packed behaviour. Fresh gates pass:
+581 tests / 4806 expectations, types, both packed majors, packed typeAware,
+publint, API docs, pack inspection and diff. Size remains 829 bytes over 30 KB.
+Complete mode rejects 82 pending rule entries; actual 1.2.0 publication guard
+rejects the unapplied major release. Task 4 remains incomplete; no qualification
+promotion, versioning, push or publication. Author self-review is recorded,
+not represented as independent review.
+
 **Files:** final qualification report, compatibility roadmap, design status,
 `scripts/effect-version-release.ts`, `scripts/verify-effect-version-release.ts`,
 `tests/effect-version-release.test.ts`, `.changeset/effect4-first-class.md`.
