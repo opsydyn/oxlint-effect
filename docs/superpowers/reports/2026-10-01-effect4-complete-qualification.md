@@ -1293,6 +1293,29 @@ publint, API docs and diff. Raw build is 142.24 kB; cap fails by 944 bytes.
 Q22-Q50 and inventory statuses remain open, 82 unqualified. Continue Q51-Q52
 and closure without release.
 
+## Q51 Actual Atom And Logging Contracts
+
+Legacy atoms are pinned to @effect-atom/atom 0.6.0 with compatible experimental
+0.60.0 and RPC 0.75.0 peers, retaining Effect 3.21.4/platform 0.96.2. The initial
+0.5.3 candidate had incompatible platform peers and was replaced before final
+qualification. Current atoms use native effect/reactivity exports.
+
+Both majors report console 5, registry/Atom operations 12 and family reads 6
+plus an ordinary no-import family 1. Actual logger routing, deferred registry
+writes/get/update/modify, native Atom effects with explicit provision and
+mounted keyed projections pass. Wrapping Atom.set constructs an unexecuted
+inner Effect: correcting execution is intentional, not behavioural equivalence.
+The initial legacy probe lost unmounted state across await; a direct mounted
+reproduction identified the lifetime requirement, now owned and released.
+Aliases, computed names, named callbacks, import ordering, recursive unused
+code and collection suffix heuristics remain documented limits. No React atom
+adapter, browser behaviour or general performance guarantee is qualified.
+
+Fresh gates pass: 568 tests / 3696 expectations, root types, both packed majors,
+publint, API docs and diff. Raw build stays 142.24 kB; cap fails by 944 bytes.
+Q22-Q51 and inventory statuses remain open, 82 unqualified. Continue Q52 and
+cross-group closure without release.
+
 ## Q08 Decisions
 
 Limit v4 chain detection to syntactically visible Promise sources: without type

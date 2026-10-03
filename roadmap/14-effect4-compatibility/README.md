@@ -116,6 +116,10 @@ Q50 loading, rendering and provision checks pass with real SSR and typed service
 ownership controls. Conservative detector limits are documented. Size is 944
 bytes over the cap; qualification stays open. Continue Q51-Q52 and closure.
 
+Q51 real native/current and separately pinned legacy atom/logging checks pass.
+Mounted lifetime and nested-effect execution limits are explicit. Size remains
+944 bytes over the cap; qualification stays open. Continue Q52 and closure.
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).

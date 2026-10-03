@@ -207,7 +207,7 @@
     },
     "evidence": [
       "src/index.ts: noEffectSyncConsole; transitive helpers: noEffectSyncConsole, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsConsoleCall, isConsoleCall, firstArgument",
-      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+      "Q51: both pinned consumer manifests, atomStateAndPlatformBoundaries README and atoms.contracts.ts prove real own-major atom/logger APIs, deferred/mounted state lifetime and syntax limits. Behaviour gates require fresh packed verification; final qualification remains open under the unchanged size cap."
     ]
   },
   "no-console-in-effect-flow": {
@@ -1042,7 +1042,7 @@
     },
     "evidence": [
       "src/index.ts: noAtomRegistryEffectSync; transitive helpers: noAtomRegistryEffectSync, getImportSource, isEffectEcosystemImport, findAtomOperationInsideEffectSync, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, callbackBody, firstArgument, findAtomOperationCall, isAtomOperationCall, atomOperationMethods",
-      "Recognition tokens: Effect, sync; API and repair controls still require packed qualification."
+      "Q51: both pinned consumer manifests, atomStateAndPlatformBoundaries README and atoms.contracts.ts prove real own-major atom/logger APIs, deferred/mounted state lifetime and syntax limits. Behaviour gates require fresh packed verification; final qualification remains open under the unchanged size cap."
     ]
   },
   "no-family-collection-read": {
@@ -1057,7 +1057,7 @@
     },
     "evidence": [
       "src/index.ts: noFamilyCollectionRead; transitive helpers: noFamilyCollectionRead, isMemberCall, isIdentifier, findFamilyCollectionRead, getCollectionAtomReadTarget, isMemberExpression, isCollectionAtomIdentifier",
-      "Structural syntax/import gate; no major-specific detector branch identified. Packed qualification remains pending."
+      "Q51: both pinned consumer manifests, atomStateAndPlatformBoundaries README and atoms.contracts.ts prove real own-major atom/logger APIs, deferred/mounted state lifetime and syntax limits. Behaviour gates require fresh packed verification; final qualification remains open under the unchanged size cap."
     ]
   },
   "no-inline-runtime-provide": {

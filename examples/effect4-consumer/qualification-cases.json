@@ -3434,5 +3434,77 @@
       }
     },
     "runtime": "src/qualification/reactAndRuntimeBoundaries/loading-render-provision.contracts.ts"
+  },
+  {
+    "rule": "no-effect-sync-console",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "actual pinned atom/logger APIs and deferred ownership",
+      "recursive first-match/unused callback and naming controls",
+      "alias/computed/import-order gaps and actual runtime repair"
+    ],
+    "bad": [
+      "src/qualification/atomStateAndPlatformBoundaries/no-effect-sync-console.bad.ts"
+    ],
+    "good": [
+      "src/qualification/atomStateAndPlatformBoundaries/logging.good.ts",
+      "src/qualification/atomStateAndPlatformBoundaries/sync-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/atomStateAndPlatformBoundaries/no-effect-sync-console.bad.ts": {
+        "linteffect/no-effect-sync-console": 5
+      }
+    },
+    "runtime": "src/qualification/atomStateAndPlatformBoundaries/atoms.contracts.ts"
+  },
+  {
+    "rule": "no-atom-registry-effect-sync",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "actual pinned atom/logger APIs and deferred ownership",
+      "recursive first-match/unused callback and naming controls",
+      "alias/computed/import-order gaps and actual runtime repair"
+    ],
+    "bad": [
+      "src/qualification/atomStateAndPlatformBoundaries/no-atom-registry-effect-sync.bad.ts"
+    ],
+    "good": [
+      "src/qualification/atomStateAndPlatformBoundaries/registry-actions.good.ts",
+      "src/qualification/atomStateAndPlatformBoundaries/sync-late-import.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/atomStateAndPlatformBoundaries/no-atom-registry-effect-sync.bad.ts": {
+        "linteffect/no-atom-registry-effect-sync": 12
+      }
+    },
+    "runtime": "src/qualification/atomStateAndPlatformBoundaries/atoms.contracts.ts"
+  },
+  {
+    "rule": "no-family-collection-read",
+    "version": 4,
+    "classification": "unchanged",
+    "variants": [
+      "actual pinned atom/logger APIs and deferred ownership",
+      "recursive first-match/unused callback and naming controls",
+      "alias/computed/import-order gaps and actual runtime repair"
+    ],
+    "bad": [
+      "src/qualification/atomStateAndPlatformBoundaries/no-family-collection-read.bad.ts",
+      "src/qualification/atomStateAndPlatformBoundaries/family-no-import.bad.ts"
+    ],
+    "good": [
+      "src/qualification/atomStateAndPlatformBoundaries/keyed-family.good.ts"
+    ],
+    "expectedByFile": {
+      "src/qualification/atomStateAndPlatformBoundaries/no-family-collection-read.bad.ts": {
+        "linteffect/no-family-collection-read": 6
+      },
+      "src/qualification/atomStateAndPlatformBoundaries/family-no-import.bad.ts": {
+        "linteffect/no-family-collection-read": 1
+      }
+    },
+    "runtime": "src/qualification/atomStateAndPlatformBoundaries/atoms.contracts.ts"
   }
 ]

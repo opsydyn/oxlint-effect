@@ -318,6 +318,11 @@ Size is 944 bytes over the cap; checkbox/inventory stay open. Continue Q51-Q52.
 
 ## Task 3: Primary Examples, Skill And Group Composition
 
+Q51 behavioural gates pass: 568 tests / 3696 expectations, types, both packed
+majors, publint, API docs and diff. Real own-major atoms prove deferred/native
+execution and mounted lifetimes; legacy peers are compatible and pinned.
+Size stays 944 bytes over the cap; checkbox/inventory stay open. Continue Q52.
+
 **Files:** `README.md`; `skills/oxlint-effect/SKILL.md`, all its existing
 `references/*.md` and `assets/*.ts`; `tests/agent-skill.test.ts`;
 `tests/rule-qa.test.ts`; both consumers' `src/config-contract.ts`;
