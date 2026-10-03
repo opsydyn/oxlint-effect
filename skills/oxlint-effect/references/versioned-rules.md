@@ -20,6 +20,12 @@ Current Result replaces applicable legacy Either patterns. Current schema data
 construction is schema .make, not the AST-level Schema.make function. Use actual
 schema codec signatures, not a search-and-replace migration.
 
+Keep mapping callbacks pure. Returning `Effect.fail` from `map`, or returning an
+Effect from `gen`, succeeds with a nested Effect value: use an Effect-returning
+`flatMap` or `yield* Effect.fail(taggedError)` instead. Current `mapEager` and
+`flatMapEager` callbacks are checked too; a pending source defers execution, while
+an already resolved source can invoke the callback during construction.
+
 Current atoms are native effect/reactivity; legacy atom adapters require matching
 Effect 3 peers. Atom effects must execute with registry provision; registry actions
 must retain their deferred owner. Explicitly preserve mounted lifetime and cleanup.

@@ -8,3 +8,7 @@ export const typed = Effect.gen(function* () { return yield* Effect.catch(Effect
 const Other = { catch: (value: string) => value };
 export const unrelated = Effect.gen(function* () { return Other.catch("ready"); });
 export const unused = Effect.gen(function* () { const unused = () => Promise.resolve("unused"); void unused; return "ready"; });
+// CLEAN: eager callbacks retain a pure mapper and explicit Effect-returning sequencing.
+const pendingEagerRepair = Effect.sync(() => "ready");
+export const eagerPureRepair = Effect.mapEager(pendingEagerRepair, value => value.toUpperCase());
+export const eagerAsyncRepair = Effect.flatMapEager(pendingEagerRepair, value => Effect.tryPromise({ try: () => Promise.resolve(value.toUpperCase()), catch: cause => cause }));

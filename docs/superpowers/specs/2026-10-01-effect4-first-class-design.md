@@ -1,6 +1,6 @@
 # Effect 4 First-Class Compatibility
 
-Status: approved by the user on 2026-10-01; all 52 behavioural batches and group/skill composition evidenced. Formal release qualification remains pending the unchanged size cap and final complete gate.
+Status: approved by the user on 2026-10-01; all 52 behavioural batches and group/skill composition locally qualified. The unchanged 30 KB size cap and final complete packed gate pass. Fresh review completed and four findings were fixed and verified; version application and publication remain separate, unauthorised actions.
 
 ## Intent
 

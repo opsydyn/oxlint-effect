@@ -462,7 +462,9 @@
       "filterOrFail",
       "flatMap",
       "forEach",
-      "tap"
+      "tap",
+      "pending source mapEager",
+      "pending source piped flatMapEager"
     ],
     "bad": [
       "src/qualification/effectComposition/no-async-effect-combinator-callback.bad.ts"
@@ -472,7 +474,7 @@
     ],
     "expectedByFile": {
       "src/qualification/effectComposition/no-async-effect-combinator-callback.bad.ts": {
-        "linteffect/no-async-effect-combinator-callback": 19
+        "linteffect/no-async-effect-combinator-callback": 21
       }
     },
     "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
@@ -496,7 +498,9 @@
       "tag map",
       "reason",
       "reason map",
-      "self-bound generator"
+      "self-bound generator",
+      "pending source mapEager",
+      "pending source piped flatMapEager"
     ],
     "bad": [
       "src/qualification/effectComposition/no-throw-in-effect-logic.bad.ts"
@@ -506,7 +510,7 @@
     ],
     "expectedByFile": {
       "src/qualification/effectComposition/no-throw-in-effect-logic.bad.ts": {
-        "linteffect/no-throw-in-effect-logic": 15
+        "linteffect/no-throw-in-effect-logic": 17
       }
     },
     "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
@@ -530,7 +534,9 @@
       "tag map",
       "reason",
       "reason map",
-      "self-bound generator"
+      "self-bound generator",
+      "pending source mapEager",
+      "pending source piped flatMapEager"
     ],
     "bad": [
       "src/qualification/effectComposition/no-try-catch-in-effect-logic.bad.ts"
@@ -540,7 +546,7 @@
     ],
     "expectedByFile": {
       "src/qualification/effectComposition/no-try-catch-in-effect-logic.bad.ts": {
-        "linteffect/no-try-catch-in-effect-logic": 15
+        "linteffect/no-try-catch-in-effect-logic": 17
       }
     },
     "runtime": "src/qualification/effectComposition/callbacks.contracts.ts"
@@ -567,7 +573,9 @@
       "self-bound generator",
       "six static Promise APIs",
       "then/catch/finally chains",
-      "constructed Promise chain"
+      "constructed Promise chain",
+      "pending source mapEager",
+      "pending source piped flatMapEager"
     ],
     "bad": [
       "src/qualification/effectComposition/no-promise-api-in-effect-logic.bad.ts"
@@ -577,7 +585,7 @@
     ],
     "expectedByFile": {
       "src/qualification/effectComposition/no-promise-api-in-effect-logic.bad.ts": {
-        "linteffect/no-promise-api-in-effect-logic": 25
+        "linteffect/no-promise-api-in-effect-logic": 27
       }
     },
     "runtime": "src/qualification/effectComposition/interop.contracts.ts"
@@ -744,7 +752,8 @@
     "classification": "adapted",
     "variants": [
       "ordinary",
-      "self-bound or recovery-specific"
+      "self-bound or recovery-specific",
+      "two current flatMapEager steps with span"
     ],
     "bad": [
       "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.bad.ts"
@@ -754,7 +763,7 @@
     ],
     "expectedByFile": {
       "src/qualification/behaviorDecoration/no-workflow-in-behavior-pipe.bad.ts": {
-        "linteffect/no-workflow-in-behavior-pipe": 2
+        "linteffect/no-workflow-in-behavior-pipe": 3
       }
     },
     "runtime": "src/qualification/behaviorDecoration/decoration.contracts.ts"

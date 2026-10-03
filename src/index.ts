@@ -10,10 +10,13 @@ type Node = {
   [key: string]: unknown;
 };
 
+function isObjectValue(value: unknown): value is Node {
+  return typeof value === "object" && value !== null;
+}
+
 function isIdentifier(node: unknown, name?: string): node is Node & { name: string } {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "Identifier" &&
     typeof (node as Node).name === "string" &&
     (name === undefined || (node as Node).name === name)
@@ -21,7 +24,7 @@ function isIdentifier(node: unknown, name?: string): node is Node & { name: stri
 }
 
 function isMemberExpression(node: unknown, objectName: string, propertyName: string): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -35,21 +38,7 @@ function isMemberExpression(node: unknown, objectName: string, propertyName: str
 }
 
 function isEffectMemberCall(node: unknown): node is Node & { arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  const call = node as Node;
-  return (
-    call.type === "CallExpression" &&
-    Array.isArray(call.arguments) &&
-    typeof call.callee === "object" &&
-    call.callee !== null &&
-    (call.callee as Node).type === "MemberExpression" &&
-    (call.callee as Node).computed !== true &&
-    isIdentifier((call.callee as Node).object, "Effect") &&
-    isIdentifier((call.callee as Node).property)
-  );
+  return isMemberCall(node, "Effect") && Array.isArray((node as Node).arguments);
 }
 
 function firstArgument(node: Node & { arguments: unknown[] }): unknown {
@@ -129,7 +118,7 @@ function hasOrElseSequencingFirstArgument(node: unknown): node is Node & { argum
 }
 
 function isPipeCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -144,8 +133,7 @@ function isPipeCall(node: unknown): boolean {
 
   const callee = call.callee;
   return (
-    typeof callee === "object" &&
-    callee !== null &&
+    isObjectValue(callee) &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
     isIdentifier((callee as Node).property, "pipe")
@@ -157,7 +145,7 @@ function containsPipeCall(node: unknown, seen = new WeakSet<object>()): boolean 
 }
 
 function isArrowIifeCall(node: unknown): node is Node & { callee: Node; arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -172,7 +160,7 @@ function isArrowIifeCall(node: unknown): node is Node & { callee: Node; argument
 }
 
 function isInlineFunctionIifeCall(node: unknown): node is Node & { callee: Node; arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -188,41 +176,7 @@ function isInlineFunctionIifeCall(node: unknown): node is Node & { callee: Node;
 }
 
 function findArrowIifeCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (isArrowIifeCall(node)) {
-    return node;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findArrowIifeCall(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findArrowIifeCall(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+  return findNode(node, isArrowIifeCall, seen);
 }
 
 function findReturnStatements(node: unknown, seen = new WeakSet<object>()): unknown[] {
@@ -230,7 +184,7 @@ function findReturnStatements(node: unknown, seen = new WeakSet<object>()): unkn
     return node.flatMap((child) => findReturnStatements(child, seen));
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -249,7 +203,7 @@ function findReturnStatements(node: unknown, seen = new WeakSet<object>()): unkn
 }
 
 function isSchemaFilterCall(node: unknown, version: EffectVersion): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -263,7 +217,7 @@ function isSchemaFilterCall(node: unknown, version: EffectVersion): boolean {
 }
 
 function directArrowCallbackReturns(node: unknown, version: EffectVersion): unknown[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -274,15 +228,14 @@ function directArrowCallbackReturns(node: unknown, version: EffectVersion): unkn
 
   return call.arguments.flatMap((argument) => {
     if (
-      typeof argument !== "object" ||
-      argument === null ||
+      !isObjectValue(argument) ||
       (argument as Node).type !== "ArrowFunctionExpression"
     ) {
       return [];
     }
 
     const body = (argument as Node).body;
-    if (typeof body !== "object" || body === null || (body as Node).type !== "BlockStatement") {
+    if (!isObjectValue(body) || (body as Node).type !== "BlockStatement") {
       return [];
     }
 
@@ -291,7 +244,7 @@ function directArrowCallbackReturns(node: unknown, version: EffectVersion): unkn
 }
 
 function directFunctionCallbackReturns(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -302,8 +255,7 @@ function directFunctionCallbackReturns(node: unknown): unknown[] {
 
   return call.arguments.flatMap((argument) => {
     if (
-      typeof argument !== "object" ||
-      argument === null ||
+      !isObjectValue(argument) ||
       (argument as Node).type !== "FunctionExpression" ||
       (argument as Node).generator === true
     ) {
@@ -316,8 +268,7 @@ function directFunctionCallbackReturns(node: unknown): unknown[] {
 
 function isGeneratorFunctionExpression(node: unknown): node is Node & { body: unknown } {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "FunctionExpression" &&
     (node as Node).generator === true
   );
@@ -328,7 +279,7 @@ function getEffectGeneratorArgument(
   propertyName: "fn" | "gen",
   version: EffectVersion = 3,
 ): (Node & { body: unknown }) | undefined {
-  const namedFn = version === 4 && propertyName === "fn" && typeof node === "object" && node !== null
+  const namedFn = version === 4 && propertyName === "fn" && isObjectValue(node)
     && (node as Node).type === "CallExpression" && isEffectMemberCallNamed((node as Node).callee, "fn");
   if (!isEffectMemberCallNamed(node, propertyName) && !namedFn) {
     return undefined;
@@ -353,7 +304,7 @@ function isEffectConstructionBoundary(node: unknown, version: EffectVersion = 3)
     }
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -363,8 +314,7 @@ function isEffectConstructionBoundary(node: unknown, version: EffectVersion = 3)
 
 function isDateNowCall(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "CallExpression" &&
     isMemberExpression((node as Node).callee, "Date", "now")
   );
@@ -372,7 +322,7 @@ function isDateNowCall(node: unknown): boolean {
 
 function findYieldWithoutStarInEffectGen(node: unknown, version: EffectVersion): unknown | undefined {
   const generator = getEffectGeneratorArgument(node, "gen", version);
-  return generator ? findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === "YieldExpression" && (child as Node).delegate !== true) : undefined;
+  return generator ? findEffectLogicNode(node, version, (child) => isObjectValue(child) && (child as Node).type === "YieldExpression" && (child as Node).delegate !== true) : undefined;
 }
 
 function findPipedYields(node: unknown, seen = new WeakSet<object>()): unknown[] {
@@ -380,7 +330,7 @@ function findPipedYields(node: unknown, seen = new WeakSet<object>()): unknown[]
     return node.flatMap((child) => findPipedYields(child, seen));
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -417,7 +367,7 @@ function containsNodeType(node: unknown, type: string, seen = new WeakSet<object
     return node.some((child) => containsNodeType(child, type, seen));
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -444,7 +394,7 @@ function containsEffectMemberCall(node: unknown, seen = new WeakSet<object>()): 
 }
 
 function singleYieldVariableName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclaration") {
     return undefined;
   }
 
@@ -455,8 +405,7 @@ function singleYieldVariableName(node: unknown): string | undefined {
 
   const declaration = declarations[0];
   if (
-    typeof declaration !== "object" ||
-    declaration === null ||
+    !isObjectValue(declaration) ||
     (declaration as Node).type !== "VariableDeclarator" ||
     !isIdentifier((declaration as Node).id) ||
     typeof (declaration as Node).init !== "object" ||
@@ -471,7 +420,7 @@ function singleYieldVariableName(node: unknown): string | undefined {
 }
 
 function isPureMappingReturn(node: unknown, yieldedName: string): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "ReturnStatement") {
+  if (!isObjectValue(node) || (node as Node).type !== "ReturnStatement") {
     return false;
   }
 
@@ -507,7 +456,7 @@ function genForMappingNode(node: unknown): unknown | undefined {
 const workflowSequencingCombinators = new Set(["andThen", "flatMap", "tap", "zipRight"]);
 
 function pipeOperatorArguments(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return [];
   }
 
@@ -519,8 +468,7 @@ function pipeOperatorArguments(node: unknown): unknown[] {
 
   const callee = call.callee;
   if (
-    typeof callee === "object" &&
-    callee !== null &&
+    isObjectValue(callee) &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
     isIdentifier((callee as Node).property, "pipe")
@@ -556,8 +504,7 @@ function workflowSequencingPipeline(node: unknown, version: EffectVersion = 3): 
 
 function isFlowCall(node: unknown): node is Node & { arguments: unknown[] } {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "CallExpression" &&
     Array.isArray((node as Node).arguments) &&
     isIdentifier((node as Node).callee, "flow")
@@ -569,8 +516,7 @@ function isLargeFlowCall(node: unknown): boolean {
 }
 
 function containsAsyncFunction(node: unknown, seen = new WeakSet<object>()): boolean {
-  return findNode(node, (node) => typeof node === "object" &&
-    node !== null &&
+  return findNode(node, (node) => isObjectValue(node) &&
     ((node as Node).type === "ArrowFunctionExpression" ||
       (node as Node).type === "FunctionExpression") &&
     (node as Node).async === true, seen) !== undefined;
@@ -597,7 +543,7 @@ function effectfulFlowArgument(node: unknown): unknown | undefined {
 }
 
 function inlineNonTrivialFlowArgument(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
@@ -619,7 +565,7 @@ const pureTransformationImpureNames = new Set([
 ]);
 
 function pureTransformationCallName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
@@ -629,8 +575,7 @@ function pureTransformationCallName(node: unknown): string | undefined {
   }
 
   if (
-    typeof callee === "object" &&
-    callee !== null &&
+    isObjectValue(callee) &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
     isIdentifier((callee as Node).property)
@@ -642,7 +587,7 @@ function pureTransformationCallName(node: unknown): string | undefined {
 }
 
 function isPureTransformationCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
@@ -679,7 +624,7 @@ function preferFlowForPurePipelineNode(node: unknown): unknown | undefined {
     return undefined;
   }
 
-  const parent = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  const parent = isObjectValue(node) ? (node as Node).parent : undefined;
   return isPureTransformationCall(parent) ? undefined : node;
 }
 
@@ -769,8 +714,7 @@ function staticBehaviorCall(node: unknown, version: EffectVersion): unknown | un
 
 function isBehaviorDecoratedYield(node: unknown, version: EffectVersion): boolean {
   if (
-    typeof node !== "object" ||
-    node === null ||
+    !isObjectValue(node) ||
     (node as Node).type !== "YieldExpression" ||
     (node as Node).delegate !== true ||
     !isPipeCall((node as Node).argument)
@@ -804,7 +748,7 @@ function workflowInBehaviorPipe(node: unknown, version: EffectVersion): unknown 
   }
 
   const workflowCount = parts
-    .filter((part) => isWorkflowSequencingOperator(part))
+    .filter((part) => isWorkflowSequencingOperator(part, version))
     .length;
   const hasEmbeddedControlFlow = parts.some((part) => (
     containsNodeType(part, "IfStatement") ||
@@ -849,7 +793,7 @@ function stylePillarsInNode(
     return pillars;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return pillars;
   }
 
@@ -869,8 +813,7 @@ function stylePillarsInNode(
 
 function isFunctionLike(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (
       (node as Node).type === "FunctionDeclaration" ||
       (node as Node).type === "FunctionExpression" ||
@@ -893,7 +836,7 @@ function callExpressionDepth(node: unknown, seen = new WeakSet<object>()): numbe
     return node.reduce((maxDepth, child) => Math.max(maxDepth, callExpressionDepth(child, seen)), 0);
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return 0;
   }
 
@@ -910,7 +853,7 @@ function callExpressionDepth(node: unknown, seen = new WeakSet<object>()): numbe
 }
 
 function cleverEffectExpressionNode(node: unknown, version: EffectVersion): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
@@ -920,15 +863,14 @@ function cleverEffectExpressionNode(node: unknown, version: EffectVersion): unkn
 }
 
 function oversizedAnonymousConceptNode(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
   const call = node as Node & { arguments?: unknown[] };
   for (const argument of call.arguments ?? []) {
     if (
-      typeof argument !== "object" ||
-      argument === null ||
+      !isObjectValue(argument) ||
       !isFunctionLike(argument)
     ) {
       continue;
@@ -936,8 +878,7 @@ function oversizedAnonymousConceptNode(node: unknown): unknown | undefined {
 
     const body = (argument as Node).body;
     if (
-      typeof body === "object" &&
-      body !== null &&
+      isObjectValue(body) &&
       (body as Node).type === "BlockStatement" &&
       Array.isArray((body as Node).body) &&
       ((body as Node).body as unknown[]).length >= 3
@@ -954,7 +895,7 @@ function calleeContainsEffectService(node: unknown, version: EffectVersion = 3):
     return true;
   }
 
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
@@ -962,7 +903,7 @@ function calleeContainsEffectService(node: unknown, version: EffectVersion = 3):
 }
 
 function effectServiceOptionsObject(node: unknown, version: EffectVersion = 3): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
@@ -974,14 +915,13 @@ function effectServiceOptionsObject(node: unknown, version: EffectVersion = 3): 
   return [...(call.arguments ?? [])]
     .reverse()
     .find((argument) => (
-      typeof argument === "object" &&
-      argument !== null &&
+      isObjectValue(argument) &&
       (argument as Node).type === "ObjectExpression"
     ));
 }
 
 function effectServiceClassOptions(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "ClassDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "ClassDeclaration") {
     return undefined;
   }
 
@@ -1015,11 +955,10 @@ function namespaceEffectImport(node: unknown): unknown | undefined {
     return undefined;
   }
 
-  const specifiers = typeof node === "object" && node !== null ? (node as Node).specifiers : undefined;
+  const specifiers = isObjectValue(node) ? (node as Node).specifiers : undefined;
   return Array.isArray(specifiers)
     ? specifiers.find((specifier) => (
-      typeof specifier === "object" &&
-      specifier !== null &&
+      isObjectValue(specifier) &&
       (specifier as Node).type === "ImportNamespaceSpecifier"
     ))
     : undefined;
@@ -1027,8 +966,7 @@ function namespaceEffectImport(node: unknown): unknown | undefined {
 
 function isYieldedServiceDependency(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "YieldExpression" &&
     (node as Node).delegate === true &&
     isIdentifier((node as Node).argument) &&
@@ -1042,7 +980,7 @@ function findNode(
   seen = new WeakSet<object>(),
   ownScope = false,
 ): unknown | undefined {
-  if (ownScope && (typeof node !== "object" || node === null || seen.has(node) || isFunctionLike(node) ||
+  if (ownScope && (!isObjectValue(node) || seen.has(node) || isFunctionLike(node) ||
     (node as Node).type === "ClassDeclaration" || (node as Node).type === "ClassExpression")) return undefined;
   if (predicate(node)) {
     return node;
@@ -1058,7 +996,7 @@ function findNode(
     return undefined;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -1089,7 +1027,7 @@ function findNodes(
   ownScope = false,
 ): unknown[] {
   if (ownScope && isFunctionLike(node)) return [];
-  if (stopAtMatch && typeof node === "object" && node !== null && seen.has(node)) return [];
+  if (stopAtMatch && isObjectValue(node) && seen.has(node)) return [];
   const matches = predicate(node) ? [node] : [];
   if (stopAtMatch && matches.length) return matches;
 
@@ -1097,7 +1035,7 @@ function findNodes(
     return node.flatMap((child) => findNodes(child, predicate, seen, stopAtMatch, ownScope)).concat(matches);
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return matches;
   }
 
@@ -1135,7 +1073,7 @@ function isLayerCompositionCall(node: unknown): boolean {
 }
 
 function isRequestHandler(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "FunctionDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "FunctionDeclaration") {
     return false;
   }
 
@@ -1189,14 +1127,13 @@ function isLayerLikeDeclarationName(node: unknown): boolean {
 }
 
 function scatteredLayerProvideDeclaration(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclaration") {
     return undefined;
   }
 
   return ((node as Node).declarations as unknown[] | undefined)
     ?.find((declarator) => (
-      typeof declarator === "object" &&
-      declarator !== null &&
+      isObjectValue(declarator) &&
       isLayerLikeDeclarationName((declarator as Node).id) &&
       findNode((declarator as Node).init, isEffectOrLayerProvideCall)
     ));
@@ -1211,16 +1148,15 @@ function functionReturnsPromise(node: unknown, version: EffectVersion = 3): bool
   if (version === 3) return findPromiseApiCall((node as Node).body) !== undefined;
   if ((node as Node).async === true) return true;
   const isPromise = (value: unknown) => isPromiseStaticApiCall(value) || isPromiseChainCall(value, version) ||
-    (typeof value === "object" && value !== null && (value as Node).type === "NewExpression" && isIdentifier((value as Node).callee, "Promise"));
+    (isObjectValue(value) && (value as Node).type === "NewExpression" && isIdentifier((value as Node).callee, "Promise"));
   const body = (node as Node).body;
-  return isPromise(body) || findOwnCallbackNode(body, (child) => typeof child === "object" && child !== null &&
+  return isPromise(body) || findOwnCallbackNode(body, (child) => isObjectValue(child) &&
     (child as Node).type === "ReturnStatement" && isPromise((child as Node).argument)) !== undefined;
 }
 
 function isPromiseReturningProperty(node: unknown, version: EffectVersion = 3): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "Property" &&
     functionReturnsPromise((node as Node).value, version)
   );
@@ -1231,14 +1167,14 @@ function promiseReturningServiceMethod(node: unknown, version: EffectVersion = 3
   // Inspect constructed shapes, not callback options inside Promise adapters.
   const seen = new WeakSet<object>();
   const inspect = (value: unknown): unknown | undefined => {
-    if (typeof value !== "object" || value === null || seen.has(value)) return undefined;
+    if (!isObjectValue(value) || seen.has(value)) return undefined;
     seen.add(value);
     const current = value as Node;
     if (current.type === "ObjectExpression") return (current.properties as unknown[] | undefined)?.find((property) => isPromiseReturningProperty(property, version));
     if (isFunctionLike(value)) {
       const body = current.body as Node | undefined;
       if (body?.type !== "BlockStatement") return inspect(body);
-      for (const returned of findNodes(body, (child) => typeof child === "object" && child !== null && (child as Node).type === "ReturnStatement", new WeakSet<object>(), true, true)) {
+      for (const returned of findNodes(body, (child) => isObjectValue(child) && (child as Node).type === "ReturnStatement", new WeakSet<object>(), true, true)) {
         const method = inspect((returned as Node).argument);
         if (method) return method;
       }
@@ -1258,14 +1194,13 @@ function promiseReturningServiceMethod(node: unknown, version: EffectVersion = 3
 }
 
 function objectHasServiceMethod(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "ObjectExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "ObjectExpression") {
     return false;
   }
 
   const properties = (node as Node).properties;
   return Array.isArray(properties) && properties.some((propertyNode) => (
-    typeof propertyNode === "object" &&
-    propertyNode !== null &&
+    isObjectValue(propertyNode) &&
     (propertyNode as Node).type === "Property" &&
     (isFunctionLike((propertyNode as Node).value) ||
       isEffectMemberCallNamed((propertyNode as Node).value, "fn"))
@@ -1273,12 +1208,12 @@ function objectHasServiceMethod(node: unknown): boolean {
 }
 
 function manualServiceObjectExport(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
   const declaration = (node as Node).declaration;
-  if (typeof declaration !== "object" || declaration === null) {
+  if (!isObjectValue(declaration)) {
     return undefined;
   }
 
@@ -1288,8 +1223,7 @@ function manualServiceObjectExport(node: unknown): unknown | undefined {
 
   for (const declarator of ((declaration as Node).declarations as unknown[] | undefined) ?? []) {
     if (
-      typeof declarator === "object" &&
-      declarator !== null &&
+      isObjectValue(declarator) &&
       isIdentifier((declarator as Node).id) &&
       ((declarator as Node).id as { name: string }).name.endsWith("Service") &&
       objectHasServiceMethod((declarator as Node).init)
@@ -1303,8 +1237,7 @@ function manualServiceObjectExport(node: unknown): unknown | undefined {
 
 function isAsyncFunctionCallback(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     ((node as Node).type === "ArrowFunctionExpression" ||
       (node as Node).type === "FunctionExpression") &&
     (node as Node).async === true
@@ -1325,6 +1258,8 @@ const effectAsyncCallbackCombinators = new Set([
 
 const effect4LogicCallbackOperators = new Set([
   ...[...effectAsyncCallbackCombinators].filter((name) => name !== "catchAll" && name !== "orElse"),
+  "mapEager",
+  "flatMapEager",
   ...effect4RecoveryOperatorNames,
 ]);
 
@@ -1365,7 +1300,7 @@ function findEffectLogicNode(node: unknown, version: EffectVersion, predicate: (
 }
 
 function findEffectStatement(node: unknown, version: EffectVersion, type: "ThrowStatement" | "TryStatement"): unknown | undefined {
-  return findEffectLogicNode(node, version, (child) => typeof child === "object" && child !== null && (child as Node).type === type);
+  return findEffectLogicNode(node, version, (child) => isObjectValue(child) && (child as Node).type === type);
 }
 
 const promiseStaticApiMethods = new Set(["all", "allSettled", "any", "race", "reject", "resolve"]);
@@ -1375,15 +1310,14 @@ function isPromiseStaticApiCall(node: unknown): boolean {
 }
 
 function isPromiseChainCall(node: unknown, version: EffectVersion = 3): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
   const callee = (node as Node).callee;
   const receiver = (callee as Node | undefined)?.object as Node | undefined;
   return (
-    typeof callee === "object" &&
-    callee !== null &&
+    isObjectValue(callee) &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
     (version === 3 || isPromiseStaticApiCall(receiver) ||
@@ -1406,14 +1340,13 @@ function findPromiseApiInEffectLogic(node: unknown, version: EffectVersion): unk
 const promiseConcurrencyMethods = new Set(["all", "allSettled", "any", "race"]);
 
 function isPromiseConcurrencyCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
   const callee = (node as Node).callee;
   return (
-    typeof callee === "object" &&
-    callee !== null &&
+    isObjectValue(callee) &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
     isIdentifier((callee as Node).object, "Promise") &&
@@ -1433,7 +1366,7 @@ function findPromiseConcurrencyCall(node: unknown, seen = new WeakSet<object>())
     return undefined;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -1497,7 +1430,7 @@ function findPromiseConcurrencyInEffectLogic(node: unknown, version: EffectVersi
 }
 
 function callbackHasParameter(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1540,7 +1473,7 @@ function noninterruptiblePromiseTimeoutNode(node: unknown, version: EffectVersio
   if (version === 4) {
     let effect: unknown;
     if ([...effect4TimeoutMembers].some(name => isEffectMemberCallNamed(node, name))) effect = firstArgument(node as Node & { arguments: unknown[] });
-    else if (typeof node === "object" && node !== null && (node as Node).type === "CallExpression" &&
+    else if (isObjectValue(node) && (node as Node).type === "CallExpression" &&
       [...effect4TimeoutMembers].some(name => isEffectMemberCallNamed((node as Node).callee, name))) effect = firstArgument(node as Node & { arguments: unknown[] });
     else if (isPipeCall(node) && [...effect4TimeoutMembers].some(name => isEffectMemberCallNamed(((node as Node).arguments as unknown[]).at(-1), name))) effect = pipeSource(node as Node);
     if (isEffectMemberCallNamed(effect, "promise")) return callbackHasParameter(firstArgument(effect as Node & { arguments: unknown[] })) ? undefined : effect;
@@ -1557,7 +1490,7 @@ function noninterruptiblePromiseTimeoutNode(node: unknown, version: EffectVersio
 const blockingSyncObjectNames = new Set(["crypto", "fs", "zlib"]);
 
 function isBlockingSyncCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
@@ -1567,8 +1500,7 @@ function isBlockingSyncCall(node: unknown): boolean {
   }
 
   if (
-    typeof callee !== "object" ||
-    callee === null ||
+    !isObjectValue(callee) ||
     (callee as Node).type !== "MemberExpression" ||
     (callee as Node).computed === true ||
     !isIdentifier((callee as Node).object) ||
@@ -1593,7 +1525,7 @@ function findBlockingSyncCall(node: unknown, seen = new WeakSet<object>()): unkn
     return undefined;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -1651,7 +1583,7 @@ function effectRunExecution(node: unknown, version: EffectVersion): { program: u
       return { program: firstArgument(node), hasContext: false };
     }
   }
-  if (version !== 4 || typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") return undefined;
+  if (version !== 4 || !isObjectValue(node) || (node as Node).type !== "CallExpression") return undefined;
   const factory = (node as Node).callee;
   if (!isEffectMemberCall(factory)) return undefined;
   const property = (factory.callee as Node).property;
@@ -1727,7 +1659,7 @@ function findEffectIgnore(node: unknown): unknown | undefined {
 }
 
 function isConsoleCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1761,8 +1693,7 @@ const errorHandlingOperators = new Set(["catchAll", "catchTag", "catchTags", "ta
 
 function isStaticLogMessage(node: unknown): boolean {
   return isStringLiteral(node) || (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "TemplateLiteral"
   );
 }
@@ -1772,7 +1703,7 @@ function isEffectErrorLogCall(node: unknown): node is Node & { arguments: unknow
 }
 
 function isObjectExpression(node: unknown): boolean {
-  return typeof node === "object" && node !== null && (node as Node).type === "ObjectExpression";
+  return isObjectValue(node) && (node as Node).type === "ObjectExpression";
 }
 
 function hasStructuredLogContext(candidate: unknown, logCall: Node & { arguments: unknown[] }): boolean {
@@ -1813,7 +1744,7 @@ function errorHandlerBodies(node: unknown, version: EffectVersion = 3): unknown[
 }
 
 function isIdentifierCall(node: unknown, name: string): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1822,7 +1753,7 @@ function isIdentifierCall(node: unknown, name: string): boolean {
 }
 
 function isMemberCall(node: unknown, objectName: string, propertyName?: string): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1840,24 +1771,7 @@ function isMemberCall(node: unknown, objectName: string, propertyName?: string):
 }
 
 function isEffectLogCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  const call = node as Node;
-  if (
-    call.type !== "CallExpression" ||
-    typeof call.callee !== "object" ||
-    call.callee === null ||
-    (call.callee as Node).type !== "MemberExpression" ||
-    (call.callee as Node).computed === true ||
-    !isIdentifier((call.callee as Node).object, "Effect") ||
-    !isIdentifier((call.callee as Node).property)
-  ) {
-    return false;
-  }
-
-  return ((call.callee as Node).property as { name: string }).name.startsWith("log");
+  return isMemberCall(node, "Effect") && (((node as Node).callee as Node).property as { name: string }).name.startsWith("log");
 }
 
 function containsConsoleCall(node: unknown, seen = new WeakSet<object>()): boolean {
@@ -1882,7 +1796,7 @@ function containsAllStepSideEffect(node: unknown, seen = new WeakSet<object>()):
 }
 
 function hasConcurrencyOne(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1892,7 +1806,7 @@ function hasConcurrencyOne(node: unknown): boolean {
   }
 
   return object.properties.some((entry) => {
-    if (typeof entry !== "object" || entry === null) {
+    if (!isObjectValue(entry)) {
       return false;
     }
 
@@ -1901,16 +1815,15 @@ function hasConcurrencyOne(node: unknown): boolean {
     const value = prop.value as Node | undefined;
     return (
       ((isIdentifier(key, "concurrency")) ||
-        (typeof key === "object" && key !== null && (key as Node).value === "concurrency")) &&
-      typeof value === "object" &&
-      value !== null &&
+        (isObjectValue(key) && (key as Node).value === "concurrency")) &&
+      isObjectValue(value) &&
       ((value.type === "Literal" || value.type === "NumericLiteral") && value.value === 1)
     );
   });
 }
 
 function hasConcurrencyOption(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1920,20 +1833,20 @@ function hasConcurrencyOption(node: unknown): boolean {
   }
 
   return object.properties.some((entry) => {
-    if (typeof entry !== "object" || entry === null) {
+    if (!isObjectValue(entry)) {
       return false;
     }
 
     const key = (entry as Node).key;
     return (
       isIdentifier(key, "concurrency") ||
-      (typeof key === "object" && key !== null && (key as Node).value === "concurrency")
+      (isObjectValue(key) && (key as Node).value === "concurrency")
     );
   });
 }
 
 function isCollectionMapCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -1957,51 +1870,17 @@ function isUnboundedMappedEffectAll(node: unknown): boolean {
 }
 
 function containsEffectForkCall(node: unknown, seen = new WeakSet<object>()): unknown | undefined {
-  if (isEffectMemberCallNamed(node, "fork")) {
-    return node;
-  }
-
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = containsEffectForkCall(child, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = containsEffectForkCall(child, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
+  return findNode(node, child => isEffectMemberCallNamed(child, "fork"), seen);
 }
 
 function v4ForkConstruction(node: unknown): unknown | undefined {
   if (isEffectMemberCallNamed(node, "forkChild") || isEffectMemberCallNamed(node, "forkDetach")) return node;
-  if (typeof node === "object" && node !== null && (node as Node).type === "CallExpression" &&
+  if (isObjectValue(node) && (node as Node).type === "CallExpression" &&
     (isEffectMemberCallNamed((node as Node).callee, "forkChild") || isEffectMemberCallNamed((node as Node).callee, "forkDetach"))) return node;
   if (!isPipeCall(node)) return undefined;
   const operator = ((node as Node).arguments as unknown[] | undefined)?.at(-1);
   if (isEffectMemberCallNamed(operator, "forkChild") || isEffectMemberCallNamed(operator, "forkDetach")) return operator;
-  if (typeof operator !== "object" || operator === null || (operator as Node).type !== "MemberExpression") return undefined;
+  if (!isObjectValue(operator) || (operator as Node).type !== "MemberExpression") return undefined;
   const member = operator as Node;
   return member.computed !== true && isIdentifier(member.object, "Effect") &&
     (isIdentifier(member.property, "forkChild") || isIdentifier(member.property, "forkDetach")) ? operator : undefined;
@@ -2009,7 +1888,7 @@ function v4ForkConstruction(node: unknown): unknown | undefined {
 
 function discardedFork(node: unknown, version: EffectVersion): unknown | undefined {
   if (version === 3) return isEffectMemberCallNamed(node, "fork") ? node : undefined;
-  const expression = typeof node === "object" && node !== null && (node as Node).type === "YieldExpression"
+  const expression = isObjectValue(node) && (node as Node).type === "YieldExpression"
     ? (node as Node).argument : node;
   return v4ForkConstruction(expression);
 }
@@ -2019,30 +1898,7 @@ function containsEffectMemberCallInSet(
   propertyNames: ReadonlySet<string>,
   seen = new WeakSet<object>(),
 ): boolean {
-  if (isEffectMemberCall(node)) {
-    const callee = node.callee as Node;
-    const property = callee.property;
-    if (isIdentifier(property) && propertyNames.has(property.name)) {
-      return true;
-    }
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsEffectMemberCallInSet(child, propertyNames, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsEffectMemberCallInSet(child, propertyNames, seen)
-  ));
+  return findNode(node, child => isEffectMemberCall(child) && isIdentifier((child.callee as Node).property) && propertyNames.has(((child.callee as Node).property as { name: string }).name), seen) !== undefined;
 }
 
 const highRiskEffectMembers = new Set([
@@ -2067,37 +1923,11 @@ const effectfulSynchronizedRefMembers = new Set([
 ]);
 
 function containsHighRiskSuspension(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isEffectMemberCall(node)) {
-    const property = ((node as Node).callee as Node).property;
-    if (isIdentifier(property) && highRiskEffectMembers.has(property.name)) {
-      return true;
-    }
-  }
-
-  if (isMemberCall(node, "Queue", "take") || isMemberCall(node, "Deferred", "await")) {
-    return true;
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsHighRiskSuspension(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsHighRiskSuspension(child, seen)
-  ));
+  return findNode(node, child => (isEffectMemberCall(child) && isIdentifier((child.callee as Node).property) && highRiskEffectMembers.has(((child.callee as Node).property as { name: string }).name)) || isMemberCall(child, "Queue", "take") || isMemberCall(child, "Deferred", "await"), seen) !== undefined;
 }
 
 function isAnyObjectMemberCallNamed(node: unknown, propertyName: string): node is Node & { arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -2118,8 +1948,8 @@ function heldSemaphoreWork(node: unknown, version: EffectVersion = 3): unknown |
     const operator = ((node as Node).arguments as unknown[]).at(-1);
     return isAnyObjectMemberCallNamed(operator, "withPermit") || isAnyObjectMemberCallNamed(operator, "withPermits") ? pipeSource(node as Node) : undefined;
   }
-  if (version === 4 && [node, typeof node === "object" && node !== null ? (node as Node).callee : undefined].some(call => isMemberCall(call, "TSemaphore", "withPermit") || isMemberCall(call, "TSemaphore", "withPermits"))) return undefined;
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (version === 4 && [node, isObjectValue(node) ? (node as Node).callee : undefined].some(call => isMemberCall(call, "TSemaphore", "withPermit") || isMemberCall(call, "TSemaphore", "withPermits"))) return undefined;
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
@@ -2163,7 +1993,7 @@ function synchronizedRefModifierWork(node: unknown, version: EffectVersion = 3):
     }
     return undefined;
   }
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
@@ -2204,37 +2034,11 @@ const deferredTimeoutMembers = new Set([
 const deferredInterruptionMembers = new Set(["race", "raceFirst", "raceAll", "interruptible", "scoped"]);
 
 function isEffectMemberExpressionNamed(node: unknown, propertyName: string): boolean {
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  const member = node as Node;
-  return (
-    member.type === "MemberExpression" &&
-    member.computed !== true &&
-    isIdentifier(member.object, "Effect") &&
-    isIdentifier(member.property, propertyName)
-  );
+  return isMemberExpression(node, "Effect", propertyName);
 }
 
 function isDeferredConstructorCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
-    return false;
-  }
-
-  const call = node as Node;
-  const callee = call.callee;
-  if (typeof callee !== "object" || callee === null || (callee as Node).type !== "MemberExpression") {
-    return false;
-  }
-
-  const member = callee as Node;
-  return (
-    member.computed !== true &&
-    isIdentifier(member.object, "Deferred") &&
-    isIdentifier(member.property) &&
-    deferredConstructorMembers.has(member.property.name)
-  );
+  return isMemberCall(node, "Deferred") && deferredConstructorMembers.has((((node as Node).callee as Node).property as { name: string }).name);
 }
 
 function isDeferredAwaitCall(node: unknown): node is Node & { arguments: unknown[] } {
@@ -2242,7 +2046,7 @@ function isDeferredAwaitCall(node: unknown): node is Node & { arguments: unknown
 }
 
 function deferredBindingName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclarator") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclarator") {
     return undefined;
   }
 
@@ -2278,10 +2082,10 @@ function isEffectScopedPipeCall(node: unknown): boolean {
 }
 
 function isDeferredAwaitProtected(node: unknown, bindingName: string, version: EffectVersion = 3, references: readonly { identifier: unknown }[] = []): boolean {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  let current = isObjectValue(node) ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
 
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) {
       return false;
     }
@@ -2341,7 +2145,7 @@ function isV4RaceMember(node: unknown): boolean {
 }
 
 function v4RaceConstruction(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") return false;
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") return false;
   return isV4RaceMember(node) || isV4RaceMember((node as Node).callee) ||
     (isPipeCall(node) && isV4RaceMember(((node as Node).arguments as unknown[] | undefined)?.at(-1)));
 }
@@ -2350,14 +2154,14 @@ function isEffectRaceWithoutCleanup(node: unknown, version: EffectVersion = 3): 
   if (version === 4) {
     if (!v4RaceConstruction(node)) return false;
     const parent = (node as Node).parent;
-    if (typeof parent === "object" && parent !== null && v4RaceConstruction(parent) &&
+    if (isObjectValue(parent) && v4RaceConstruction(parent) &&
       ((parent as Node).callee === node || (isPipeCall(parent) && ((parent as Node).arguments as unknown[] | undefined)?.at(-1) === node))) return false;
     const hasCleanup = (value: unknown) => findNode(value, candidate => [...raceCleanupCalls].some(name =>
       isEffectMemberCallNamed(candidate, name) || isEffectMemberExpressionNamed(candidate, name))) !== undefined;
     if (hasCleanup((node as Node).arguments) || hasCleanup(((node as Node).callee as Node | undefined)?.arguments)) return false;
     let current = parent;
     const seen = new WeakSet<object>();
-    while (typeof current === "object" && current !== null && !seen.has(current)) {
+    while (isObjectValue(current) && !seen.has(current)) {
       seen.add(current);
       if (isFunctionLike(current) &&
         getEffectGeneratorArgument((current as Node).parent, "gen", 4) !== current &&
@@ -2394,7 +2198,7 @@ function isUnboundedConcurrentRetry(node: unknown): boolean {
 }
 
 function variableDeclarationIdentifierNames(node: unknown): string[] {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclaration") {
     return [];
   }
 
@@ -2404,7 +2208,7 @@ function variableDeclarationIdentifierNames(node: unknown): string[] {
   }
 
   return declarations.flatMap((declaration) => {
-    if (typeof declaration !== "object" || declaration === null) {
+    if (!isObjectValue(declaration)) {
       return [];
     }
 
@@ -2425,7 +2229,7 @@ function collectDeclaredIdentifierNames(
     return names;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return names;
   }
 
@@ -2464,7 +2268,7 @@ const mutatingCollectionMethods = new Set([
 ]);
 
 function mutatedIdentifierName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -2515,7 +2319,7 @@ function findSharedMutableStateMutation(
     return undefined;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -2664,15 +2468,14 @@ function isResourceLikeExpression(node: unknown): boolean {
 }
 
 function isResourceCleanupCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
   const call = node as Node;
   const callee = call.callee;
   if (
-    typeof callee !== "object" ||
-    callee === null ||
+    !isObjectValue(callee) ||
     (callee as Node).type !== "MemberExpression" ||
     (callee as Node).computed === true ||
     !isIdentifier((callee as Node).property)
@@ -2706,7 +2509,7 @@ function concurrentWorkArguments(node: unknown, version: EffectVersion = 3): unk
 }
 
 function resourceAcquisitionCall(node: unknown): node is Node & { callee: Node } {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return false;
   }
 
@@ -2716,7 +2519,7 @@ function resourceAcquisitionCall(node: unknown): node is Node & { callee: Node }
 
   if (isIdentifier(callee)) {
     name = callee.name;
-  } else if (typeof callee === "object" && callee !== null && (callee as Node).type === "MemberExpression") {
+  } else if (isObjectValue(callee) && (callee as Node).type === "MemberExpression") {
     const member = callee as Node;
     if (member.computed !== true && isIdentifier(member.property)) {
       name = member.property.name;
@@ -2750,7 +2553,7 @@ function hasScopedReleaseEvidence(node: unknown, bindingName?: string): boolean 
 function matchingFinalizerBindingNames(node: unknown): Set<string> {
   const bindingNames = new Set<string>();
   for (const candidate of findNodes(node, (child) => (
-    typeof child === "object" && child !== null && (child as Node).type === "VariableDeclarator"
+    isObjectValue(child) && (child as Node).type === "VariableDeclarator"
   ))) {
     const declaration = candidate as Node;
     if (
@@ -2779,7 +2582,7 @@ function collectUnscopedResourceAcquisitions(
     return;
   }
 
-  if (typeof node !== "object" || node === null || seen.has(node)) {
+  if (!isObjectValue(node) || seen.has(node)) {
     return;
   }
   seen.add(node);
@@ -2848,7 +2651,7 @@ function containsConcurrentOperation(node: unknown, seen = new WeakSet<object>()
     return node.some((child) => containsConcurrentOperation(child, seen));
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -2899,12 +2702,12 @@ function isUnboundedQueueOrPubSub(node: unknown, version: EffectVersion = 3): bo
   const capacity = objectPropertyValue(options, "capacity");
   return !capacity ||
     isIdentifier(capacity, "undefined") || isIdentifier(capacity, "Infinity") ||
-    (typeof capacity === "object" && capacity !== null && (capacity as Node).type === "MemberExpression" &&
+    (isObjectValue(capacity) && (capacity as Node).type === "MemberExpression" &&
       (capacity as Node).computed !== true && isIdentifier((capacity as Node).object, "Number") && isIdentifier((capacity as Node).property, "POSITIVE_INFINITY"));
 }
 
 function isMutableContainerInit(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -2924,7 +2727,7 @@ function isMutableContainerInit(node: unknown): boolean {
 }
 
 function mutableGlobalDeclarationNames(node: unknown): string[] {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclaration") {
     return [];
   }
 
@@ -2935,7 +2738,7 @@ function mutableGlobalDeclarationNames(node: unknown): string[] {
   }
 
   return declarations.flatMap((entry) => {
-    if (typeof entry !== "object" || entry === null) {
+    if (!isObjectValue(entry)) {
       return [];
     }
 
@@ -2945,7 +2748,7 @@ function mutableGlobalDeclarationNames(node: unknown): string[] {
 }
 
 function forkedFiberVariableName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclarator") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclarator") {
     return undefined;
   }
 
@@ -2958,15 +2761,14 @@ function forkedFiberVariableName(node: unknown): string | undefined {
 const fiberObservationCalls = new Set(["await", "interrupt", "join"]);
 
 function observedFiberVariableName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "CallExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") {
     return undefined;
   }
 
   const call = node as Node & { arguments?: unknown[] };
   const callee = call.callee;
   if (
-    typeof callee !== "object" ||
-    callee === null ||
+    !isObjectValue(callee) ||
     (callee as Node).type !== "MemberExpression" ||
     (callee as Node).computed === true ||
     !isIdentifier((callee as Node).object, "Fiber") ||
@@ -2997,7 +2799,7 @@ function isEffectAsVoidPipeArgument(node: unknown): boolean {
 }
 
 function isEffectAllAsVoidPipe(node: unknown): node is Node & { callee: Node; arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -3021,7 +2823,7 @@ function isEffectAllAsVoidPipe(node: unknown): node is Node & { callee: Node; ar
 }
 
 function pipeParts(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null || !isPipeCall(node)) {
+  if (!isObjectValue(node) || !isPipeCall(node)) {
     return [];
   }
 
@@ -3045,8 +2847,7 @@ function isEffectWrapperAliasExpression(node: unknown): boolean {
   }
 
   if (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "ArrowFunctionExpression"
   ) {
     const body = (node as Node).body;
@@ -3058,22 +2859,20 @@ function isEffectWrapperAliasExpression(node: unknown): boolean {
 
 function hasEffectWrapperAliasReturn(node: unknown): boolean {
   return findReturnStatements(node).some((returnNode) => (
-    typeof returnNode === "object" &&
-    returnNode !== null &&
+    isObjectValue(returnNode) &&
     (isEffectWrapperAliasExpression((returnNode as Node).argument) ||
       isEffectMemberCall((returnNode as Node).argument))
   ));
 }
 
 function isQualifiedTypeReference(node: unknown, leftName: string, rightName: string): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "TSTypeReference") {
+  if (!isObjectValue(node) || (node as Node).type !== "TSTypeReference") {
     return false;
   }
 
   const typeName = (node as Node).typeName;
   return (
-    typeof typeName === "object" &&
-    typeName !== null &&
+    isObjectValue(typeName) &&
     (typeName as Node).type === "TSQualifiedName" &&
     isIdentifier((typeName as Node).left, leftName) &&
     isIdentifier((typeName as Node).right, rightName)
@@ -3082,20 +2881,19 @@ function isQualifiedTypeReference(node: unknown, leftName: string, rightName: st
 
 function isIdentifierTypeReference(node: unknown, name: string): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "TSTypeReference" &&
     isIdentifier((node as Node).typeName, name)
   );
 }
 
 function typeArguments(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
   const container = (node as Node).typeParameters ?? (node as Node).typeArguments;
-  if (typeof container !== "object" || container === null) {
+  if (!isObjectValue(container)) {
     return [];
   }
 
@@ -3108,12 +2906,12 @@ function isGenericErrorType(node: unknown): boolean {
 }
 
 function returnTypeAnnotation(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
   const returnType = (node as Node).returnType;
-  if (typeof returnType !== "object" || returnType === null) {
+  if (!isObjectValue(returnType)) {
     return undefined;
   }
 
@@ -3128,12 +2926,12 @@ function hasExplicitEffectReturnType(node: unknown, declaredReturnType?: unknown
 }
 
 function operationReturnExpressions(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
   const body = (node as Node).body;
-  if (typeof body !== "object" || body === null) {
+  if (!isObjectValue(body)) {
     return [];
   }
 
@@ -3146,7 +2944,7 @@ function operationReturnExpressions(node: unknown): unknown[] {
       return current.flatMap((child) => collectReturns(child, seen));
     }
 
-    if (typeof current !== "object" || current === null || seen.has(current)) {
+    if (!isObjectValue(current) || seen.has(current)) {
       return [];
     }
     seen.add(current);
@@ -3200,12 +2998,12 @@ type ExportedFunctionValue = {
 };
 
 function declaredFunctionReturnType(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
   const annotation = (node as Node).typeAnnotation;
-  if (typeof annotation !== "object" || annotation === null) {
+  if (!isObjectValue(annotation)) {
     return undefined;
   }
 
@@ -3213,7 +3011,7 @@ function declaredFunctionReturnType(node: unknown): unknown | undefined {
 }
 
 function exportedFunctionValues(node: unknown): ExportedFunctionValue[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -3223,7 +3021,7 @@ function exportedFunctionValues(node: unknown): ExportedFunctionValue[] {
   }
 
   const declaration = exportNode.declaration;
-  if (typeof declaration !== "object" || declaration === null) {
+  if (!isObjectValue(declaration)) {
     return [];
   }
 
@@ -3236,14 +3034,13 @@ function exportedFunctionValues(node: unknown): ExportedFunctionValue[] {
   }
 
   return (((declaration as Node).declarations as unknown[] | undefined) ?? []).flatMap((declarator) => {
-    if (typeof declarator !== "object" || declarator === null) {
+    if (!isObjectValue(declarator)) {
       return [];
     }
 
     const init = (declarator as Node).init;
     return (
-      typeof init === "object" &&
-      init !== null &&
+      isObjectValue(init) &&
       ((init as Node).type === "ArrowFunctionExpression" || (init as Node).type === "FunctionExpression")
     ) ? [{
       functionNode: init,
@@ -3256,7 +3053,7 @@ function serviceMethodFunctions(options: unknown, version: EffectVersion = 3): u
   if (version === 4) {
     const seen = new WeakSet<object>();
     const objects = (value: unknown): unknown[] => {
-      if (typeof value !== "object" || value === null || seen.has(value)) return [];
+      if (!isObjectValue(value) || seen.has(value)) return [];
       seen.add(value);
       if (isObjectExpression(value)) return [value];
       if (isFunctionLike(value)) return operationReturnExpressions(value).flatMap(objects);
@@ -3289,14 +3086,13 @@ function serviceMethodFunctions(options: unknown, version: EffectVersion = 3): u
   }
 
   return properties.flatMap((property) => {
-    if (typeof property !== "object" || property === null || (property as Node).type !== "Property") {
+    if (!isObjectValue(property) || (property as Node).type !== "Property") {
       return [];
     }
 
     const value = (property as Node).value;
     return (
-      typeof value === "object" &&
-      value !== null &&
+      isObjectValue(value) &&
       ((value as Node).type === "ArrowFunctionExpression" || (value as Node).type === "FunctionExpression")
     ) ? [value] : [];
   });
@@ -3333,7 +3129,7 @@ function effectErrorChannelTarget(
 }
 
 function exportedEffectErrorTargets(node: unknown): PublicEffectErrorTarget[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -3363,7 +3159,7 @@ function unwrappedType(node: unknown): unknown {
   let current = node;
   const seen = new WeakSet<object>();
 
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) return current;
     seen.add(current);
 
@@ -3378,7 +3174,7 @@ function errorChannelShape(node: unknown): ErrorChannelShape | undefined {
   const type = unwrappedType(node);
   if (isGenericErrorType(type)) return "Error";
 
-  if (typeof type !== "object" || type === null) return undefined;
+  if (!isObjectValue(type)) return undefined;
 
   switch ((type as Node).type) {
     case "TSUnknownKeyword":
@@ -3396,7 +3192,7 @@ function errorChannelShape(node: unknown): ErrorChannelShape | undefined {
 
 function mixedErrorChannelShapes(node: unknown): Set<ErrorChannelShape> {
   const type = unwrappedType(node);
-  if (typeof type !== "object" || type === null || (type as Node).type !== "TSUnionType") {
+  if (!isObjectValue(type) || (type as Node).type !== "TSUnionType") {
     return new Set();
   }
 
@@ -3456,7 +3252,7 @@ function getWrapGraphqlCatchAll(node: unknown, version: EffectVersion): unknown 
 const atomOperationMethods = new Set(["get", "set", "update", "modify", "refresh"]);
 
 function callbackBody(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -3469,7 +3265,7 @@ function callbackBody(node: unknown): unknown | undefined {
 }
 
 function isAtomOperationCall(node: unknown): node is Node & { arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -3515,7 +3311,7 @@ function isCollectionAtomIdentifier(node: unknown): boolean {
 }
 
 function getCollectionAtomReadTarget(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -3554,7 +3350,7 @@ function findInlineRuntimeProvide(node: unknown): unknown | undefined {
 }
 
 function hasObjectSpread(node: unknown, seen = new WeakSet<object>()): boolean {
-  return findNode(node, child => typeof child === "object" && child !== null && (child as Node).type === "SpreadElement", seen) !== undefined;
+  return findNode(node, child => isObjectValue(child) && (child as Node).type === "SpreadElement", seen) !== undefined;
 }
 
 function isRefStateUpdateWithSpread(node: unknown): boolean {
@@ -3569,8 +3365,7 @@ function isRefStateUpdateWithSpread(node: unknown): boolean {
 
 function isEmptyObjectExpression(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "ObjectExpression" &&
     Array.isArray((node as Node).properties) &&
     ((node as Node).properties as unknown[]).length === 0
@@ -3604,26 +3399,24 @@ function isEffectSucceedVariableArgument(node: unknown): boolean {
   }
 
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "MemberExpression"
   );
 }
 
 function isVariableAsAssertion(node: unknown, version: EffectVersion = 3): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclaration") {
     return false;
   }
 
   return ((node as Node).declarations as unknown[] | undefined)?.some((declaration) => {
-    if (typeof declaration !== "object" || declaration === null) {
+    if (!isObjectValue(declaration)) {
       return false;
     }
 
     const init = (declaration as Node).init;
     return (
-      typeof init === "object" &&
-      init !== null &&
+      isObjectValue(init) &&
       (init as Node).type === "TSAsExpression" &&
       typeof (init as Node).typeAnnotation === "object" &&
       (init as Node).typeAnnotation !== null &&
@@ -3635,7 +3428,7 @@ function isVariableAsAssertion(node: unknown, version: EffectVersion = 3): boole
 }
 
 function isTypeofBooleanCheck(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "BinaryExpression") {
     return false;
   }
 
@@ -3647,12 +3440,10 @@ function isTypeofBooleanCheck(node: unknown): boolean {
   const left = binary.left;
   const right = binary.right;
   return (
-    typeof left === "object" &&
-    left !== null &&
+    isObjectValue(left) &&
     (left as Node).type === "UnaryExpression" &&
     (left as Node).operator === "typeof" &&
-    typeof right === "object" &&
-    right !== null &&
+    isObjectValue(right) &&
     ((right as Node).type === "Literal" || (right as Node).type === "StringLiteral") &&
     (right as Node).value === "boolean"
   );
@@ -3664,8 +3455,7 @@ function isMatchOrElseNullCall(node: unknown): boolean {
 
 function isStringLiteral(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     ((node as Node).type === "Literal" || (node as Node).type === "StringLiteral") &&
     typeof (node as Node).value === "string"
   );
@@ -3677,8 +3467,7 @@ function isUndefinedIdentifier(node: unknown): boolean {
 
 function isNullishRewrap(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "LogicalExpression" &&
     (node as Node).operator === "??" &&
     (isNullLiteral((node as Node).right) || isUndefinedIdentifier((node as Node).right))
@@ -3693,12 +3482,12 @@ function isOptionFromNullableNullishCoalesce(node: unknown, version: EffectVersi
 }
 
 function objectPropertyValue(node: unknown, keyName: string): unknown | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "ObjectExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "ObjectExpression") {
     return undefined;
   }
 
   for (const property of ((node as Node).properties as unknown[] | undefined) ?? []) {
-    if (typeof property !== "object" || property === null) {
+    if (!isObjectValue(property)) {
       continue;
     }
 
@@ -3712,7 +3501,7 @@ function objectPropertyValue(node: unknown, keyName: string): unknown | undefine
 }
 
 function isBooleanTrueComparison(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "BinaryExpression") {
     return false;
   }
 
@@ -3738,21 +3527,19 @@ function isOptionBooleanNormalization(node: unknown): boolean {
 }
 
 function isStringSentinelConst(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "VariableDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "VariableDeclaration") {
     return false;
   }
 
   return ((node as Node).declarations as unknown[] | undefined)?.some((declaration) => (
-    typeof declaration === "object" &&
-    declaration !== null &&
+    isObjectValue(declaration) &&
     isStringLiteral((declaration as Node).init)
   )) ?? false;
 }
 
 function isBooleanLiteral(node: unknown, value: boolean): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     ((node as Node).type === "Literal" || (node as Node).type === "BooleanLiteral") &&
     (node as Node).value === value
   );
@@ -3763,28 +3550,12 @@ function isEffectVoidMember(node: unknown): boolean {
 }
 
 function isMatchBranchCall(node: unknown, propertyName?: "when" | "orElse"): node is Node & { arguments: unknown[] } {
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  const call = node as Node;
-  return (
-    call.type === "CallExpression" &&
-    Array.isArray(call.arguments) &&
-    typeof call.callee === "object" &&
-    call.callee !== null &&
-    (call.callee as Node).type === "MemberExpression" &&
-    (call.callee as Node).computed !== true &&
-    isIdentifier((call.callee as Node).object, "Match") &&
-    isIdentifier((call.callee as Node).property) &&
-    (propertyName === undefined || isIdentifier((call.callee as Node).property, propertyName))
-  );
+  return isMemberCall(node, "Match", propertyName) && Array.isArray((node as Node).arguments);
 }
 
 function arrowCallbackBody(node: unknown): unknown | undefined {
   if (
-    typeof node !== "object" ||
-    node === null ||
+    !isObjectValue(node) ||
     (node as Node).type !== "ArrowFunctionExpression"
   ) {
     return undefined;
@@ -3815,20 +3586,7 @@ function isVoidMatchBranch(node: unknown): boolean {
 const branchSequencingEffectCalls = ["flatMap", "map", "andThen", "tap", "zipRight"] as const;
 
 function isStreamMemberCall(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  const call = node as Node;
-  return (
-    call.type === "CallExpression" &&
-    typeof call.callee === "object" &&
-    call.callee !== null &&
-    (call.callee as Node).type === "MemberExpression" &&
-    (call.callee as Node).computed !== true &&
-    isIdentifier((call.callee as Node).object, "Stream") &&
-    isIdentifier((call.callee as Node).property)
-  );
+  return isMemberCall(node, "Stream");
 }
 
 function containsBranchSequencingCall(node: unknown, seen = new WeakSet<object>()): boolean {
@@ -3842,32 +3600,7 @@ function isSequencingBranchBody(node: unknown): boolean {
 }
 
 function containsSequencingMatchBranch(node: unknown, seen = new WeakSet<object>()): boolean {
-  if (isMatchBranchCall(node)) {
-    const body = isIdentifier((node.callee as Node).property, "when")
-      ? arrowCallbackBody(node.arguments[1])
-      : arrowCallbackBody(node.arguments[0]);
-
-    if (isSequencingBranchBody(body)) {
-      return true;
-    }
-  }
-
-  if (Array.isArray(node)) {
-    return node.some((child) => containsSequencingMatchBranch(child, seen));
-  }
-
-  if (typeof node !== "object" || node === null) {
-    return false;
-  }
-
-  if (seen.has(node)) {
-    return false;
-  }
-  seen.add(node);
-
-  return Object.entries(node).some(([key, child]) => (
-    key !== "parent" && containsSequencingMatchBranch(child, seen)
-  ));
+  return findNode(node, child => isMatchBranchCall(child) && isSequencingBranchBody(isIdentifier((child.callee as Node).property, "when") ? arrowCallbackBody(child.arguments[1]) : arrowCallbackBody(child.arguments[0])), seen) !== undefined;
 }
 
 function containsMatchBranchCall(node: unknown, seen = new WeakSet<object>()): boolean {
@@ -3876,8 +3609,7 @@ function containsMatchBranchCall(node: unknown, seen = new WeakSet<object>()): b
 
 function isOptionMatchCall(node: unknown): node is Node & { arguments: unknown[] } {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "CallExpression" &&
     Array.isArray((node as Node).arguments) &&
     isMemberExpression((node as Node).callee, "Option", "match")
@@ -3887,8 +3619,7 @@ function isOptionMatchCall(node: unknown): node is Node & { arguments: unknown[]
 function isExpressionBodiedArrowCall(node: unknown): boolean {
   const body = arrowCallbackBody(node);
   return (
-    typeof body === "object" &&
-    body !== null &&
+    isObjectValue(body) &&
     (body as Node).type === "CallExpression"
   );
 }
@@ -3898,7 +3629,7 @@ function findEffectGenCall(node: unknown): unknown | undefined {
 }
 
 function isMatchValuePipeCall(node: unknown): boolean {
-  if (!isPipeCall(node) || typeof node !== "object" || node === null) {
+  if (!isPipeCall(node) || !isObjectValue(node)) {
     return false;
   }
 
@@ -3906,8 +3637,7 @@ function isMatchValuePipeCall(node: unknown): boolean {
   const callee = call.callee as Node;
   const object = callee.object;
   return (
-    typeof object === "object" &&
-    object !== null &&
+    isObjectValue(object) &&
     (object as Node).type === "CallExpression" &&
     isMemberExpression((object as Node).callee, "Match", "value")
   );
@@ -3916,8 +3646,7 @@ function isMatchValuePipeCall(node: unknown): boolean {
 function isObjectBranchCall(node: unknown, version: EffectVersion): boolean {
   return (
     isMatchValuePipeCall(node) ||
-    (typeof node === "object" &&
-      node !== null &&
+    (isObjectValue(node) &&
       (node as Node).type === "CallExpression" &&
       (isMemberExpression((node as Node).callee, "Option", "match") ||
         isMemberExpression((node as Node).callee, version === 3 ? "Either" : "Result", "match")))
@@ -3929,7 +3658,7 @@ function containsObjectBranchCall(node: unknown, version: EffectVersion, seen = 
 }
 
 function objectPropertyValues(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -3940,13 +3669,13 @@ function objectPropertyValues(node: unknown): unknown[] {
 
   return object.properties
     .map((property) => (
-      typeof property === "object" && property !== null ? (property as Node).value : undefined
+      isObjectValue(property) ? (property as Node).value : undefined
     ))
     .filter((value) => value !== undefined);
 }
 
 function isRawDomainIdAlias(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "TSTypeAliasDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "TSTypeAliasDeclaration") {
     return false;
   }
 
@@ -3960,7 +3689,7 @@ function isRawDomainIdAlias(node: unknown): boolean {
 }
 
 function isBooleanTypeAnnotation(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -3978,7 +3707,7 @@ function isBooleanTypeAnnotation(node: unknown): boolean {
 }
 
 function unwrapTypeAnnotation(node: unknown): Node | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -4013,7 +3742,7 @@ function isDateTypeAnnotation(node: unknown): boolean {
 }
 
 function primitiveDomainParameters(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+  if (!isObjectValue(node) || !Array.isArray((node as Node).params)) {
     return [];
   }
 
@@ -4042,7 +3771,7 @@ function isBooleanDomainFlagParameter(node: unknown): boolean {
 }
 
 function functionBooleanDomainFlagParameters(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+  if (!isObjectValue(node) || !Array.isArray((node as Node).params)) {
     return [];
   }
 
@@ -4054,7 +3783,7 @@ function getPropertyName(node: unknown): string | undefined {
     return node.name;
   }
 
-  if (typeof node === "object" && node !== null && typeof (node as Node).value === "string") {
+  if (isObjectValue(node) && typeof (node as Node).value === "string") {
     return (node as Node).value as string;
   }
 
@@ -4066,7 +3795,7 @@ function isRawTimeFieldName(name: string): boolean {
 }
 
 function isRawTimeDomainField(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "TSPropertySignature") {
+  if (!isObjectValue(node) || (node as Node).type !== "TSPropertySignature") {
     return false;
   }
 
@@ -4081,7 +3810,7 @@ function isRawTimeDomainField(node: unknown): boolean {
 }
 
 function typeMembers(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return [];
   }
 
@@ -4112,10 +3841,10 @@ function isTagOnlyTypeShape(node: unknown): boolean {
 }
 
 function isEmptyTaggedErrorPayload(node: unknown): boolean {
-  const superTypeArguments = typeof node === "object" && node !== null
+  const superTypeArguments = isObjectValue(node)
     ? (node as Node).superTypeArguments
     : undefined;
-  const superParameters = typeof superTypeArguments === "object" && superTypeArguments !== null
+  const superParameters = isObjectValue(superTypeArguments)
     ? ((superTypeArguments as Node).params ?? (superTypeArguments as Node).arguments)
     : undefined;
   const parameters = Array.isArray(superParameters) ? superParameters : typeArguments(node);
@@ -4125,15 +3854,14 @@ function isEmptyTaggedErrorPayload(node: unknown): boolean {
 
   const payload = parameters[0];
   return (
-    typeof payload === "object" &&
-    payload !== null &&
+    isObjectValue(payload) &&
     ((payload as Node).type === "TSObjectKeyword" ||
       ((payload as Node).type === "TSTypeLiteral" && typeMembers(payload).length === 0))
   );
 }
 
 function emptyErrorTagNode(node: unknown): unknown | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -4175,7 +3903,7 @@ function isOverloadedOptionsParameter(node: unknown): boolean {
 }
 
 function overloadedOptionsParameters(node: unknown): unknown[] {
-  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+  if (!isObjectValue(node) || !Array.isArray((node as Node).params)) {
     return [];
   }
 
@@ -4189,7 +3917,7 @@ function comparisonCount(node: unknown, seen = new WeakSet<object>()): number {
     return node.reduce((count, child) => count + comparisonCount(child, seen), 0);
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return 0;
   }
 
@@ -4212,15 +3940,14 @@ function comparisonCount(node: unknown, seen = new WeakSet<object>()): number {
 
 function isDomainLogicConditional(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "LogicalExpression" &&
     comparisonCount(node) >= 3
   );
 }
 
 function stateFlagMember(node: unknown): { objectName: string; propertyName: string } | undefined {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "MemberExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "MemberExpression") {
     return undefined;
   }
 
@@ -4260,7 +3987,7 @@ function collectStateFlagMembers(
     return members;
   }
 
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return members;
   }
 
@@ -4280,7 +4007,7 @@ function collectStateFlagMembers(
 }
 
 function isImplicitStateMachineObject(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "LogicalExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "LogicalExpression") {
     return false;
   }
 
@@ -4296,7 +4023,7 @@ function isErrorLikeIdentifier(node: unknown): boolean {
 }
 
 function isErrorMessageReference(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "MemberExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "MemberExpression") {
     return false;
   }
 
@@ -4310,7 +4037,7 @@ function isErrorMessageReference(node: unknown): boolean {
 
 function isStringifiedErrorMessage(node: unknown): boolean {
   if (isErrorMessageReference(node)) return true;
-  if (typeof node !== "object" || node === null) return false;
+  if (!isObjectValue(node)) return false;
 
   const expression = node as Node;
   if (expression.type === "BinaryExpression" && expression.operator === "+") {
@@ -4328,8 +4055,7 @@ function isEffectFailFromErrorMessage(node: unknown): boolean {
 
 function isGenericErrorConstruction(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "NewExpression" &&
     isIdentifier((node as Node).callee, "Error")
   );
@@ -4354,7 +4080,7 @@ function plainCatchOperators(version: EffectVersion): ReadonlySet<string> {
 
 function handlerReturnStatements(node: unknown, seen = new WeakSet<object>()): unknown[] {
   if (Array.isArray(node)) return node.flatMap((child) => handlerReturnStatements(child, seen));
-  if (typeof node !== "object" || node === null || seen.has(node) || isFunctionLike(node)) return [];
+  if (!isObjectValue(node) || seen.has(node) || isFunctionLike(node)) return [];
   seen.add(node);
   if ((node as Node).type === "ReturnStatement") return [node];
   return Object.entries(node).flatMap(([key, child]) => key === "parent" ? [] : handlerReturnStatements(child, seen));
@@ -4451,7 +4177,7 @@ function isExpectedDomainStateFailure(node: unknown): boolean {
 }
 
 function isDomainErrorConstruction(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "NewExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "NewExpression") {
     return false;
   }
 
@@ -4460,7 +4186,7 @@ function isDomainErrorConstruction(node: unknown): boolean {
 }
 
 function isDomainExceptionThrow(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "ThrowStatement") {
+  if (!isObjectValue(node) || (node as Node).type !== "ThrowStatement") {
     return false;
   }
 
@@ -4472,14 +4198,13 @@ function findDomainExceptionInEffectLogic(node: unknown, version: EffectVersion)
 }
 
 function isThrowNewStringError(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "ThrowStatement") {
+  if (!isObjectValue(node) || (node as Node).type !== "ThrowStatement") {
     return false;
   }
 
   const argument = (node as Node).argument;
   return (
-    typeof argument === "object" &&
-    argument !== null &&
+    isObjectValue(argument) &&
     (argument as Node).type === "NewExpression" &&
     isIdentifier((argument as Node).callee, "Error") &&
     Array.isArray((argument as Node).arguments) &&
@@ -4488,7 +4213,7 @@ function isThrowNewStringError(node: unknown): boolean {
 }
 
 function hasRawDomainIdParameter(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).params)) {
+  if (!isObjectValue(node) || !Array.isArray((node as Node).params)) {
     return false;
   }
 
@@ -4500,7 +4225,7 @@ function hasRawDomainIdParameter(node: unknown): boolean {
 }
 
 function isContextEncodedDomainFunction(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "FunctionDeclaration") {
+  if (!isObjectValue(node) || (node as Node).type !== "FunctionDeclaration") {
     return false;
   }
 
@@ -4513,7 +4238,7 @@ function isContextEncodedDomainFunction(node: unknown): boolean {
 }
 
 function isStringLiteralComparison(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "BinaryExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "BinaryExpression") {
     return false;
   }
 
@@ -4530,7 +4255,7 @@ function report(context: OxlintContext, node: unknown, message: string) {
 }
 
 function isNullLiteral(node: unknown): boolean {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return false;
   }
 
@@ -4542,7 +4267,7 @@ function isNullLiteral(node: unknown): boolean {
 }
 
 function getImportSource(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null) {
+  if (!isObjectValue(node)) {
     return undefined;
   }
 
@@ -4551,7 +4276,7 @@ function getImportSource(node: unknown): string | undefined {
     return source;
   }
 
-  if (typeof source === "object" && source !== null) {
+  if (isObjectValue(source)) {
     const value = (source as Node).value;
     if (typeof value === "string") {
       return value;
@@ -4589,7 +4314,7 @@ const processEnvPathOptionsSchema = [{
 
 function rulePathOptions(context: OxlintContext): Record<string, unknown> {
   const firstOption = context.options[0];
-  return typeof firstOption === "object" && firstOption !== null
+  return isObjectValue(firstOption)
     ? firstOption as Record<string, unknown>
     : {};
 }
@@ -4687,7 +4412,7 @@ function directTestCallback(node: unknown): Node | undefined {
 
 function isPromiseRunExecution(node: unknown, version: EffectVersion): boolean {
   return isEffectMemberCallNamed(node, "runPromise") || (version === 4 &&
-    typeof node === "object" && node !== null &&
+    isObjectValue(node) &&
     isEffectMemberCallNamed((node as Node).callee, "runPromiseWith") &&
     effectRunExecution(node, version)?.program !== undefined);
 }
@@ -4699,8 +4424,7 @@ function discardedRunPromiseInTestCallback(callback: Node, version: EffectVersio
   }
 
   if (
-    typeof body !== "object" ||
-    body === null ||
+    !isObjectValue(body) ||
     (body as Node).type !== "BlockStatement" ||
     !Array.isArray((body as Node).body)
   ) {
@@ -4709,8 +4433,7 @@ function discardedRunPromiseInTestCallback(callback: Node, version: EffectVersio
 
   for (const statement of (body as Node & { body: unknown[] }).body) {
     if (
-      typeof statement === "object" &&
-      statement !== null &&
+      isObjectValue(statement) &&
       (statement as Node).type === "ExpressionStatement" &&
       isPromiseRunExecution((statement as Node).expression, version)
     ) {
@@ -4736,7 +4459,7 @@ function nodesInDirectTestCallback(
       return;
     }
 
-    if (typeof node !== "object" || node === null || seen.has(node)) {
+    if (!isObjectValue(node) || seen.has(node)) {
       return;
     }
     seen.add(node);
@@ -4762,8 +4485,7 @@ function nodesInDirectTestCallback(
 
 function isEffectRunPromiseRejectsMember(node: unknown, version: EffectVersion = 3): node is Node {
   if (
-    typeof node !== "object" ||
-    node === null ||
+    !isObjectValue(node) ||
     (node as Node).type !== "MemberExpression" ||
     (node as Node).computed === true ||
     !isIdentifier((node as Node).property, "rejects")
@@ -4787,8 +4509,7 @@ function isEffectRunPromiseRejectsMember(node: unknown, version: EffectVersion =
 
 function isServiceDefaultReference(node: unknown): boolean {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     (node as Node).type === "MemberExpression" &&
     (node as Node).computed !== true &&
     isIdentifier((node as Node).property, "Default")
@@ -4818,13 +4539,13 @@ function importsEffectSchema(node: unknown): boolean {
     return true;
   }
 
-  if (source !== "effect" || typeof node !== "object" || node === null) {
+  if (source !== "effect" || !isObjectValue(node)) {
     return false;
   }
 
   const specifiers = (node as Node).specifiers;
   return Array.isArray(specifiers) && specifiers.some((specifier) => {
-    if (typeof specifier !== "object" || specifier === null) {
+    if (!isObjectValue(specifier)) {
       return false;
     }
 
@@ -4875,8 +4596,7 @@ const noReactState = defineRule({
         const callee = node.callee;
         const hookName = isIdentifier(callee)
           ? callee.name
-          : typeof callee === "object" &&
-              callee !== null &&
+          : isObjectValue(callee) &&
               (callee as Node).type === "MemberExpression" &&
               isIdentifier((callee as Node).property)
             ? ((callee as Node).property as { name: string }).name
@@ -4932,34 +4652,10 @@ const noEffectNever = createVersionedEffectCallbackRule(
   ["MemberExpression"],
 );
 
-const noArrowLadder = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport || !isArrowIifeCall(node)) {
-          return;
-        }
-
-        const nested = findArrowIifeCall(node.callee.body);
-        if (nested) {
-          report(
-            context,
-            nested,
-            "Rule: avoid nested IIFEs. Why: they hide sequencing and push wrapper hacks. Fix: bind a named context with const and keep one flat pipeline with a single Match/Option decision.",
-          );
-        }
-      },
-    };
-  },
-});
+const noArrowLadder = createVersionedEffectCallbackRule(
+  (node) => isArrowIifeCall(node) ? findArrowIifeCall(node.callee.body) : undefined,
+  (version) => "Rule: avoid nested IIFEs. Why: they hide sequencing and push wrapper hacks. Fix: bind a named context with const and keep one flat pipeline with a single Match/Option decision.",
+);
 
 const noBranchInObject = defineRule({
   create(context: OxlintContext) {
@@ -5039,7 +4735,7 @@ function createCollectedEffectRule(
       const seen = new WeakSet<object>();
       const collect = (node: unknown) => {
         for (const target of find(node, version)) {
-          if (typeof target !== "object" || target === null || seen.has(target)) continue;
+          if (!isObjectValue(target) || seen.has(target)) continue;
           seen.add(target);
           candidates.push(target);
         }
@@ -5202,298 +4898,57 @@ const noTestMockLayerWhenDefaultAvailable = defineRule({
   },
 });
 
-const noNestedEffectGen = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
+const noNestedEffectGen = createVersionedEffectCallbackRule(
+  (node, version) => { const generator = getEffectGeneratorArgument(node, "gen", version); return generator ? version === 3 ? findEffectGenCall(generator.body) : findOwnCallbackNode(generator.body, (child) => isEffectMemberCallNamed(child, "gen")) : undefined; },
+  (version) => "Rule: avoid nested Effect.gen. Why: nested generators hide sequencing. Fix: flatten to a single Effect.gen per method or a single flat pipeline.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const generator = getEffectGeneratorArgument(node, "gen", version);
-        if (!hasEffectEcosystemImport || !generator) {
-          return;
-        }
-
-        const nested = version === 3 ? findEffectGenCall(generator.body)
-          : findOwnCallbackNode(generator.body, (child) => isEffectMemberCallNamed(child, "gen"));
-        if (nested) {
-          report(
-            context,
-            nested,
-            "Rule: avoid nested Effect.gen. Why: nested generators hide sequencing. Fix: flatten to a single Effect.gen per method or a single flat pipeline.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noYieldWithoutStarInEffectGen = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const yieldNode = findYieldWithoutStarInEffectGen(node, version);
-        if (yieldNode) {
-          report(
-            context,
-            yieldNode,
-            version === 3
+const noYieldWithoutStarInEffectGen = createVersionedEffectCallbackRule(
+  findYieldWithoutStarInEffectGen,
+  (version) => version === 3
               ? "Rule: use yield* inside Effect.gen. Why: plain yield returns an Effect value without delegating to the Effect interpreter. Fix: replace `yield Effect.x` with `yield* Effect.x`."
               : "Rule: use yield* inside Effect.gen. Why: delegation preserves the yielded Effect's result typing and keeps workflow style consistent. Fix: replace `yield Effect.x` with `yield* Effect.x`.",
-          );
-        }
-      },
-    };
-  },
-});
+);
 
-const noPipedYieldInGen = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noPipedYieldInGen = createVersionedEffectCallbackRule(
+  repeatedPipedYieldInEffectGen,
+  (version) => "Rule: avoid repeated piped yields inside Effect.gen. Why: decorated effects hidden inside generator steps obscure the workflow. Fix: extract decorated effects first, then yield the named workflow steps.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
+const noGenForMapping = createVersionedEffectCallbackRule(
+  genForMappingNode,
+  (version) => "Rule: avoid Effect.gen for simple mapping. Why: tiny generators hide pure transformations behind workflow syntax. Fix: map the yielded effect with Effect.map or a named pure transformation.",
+);
 
-        const pipedYield = repeatedPipedYieldInEffectGen(node);
-        if (pipedYield) {
-          report(
-            context,
-            pipedYield,
-            "Rule: avoid repeated piped yields inside Effect.gen. Why: decorated effects hidden inside generator steps obscure the workflow. Fix: extract decorated effects first, then yield the named workflow steps.",
-          );
-        }
-      },
-    };
-  },
-});
+const preferGenForWorkflow = createVersionedEffectCallbackRule(
+  workflowSequencingPipeline,
+  (version) => "Rule: prefer Effect.gen for workflow sequencing. Why: long flatMap/andThen/tap pipelines read like imperative workflow. Fix: move the sequential story into one Effect.gen and keep pipe for behavior decoration.",
+);
 
-const noGenForMapping = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noLargeAnonymousFlow = createVersionedEffectCallbackRule(
+  (node) => isLargeFlowCall(node) ? node : undefined,
+  (version) => "Rule: avoid large anonymous flow expressions. Why: long pure transformation chains need a domain name. Fix: extract a named flow or split the transformation into named pure steps.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
+const noEffectInFlow = createVersionedEffectCallbackRule(
+  effectfulFlowArgument,
+  (version) => "Rule: avoid Effect work inside flow. Why: flow should stay a reusable pure transformation boundary. Fix: keep Effect sequencing, logging, retries, and dependency access in Effect pipelines.",
+);
 
-        const mappingGen = genForMappingNode(node);
-        if (mappingGen) {
-          report(
-            context,
-            mappingGen,
-            "Rule: avoid Effect.gen for simple mapping. Why: tiny generators hide pure transformations behind workflow syntax. Fix: map the yielded effect with Effect.map or a named pure transformation.",
-          );
-        }
-      },
-    };
-  },
-});
+const preferNamedFlow = createVersionedEffectCallbackRule(
+  inlineNonTrivialFlowArgument,
+  (version) => "Rule: prefer named flow transformations. Why: non-trivial pure transformations passed inline are hard to reuse and review. Fix: extract the flow to a named const.",
+);
 
-const preferGenForWorkflow = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
+const preferFlowForPurePipeline = createVersionedEffectCallbackRule(
+  preferFlowForPurePipelineNode,
+  (version) => "Rule: prefer flow for a deep pure call pipeline. Why: nested transformation towers hide the data pipeline and make reuse difficult. Fix: name the pure steps and compose them with flow, or keep the pipeline short.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const workflow = workflowSequencingPipeline(node, version);
-        if (workflow) {
-          report(
-            context,
-            workflow,
-            "Rule: prefer Effect.gen for workflow sequencing. Why: long flatMap/andThen/tap pipelines read like imperative workflow. Fix: move the sequential story into one Effect.gen and keep pipe for behavior decoration.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noLargeAnonymousFlow = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isLargeFlowCall(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid large anonymous flow expressions. Why: long pure transformation chains need a domain name. Fix: extract a named flow or split the transformation into named pure steps.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noEffectInFlow = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const effectfulArgument = effectfulFlowArgument(node);
-        if (effectfulArgument) {
-          report(
-            context,
-            effectfulArgument,
-            "Rule: avoid Effect work inside flow. Why: flow should stay a reusable pure transformation boundary. Fix: keep Effect sequencing, logging, retries, and dependency access in Effect pipelines.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const preferNamedFlow = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const inlineFlow = inlineNonTrivialFlowArgument(node);
-        if (inlineFlow) {
-          report(
-            context,
-            inlineFlow,
-            "Rule: prefer named flow transformations. Why: non-trivial pure transformations passed inline are hard to reuse and review. Fix: extract the flow to a named const.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const preferFlowForPurePipeline = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const tower = preferFlowForPurePipelineNode(node);
-        if (tower) {
-          report(
-            context,
-            tower,
-            "Rule: prefer flow for a deep pure call pipeline. Why: nested transformation towers hide the data pipeline and make reuse difficult. Fix: name the pure steps and compose them with flow, or keep the pipeline short.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noBusinessLogicInPipe = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        const callback = businessLogicInPipeCallback(node, version);
-        if (callback) {
-          report(
-            context,
-            callback,
-            "Rule: keep business workflow logic out of Effect.pipe callbacks. Why: branching, service lookup, and multi-step effects are hard to read as decoration. Fix: move the workflow into Effect.gen and reserve pipe for behavior around the completed effect.",
-          );
-        }
-      },
-    };
-  },
-});
+const noBusinessLogicInPipe = createVersionedEffectCallbackRule(
+  businessLogicInPipeCallback,
+  (version) => "Rule: keep business workflow logic out of Effect.pipe callbacks. Why: branching, service lookup, and multi-step effects are hard to read as decoration. Fix: move the workflow into Effect.gen and reserve pipe for behavior around the completed effect.",
+);
 
 const preferPipeForBehavior = createVersionedEffectCallbackRule(
   staticBehaviorCall,
@@ -5507,113 +4962,30 @@ const noWorkflowInBehaviorPipe = createVersionedEffectCallbackRule(
   workflowInBehaviorPipe,
   () => "Rule: avoid workflow sequencing inside behavior pipes. Why: behavior pipes should answer how an effect behaves, not hide the workflow story. Fix: move multi-step sequencing into Effect.gen and keep retry/timeout/spans/logging as decorators around named effects.",
 );
-const noMixedPillarFunction = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
+const noMixedPillarFunction = createVersionedEffectCallbackRule(
+  mixedPillarFunctionNode,
+  (version) => "Rule: avoid mixing Effect style pillars in one function. Why: workflow, pure transformation, behavior decoration, and Layer wiring each need a clear boundary. Fix: extract named concepts for each pillar and compose them at the call site.",
+  false,
+  false,
+  ["FunctionDeclaration","FunctionExpression","ArrowFunctionExpression"],
+);
 
-    function check(node: any) {
-      const mixedFunction = mixedPillarFunctionNode(node, version);
-      if (hasEffectEcosystemImport && mixedFunction) {
-        report(
-          context,
-          mixedFunction,
-          "Rule: avoid mixing Effect style pillars in one function. Why: workflow, pure transformation, behavior decoration, and Layer wiring each need a clear boundary. Fix: extract named concepts for each pillar and compose them at the call site.",
-        );
-      }
-    }
+const noCleverEffectExpression = createVersionedEffectCallbackRule(
+  cleverEffectExpressionNode,
+  (version) => "Rule: avoid clever Effect expressions. Why: deeply nested expressions that combine style pillars hide the domain story. Fix: extract named workflow, pure transformation, and behavior steps.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      FunctionDeclaration: check,
-      FunctionExpression: check,
-      ArrowFunctionExpression: check,
-    };
-  },
-});
+const preferExtractedConcept = createVersionedEffectCallbackRule(
+  oversizedAnonymousConceptNode,
+  (version) => "Rule: prefer extracting named concepts from oversized anonymous callbacks. Why: multi-step inline callbacks hide domain intent. Fix: name the transformation, policy, or workflow step before passing it into Effect.",
+);
 
-const noCleverEffectExpression = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const cleverExpression = cleverEffectExpressionNode(node, version);
-        if (hasEffectEcosystemImport && cleverExpression) {
-          report(
-            context,
-            cleverExpression,
-            "Rule: avoid clever Effect expressions. Why: deeply nested expressions that combine style pillars hide the domain story. Fix: extract named workflow, pure transformation, and behavior steps.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const preferExtractedConcept = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const anonymousConcept = oversizedAnonymousConceptNode(node);
-        if (hasEffectEcosystemImport && anonymousConcept) {
-          report(
-            context,
-            anonymousConcept,
-            "Rule: prefer extracting named concepts from oversized anonymous callbacks. Why: multi-step inline callbacks hide domain intent. Fix: name the transformation, policy, or workflow step before passing it into Effect.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const preferEffectService = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && (isContextTagCall(node) || (version === 4 && isEffectMemberCallNamed(node, "Service")))) {
-          report(
-            context,
-            node,
-            version === 3
+const preferEffectService = createVersionedEffectCallbackRule(
+  (node, version) => isContextTagCall(node) || (version === 4 && isEffectMemberCallNamed(node, "Service")) ? node : undefined,
+  (version) => version === 3
               ? "Rule: prefer Effect.Service. Fix: replace Context.Tag service definitions."
               : "Rule: prefer Context.Service. Fix: migrate legacy Context.Tag, Context.GenericTag or Effect.Service definitions to Context.Service; construct implementations with make and explicit Layer wiring where needed.",
-          );
-        }
-      },
-    };
-  },
-});
+);
 
 const noLayerProvideInServiceDefinition = defineRule({
   create(context: OxlintContext) {
@@ -5720,105 +5092,28 @@ const noNamespaceEffectImport = defineRule({
   },
 });
 
-const noManualServiceObjectExport = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noManualServiceObjectExport = createVersionedEffectCallbackRule(
+  manualServiceObjectExport,
+  (version) => "Rule: avoid exported manual service objects.",
+  false,
+  false,
+  ["ExportNamedDeclaration"],
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      ExportNamedDeclaration(node: any) {
-        const target = hasEffectEcosystemImport ? manualServiceObjectExport(node) : undefined;
-        if (target) {
-          report(
-            context,
-            target,
-            "Rule: avoid exported manual service objects.",
-          );
-        }
-      },
-    };
-  },
-});
+const preferLayerPipe = createVersionedEffectCallbackRule(
+  layerProvideCallTower,
+  (version) => "Rule: prefer Layer.pipe for nested layer provisioning.",
+);
 
-const preferLayerPipe = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noInlineLayerProvideInProgram = createVersionedEffectCallbackRule(
+  inlineLayerProvideInProgram,
+  (version) => "Rule: avoid inline layer provisioning inside programs.",
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const tower = hasEffectEcosystemImport ? layerProvideCallTower(node) : undefined;
-        if (tower) {
-          report(
-            context,
-            tower,
-            "Rule: prefer Layer.pipe for nested layer provisioning.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noInlineLayerProvideInProgram = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const provide = hasEffectEcosystemImport ? inlineLayerProvideInProgram(node, effectVersionFor(context.options)) : undefined;
-        if (provide) {
-          report(
-            context,
-            provide,
-            "Rule: avoid inline layer provisioning inside programs.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const preferLayerMergeallForInfrastructure = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        const chain = hasEffectEcosystemImport ? layerMergeChain(node) : undefined;
-        if (chain) {
-          report(
-            context,
-            chain,
-            "Rule: prefer Layer.mergeAll for infrastructure layer groups.",
-          );
-        }
-      },
-    };
-  },
-});
+const preferLayerMergeallForInfrastructure = createVersionedEffectCallbackRule(
+  layerMergeChain,
+  (version) => "Rule: prefer Layer.mergeAll for infrastructure layer groups.",
+);
 
 const noServiceLayerScatter = defineRule({
   create(context: OxlintContext) {
@@ -5851,30 +5146,13 @@ const noServiceLayerScatter = defineRule({
   },
 });
 
-const noLayerMergeInRequestHandler = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      FunctionDeclaration(node: any) {
-        const handler = layerCompositionInRequestHandler(node);
-        if (hasEffectEcosystemImport && handler) {
-          report(
-            context,
-            handler,
-            "Rule: avoid Layer composition inside request handlers.",
-          );
-        }
-      },
-    };
-  },
-});
+const noLayerMergeInRequestHandler = createVersionedEffectCallbackRule(
+  layerCompositionInRequestHandler,
+  (version) => "Rule: avoid Layer composition inside request handlers.",
+  false,
+  false,
+  ["FunctionDeclaration"],
+);
 
 const noServiceMethodReturningPromise = defineRule({
   create(context: OxlintContext) {
@@ -5910,29 +5188,10 @@ const noServiceMethodReturningPromise = defineRule({
   },
 });
 
-const noMatchVoidBranch = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isVoidMatchBranch(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid void Match branches. Why: they hide guard-style control flow. Fix: remove the no-op branch or select a value and run one Effect pipeline outside the Match.",
-          );
-        }
-      },
-    };
-  },
-});
+const noMatchVoidBranch = createVersionedEffectCallbackRule(
+  (node) => isVoidMatchBranch(node) ? node : undefined,
+  (version) => "Rule: avoid void Match branches. Why: they hide guard-style control flow. Fix: remove the no-op branch or select a value and run one Effect pipeline outside the Match.",
+);
 
 const noMatchEffectBranch = defineRule({
   create(context: OxlintContext) {
@@ -6085,11 +5344,11 @@ function createVersionedEffectCallbackRule(
 
 const noAsyncEffectCombinatorCallback = createVersionedEffectCallbackRule(
   findAsyncEffectCombinatorCallback,
-  (version) => `Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: return an Effect and compose with Effect.flatMap/${version === 3 ? "fromPromise" : "tryPromise"} at the boundary.`,
+  () => "Rule: avoid async callbacks in Effect combinators. Why: async callbacks return Promises and bypass Effect failure, interruption, and tracing semantics. Fix: adapt with Effect.tryPromise, compose with gen/flatMap, and keep map pure.",
 );
 const noThrowInEffectLogic = createVersionedEffectCallbackRule(
   (node, version) => findEffectStatement(node, version, "ThrowStatement"),
-  (version) => `Rule: avoid throw inside Effect logic. Why: thrown exceptions ${version === 3 ? "bypass typed Effect error channels and interruption semantics" : "become defects rather than typed domain failures"}. Fix: return Effect.fail with a structured tagged error.`,
+  (version) => `Rule: avoid throw inside Effect logic. Why: thrown exceptions ${version === 3 ? "bypass typed Effect error channels and interruption semantics" : "are not typed domain failures"}. Fix: yield* Effect.fail(taggedError) in gen, or return it from flatMap; keep map pure.`,
 );
 const noOrDieOutsideBoundary = defineRule({
   create(context: OxlintContext) {
@@ -6532,7 +5791,7 @@ const noUnknownBooleanCoercionHelper = defineRule({
     const reported = new WeakSet<object>();
 
     const reportBooleanCheck = (node: unknown) => {
-      if (typeof node !== "object" || node === null || reported.has(node)) {
+      if (!isObjectValue(node) || reported.has(node)) {
         return;
       }
 
@@ -6576,54 +5835,15 @@ const noUnknownBooleanCoercionHelper = defineRule({
   },
 });
 
-const noFromnullableNullishCoalesce = defineRule({
-  create(context: OxlintContext) {
-    const version = effectVersionFor(context.options);
-    let hasEffectEcosystemImport = false;
+const noFromnullableNullishCoalesce = createVersionedEffectCallbackRule(
+  (node, version) => isOptionFromNullableNullishCoalesce(node, version) ? node : undefined,
+  (version) => `Rule: avoid nullish re-wrap inside Option.${version === 3 ? "fromNullable" : "fromNullishOr"}. Why: \`x ?? null\` and \`x ?? undefined\` add noise and hide source shape. Fix: pass the source directly to Option.${version === 3 ? "fromNullable" : "fromNullishOr"}.`,
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isOptionFromNullableNullishCoalesce(node, version)) {
-          report(
-            context,
-            node,
-            `Rule: avoid nullish re-wrap inside Option.${version === 3 ? "fromNullable" : "fromNullishOr"}. Why: \`x ?? null\` and \`x ?? undefined\` add noise and hide source shape. Fix: pass the source directly to Option.${version === 3 ? "fromNullable" : "fromNullishOr"}.`,
-          );
-        }
-      },
-    };
-  },
-});
-
-const noOptionBooleanNormalization = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isOptionBooleanNormalization(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid repeated Option boolean normalization (`onSome: value === true, onNone: false`). Why: it scatters coercion rules across services. Fix: normalize once at schema boundary and read booleans directly.",
-          );
-        }
-      },
-    };
-  },
-});
+const noOptionBooleanNormalization = createVersionedEffectCallbackRule(
+  (node) => isOptionBooleanNormalization(node) ? node : undefined,
+  (version) => "Rule: avoid repeated Option boolean normalization (`onSome: value === true, onNone: false`). Why: it scatters coercion rules across services. Fix: normalize once at schema boundary and read booleans directly.",
+);
 
 const noStringSentinelReturn = defineRule({
   create(context: OxlintContext) {
@@ -6659,29 +5879,13 @@ const noStringSentinelConst = defineRule({
   },
 });
 
-const noRawDomainIdAlias = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      TSTypeAliasDeclaration(node: any) {
-        if (hasEffectEcosystemImport && isRawDomainIdAlias(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid raw primitive domain ID aliases. Why: `type UserId = string` does not protect boundaries from swapped IDs. Fix: use Schema branded IDs or a domain constructor that validates and brands the value.",
-          );
-        }
-      },
-    };
-  },
-});
+const noRawDomainIdAlias = createVersionedEffectCallbackRule(
+  (node) => isRawDomainIdAlias(node) ? node : undefined,
+  (version) => "Rule: avoid raw primitive domain ID aliases. Why: `type UserId = string` does not protect boundaries from swapped IDs. Fix: use Schema branded IDs or a domain constructor that validates and brands the value.",
+  false,
+  false,
+  ["TSTypeAliasDeclaration"],
+);
 
 const noBooleanDomainFlag = defineRule({
   create(context: OxlintContext) {
@@ -6715,57 +5919,21 @@ const noBooleanDomainFlag = defineRule({
   },
 });
 
-const noMagicDomainString = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
+const noMagicDomainString = createVersionedEffectCallbackRule(
+  (node) => isStringLiteralComparison(node) ? node : undefined,
+  (version) => "Rule: avoid magic domain string comparisons. Why: comparing domain state to raw strings scatters status vocabulary and misses exhaustiveness. Fix: use a tagged union, Schema literal union, or Match over a named domain status.",
+  false,
+  false,
+  ["BinaryExpression"],
+);
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      BinaryExpression(node: any) {
-        if (hasEffectEcosystemImport && isStringLiteralComparison(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid magic domain string comparisons. Why: comparing domain state to raw strings scatters status vocabulary and misses exhaustiveness. Fix: use a tagged union, Schema literal union, or Match over a named domain status.",
-          );
-        }
-      },
-    };
-  },
-});
-
-const noRawDomainPrimitiveParams = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    const checkFunction = (node: unknown) => {
-      if (hasEffectEcosystemImport && hasPrimitiveHeavyDomainParameters(node)) {
-        report(
-          context,
-          node,
-          "Rule: avoid primitive-heavy domain parameters. Why: clusters of raw string/number domain values are easy to swap and have no invariant boundary. Fix: introduce branded types or a command/schema object with named validated fields.",
-        );
-      }
-    };
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      FunctionDeclaration: checkFunction,
-      FunctionExpression: checkFunction,
-      ArrowFunctionExpression: checkFunction,
-    };
-  },
-});
+const noRawDomainPrimitiveParams = createVersionedEffectCallbackRule(
+  (node) => hasPrimitiveHeavyDomainParameters(node) ? node : undefined,
+  (version) => "Rule: avoid primitive-heavy domain parameters. Why: clusters of raw string/number domain values are easy to swap and have no invariant boundary. Fix: introduce branded types or a command/schema object with named validated fields.",
+  false,
+  false,
+  ["FunctionDeclaration","FunctionExpression","ArrowFunctionExpression"],
+);
 
 const noRawTimeDomainField = defineRule({
   create(context: OxlintContext) {
@@ -6817,8 +5985,7 @@ function isNodeBuiltinImport(source: string): boolean {
 
 function isMemberExpressionNode(node: unknown): node is Node {
   return (
-    typeof node === "object" &&
-    node !== null &&
+    isObjectValue(node) &&
     ((node as Node).type === "MemberExpression" || (node as Node).type === "OptionalMemberExpression")
   );
 }
@@ -6898,8 +6065,7 @@ const noProcessEnvDirectRead = defineRule({
 
 function getNodeFsRequireSource(node: unknown): string | undefined {
   if (
-    typeof node !== "object" ||
-    node === null ||
+    !isObjectValue(node) ||
     (node as Node).type !== "CallExpression" ||
     !isIdentifier((node as Node).callee, "require")
   ) {
@@ -7476,29 +6642,10 @@ const noEffectOrElseLadder = defineRule({
   },
 });
 
-const noUnboundedEffectAll = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      CallExpression(node: any) {
-        if (hasEffectEcosystemImport && isUnboundedMappedEffectAll(node)) {
-          report(
-            context,
-            node,
-            "Rule: avoid unbounded Effect.all policies over mapped collections. Why: an explicit concurrency option makes scheduling policy visible; omission defaults to sequential execution, not unlimited parallelism. Fix: pass an explicit `{ concurrency: n }` option or use a bounded batching strategy.",
-          );
-        }
-      },
-    };
-  },
-});
+const noUnboundedEffectAll = createVersionedEffectCallbackRule(
+  (node) => isUnboundedMappedEffectAll(node) ? node : undefined,
+  (version) => "Rule: avoid unbounded Effect.all policies over mapped collections. Why: an explicit concurrency option makes scheduling policy visible; omission defaults to sequential execution, not unlimited parallelism. Fix: pass an explicit `{ concurrency: n }` option or use a bounded batching strategy.",
+);
 
 const noFireAndForgetFork = defineRule({
   create(context: OxlintContext) {
@@ -7934,7 +7081,7 @@ const noUnscopedBackgroundFiber = createVersionedEffectCallbackRule(
 );
 
 function resourceReleaseCallbackArguments(node: unknown, version: EffectVersion = 3): readonly unknown[] {
-  if (typeof node !== "object" || node === null || !Array.isArray((node as Node).arguments)) {
+  if (!isObjectValue(node) || !Array.isArray((node as Node).arguments)) {
     return [];
   }
 
@@ -7948,10 +7095,10 @@ function resourceReleaseCallbackArguments(node: unknown, version: EffectVersion 
 }
 
 function resourceAncestor(node: unknown, matches: (node: Node) => boolean): Node | undefined {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  let current = isObjectValue(node) ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
 
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) return undefined;
     seen.add(current);
     if (matches(current as Node)) return current as Node;
@@ -7997,29 +7144,14 @@ const lexicalScopeNodeTypes = new Set([
 ]);
 
 function lexicalScopeNode(node: unknown): Node | undefined {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
-  const seen = new WeakSet<object>();
-
-  while (typeof current === "object" && current !== null) {
-    if (seen.has(current)) return undefined;
-    seen.add(current);
-
-    if (lexicalScopeNodeTypes.has((current as Node).type ?? "")) {
-      return current as Node;
-    }
-
-    if (isFunctionLike(current)) return current as Node;
-    current = (current as Node).parent;
-  }
-
-  return undefined;
+  return resourceAncestor(node, current => lexicalScopeNodeTypes.has(current.type ?? "") || isFunctionLike(current));
 }
 
 function isWithinLexicalScope(node: unknown, scope: Node): boolean {
   let current = node;
   const seen = new WeakSet<object>();
 
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) return false;
     seen.add(current);
 
@@ -8035,7 +7167,7 @@ function lexicalScopeDepth(scope: Node): number {
   let current: unknown = scope;
   const seen = new WeakSet<object>();
 
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) return depth;
     seen.add(current);
     depth += 1;
@@ -8047,7 +7179,7 @@ function lexicalScopeDepth(scope: Node): number {
 
 function patternBindingIdentifiers(pattern: unknown): Node[] {
   if (isIdentifier(pattern)) return [pattern];
-  if (typeof pattern !== "object" || pattern === null) return [];
+  if (!isObjectValue(pattern)) return [];
 
   const node = pattern as Node;
   switch (node.type) {
@@ -8060,7 +7192,7 @@ function patternBindingIdentifiers(pattern: unknown): Node[] {
     case "ObjectPattern":
       return Array.isArray(node.properties)
         ? node.properties.flatMap((property) => {
-          if (typeof property !== "object" || property === null) return [];
+          if (!isObjectValue(property)) return [];
 
           const propertyNode = property as Node;
           if (propertyNode.type === "Property") {
@@ -8083,8 +7215,7 @@ function patternBindingIdentifiers(pattern: unknown): Node[] {
 
 function lexicalBindingsInFunction(functionNode: Node): Node[] {
   return findNodes(functionNode.body, (candidate) => (
-    typeof candidate === "object" &&
-    candidate !== null &&
+    isObjectValue(candidate) &&
     lexicalBindingIdentifiers(candidate as Node).length > 0 &&
     enclosingFunction(candidate) === functionNode
   )) as Node[];
@@ -8141,8 +7272,7 @@ function directScopeMakeInitializer(init: unknown, scopeMake: unknown): boolean 
   if (init === scopeMake) return true;
 
   return (
-    typeof init === "object" &&
-    init !== null &&
+    isObjectValue(init) &&
     (init as Node).type === "YieldExpression" &&
     (init as Node).delegate === true &&
     (init as Node).argument === scopeMake
@@ -8150,24 +7280,14 @@ function directScopeMakeInitializer(init: unknown, scopeMake: unknown): boolean 
 }
 
 function enclosingFunction(node: unknown): Node | undefined {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
-  const seen = new WeakSet<object>();
-
-  while (typeof current === "object" && current !== null) {
-    if (seen.has(current)) return undefined;
-    seen.add(current);
-    if (isFunctionLike(current)) return current as Node;
-    current = (current as Node).parent;
-  }
-
-  return undefined;
+  return resourceAncestor(node, isFunctionLike);
 }
 
 function scopeMakeBindingDeclaration(node: unknown): Node | undefined {
-  let current = typeof node === "object" && node !== null ? (node as Node).parent : undefined;
+  let current = isObjectValue(node) ? (node as Node).parent : undefined;
   const seen = new WeakSet<object>();
 
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) return undefined;
     seen.add(current);
 
@@ -8262,7 +7382,7 @@ const noResourceSucceedEscape = createResourceLifetimeRule(
 );
 
 function isResourceLikeConstruction(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || (node as Node).type !== "NewExpression") {
+  if (!isObjectValue(node) || (node as Node).type !== "NewExpression") {
     return false;
   }
 
@@ -8271,8 +7391,7 @@ function isResourceLikeConstruction(node: unknown): boolean {
   if (isIdentifier(callee)) {
     name = callee.name;
   } else if (
-    typeof callee === "object" &&
-    callee !== null &&
+    isObjectValue(callee) &&
     (callee as Node).type === "MemberExpression" &&
     (callee as Node).computed !== true &&
     isIdentifier((callee as Node).property)
@@ -8329,7 +7448,7 @@ function nestedAcquireReleaseNode(node: unknown, version: EffectVersion = 3): un
 }
 
 function requestLifecycleFunctionName(node: unknown): string | undefined {
-  if (typeof node !== "object" || node === null || !isFunctionLike(node)) {
+  if (!isObjectValue(node) || !isFunctionLike(node)) {
     return undefined;
   }
 
@@ -8339,7 +7458,7 @@ function requestLifecycleFunctionName(node: unknown): string | undefined {
   }
 
   const parent = functionNode.parent;
-  if (typeof parent !== "object" || parent === null) {
+  if (!isObjectValue(parent)) {
     return undefined;
   }
 
@@ -8375,7 +7494,7 @@ function requestResourceOwner(node: unknown, version: EffectVersion): Node | und
 }
 
 function requestScopedResourceNodes(node: unknown, version: EffectVersion = 3): unknown[] {
-  if (!isRequestLifecycleFunction(node) || typeof node !== "object" || node === null) {
+  if (!isRequestLifecycleFunction(node) || !isObjectValue(node)) {
     return [];
   }
 
@@ -8402,18 +7521,18 @@ function programInitializerForReference(reference: unknown, version: EffectVersi
   if (version === 4) {
     const root = resourceAncestor(reference, node => node.type === "Program");
     if (!root || !context?.sourceCode) return undefined;
-    const declaration = findNodes(root, node => typeof node === "object" && node !== null && (node as Node).type === "VariableDeclarator")
+    const declaration = findNodes(root, node => isObjectValue(node) && (node as Node).type === "VariableDeclarator")
       .find(node => context.sourceCode.getDeclaredVariables(node as ESTree.VariableDeclarator).some(variable => variable.references.some(entry => Object.is(entry.identifier, reference))));
     return (declaration as Node | undefined)?.init;
   }
 
   const functionScope = enclosingFunction(reference);
   const scopes = functionScope === undefined ? [] : [functionScope];
-  let current = typeof reference === "object" && reference !== null
+  let current = isObjectValue(reference)
     ? (reference as Node).parent
     : undefined;
   const seen = new WeakSet<object>();
-  while (typeof current === "object" && current !== null) {
+  while (isObjectValue(current)) {
     if (seen.has(current)) {
       break;
     }
@@ -8427,8 +7546,7 @@ function programInitializerForReference(reference: unknown, version: EffectVersi
 
   for (const scope of scopes) {
     const declaration = findNode(scope, (candidate) => (
-      typeof candidate === "object" &&
-      candidate !== null &&
+      isObjectValue(candidate) &&
       (candidate as Node).type === "VariableDeclarator" &&
       isIdentifier((candidate as Node).id, reference.name) &&
       (candidate as Node).init !== undefined

@@ -1,4 +1,9 @@
 import { Data, Effect, Filter } from "effect";
+const pending = Effect.sync(() => "ready");
+// EXPECT: linteffect/no-try-catch-in-effect-logic (current eager mapping)
+export const eagerMapping = Effect.mapEager(pending, () => { try { return "ready"; } catch (cause) { throw cause; } });
+// EXPECT: linteffect/no-try-catch-in-effect-logic (current eager sequencing)
+export const eagerSequencing = pending.pipe(Effect.flatMapEager(() => { try { return Effect.succeed("ready"); } catch (cause) { throw cause; } }));
 class ValidationError extends Error {}
 class SourceError extends Data.TaggedError("SourceError")<{ readonly operation: string }> {}
 const program = Effect.fail(new SourceError({ operation: "lookup" }));

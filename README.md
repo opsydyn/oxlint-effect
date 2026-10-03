@@ -5,8 +5,9 @@ Oxlint plugin rules for Effect TypeScript code-shape constraints.
 ### Effect Version Status
 
 The unreleased `2.0.0` migration makes default exports Effect 4 policy and adds
-`effect3` for legacy projects. The configuration foundation is implemented;
-the complete Effect 4 detector and repair corpus is **not yet qualified**.
+`effect3` for legacy projects. All 146 registered rules and 18 groups are
+locally qualified for their documented forms against the pinned majors:
+146 legacy Effect 3 cases and 141 current Effect 4 cases, with five legacy-only policies.
 Published 1.x packages retain their original Effect 3 behaviour and do not
 provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
 and [per-rule audit](docs/effect-version-inventory.json) before using this checkout.
@@ -16,18 +17,16 @@ The staged major changeset and outstanding publication gates are tracked in the
 `bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
 All Q01-Q52 now have behavioural evidence in the matching packed consumers.
-Formal qualification remains open on bundle size and cross-group closure;
-accepting a version option is not proof of adaptation. `release` and
-`prepublishOnly` are blocked until a major bump and
-all applicable major-specific inventory entries qualify.
+The complete rule/group gate and unchanged 30 KB bundle-size gate pass locally.
+Accepting a version option alone is not proof of adaptation. `release` and
+`prepublishOnly` remain blocked at version 1.2.0 until the major changeset is applied.
 
 Additional group-by-group evidence is tracked in the
 [wider qualification report](docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md)
 and both consumers' `qualification-cases.json`. Each case requires annotated bad
 sources, passing clean controls and literal per-file diagnostic counts. Run
 `bun scripts/verify-effect-version-consumers.ts --require-complete` after a build
-to reject any remaining unqualified applicable rule; it currently rejects this
-unfinished campaign.
+to reject any unqualified applicable rule or group; it passes this qualified checkout.
 
 The [Effect 4 qualification index](examples/effect4-consumer/src/qualification/README.md)
 is the primary QA corpus. The [legacy index](examples/effect3-consumer/src/qualification/README.md)
@@ -376,10 +375,10 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-effect-fn-generator` | `Effect.fn(function* ...)`; v4 also covers named `Effect.fn("name")(function* ...)`. | Returns one explicit `Effect.gen` from a plain function; non-generator `Effect.fn` bodies stay clean. |
 | `linteffect/no-nested-effect-gen` | `Effect.gen` nested inside another `Effect.gen`; v4 includes `{ self }` forms. | Keeps generator-based effects linear; v4 excludes separately defined nested functions. |
 | `linteffect/no-yield-without-star-in-effect-gen` | Plain `yield` inside `Effect.gen`; v4 includes `{ self }` forms. | Uses `yield*` for resumed-value typing and consistent workflow style. Plain yield can execute in v4; the rule is a delegation-style policy, not an interpreter-failure claim. |
-| `linteffect/no-async-effect-combinator-callback` | `async` callbacks passed to supported Effect combinators; v4 includes recovery families and handler maps. | Adapts Promise APIs with `Effect.tryPromise`, then returns Effect steps. Some legacy overloads accept Promises; this rule still requires explicit workflow ownership. |
-| `linteffect/no-throw-in-effect-logic` | `throw` inside `Effect.gen` or supported Effect callbacks; v4 includes `{ self }` and recovery maps. | Uses `Effect.fail` for typed domain errors rather than thrown defects; v4 excludes separately defined nested functions. |
-| `linteffect/no-try-catch-in-effect-logic` | `try/catch` inside `Effect.gen` or supported Effect callbacks; v4 includes `{ self }` and recovery maps. | Adapts throwing APIs with `Effect.try` and recovers with `catch` (v4), `catchAll` (v3), or `catchTag`. |
-| `linteffect/no-promise-api-in-effect-logic` | Static Promise APIs and visible Promise chains inside Effect logic. V4 includes self-bound gen and recovery maps. | Adapts Promise APIs at a boundary. V4 excludes `Effect.catch`/unrelated receivers and cannot resolve stored Promise aliases; v3 retains broad chain-name recognition. |
+| `linteffect/no-async-effect-combinator-callback` | `async` callbacks passed to supported Effect combinators; v4 includes `mapEager`, `flatMapEager`, recovery families and handler maps. | Adapts Promise APIs with `Effect.tryPromise` in gen/flatMap; map callbacks stay pure. Some legacy overloads accept Promises; the rule still requires explicit ownership. |
+| `linteffect/no-throw-in-effect-logic` | `throw` inside `Effect.gen` or supported callbacks; v4 includes eager mapping/sequencing, `{ self }` and recovery maps. | Delegates `yield* Effect.fail(taggedError)` in gen or returns it from flatMap. Returning an Effect from map or a generator succeeds with nested Effect data, not a typed failure. V4 excludes separately defined nested functions. |
+| `linteffect/no-try-catch-in-effect-logic` | `try/catch` inside gen or supported callbacks; v4 includes eager mapping/sequencing, `{ self }` and recovery maps. | Adapts throwing APIs with `Effect.try` and recovers with `catch` (v4), `catchAll` (v3), or `catchTag`. |
+| `linteffect/no-promise-api-in-effect-logic` | Static Promise APIs and visible chains inside Effect logic; v4 includes eager mapping/sequencing, self-bound gen and recovery maps. | Adapts Promise APIs at a boundary. V4 excludes `Effect.catch`/unrelated receivers and cannot resolve stored aliases; v3 retains broad chain-name recognition. |
 | `linteffect/no-swallowed-catch-all` | Plain `catch`/`catchEager` expression/block recovery (v4), piped `catchAll` expressions (v3), returning succeed/void/ignore or visibly successful asVoid. | Retains failure or uses an explicit typed domain branch. V4 `asVoid(Effect.fail(error))` stays clean because it preserves failure; legacy asVoid policy is unchanged. |
 | `linteffect/no-manual-effect-channels` | Manual `Effect.Effect<...>` and `Layer.Layer<...>` channel types. | Lets Effect infer channels from real composition. |
 | `linteffect/no-effect-type-alias` | Type aliases around `Effect.Effect<...>`. | Keeps service surfaces concrete and discoverable. |
@@ -409,7 +408,7 @@ Effect flow, domain meaning, or runtime boundaries.
 | --- | --- | --- |
 | `linteffect/prefer-pipe-for-behavior` | Static decorators whose first argument is a visible Effect call or pipe. V4 includes recovery families/maps and timeoutOption/timeoutOrElse/catchNoSuchElement. | Decorates with `.pipe()`; stored Effect aliases are outside the detector's syntax-local scope. V3 retains catchAll/catchSome/timeoutFail. |
 | `linteffect/prefer-decorated-effect-before-gen` | Two or more decorated yields inside one `Effect.gen`; v4 includes `{ self }` and recovery decoration. | Names decorated effects before the workflow. V4 excludes separately defined nested functions; one decorated yield stays below the threshold. |
-| `linteffect/no-workflow-in-behavior-pipe` | Pipes that mix behavior decorators with multiple workflow sequencing operators or embedded control flow. | `.pipe()` should answer how an effect behaves, not bury multi-step workflow that belongs in `Effect.gen`. |
+| `linteffect/no-workflow-in-behavior-pipe` | Decorated pipes with multiple workflow operators or embedded control flow; v4 includes `flatMapEager`, while `zipRight` is legacy-only. | `.pipe()` should answer how an effect behaves, not bury multi-step workflow that belongs in `Effect.gen`. |
 
 ### Style Separation
 
@@ -619,8 +618,8 @@ stand-ins with counted release, not native filesystem/network qualification.
 V4 `modifySomeEffect` returns `Effect<[result, Option<state>]>`; legacy takes a
 fallback and `Option<Effect<[result, state]>>`. Both no-update branches preserve
 state and result. Do not mechanically port the optional modifier's signature.
-The allocated concurrency batches are qualified; cross-group composition and
-the remaining resource-lifetime batches are still pending.
+The allocated concurrency and resource-lifetime batches and cross-group
+composition are locally qualified for the documented forms.
 V4 fiber observation and shared-state checks use Oxlint's
 lexical scope metadata, not TypeScript type inference; they do not require
 `typeAware` or enable compiler diagnostics.
@@ -650,7 +649,7 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 Q22's cleanup, scope and success-value examples use pinned Effect 3.21.4/4.0.0
 consumers. Behavioural qualification is recorded in the
 [campaign report](docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md#q22-cleanup-manual-scopes-and-resource-success-values);
-final batch closure is blocked by the unchanged 30 KB size gate.
+Q22-Q24 batch closure and the unchanged 30 KB size gate now pass locally.
 
 Prefer the supplied `Effect.scope` inside `Effect.scoped`, or acquire a manual
 `Scope.make()` with `Effect.acquireUseRelease` and release it using

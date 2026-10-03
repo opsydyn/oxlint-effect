@@ -1,4 +1,5 @@
 import { defineConfig } from "tsdown";
+import { minifyPackageChunk } from "./scripts/minify-package.ts";
 
 export default defineConfig({
   entry: {
@@ -8,7 +9,13 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  minify: true,
+  minify: false,
+  plugins: [{
+    name: "package-minifier",
+    renderChunk(code, chunk) {
+      return minifyPackageChunk(code, chunk.fileName);
+    },
+  }],
   target: "node22",
   outDir: "dist",
   deps: {

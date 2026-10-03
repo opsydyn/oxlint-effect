@@ -7,3 +7,7 @@ export const retained = Effect.catch(adapted, (error) => Effect.fail(error));
 export function ordinary() { try { return JSON.parse("valid"); } catch (cause) { throw cause; } }
 // CLEAN: an unused nested function does not execute in this callback.
 export const unused = Effect.catch(adapted, (error) => { const unused = () => { try { throw "unused"; } catch (cause) { throw cause; } }; void unused; return Effect.fail(error); });
+// CLEAN: eager callbacks retain a pure mapper and explicit Effect-returning sequencing.
+const pendingEagerRepair = Effect.sync(() => "ready");
+export const eagerPureRepair = Effect.mapEager(pendingEagerRepair, value => value.toUpperCase());
+export const eagerAsyncRepair = Effect.flatMapEager(pendingEagerRepair, value => Effect.tryPromise({ try: () => Promise.resolve(value.toUpperCase()), catch: cause => cause }));

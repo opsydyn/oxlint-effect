@@ -1,4 +1,10 @@
 import { Data, Effect, Filter } from "effect";
+const pending = Effect.sync(() => "ready");
+// EXPECT: linteffect/no-async-effect-combinator-callback (current eager mapping)
+export const eagerMapping = Effect.mapEager(pending, async value => value.toUpperCase());
+// EXPECT: linteffect/no-async-effect-combinator-callback (current eager sequencing)
+// @ts-expect-error Promise callback is intentionally not an Effect-returning callback.
+export const eagerSequencing = pending.pipe(Effect.flatMapEager(async value => value.toUpperCase()));
 class SourceError extends Data.TaggedError("SourceError")<{ readonly operation: string }> {}
 const failed = Effect.fail(new SourceError({ operation: "lookup" }));
 const program = Effect.succeed("ready");

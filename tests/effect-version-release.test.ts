@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import plugin from "../src/index";
+import plugin, { ruleGroups } from "../src/index";
 import { assertEffectVersionReleaseReady } from "../scripts/effect-version-release";
 import * as release from "../scripts/effect-version-release";
 
@@ -73,8 +73,17 @@ describe("Effect version release gate", () => {
   it("blocks a breaking default-policy publication under the old version", () => {
     expect(() => assertEffectVersionReleaseReady(["a"], { a: qualified }, "1.2.0")).toThrow("major release");
   });
-  it("rejects this checkout until remaining groups qualify", async () => {
+  it("accepts the qualified prospective major while blocking the unapplied release", async () => {
     const inventory = await Bun.file("docs/effect-version-inventory.json").json();
-    expect(() => assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "2.0.0")).toThrow("not qualified");
+    const groups = await Bun.file("docs/effect-version-groups.json").json();
+    const { version } = await Bun.file("package.json").json();
+    expect(() => assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "2.0.0")).not.toThrow();
+    expect(() => groupGuard(groups, Object.keys(ruleGroups))).not.toThrow();
+    expect(() => assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, "1.2.0")).toThrow("major release");
+    if (version.startsWith("1.")) {
+      expect(() => assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, version)).toThrow("major release");
+    } else {
+      expect(() => assertEffectVersionReleaseReady(Object.keys(plugin.rules), inventory, version)).not.toThrow();
+    }
   });
 });

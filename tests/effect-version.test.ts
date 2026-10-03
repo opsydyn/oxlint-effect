@@ -37,10 +37,16 @@ describe("Effect version policy", () => {
 });
 
 describe("Effect version audit inventory", () => {
-  it("records scoped packed qualifications and keeps other v4 rules pending", async () => {
+  it("records completed packed qualifications for every applicable rule", async () => {
     const inventory = await Bun.file(inventoryPath).json();
     expect(inventory["no-effect-fail-error-message"].qualification).toEqual({ "3": "qualified", "4": "qualified" });
-    expect(inventory["no-hidden-effect-execution"].qualification[4]).toBe("pending");
+    for (const major of [3, 4]) {
+      const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
+      for (const [id, entry] of Object.entries(inventory) as Array<[string, any]>) {
+        expect(entry.qualification[major]).toBe(entry.applicability[major] ? "qualified" : "not-applicable");
+        if (entry.applicability[major]) expect(cases.some((item: { rule: string }) => item.rule === id)).toBe(true);
+      }
+    }
     for (const id of ["no-catchall-generic-rethrow", "no-early-catchall-null", "no-run-effect-outside-boundary"]) {
       expect(inventory[id].qualification).toEqual({ "3": "qualified", "4": "qualified" });
       expect(inventory[id].evidence.join("\n")).toContain("recovery-runtime");

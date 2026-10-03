@@ -1,16 +1,17 @@
 # Effect 4 Release Preparation
 
 Target: **2.0.0**, staged by `.changeset/effect4-first-class.md`.
-Status: **blocked; not ready to publish**. Package version remains 1.2.0 until
-qualification is complete and the release PR is prepared. No tag, push or
+Status: **locally qualified and reviewed; ready for separately authorised versioning, not published**.
+Package version remains 1.2.0 until the major changeset is applied. No tag, push or
 publication is part of this preparation.
 
 Latest local gate (2026-10-03): all 52 behavioural batches and group/skill
-composition pass. 581 tests / 4806 expectations, root types, both packed majors,
-packed typeAware, publint, API docs, pack inspection and diff pass. Size remains
-829 bytes over the unchanged 30 KB cap; 82 rule entries and group qualification
-remain open. Group release guards are implemented. Author self-review is not
-independent review, remote CI or publication evidence.
+composition pass. 586 tests / 5418 expectations, root types, both packed majors
+in complete mode, packed typeAware, publint, API docs, pack inspection and size
+pass. Size is 29,860 bytes under the unchanged 30,000-byte cap. All applicable
+rule/group entries are qualified. The prospective 2.0.0 guards pass, while the
+actual 1.2.0 publication guard rejects the unapplied major release. A fresh
+whole-campaign review completed; four findings were fixed and verified; remote CI and publication are not established.
 
 ## Migration Notes
 
@@ -43,76 +44,42 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Qualify Q19 timeout cancellation, masking boundaries and bounded buffers.
 - [x] Qualify Q20 lexical global ownership, Deferred coordination and semaphore permits.
 - [x] Qualify Q21 held refs, detached lifetime and concurrent acquisition ownership.
-- [ ] Close Q22 cleanup/manual-scope/resource-success qualification: behavioural
-  checks pass, but its 139.04 kB raw build exceeds the unchanged 30 KB compressed
-  cap by 123 bytes. Inventory entries remain unqualified pending this gate.
-- [ ] Close Q23 acquisition/request/global qualification: behavioural gates pass;
-  current compressed size exceeds unchanged 30 KB by 208 bytes.
-- [ ] Close Q24 nesting/provision/runner qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 330 bytes.
-- [ ] Close Q25 hidden execution/boundary/filesystem qualification: behavioural
-  gates pass; compressed size exceeds unchanged 30 KB by 398 bytes.
-- [ ] Close Q26 decoding/clock/platform qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 385 bytes.
-- [ ] Close Q27 environment/config qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 385 bytes.
-- [ ] Close Q28 observability qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 600 bytes.
-- [ ] Close Q29 test qualification: behavioural gates and real Bun tests pass;
-  compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Close Q30 domain vocabulary qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Close Q31 command/time/options qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Close Q32 lifecycle/error qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Close Q33 context/clock qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Close Q34 Option/Match qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 649 bytes.
-- [ ] Close Q35 decoded-model/nullish qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 677 bytes.
-- [ ] Close Q36 boolean/outcome qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 696 bytes.
-- [ ] Close Q37 workflow qualification: behavioural gates pass;
-  compressed size exceeds unchanged 30 KB by 752 bytes.
-- [ ] Close Q38 business-workflow qualification: behavioural gates pass;
-  compressed size exceeds unchanged30 KB by745 bytes.
-- [ ] Close Q39 pure-flow qualification: behavioural gates pass;
-  compressed size exceeds unchanged30 KB by745 bytes.
-- [ ] Close Q40 call-tower qualification: behavioural gates pass;
-  compressed size exceeds unchanged30 KB by745 bytes.
-- [ ] Close Q41 ladder qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 769 bytes.
-- [ ] Close Q42 pipe/tower/recovery qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 771 bytes.
-- [ ] Close Q43 wrapper qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 800 bytes.
-- [ ] Close Q44 collection/value qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 800 bytes.
-- [ ] Close Q45 branching qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 829 bytes.
-- [ ] Close Q46 exception/IIFE qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 829 bytes.
-- [ ] Close Q47 callback/absence qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 861 bytes.
-- [ ] Close Q48 object-value qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 879 bytes.
-- [ ] Close Q49 React/runtime qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 977 bytes.
-- [ ] Close Q50 loading/render/provision qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 944 bytes.
-- [ ] Close Q51 atom/logging qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 944 bytes.
-- [ ] Close Q52 state/envelope qualification: behavioural gates pass;
-  compressed size exceeds the unchanged 30 KB cap by 1,004 bytes. All Q batches
-  now have evidence in the [campaign plan](../plans/2026-10-01-effect4-complete-qualification.md).
-  Current inventory has 82 rules with an unqualified applicable version.
+- [x] Close Q22 cleanup/manual-scope/resource-success qualification: final complete gate and size pass.
+- [x] Close Q23 acquisition/request/global qualification: final complete gate and size pass.
+- [x] Close Q24 nesting/provision/runner qualification: final complete gate and size pass.
+- [x] Close Q25 hidden execution/boundary/filesystem qualification: final complete gate and size pass.
+- [x] Close Q26 decoding/clock/platform qualification: final complete gate and size pass.
+- [x] Close Q27 environment/config qualification: final complete gate and size pass.
+- [x] Close Q28 observability qualification: final complete gate and size pass.
+- [x] Close Q29 test qualification: final complete gate and size pass.
+- [x] Close Q30 domain vocabulary qualification: final complete gate and size pass.
+- [x] Close Q31 command/time/options qualification: final complete gate and size pass.
+- [x] Close Q32 lifecycle/error qualification: final complete gate and size pass.
+- [x] Close Q33 context/clock qualification: final complete gate and size pass.
+- [x] Close Q34 Option/Match qualification: final complete gate and size pass.
+- [x] Close Q35 decoded-model/nullish qualification: final complete gate and size pass.
+- [x] Close Q36 boolean/outcome qualification: final complete gate and size pass.
+- [x] Close Q37 workflow qualification: final complete gate and size pass.
+- [x] Close Q38 business-workflow qualification: final complete gate and size pass.
+- [x] Close Q39 pure-flow qualification: final complete gate and size pass.
+- [x] Close Q40 call-tower qualification: final complete gate and size pass.
+- [x] Close Q41 ladder qualification: final complete gate and size pass.
+- [x] Close Q42 pipe/tower/recovery qualification: final complete gate and size pass.
+- [x] Close Q43 wrapper qualification: final complete gate and size pass.
+- [x] Close Q44 collection/value qualification: final complete gate and size pass.
+- [x] Close Q45 branching qualification: final complete gate and size pass.
+- [x] Close Q46 exception/IIFE qualification: final complete gate and size pass.
+- [x] Close Q47 callback/absence qualification: final complete gate and size pass.
+- [x] Close Q48 object-value qualification: final complete gate and size pass.
+- [x] Close Q49 React/runtime qualification: final complete gate and size pass.
+- [x] Close Q50 loading/render/provision qualification: final complete gate and size pass.
+- [x] Close Q51 atom/logging qualification: final complete gate and size pass.
+- [x] Close Q52 state/envelope qualification: final complete gate and size pass.
 - [x] Complete group/preset and packaged skill/documentation composition checks,
   including failures and repairs for both supported majors. Group qualification
-  remains conjunctive with pending members and the unchanged size gate.
-- [ ] Obtain the fresh whole-campaign review required by the approved plan.
-- [ ] Pass the complete Effect version gate, unit tests, typecheck, packed
+  is conjunctive with every applicable member and the unchanged size gate; all pass.
+- [x] Obtain the fresh whole-campaign review required by the approved plan.
+- [x] Pass the complete Effect version gate, unit tests, typecheck, packed
   consumers, type-aware consumer, publint, API docs, size and package inspection.
 - [ ] Apply Changesets versioning, confirm 2.0.0 and generated changelog, then
   rerun the real publication guard against the resulting package version.
@@ -121,15 +88,13 @@ Configuration examples and limitations are in the [README](../../../README.md).
 
 ## Verification Commands
 
-Fresh preparation checks passed: 480 unit tests, root typecheck, both packed
-Effect consumer suites, the type-aware consumer, publint, API documentation
-validation, dry-run package inspection and Changesets status. These are partial
-qualification checks, not proof that the full campaign is complete. The initial
-size check failed by 156 bytes; after explicit budget approval, Q10's fresh
-tests, types, packed consumers and size checks pass. Both current-version and
-prospective-major release checks still reject publication as described below.
+Fresh closure checks passed: 586 unit tests / 5418 expectations, root typecheck,
+both packed Effect consumers in complete mode, packed typeAware, publint, API
+docs, dry-run package inspection and size. Earlier size failures are retained in
+the historical campaign report. Prospective-major inventory guards pass;
+the current-version publication guard still rejects version 1.2.0 as intended.
 
-Run from the repository root after completing the pending qualification:
+Run from the repository root when separately authorised to apply the release:
 
 ```sh
 bun run test

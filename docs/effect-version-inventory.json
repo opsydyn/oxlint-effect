@@ -6,8 +6,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noReactState; transitive helpers: noReactState, isIdentifier, reactStateHooks",
@@ -21,8 +21,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noIfStatement; transitive helpers: noIfStatement, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
@@ -36,8 +36,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noSwitchStatement; transitive helpers: noSwitchStatement, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
@@ -51,8 +51,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noTernary; transitive helpers: noTernary, createEffectGatedStatementRule, getImportSource, isEffectEcosystemImport",
@@ -66,8 +66,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noReturnNull; transitive helpers: noReturnNull, getImportSource, isEffectEcosystemImport, isNullLiteral",
@@ -81,8 +81,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noOptionAs; transitive helpers: noOptionAs, getImportSource, isEffectEcosystemImport, isMemberExpression, isIdentifier",
@@ -111,8 +111,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noArrowLadder; transitive helpers: noArrowLadder, getImportSource, isEffectEcosystemImport, isArrowIifeCall, findArrowIifeCall",
@@ -126,8 +126,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noBranchInObject; transitive helpers: noBranchInObject, objectPropertyValues, containsObjectBranchCall, isObjectBranchCall, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression",
@@ -141,8 +141,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noIifeWrapper; transitive helpers: noIifeWrapper, getImportSource, isEffectEcosystemImport, isInlineFunctionIifeCall",
@@ -156,8 +156,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noReturnInArrow; transitive helpers: noReturnInArrow, directArrowCallbackReturns, isSchemaFilterCall, isMemberExpression, isIdentifier, findReturnStatements",
@@ -171,8 +171,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noReturnInCallback; transitive helpers: noReturnInCallback, directFunctionCallbackReturns, findReturnStatements",
@@ -202,8 +202,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectSyncConsole; transitive helpers: noEffectSyncConsole, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsConsoleCall, isConsoleCall, firstArgument",
@@ -217,8 +217,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noConsoleInEffectFlow; transitive helpers: noConsoleInEffectFlow, consoleCallsInEffectFlow, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findNodes, isConsoleCall, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, objectPropertyValue, getImportSource, isEffectEcosystemImport",
@@ -232,8 +232,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectLogWithoutStructuredContext; transitive helpers: noEffectLogWithoutStructuredContext, contextlessErrorLogs, findNodes, isEffectErrorLogCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStaticLogMessage, isStringLiteral, firstArgument, hasStructuredLogContext, findNode, isObjectExpression, getImportSource, isEffectEcosystemImport, errorHandlerBodies, errorHandlingOperators, callbackBody, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, objectPropertyValue",
@@ -247,8 +247,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: requireSpanOnPublicServiceMethod; transitive helpers: requireSpanOnPublicServiceMethod, getImportSource, isEffectEcosystemImport, exportedFunctionValues, declaredFunctionReturnType, returnTypeAnnotation, publicEffectOperationWithoutSpan, hasExplicitEffectReturnType, isQualifiedTypeReference, isIdentifier, returnedEffectExpressions, operationReturnExpressions, isEffectMemberCall, isPipeStartingWithEffect, pipeParts, isPipeCall, containsEffectMemberCall, containsDirectEffectSpan, isEffectMemberCallNamed, effectServiceClassOptions, effectServiceOptionsObject, calleeContainsEffectService, isMemberExpression, serviceMethodFunctions, objectPropertyValue, getEffectGeneratorArgument, firstArgument, isGeneratorFunctionExpression, isObjectExpression, serviceEffectOperationWithoutSpan",
@@ -262,8 +262,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRunpromiseInNonAsyncTestBody; transitive helpers: noRunpromiseInNonAsyncTestBody, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, directTestCallback, isIdentifierCall, isIdentifier, isFunctionLike, discardedRunPromiseInTestCallback, isEffectMemberCallNamed, isEffectMemberCall",
@@ -277,8 +277,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: requireEffectFlipForErrorTest; transitive helpers: requireEffectFlipForErrorTest, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, directTestCallback, isIdentifierCall, isIdentifier, isFunctionLike, nodesInDirectTestCallback, isEffectRunPromiseRejectsMember, isEffectMemberCallNamed, isEffectMemberCall",
@@ -292,8 +292,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noTestMockLayerWhenDefaultAvailable; transitive helpers: noTestMockLayerWhenDefaultAvailable, getImportSource, isEffectEcosystemImport, isTestPath, defaultTestPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, manualLayersNextToServiceDefault, isMemberCall, isIdentifier, isServiceDefaultReference, isManualTestLayer",
@@ -339,8 +339,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noPipedYieldInGen; transitive helpers: noPipedYieldInGen, getImportSource, isEffectEcosystemImport, repeatedPipedYieldInEffectGen, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, findPipedYields, isPipeCall",
@@ -354,8 +354,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noGenForMapping; transitive helpers: noGenForMapping, getImportSource, isEffectEcosystemImport, genForMappingNode, getEffectGeneratorArgument, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, firstArgument, isGeneratorFunctionExpression, singleYieldVariableName, isPureMappingReturn, containsNodeType, containsEffectMemberCall, containsIdentifierNamed",
@@ -369,8 +369,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferGenForWorkflow; transitive helpers: preferGenForWorkflow, getImportSource, isEffectEcosystemImport, workflowSequencingPipeline, isPipeCall, isIdentifier, pipeOperatorArguments, isWorkflowSequencingOperator, isEffectMemberCall, workflowSequencingCombinators",
@@ -384,8 +384,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noBusinessLogicInPipe; transitive helpers: noBusinessLogicInPipe, getImportSource, isEffectEcosystemImport, businessLogicInPipeCallback, isPipeCall, isIdentifier, pipeOperatorArguments, isEffectMemberCallNamed, isEffectMemberCall, isFunctionLike, containsNodeType, findNode, isYieldedServiceDependency, findNodes",
@@ -399,8 +399,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noLargeAnonymousFlow; transitive helpers: noLargeAnonymousFlow, getImportSource, isEffectEcosystemImport, isLargeFlowCall, isFlowCall, isIdentifier",
@@ -414,8 +414,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectInFlow; transitive helpers: noEffectInFlow, getImportSource, isEffectEcosystemImport, effectfulFlowArgument, isFlowCall, isIdentifier, isEffectfulFlowArgument, containsEffectMemberCall, isEffectMemberCall, containsNodeType, containsAsyncFunction, containsConsoleCall, isConsoleCall, containsIdentifierNamed",
@@ -429,8 +429,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferNamedFlow; transitive helpers: preferNamedFlow, getImportSource, isEffectEcosystemImport, inlineNonTrivialFlowArgument, isFlowCall, isIdentifier",
@@ -444,8 +444,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preferFlowForPurePipeline; transitive helpers: preferFlowForPurePipeline, getImportSource, isEffectEcosystemImport, preferFlowForPurePipelineNode, pureTransformationCallDepth, isPureTransformationCall, pureTransformationCallName, isIdentifier, containsEffectMemberCall, isEffectMemberCall, containsNodeType, containsIdentifierNamed, containsConsoleCall, isConsoleCall, pureTransformationImpureNames, isFunctionLike",
@@ -731,8 +731,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noMatchVoidBranch; transitive helpers: noMatchVoidBranch, getImportSource, isEffectEcosystemImport, isVoidMatchBranch, isMatchBranchCall, isIdentifier, isBooleanLiteral, isEffectVoidMember, isMemberExpression, arrowCallbackBody",
@@ -746,8 +746,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noJsonParseWithoutSchema; transitive helpers: noJsonParseWithoutSchema, getImportSource, isEffectEcosystemImport, importsEffectSchema, isIdentifier, isMemberExpression",
@@ -761,8 +761,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noDateNowInEffect; transitive helpers: noDateNowInEffect, getImportSource, isEffectEcosystemImport, isEffectConstructionBoundary, isEffectMemberCall, isIdentifier, effectConstructionBoundaries, isEffectMemberCallNamed, findNodes, isDateNowCall, isMemberExpression",
@@ -776,8 +776,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNewDateInDomainLogic; transitive helpers: noNewDateInDomainLogic, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isIdentifier, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
@@ -791,8 +791,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noMatchEffectBranch; transitive helpers: noMatchEffectBranch, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression, containsSequencingMatchBranch, isMatchBranchCall, arrowCallbackBody, isSequencingBranchBody, containsEffectMemberCall, isEffectMemberCall, containsBranchSequencingCall, branchSequencingEffectCalls, isEffectMemberCallNamed, isStreamMemberCall, isOptionMatchCall",
@@ -806,8 +806,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: warnEffectSyncWrapper; transitive helpers: warnEffectSyncWrapper, getImportSource, isEffectEcosystemImport, firstArgument, arrowCallbackBody, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isExpressionBodiedArrowCall, isConsoleCall",
@@ -821,8 +821,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectSideEffectWrapper; transitive helpers: noEffectSideEffectWrapper, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsWrapperSideEffect, isIdentifierCall, isMemberCall, isEffectLogCall, isConsoleCall, firstArgument",
@@ -836,8 +836,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectAllStepSequencing; transitive helpers: noEffectAllStepSequencing, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsAllStepSideEffect, isMemberCall, isEffectLogCall, hasConcurrencyOne, isEffectAllAsVoidPipe, isEffectAsVoidPipeArgument, isMemberExpression, firstArgument",
@@ -883,8 +883,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noOrDieOutsideBoundary; transitive helpers: noOrDieOutsideBoundary, getImportSource, isEffectEcosystemImport, findEffectOrDieOutsideBoundary, isEffectOrDieReference, isMemberExpression, isIdentifier, isEffectMemberCallNamed, isEffectMemberCall, isPipeCall, pipeParts",
@@ -961,8 +961,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noTryCatch; transitive helpers: noTryCatch",
@@ -976,8 +976,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectWrapperAlias; transitive helpers: noEffectWrapperAlias, isEffectWrapperAliasExpression, isPipeStartingWithEffect, pipeParts, isPipeCall, isIdentifier, containsEffectMemberCall, isEffectMemberCall, hasEffectWrapperAliasReturn, findReturnStatements",
@@ -1007,8 +1007,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noWrapgraphqlCatchall; transitive helpers: noWrapgraphqlCatchall, getImportSource, isEffectEcosystemImport, getWrapGraphqlCatchAll, pipeParts, isPipeCall, isIdentifier, findEffectCatchAll, isEffectMemberCallNamed, isEffectMemberCall, containsWrapGraphqlCall, isIdentifierCall, containsApplyResponseFlatMap, isApplyResponseFlatMap, firstArgument",
@@ -1022,8 +1022,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRenderSideEffects; transitive helpers: noRenderSideEffects, getImportSource, isEffectEcosystemImport, isMatchValuePipeCall, isPipeCall, isIdentifier, isMemberExpression, containsMatchBranchCall, isMatchBranchCall",
@@ -1037,8 +1037,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noAtomRegistryEffectSync; transitive helpers: noAtomRegistryEffectSync, getImportSource, isEffectEcosystemImport, findAtomOperationInsideEffectSync, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, callbackBody, firstArgument, findAtomOperationCall, isAtomOperationCall, atomOperationMethods",
@@ -1052,8 +1052,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noFamilyCollectionRead; transitive helpers: noFamilyCollectionRead, isMemberCall, isIdentifier, findFamilyCollectionRead, getCollectionAtomReadTarget, isMemberExpression, isCollectionAtomIdentifier",
@@ -1067,8 +1067,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noInlineRuntimeProvide; transitive helpers: noInlineRuntimeProvide, getImportSource, isEffectEcosystemImport, findInlineRuntimeProvide, isPipeCall, isIdentifier, pipeParts, isEffectProvideWithSingleArgument, isEffectMemberCallNamed, isEffectMemberCall",
@@ -1082,8 +1082,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNakedObjectStateUpdate; transitive helpers: noNakedObjectStateUpdate, isNakedObjectStateUpdate, isRefStateUpdateWithSpread, isMemberCall, isIdentifier, callbackBody, hasObjectSpread, isEmptyObjectExpression, containsObjectEntriesCall",
@@ -1097,8 +1097,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectSucceedVariable; transitive helpers: noEffectSucceedVariable, getImportSource, isEffectEcosystemImport, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isEffectSucceedVariableArgument, firstArgument",
@@ -1308,8 +1308,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noModelOverlayCast; transitive helpers: noModelOverlayCast, getImportSource, isEffectEcosystemImport, isVariableAsAssertion",
@@ -1323,8 +1323,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noUnknownBooleanCoercionHelper; transitive helpers: noUnknownBooleanCoercionHelper, getImportSource, isEffectEcosystemImport, isTypeofBooleanCheck, isMatchOrElseNullCall, isMatchBranchCall, isIdentifier, isNullLiteral, arrowCallbackBody",
@@ -1338,8 +1338,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noFromnullableNullishCoalesce; transitive helpers: noFromnullableNullishCoalesce, getImportSource, isEffectEcosystemImport, isOptionFromNullableNullishCoalesce, isMemberCall, isIdentifier, isNullishRewrap, isNullLiteral, isUndefinedIdentifier",
@@ -1354,8 +1354,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noOptionBooleanNormalization; transitive helpers: noOptionBooleanNormalization, getImportSource, isEffectEcosystemImport, isOptionBooleanNormalization, isMemberCall, isIdentifier, objectPropertyValue, isBooleanTrueComparison, isBooleanLiteral, arrowCallbackBody",
@@ -1369,8 +1369,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noStringSentinelReturn; transitive helpers: noStringSentinelReturn, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringLiteral, firstArgument",
@@ -1384,8 +1384,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noStringSentinelConst; transitive helpers: noStringSentinelConst, isStringSentinelConst, isStringLiteral",
@@ -1399,8 +1399,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRawDomainIdAlias; transitive helpers: noRawDomainIdAlias, getImportSource, isEffectEcosystemImport, isRawDomainIdAlias, isIdentifier",
@@ -1414,8 +1414,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noBooleanDomainFlag; transitive helpers: noBooleanDomainFlag, functionBooleanDomainFlagParameters, isBooleanDomainFlagParameter, isIdentifier, isBooleanTypeAnnotation, getImportSource, isEffectEcosystemImport",
@@ -1429,8 +1429,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noMagicDomainString; transitive helpers: noMagicDomainString, getImportSource, isEffectEcosystemImport, isStringLiteralComparison, isStringLiteral, isTypeofBooleanCheck",
@@ -1444,8 +1444,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRawDomainPrimitiveParams; transitive helpers: noRawDomainPrimitiveParams, hasPrimitiveHeavyDomainParameters, primitiveDomainParameters, isIdentifier, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation, getImportSource, isEffectEcosystemImport",
@@ -1459,8 +1459,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRawTimeDomainField; transitive helpers: noRawTimeDomainField, rawTimeDomainFields, typeMembers, isRawTimeDomainField, getPropertyName, isIdentifier, isRawTimeFieldName, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation, isDateTypeAnnotation, getImportSource, isEffectEcosystemImport",
@@ -1474,8 +1474,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noHiddenEffectExecution; transitive helpers: noHiddenEffectExecution, boundaryPathOptionsSchema, getImportSource, isEffectEcosystemImport, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
@@ -1489,8 +1489,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noBoundaryTryCatchWithoutEffectMap; transitive helpers: noBoundaryTryCatchWithoutEffectMap, boundaryPathOptionsSchema, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, containsBoundaryEffectHandling, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, boundaryEffectHandlingMethods",
@@ -1504,8 +1504,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNodeFsInEffectCode; transitive helpers: noNodeFsInEffectCode, getImportSource, isEffectEcosystemImport, nodeFsImportSources, getNodeFsRequireSource, isIdentifier, isStringLiteral",
@@ -1519,8 +1519,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNodePlatformInSharedCode; transitive helpers: noNodePlatformInSharedCode, boundaryPathOptionsSchema, getImportSource, isNodeBuiltinImport, nodeBuiltinImportSources, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp",
@@ -1534,8 +1534,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noProcessEnvDirectRead; transitive helpers: noProcessEnvDirectRead, processEnvPathOptionsSchema, isProcessEnvRead, isMemberExpressionNode, isProcessEnvMember, isIdentifier, isNamedMemberProperty, isStringLiteral, isProcessEnvWriteTarget, isBoundaryPath, boundaryPathsFor, stringArrayOption, rulePathOptions, defaultBoundaryPaths, pathMatchesPattern, globToRegExp, normalisePath, globSegmentToRegExp, isConfigPath, configPathsFor, defaultConfigPaths",
@@ -1549,8 +1549,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noOverloadedOptionsObject; transitive helpers: noOverloadedOptionsObject, overloadedOptionsParameters, isOverloadedOptionsParameter, isIdentifier, isAnyOrObjectTypeAnnotation, unwrapTypeAnnotation, getImportSource, isEffectEcosystemImport",
@@ -1564,8 +1564,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noDomainLogicInConditional; transitive helpers: noDomainLogicInConditional, getImportSource, isEffectEcosystemImport, isDomainLogicConditional, comparisonCount, comparisonOperators",
@@ -1579,8 +1579,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noImplicitStateMachineObject; transitive helpers: noImplicitStateMachineObject, getImportSource, isEffectEcosystemImport, isImplicitStateMachineObject, collectStateFlagMembers, stateFlagMember, isIdentifier",
@@ -1594,8 +1594,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noAdhocDomainError; transitive helpers: noAdhocDomainError, getImportSource, isEffectEcosystemImport, isAdhocEffectFail, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isStringLiteral, firstArgument, isThrowNewStringError",
@@ -1609,8 +1609,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noDomainMeaningByFolderOnly; transitive helpers: noDomainMeaningByFolderOnly, getImportSource, isEffectEcosystemImport, isContextEncodedDomainFunction, isIdentifier, hasRawDomainIdParameter, isStringOrNumberTypeAnnotation, unwrapTypeAnnotation",
@@ -1669,7 +1669,7 @@
       "4": false
     },
     "qualification": {
-      "3": "baseline",
+      "3": "qualified",
       "4": "not-applicable"
     },
     "evidence": [
@@ -1716,8 +1716,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: preventDynamicImports; transitive helpers: preventDynamicImports",
@@ -1731,8 +1731,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNestedEffectCall; transitive helpers: noNestedEffectCall, hasDeepNestedEffectFirstArgument, isEffectMemberCall, isIdentifier, firstArgument",
@@ -1746,8 +1746,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noEffectLadder; transitive helpers: noEffectLadder, hasDeepNestedEffectFirstArgument, isEffectMemberCall, isIdentifier, firstArgument",
@@ -1761,8 +1761,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noFlatMapLadder; transitive helpers: noFlatMapLadder, getFlatMapLadderMessage, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, containsEffectMemberCallNamed, firstArgument",
@@ -1776,8 +1776,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noPipeLadder; transitive helpers: noPipeLadder, isPipeCall, isIdentifier, containsPipeCall",
@@ -1791,8 +1791,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noCallTower; transitive helpers: noCallTower, hasNestedEffectCallArgument, isEffectMemberCall, isIdentifier",
@@ -1806,7 +1806,7 @@
       "4": false
     },
     "qualification": {
-      "3": "baseline",
+      "3": "qualified",
       "4": "not-applicable"
     },
     "evidence": [
@@ -2047,8 +2047,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noManualResourceClose through shared boundary/import/report visitor; resourceReleaseCallbackArguments and resourceAncestor select release ownership by major. Legacy callers retain default version 3.",
@@ -2062,8 +2062,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noUnboundScope; resourceAncestor, versioned isResourceAcquireReleaseCall, hasMatchingScopeReleaseCallback and hasMatchingScopeClose preserve lexical binding identity, boundary options and legacy marker exclusions.",
@@ -2077,8 +2077,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noResourceSucceedEscape through shared boundary/import/report visitor; Effect.succeed, isResourceLikeExpression and literal resource vocabulary. Focused-only membership and boundary options remain unchanged.",
@@ -2092,8 +2092,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noResourceWithoutAcquireRelease; explicit major selection in hasResourceLifecycleOwner, hasReleaseOwnership and acquisition API table. Shared boundary/import/report visitor preserves schema and legacy defaults for later owners.",
@@ -2107,8 +2107,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRequestScopedLongLivedResource; requestScopedResourceNodes/requestResourceOwner version-select literal workflow callback ownership. Sensitive schema/preset projection preserves boundaryPaths and legacy nearest-function traversal.",
@@ -2122,8 +2122,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noGlobalResourceSingleton; sensitive repair advice selects Context.Service/Layer for current policy, preserving exact legacy Effect.Service advice. Boundary schema/import and constructor naming gates remain.",
@@ -2137,8 +2137,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noRunWithOpenResource; transitive helpers: noRunWithOpenResource, getImportSource, isEffectEcosystemImport, openResourceInRunScope, resourceLexicalScope, isFunctionLike, unownedResourcesInScope, findNodes, isResourceLifecycleCandidate, resourceAcquisitionCall, isIdentifier, identifierNameTokens, resourceAcquisitionVerbs, isResourceLikeName, resourceLikeTerms, isResourceLikeConstruction, hasResourceLifecycleOwner, hasReleaseOwnership, resourceReleaseCallbackArguments, isEffectMemberCallNamed, isEffectMemberCall, isMemberCall, isResourceAcquireReleaseCall, isEffectScopedPipeCall, isPipeCall, isEffectMemberExpressionNamed, isEffectRunCall, effectRunMethods",
@@ -2152,8 +2152,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noNestedAcquireRelease; transitive helpers: noNestedAcquireRelease, getImportSource, isEffectEcosystemImport, nestedAcquireReleaseNode, isResourceAcquireReleaseCall, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, findNodes",
@@ -2167,8 +2167,8 @@
       "4": true
     },
     "qualification": {
-      "3": "baseline",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "evidence": [
       "src/index.ts: noMissingLayerProvisionAtRun; transitive helpers: noMissingLayerProvisionAtRun, getImportSource, isEffectEcosystemImport, effectRunMissingLayerProvision, isEffectRunCall, isEffectMemberCall, isIdentifier, effectRunMethods, firstArgument, findNode, isYieldedServiceDependency, programInitializerForReference, enclosingFunction, isFunctionLike, isEffectOrLayerProvideCall, isEffectMemberCallNamed, isMemberCall",

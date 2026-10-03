@@ -19,6 +19,9 @@ accessors/dependencies, Effect.async, orElse ladders and Runtime.runFork; curren
 manual configuration remains inactive for those removed APIs. Preserve stable
 rule IDs and explicit syntax-local limits, including import, alias and ownership
 gaps. Correct current envelope recovery and schema data-constructor guidance.
+Cover current eager mapping/sequencing callbacks and behaviour pipes. Correct
+failure repairs to delegate in generators or return Effects from flatMap, rather
+than accidentally treating an Effect as a successful map/return value.
 
 This changeset stages the major release; it does not establish release readiness.
 The exhaustive qualification and release gates must pass before publication.

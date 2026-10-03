@@ -1,13 +1,15 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: all 52 behavioural batches and Task 3 group/skill composition verified; formal Q22-Q52 and release closure remain open.
+Status: all 52 batches, 146 registered rules and 18 groups locally qualified; fresh review completed and findings fixed. Versioning and publication remain separate.
 
-Current gate (2026-10-03): 581 tests / 4806 expectations and both packed majors,
-types, packed typeAware, publint, API docs, package inspection and diff pass.
-Build is 30,829 compressed bytes, 829 over the unchanged 30 KB cap. Group release
-guards are implemented; 82 applicable-rule entries and all group statuses remain
-pending. No version bump, push or publication. The batch notes below retain
-their historical measurements; they are not the current size result.
+Current gate (2026-10-03): 586 tests / 5418 expectations, both packed majors in
+complete mode, types, packed typeAware, publint, API docs, package inspection
+and size pass. Build is 29,860 compressed bytes under the unchanged 30,000-byte
+cap. All applicable rule/group statuses qualify; five policies remain legacy-only.
+No version bump, push or publication. The batch notes below retain historical
+measurements and pending statuses; this current gate supersedes those snapshots.
+
+## Historical Batch Snapshots
 
 Q22 cleanup/manual-scope/resource-success behavioural checks and examples pass
 for both majors, but final qualification is blocked by the 30 KB size cap
@@ -136,6 +138,8 @@ contracts pass, including type-aware opt-in and resolvable QA indexes. Group
 inventory is present but pending alongside member qualification. Task 4 remains:
 unchanged size cap, group release guard, whole-campaign review and final gates.
 
+## Policy And Scope
+
 Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).
@@ -156,20 +160,19 @@ or design completion.
 Qualification scope: `no-effect-fail-error-message` has pinned packed failure
 and clean controls for both majors. The mixed-major boundary probe proves
 configuration isolation with common runner syntax, not all v4 runner variants.
-The three headline recovery/runtime rules now also have scoped qualification;
-82 rules still have an unqualified applicable version. Presets accepting
-`effectVersion` does not imply that pending detectors already branch on it.
-The release/prepublish guard blocks this checkout until a major bump and
-all applicable major-specific qualifications are complete.
+All 146 registered rules now have scoped qualification for every applicable
+major. Presets accepting `effectVersion` alone do not prove adaptation; their
+documented failures, controls and contracts are covered in the complete matrix.
+The release/prepublish guard still blocks this checkout until a major bump.
 See the [foundation qualification report](../../docs/superpowers/reports/2026-10-01-effect4-foundation-qualification.md)
 for local evidence, review fixes and limits.
 
 ## Slice 2: Recovery And Runtime Boundaries
 
-- [ ] Audit recovery operators and support v4 names where semantics match.
-- [ ] Cover v4 runner APIs, including supported `run*With` variants.
-- [ ] Update boundary, callback, logging and recovery detection transitively.
-- [ ] Add annotated failures, clean controls and exact diagnostic assertions.
+- [x] Audit recovery operators and support v4 names where semantics match.
+- [x] Cover v4 runner APIs, including supported `run*With` variants.
+- [x] Update boundary, callback, logging and recovery detection transitively.
+- [x] Add annotated failures, clean controls and exact diagnostic assertions.
 
 First targeted batch: `no-catchall-generic-rethrow`, `no-early-catchall-null`,
 `no-run-effect-outside-boundary`. Shared-helper consumers need regression coverage
@@ -189,32 +192,30 @@ only after their packed warning and clean-control gates pass.
 - [x] Repair runner boundary options and add transitive runner regressions.
 - [x] Add typed packed failures, clean controls, runtime contracts and documentation for this batch.
 
-Slice 2 remains open for full group closure. Q01-Q10 now qualify the allocated
-logging/recovery, async callback and behaviour-decoration owners. This does not
-qualify other consumers of their shared helpers.
-Stored runner aliases and testing-group `runPromiseWith` shapes remain follow-on
-coverage; neither is implied by the headline runner qualification.
+Slice 2's allocated logging/recovery, callback and runtime owners and group
+composition are now qualified. Stored runner aliases remain documented syntax
+limits; supported testing-group `runPromiseWith` forms have their own packed cases.
 
 ## Slice 3: Concurrency Safety
 
-- [ ] Cover `forkChild` and `forkDetach` with actual lifecycle semantics.
-- [ ] Audit fiber observation, mutable state and concurrency options.
-- [ ] Audit queues/pubsub, permits and Deferred API changes.
-- [ ] Qualify scoped and owned clean variants for both majors.
+- [x] Cover `forkChild` and `forkDetach` with actual lifecycle semantics.
+- [x] Audit fiber observation, mutable state and concurrency options.
+- [x] Audit queues/pubsub, permits and Deferred API changes.
+- [x] Qualify scoped and owned clean variants for both majors.
 
 First targeted batch: `no-fire-and-forget-fork`, `no-fork-in-loop`,
 `no-unobserved-fiber`. Detached-fiber ownership follows as a separate batch.
 
 Q16-Q21's allocated rule batches now have packed failures, clean controls and
 runtime/type contracts for both majors. Final group/preset composition closure
-is still a campaign-wide gate; this is not release readiness.
+now passes; publication and remote CI remain separate gates.
 
 ## Slice 4: Service And Layer Architecture
 
-- [ ] Support Context.Service definitions, make effects and explicit layers.
-- [ ] Keep removed accessor/dependency-option rules legacy-only.
-- [ ] Audit provision, method return, tracing and test-layer detection.
-- [ ] Document version-applicable rules and replacements without invalid advice.
+- [x] Support Context.Service definitions, make effects and explicit layers.
+- [x] Keep removed accessor/dependency-option rules legacy-only.
+- [x] Audit provision, method return, tracing and test-layer detection.
+- [x] Document version-applicable rules and replacements without invalid advice.
 
 First targeted batch: `prefer-effect-service`, `require-service-accessors`,
 `require-service-dependencies`. Legacy-only classification is intentional,
@@ -222,33 +223,33 @@ not a detector pretending to enforce nonexistent v4 options.
 
 ## Slice 5: Resource, Platform And Remaining Groups
 
-- [ ] Audit all resource/lifetime and runtime interaction contracts.
-- [ ] Audit platform import organisation and Schema boundary detection.
-- [ ] Audit Effect flow, pure transformation and style groups.
-- [ ] Audit Option/Match/data normalisation and React atom integrations.
-- [ ] Close every group classification in the compatibility inventory.
+- [x] Audit all resource/lifetime and runtime interaction contracts.
+- [x] Audit platform import organisation and Schema boundary detection.
+- [x] Audit Effect flow, pure transformation and style groups.
+- [x] Audit Option/Match/data normalisation and React atom integrations.
+- [x] Close every group classification in the compatibility inventory.
 
 Detailed batches follow the inventory; do not mark the complete surface ready
 from the initial recovery/concurrency probes alone.
 
 ## Slice 6: Versioned Examples And Companion Skill
 
-- [ ] Make primary guidance and runnable/QA examples v4-first.
-- [ ] Retain separately labelled v3 examples and passing controls.
-- [ ] Port Schema, Predicate, Option and service examples semantically.
-- [ ] Validate all applicable DDD annotations and runtime/type contracts per major.
-- [ ] Verify skill packaging, links and version-correct repair advice.
+- [x] Make primary guidance and runnable/QA examples v4-first.
+- [x] Retain separately labelled v3 examples and passing controls.
+- [x] Port Schema, Predicate, Option and service examples semantically.
+- [x] Validate all applicable DDD annotations and runtime/type contracts per major.
+- [x] Verify skill packaging, links and version-correct repair advice.
 
 Examples and docs ship with each preceding rule batch; this slice closes the
 remaining cross-cutting corpus and guidance coverage rather than postponing QA.
 
 ## Slice 7: Major Release Qualification
 
-- [ ] Full v3/v4 matrix and normal repository gates pass.
-- [ ] Packed type-aware consumers pass with explicit opt-in preserved.
-- [ ] Audit inventory has no unexplained or unqualified applicable entries.
-- [ ] Document upgrade to v4 defaults and effect3 migration for legacy users.
-- [ ] Add reviewed major changeset and release notes for `2.0.0`.
+- [x] Full v3/v4 matrix and normal repository gates pass.
+- [x] Packed type-aware consumers pass with explicit opt-in preserved.
+- [x] Audit inventory has no unexplained or unqualified applicable entries.
+- [x] Document upgrade to v4 defaults and effect3 migration for legacy users.
+- [x] Add reviewed major changeset and release notes for `2.0.0`.
 - [ ] Verify publishing access, push and confirm registry/GitHub publication.
 
 No Effect 4 compatibility claim or default-policy release precedes this gate.

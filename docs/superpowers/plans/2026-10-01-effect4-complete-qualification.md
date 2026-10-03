@@ -6,7 +6,7 @@
 
 **Architecture:** Retain one plugin and explicit per-rule version policy. Extend the existing packed-major harness with a structured case manifest covering every applicable rule; qualify unchanged syntax just as rigorously as adapted syntax. Work group-by-group in up-to-three-rule commits, preserving the four existing scoped qualifications and recording unsupported APIs as evidenced applicability decisions, never silent successes.
 
-**Tech Stack:** TypeScript, Bun, Oxlint/@oxlint/plugins 1.71.0, Effect 3.21.4 and 4.0.0, tsdown, publint, TypeDoc, Changesets.
+**Tech Stack:** TypeScript, Bun, Oxlint/@oxlint/plugins 1.71.0, Effect 3.21.4 and 4.0.0, tsdown with build-only Terser, publint, TypeDoc, Changesets.
 
 **Spec:** [Approved migration design](../specs/2026-10-01-effect4-first-class-design.md). Baseline: `e8f93de`; [remaining allocation](../../../roadmap/14-effect4-compatibility/completion-batches.json).
 
@@ -19,7 +19,7 @@
 - `typeAware` remains opt-in for both majors and does not enable compiler diagnostics or convert syntax rules into custom typed rules.
 - Do not publish an intermediate v4 default while major groups remain unaudited.
 - Preserve v3 diagnostics and contracts except separately evidenced corrections; do not warn on removed spelling under v4 merely as a migration diagnostic.
-- Keep the 27 KB built-package cap; exceeding it requires an explicit reviewed optimisation or separate budget decision, not raising the number.
+- Keep the user-approved 30 KB dual-major built-package cap (approved 2026-10-01, previously 27 KB); do not raise it or split uncounted chunks.
 - Annotated bad code stays bad. No warning suppression or fabricated type casts to make fixtures compile.
 - No push, PR, npm publish or credential changes in this campaign. Prepare a major changeset; applying it and publishing remain separate actions.
 
@@ -126,13 +126,13 @@ verified task and commit; leave checkboxes open until evidence exists.
 
 For every row, use this same ordered TDD contract:
 
-- [ ] Audit the row's rules/helpers and diagnostic repairs against each pinned major's installed source/declarations. Record supported spellings, calling forms, negative variants and any applicability/sensitivity corrections in that row's manifest/inventory evidence before relying on them.
-- [ ] Add parsed CLI fixtures plus focused tests in `tests/plugin.test.ts` under `Effect qualification Qxx`. Bad variants must have literal expected counts and report locations; good controls exercise the advised repair and closest legitimate lookalike. Include direct/data-last/piped/block variants only where the installed API supports them. For unchanged rules, the evidence test may go RED on missing manifest coverage rather than inventing a behaviour change.
-- [ ] Run `bun test tests/plugin.test.ts --test-name-pattern 'Effect qualification Qxx'` and the relevant case-validation tests; record RED on the actual gap before changing detectors or evidence. Do not claim a passing pre-existing detector needed a fix.
-- [ ] Implement only that row's missing recognition/repair contract in `src/index.ts`, threading explicit policy through changed shared helpers. Update `src/effect-version.ts` and schema/preset tests if sensitivity or legacy-only membership changes. Add regressions for every transitive helper owner, not automatic qualification for those owners.
-- [ ] Add the row's annotated bad/good/type/runtime fixtures in both consumer group folders. Legacy-only fixtures live only in v3; v4 presets/manual-policy applicability controls prove the documented exclusion. Assertions use Exit/Cause/Option/Result APIs from that installed major and preserve identity, cause, units and wire formats.
-- [ ] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions`, `bun run build`, `bun run size` and `git diff --check`. Expected: passing suite/types, actual packed diagnostics and clean controls, built size under the user-approved 30 KB dual-major budget (increased from 27 KB on 2026-10-01). Update README rows, inventory evidence, group status and this row only after these gates pass.
-- [ ] Commit `test: qualify Effect versions Qxx <group>` (use `feat:` or `fix:` if it changes behaviour), then continue to the next row without an approval prompt.
+- [x] Audit the row's rules/helpers and diagnostic repairs against each pinned major's installed source/declarations. Record supported spellings, calling forms, negative variants and any applicability/sensitivity corrections in that row's manifest/inventory evidence before relying on them.
+- [x] Add parsed CLI fixtures plus focused tests in `tests/plugin.test.ts` under `Effect qualification Qxx`. Bad variants must have literal expected counts and report locations; good controls exercise the advised repair and closest legitimate lookalike. Include direct/data-last/piped/block variants only where the installed API supports them. For unchanged rules, the evidence test may go RED on missing manifest coverage rather than inventing a behaviour change.
+- [x] Run `bun test tests/plugin.test.ts --test-name-pattern 'Effect qualification Qxx'` and the relevant case-validation tests; record RED on the actual gap before changing detectors or evidence. Do not claim a passing pre-existing detector needed a fix.
+- [x] Implement only that row's missing recognition/repair contract in `src/index.ts`, threading explicit policy through changed shared helpers. Update `src/effect-version.ts` and schema/preset tests if sensitivity or legacy-only membership changes. Add regressions for every transitive helper owner, not automatic qualification for those owners.
+- [x] Add the row's annotated bad/good/type/runtime fixtures in both consumer group folders. Legacy-only fixtures live only in v3; v4 presets/manual-policy applicability controls prove the documented exclusion. Assertions use Exit/Cause/Option/Result APIs from that installed major and preserve identity, cause, units and wire formats.
+- [x] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions`, `bun run build`, `bun run size` and `git diff --check`. Expected: passing suite/types, actual packed diagnostics and clean controls, built size under the user-approved 30 KB dual-major budget (increased from 27 KB on 2026-10-01). Update README rows, inventory evidence, group status and this row only after these gates pass.
+- [x] Commit `test: qualify Effect versions Qxx <group>` (use `feat:` or `fix:` if it changes behaviour), then continue to the next row without an approval prompt.
 
 ### Batch-Specific Contracts
 
@@ -175,41 +175,41 @@ For every row, use this same ordered TDD contract:
 | [x] | Q19 | `concurrencySafety` | `no-timeout-with-noninterruptible-promise`, `no-uninterruptible-concurrent-region`, `no-unbounded-queue-or-pubsub` |
 | [x] | Q20 | `concurrencySafety` | `no-global-mutable-concurrency-state`, `no-manual-deferred-coordination`, `no-yield-with-held-semaphore-permit` |
 | [x] | Q21 | `concurrencySafety` | `no-yield-with-held-mutable-ref`, `no-unscoped-background-fiber`, `no-acquire-without-scoped-release` |
-| [ ] | Q22 | `resourceLifetime` | `no-manual-resource-close`, `no-unbound-scope`, `no-resource-succeed-escape` |
-| [ ] | Q23 | `resourceLifetime` | `no-resource-without-acquire-release`, `no-request-scoped-long-lived-resource`, `no-global-resource-singleton` |
-| [ ] | Q24 | `resourceLifetime` | `no-nested-acquire-release`, `no-missing-layer-provision-at-run`, `no-run-with-open-resource` |
-| [ ] | Q25 | `platformAndBoundaryHygiene` | `no-hidden-effect-execution`, `no-boundary-try-catch-without-effect-map`, `no-node-fs-in-effect-code` |
-| [ ] | Q26 | `platformAndBoundaryHygiene` | `no-json-parse-without-schema`, `no-date-now-in-effect`, `no-node-platform-in-shared-code` |
-| [ ] | Q27 | `platformAndBoundaryHygiene` | `no-process-env-direct-read` |
-| [ ] | Q28 | `testingObservabilityAndQa` | `no-console-in-effect-flow`, `no-effect-log-without-structured-context`, `require-span-on-public-service-method` |
-| [ ] | Q29 | `testingObservabilityAndQa` | `no-runpromise-in-non-async-test-body`, `require-effect-flip-for-error-test`, `no-test-mock-layer-when-default-available` |
-| [ ] | Q30 | `domainModeling` | `no-raw-domain-id-alias`, `no-boolean-domain-flag`, `no-magic-domain-string` |
-| [ ] | Q31 | `domainModeling` | `no-raw-domain-primitive-params`, `no-raw-time-domain-field`, `no-overloaded-options-object` |
-| [ ] | Q32 | `domainModeling` | `no-domain-logic-in-conditional`, `no-implicit-state-machine-object`, `no-adhoc-domain-error` |
-| [ ] | Q33 | `domainModeling` | `no-domain-meaning-by-folder-only`, `no-new-date-in-domain-logic` |
-| [ ] | Q34 | `optionMatchAndDataNormalization` | `no-option-as`, `no-match-void-branch`, `no-match-effect-branch` |
-| [ ] | Q35 | `optionMatchAndDataNormalization` | `no-model-overlay-cast`, `no-unknown-boolean-coercion-helper`, `no-fromnullable-nullish-coalesce` |
-| [ ] | Q36 | `optionMatchAndDataNormalization` | `no-option-boolean-normalization`, `no-string-sentinel-return`, `no-string-sentinel-const` |
-| [ ] | Q37 | `effectFlow` | `no-piped-yield-in-gen`, `no-gen-for-mapping`, `prefer-gen-for-workflow` |
-| [ ] | Q38 | `effectFlow` | `no-business-logic-in-pipe` |
-| [ ] | Q39 | `pureTransformation` | `no-large-anonymous-flow`, `no-effect-in-flow`, `prefer-named-flow` |
-| [ ] | Q40 | `pureTransformation` | `prefer-flow-for-pure-pipeline` |
-| [ ] | Q41 | `pipelineShapeAndSequencing` | `no-nested-effect-call`, `no-effect-ladder`, `no-flatmap-ladder` |
-| [ ] | Q42 | `pipelineShapeAndSequencing` | `no-pipe-ladder`, `no-call-tower`, `no-effect-orElse-ladder` |
-| [ ] | Q43 | `pipelineShapeAndSequencing` | `no-effect-wrapper-alias`, `warn-effect-sync-wrapper`, `no-effect-side-effect-wrapper` |
-| [ ] | Q44 | `pipelineShapeAndSequencing` | `no-effect-all-step-sequencing`, `no-effect-succeed-variable` |
-| [ ] | Q45 | `branchingAndLocalControlFlow` | `no-if-statement`, `no-switch-statement`, `no-ternary` |
-| [ ] | Q46 | `branchingAndLocalControlFlow` | `no-try-catch`, `no-arrow-ladder`, `no-iife-wrapper` |
-| [ ] | Q47 | `branchingAndLocalControlFlow` | `no-return-in-arrow`, `no-return-in-callback`, `no-return-null` |
-| [ ] | Q48 | `branchingAndLocalControlFlow` | `no-branch-in-object` |
-| [ ] | Q49 | `reactAndRuntimeBoundaries` | `no-react-state`, `no-runtime-runfork`, `no-or-die-outside-boundary` |
-| [ ] | Q50 | `reactAndRuntimeBoundaries` | `prevent-dynamic-imports`, `no-render-side-effects`, `no-inline-runtime-provide` |
-| [ ] | Q51 | `atomStateAndPlatformBoundaries` | `no-effect-sync-console`, `no-atom-registry-effect-sync`, `no-family-collection-read` |
-| [ ] | Q52 | `atomStateAndPlatformBoundaries` | `no-naked-object-state-update`, `no-wrapgraphql-catchall` |
+| [x] | Q22 | `resourceLifetime` | `no-manual-resource-close`, `no-unbound-scope`, `no-resource-succeed-escape` |
+| [x] | Q23 | `resourceLifetime` | `no-resource-without-acquire-release`, `no-request-scoped-long-lived-resource`, `no-global-resource-singleton` |
+| [x] | Q24 | `resourceLifetime` | `no-nested-acquire-release`, `no-missing-layer-provision-at-run`, `no-run-with-open-resource` |
+| [x] | Q25 | `platformAndBoundaryHygiene` | `no-hidden-effect-execution`, `no-boundary-try-catch-without-effect-map`, `no-node-fs-in-effect-code` |
+| [x] | Q26 | `platformAndBoundaryHygiene` | `no-json-parse-without-schema`, `no-date-now-in-effect`, `no-node-platform-in-shared-code` |
+| [x] | Q27 | `platformAndBoundaryHygiene` | `no-process-env-direct-read` |
+| [x] | Q28 | `testingObservabilityAndQa` | `no-console-in-effect-flow`, `no-effect-log-without-structured-context`, `require-span-on-public-service-method` |
+| [x] | Q29 | `testingObservabilityAndQa` | `no-runpromise-in-non-async-test-body`, `require-effect-flip-for-error-test`, `no-test-mock-layer-when-default-available` |
+| [x] | Q30 | `domainModeling` | `no-raw-domain-id-alias`, `no-boolean-domain-flag`, `no-magic-domain-string` |
+| [x] | Q31 | `domainModeling` | `no-raw-domain-primitive-params`, `no-raw-time-domain-field`, `no-overloaded-options-object` |
+| [x] | Q32 | `domainModeling` | `no-domain-logic-in-conditional`, `no-implicit-state-machine-object`, `no-adhoc-domain-error` |
+| [x] | Q33 | `domainModeling` | `no-domain-meaning-by-folder-only`, `no-new-date-in-domain-logic` |
+| [x] | Q34 | `optionMatchAndDataNormalization` | `no-option-as`, `no-match-void-branch`, `no-match-effect-branch` |
+| [x] | Q35 | `optionMatchAndDataNormalization` | `no-model-overlay-cast`, `no-unknown-boolean-coercion-helper`, `no-fromnullable-nullish-coalesce` |
+| [x] | Q36 | `optionMatchAndDataNormalization` | `no-option-boolean-normalization`, `no-string-sentinel-return`, `no-string-sentinel-const` |
+| [x] | Q37 | `effectFlow` | `no-piped-yield-in-gen`, `no-gen-for-mapping`, `prefer-gen-for-workflow` |
+| [x] | Q38 | `effectFlow` | `no-business-logic-in-pipe` |
+| [x] | Q39 | `pureTransformation` | `no-large-anonymous-flow`, `no-effect-in-flow`, `prefer-named-flow` |
+| [x] | Q40 | `pureTransformation` | `prefer-flow-for-pure-pipeline` |
+| [x] | Q41 | `pipelineShapeAndSequencing` | `no-nested-effect-call`, `no-effect-ladder`, `no-flatmap-ladder` |
+| [x] | Q42 | `pipelineShapeAndSequencing` | `no-pipe-ladder`, `no-call-tower`, `no-effect-orElse-ladder` |
+| [x] | Q43 | `pipelineShapeAndSequencing` | `no-effect-wrapper-alias`, `warn-effect-sync-wrapper`, `no-effect-side-effect-wrapper` |
+| [x] | Q44 | `pipelineShapeAndSequencing` | `no-effect-all-step-sequencing`, `no-effect-succeed-variable` |
+| [x] | Q45 | `branchingAndLocalControlFlow` | `no-if-statement`, `no-switch-statement`, `no-ternary` |
+| [x] | Q46 | `branchingAndLocalControlFlow` | `no-try-catch`, `no-arrow-ladder`, `no-iife-wrapper` |
+| [x] | Q47 | `branchingAndLocalControlFlow` | `no-return-in-arrow`, `no-return-in-callback`, `no-return-null` |
+| [x] | Q48 | `branchingAndLocalControlFlow` | `no-branch-in-object` |
+| [x] | Q49 | `reactAndRuntimeBoundaries` | `no-react-state`, `no-runtime-runfork`, `no-or-die-outside-boundary` |
+| [x] | Q50 | `reactAndRuntimeBoundaries` | `prevent-dynamic-imports`, `no-render-side-effects`, `no-inline-runtime-provide` |
+| [x] | Q51 | `atomStateAndPlatformBoundaries` | `no-effect-sync-console`, `no-atom-registry-effect-sync`, `no-family-collection-read` |
+| [x] | Q52 | `atomStateAndPlatformBoundaries` | `no-naked-object-state-update`, `no-wrapgraphql-catchall` |
 
-Q22 behavioural evidence passes in both packed majors; final qualification is
-blocked by the unchanged 30 KB compressed budget (123 bytes over). Leave its
-checkbox and inventory statuses open until that gate is resolved; see the
+All Q01-Q52 rows now qualify in complete mode; the final build is 29,860 bytes
+under the unchanged 30,000-byte cap. Notes below retain historical per-batch
+measurements rather than current blockers; see the
 [Q22 report](../reports/2026-10-01-effect4-complete-qualification.md#q22-cleanup-manual-scopes-and-resource-success-values).
 
 Q23 behavioural evidence passes; size is 208 bytes over 30 KB. The user
@@ -344,6 +344,13 @@ Size stays 944 bytes over the cap; checkbox/inventory stay open. Continue Q52.
 
 ## Task 4: Closure Review And Release Preparation
 
+Current closure: complete packed rule/group gates and the unchanged size gate
+pass. All applicable inventory entries qualify. 586 tests / 5418 expectations,
+types, packed typeAware, publint, API docs and package inspection pass. Fresh
+whole-campaign review completed; four findings were fixed and verified; actual 1.2.0 publication remains blocked.
+
+### Previous Closure Snapshot
+
 2026-10-03: group guard and malformed/legacy-classification regressions pass.
 13 identical owner visitors and 20 identical walkers were factored through
 existing helpers, preserving full unit/packed behaviour. Fresh gates pass:
@@ -361,12 +368,12 @@ No manual version bump here.
 
 **Interface:** add `assertEffectGroupReleaseReady(groups: unknown, exportedGroupNames: readonly string[]): void` alongside the existing rule guard. Reject missing/extra groups, any unqualified applicable member or absent config/skill evidence. The release verifier invokes both guards; preserve the current rule guard's three-argument signature.
 
-- [ ] Run `bun scripts/verify-effect-version-consumers.ts --require-complete` after a fresh build; expect all applicable rule/major cases and group composition pass, no missing evidence.
-- [ ] Extend release tests to require qualified groups and packaged skill evidence as well as exact rule coverage; observe RED before wiring new checks. Evaluate the reviewed prospective version `2.0.0`; keep the real 1.2.0 release command blocked until the version changeset is applied.
-- [ ] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions`, `bun run test:type-aware`, `bun run build`, `bun run lint`, `bun run docs:api:check`, `bun run size`, `bun run pack:dry-run`, `git diff --check`. Record exact results and any unqualified variant, never extrapolate.
-- [ ] Obtain one fresh whole-campaign review. Address verified important findings with RED/GREEN regressions and the full gates, record rulings/minor findings and retain explicit syntax limits. Do not substitute reviewer probes for persistent required regressions.
-- [ ] Write major changeset and migration notes: default v4, effect3 legacy namespace, applicability changes, corrected runner boundaries and all group/skill evidence. Mark the roadmap complete only if every required gate passes; a missing compatible ecosystem dependency leaves its group and campaign incomplete.
-- [ ] Commit `docs: prepare qualified Effect 4 major release`. Leave main clean. Report code qualification separately from publication, remote CI, npm access and version application.
+- [x] Run `bun scripts/verify-effect-version-consumers.ts --require-complete` after a fresh build; expect all applicable rule/major cases and group composition pass, no missing evidence.
+- [x] Extend release tests to require qualified groups and packaged skill evidence as well as exact rule coverage; observe RED before wiring new checks. Evaluate the reviewed prospective version `2.0.0`; keep the real 1.2.0 release command blocked until the version changeset is applied.
+- [x] Run `bun run test`, `bun run typecheck`, `bun run test:effect-versions`, `bun run test:type-aware`, `bun run build`, `bun run lint`, `bun run docs:api:check`, `bun run size`, `bun run pack:dry-run`, `git diff --check`. Record exact results and any unqualified variant, never extrapolate.
+- [x] Obtain one fresh whole-campaign review. Address verified important findings with RED/GREEN regressions and the full gates, record rulings/minor findings and retain explicit syntax limits. Do not substitute reviewer probes for persistent required regressions.
+- [x] Write major changeset and migration notes: default v4, effect3 legacy namespace, applicability changes, corrected runner boundaries and all group/skill evidence. Mark the roadmap complete only if every required gate passes; a missing compatible ecosystem dependency leaves its group and campaign incomplete.
+- [x] Commit `docs: prepare qualified Effect 4 major release`. Leave main clean. Report code qualification separately from publication, remote CI, npm access and version application.
 
 ## Self-Review
 

@@ -1,17 +1,19 @@
 # Wider Effect Qualification Progress
 
-Status: in progress; not a compatibility-completion or publication claim.
+Status: documented rule/group forms locally qualified; fresh review completed and findings fixed, not published.
 Baseline: b159eb8. Approved inline execution on main; no push or publish.
 
 ## Current Gate (2026-10-03)
 
-All 52 batches and Task 3 composition/skill contracts have behavioural evidence.
-Final gates: 581 tests / 4806 expectations, both packed majors, packed typeAware,
-root types, publint, API docs, package inspection and diff pass. The build is
-138.38 kB raw / 30,829 bytes compressed, **829 bytes over the unchanged 30 KB
-cap**. Formal Q22-Q52 qualification, 82 applicable-rule statuses and all group
-statuses remain open. The complete gate rejects them; publication remains
-blocked at package 1.2.0. This is not release completion.
+All 52 batches and Task 3 composition/skill contracts are locally qualified.
+Both packed majors pass in complete mode, alongside packed typeAware, root
+types, publint, API docs, package inspection and the unchanged size gate.
+The build is 130,109 bytes raw / **29,860 bytes Brotli**, under the 30,000-byte cap.
+All 146 legacy and 141 current rule cases and all 18 groups have qualified
+applicable statuses; five removed-API policies remain explicitly legacy-only.
+Publication remains blocked at package 1.2.0; the prospective 2.0.0 guards pass.
+This qualifies documented syntax forms and pinned contracts, not arbitrary aliases,
+future dependency versions, native resources, agent adherence or publication.
 
 Task 4's group guard now rejects missing/extra groups, empty members, pending
 member/group status, absent config/skill evidence, malformed applicability and
@@ -19,18 +21,50 @@ legacy-only classifications claiming current applicability. The real verifier
 also checks exported membership, source evidence paths and consistency with the
 rule inventory. The existing three-argument rule guard is unchanged.
 
-Bundle work reuses the existing import-gated callback factory for 13 identical
-owners and the cycle-aware findNode traversal for 20 identical walkers. Own
-scope, import ordering, first-match report targets, all diagnostic strings and
-version selection are retained by the full unit and packed corpora. Reduction
-from 31,004 to 30,829 bytes did not close the cap, so no qualification flag was
-promoted. Do not conceal size by splitting uncounted chunks or raising the cap.
+Bundle work reuses existing import-gated visitors, cycle-aware walkers and
+member/ancestor helpers, with a shared non-null-object guard. Scope, import
+ordering, first-match targets and policy selection are retained by the full unit
+and packed corpora; the review corrections below intentionally update repair
+advice and current eager-callback coverage. tsdown uses pinned, build-only
+Terser 5.51.2 with safe compression, function hoisting and composed source maps.
+Function reduction was CPU-expensive and is disabled; property mangling and
+unsafe transforms are not enabled. No cap increase or uncounted chunk split.
 
-Final review: self-review (no subagent tool), weaker than independent review.
-The new guard initially accepted current-applicable legacy-only classification;
-its persistent regression was observed RED then GREEN. Behavioural qualification
-and author review are not external review, remote CI or publication evidence.
-Further bundle reduction and a fresh complete gate remain required.
+Earlier review was author-only. One fresh reviewer completed a static review of
+the whole campaign and closure diff. Its four P2 findings were verified and fixed
+in one pass; the reviewer did not run the gates or re-review the fixes. The
+group-classification regression and
+prospective-release acceptance test were observed RED then GREEN. Minifier
+tests cover exported values, effects, thrown identity, source maps and untouched
+declarations. Historical batch measurements below describe their commit-time
+state; this current gate supersedes their pending-size notes.
+
+## Fresh Review And Fix Verification
+
+- Throw repair advice incorrectly suggested returning Effect.fail from any callback.
+  Guidance now uses yield* in gen or returns the failure from flatMap, keeping map
+  pure. Both pinned majors demonstrate nested successful Effects in the original
+  forms and preserve tagged failure identity in the repairs. Async guidance uses
+  supported Effect.tryPromise rather than the absent legacy fromPromise API.
+- Behaviour-pipe workflow classification omitted the selected major. It now forwards
+  the version, recognising current flatMapEager and retaining legacy zipRight while
+  excluding removed current spellings. A new annotated packed anti-pattern and
+  runtime-equivalent repair accompany the focused regression.
+- The shared current callback table omitted mapEager and flatMapEager. Four callback
+  rules now cover both, with current-positive/legacy-negative unit cases, annotated
+  bad and clean packed fixtures, and pending-source runtime contracts. Resolved-source
+  eager throws are explicitly shown to occur during construction, not universally
+  described as interpreter failures.
+- Release tests assumed the real package would always be 1.2.0. They now test its
+  actual version conditionally, retain an explicit 1.2.0 rejection, accept prospective
+  2.0.0, and check the actual exported group names. No version bump was applied.
+
+Final parent verification: 586 tests, zero failures, 5418 expectations; both packed
+majors pass complete mode; packed typeAware, root types, publint, TypeDoc, dry-run
+package inspection and the unchanged size gate pass. Callback regressions were
+observed RED then GREEN. These are persistent syntax and pinned runtime contracts,
+not an independent re-review or remote CI/publication claim. Only 140 bytes of bundle
+headroom remain; future additions must keep passing the same cap.
 
 ## Harness
 
@@ -62,7 +96,7 @@ handler maps; unused nested functions stay clean in v4. Typed runtime controls
 retain absence/presence, state payloads and original error causes. All 470 tests,
 root types and both packed majors pass; build is 26.82 KB brotlied (27 KB cap).
 
-The plan's Q01-Q52 table is the progress checklist. Wider groups remain open.
+The plan's Q01-Q52 table is the progress checklist; all allocated rows are now qualified.
 
 Q03: log-only recovery has 3 parsed legacy and 14 v4 warnings; v4 recovery
 families and maps warn while failure-preserving observers stay clean. Runtime

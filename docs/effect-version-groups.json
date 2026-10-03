@@ -5,8 +5,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-react-state": {
@@ -15,8 +15,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -37,7 +37,7 @@
           "4": false
         },
         "qualification": {
-          "3": "baseline",
+          "3": "qualified",
           "4": "not-applicable"
         },
         "classification": {
@@ -79,8 +79,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -101,8 +101,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -123,8 +123,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -145,8 +145,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -189,8 +189,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-effect-as": {
@@ -593,8 +593,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-unbounded-effect-all": {
@@ -1021,8 +1021,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-manual-resource-close": {
@@ -1031,8 +1031,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1053,8 +1053,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1075,8 +1075,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1097,8 +1097,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1119,8 +1119,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1141,8 +1141,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1163,8 +1163,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1185,8 +1185,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1207,8 +1207,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1251,8 +1251,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-nested-effect-call": {
@@ -1261,8 +1261,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1283,8 +1283,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1305,8 +1305,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1327,8 +1327,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1349,8 +1349,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1371,7 +1371,7 @@
           "4": false
         },
         "qualification": {
-          "3": "baseline",
+          "3": "qualified",
           "4": "not-applicable"
         },
         "classification": {
@@ -1391,8 +1391,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1413,8 +1413,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1435,8 +1435,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1457,8 +1457,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1479,8 +1479,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1523,8 +1523,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-if-statement": {
@@ -1533,8 +1533,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1555,8 +1555,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1577,8 +1577,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1599,8 +1599,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1621,8 +1621,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1643,8 +1643,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1665,8 +1665,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1687,8 +1687,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1709,8 +1709,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1731,8 +1731,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1775,8 +1775,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-option-as": {
@@ -1785,8 +1785,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1807,8 +1807,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1829,8 +1829,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1851,8 +1851,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1873,8 +1873,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1895,8 +1895,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1917,8 +1917,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1939,8 +1939,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -1961,8 +1961,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2005,8 +2005,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-effect-sync-console": {
@@ -2015,8 +2015,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2037,8 +2037,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2059,8 +2059,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2081,8 +2081,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2103,8 +2103,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2147,8 +2147,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-raw-domain-id-alias": {
@@ -2157,8 +2157,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2179,8 +2179,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2201,8 +2201,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2223,8 +2223,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2245,8 +2245,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2267,8 +2267,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2289,8 +2289,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2311,8 +2311,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2333,8 +2333,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2355,8 +2355,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2377,8 +2377,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2421,8 +2421,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-error-as-public-effect-error": {
@@ -2673,8 +2673,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-raw-domain-id-alias": {
@@ -2683,8 +2683,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2705,8 +2705,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2727,8 +2727,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2749,8 +2749,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2771,8 +2771,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2793,8 +2793,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2815,8 +2815,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2837,8 +2837,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2859,8 +2859,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2881,8 +2881,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -2903,8 +2903,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3167,8 +3167,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-piped-yield-in-gen": {
@@ -3177,8 +3177,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3199,8 +3199,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3221,8 +3221,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3243,8 +3243,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3287,8 +3287,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-large-anonymous-flow": {
@@ -3297,8 +3297,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3319,8 +3319,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3341,8 +3341,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3363,8 +3363,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3407,8 +3407,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "prefer-pipe-for-behavior": {
@@ -3505,8 +3505,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-mixed-pillar-function": {
@@ -3603,8 +3603,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "prefer-effect-service": {
@@ -3895,8 +3895,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-hidden-effect-execution": {
@@ -3905,8 +3905,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3927,8 +3927,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3949,8 +3949,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3971,8 +3971,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -3993,8 +3993,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4015,8 +4015,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4037,8 +4037,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4081,8 +4081,8 @@
       "4": true
     },
     "qualification": {
-      "3": "pending",
-      "4": "pending"
+      "3": "qualified",
+      "4": "qualified"
     },
     "members": {
       "no-console-in-effect-flow": {
@@ -4091,8 +4091,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4113,8 +4113,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4135,8 +4135,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4157,8 +4157,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4179,8 +4179,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",
@@ -4201,8 +4201,8 @@
           "4": true
         },
         "qualification": {
-          "3": "baseline",
-          "4": "pending"
+          "3": "qualified",
+          "4": "qualified"
         },
         "classification": {
           "3": "unchanged",

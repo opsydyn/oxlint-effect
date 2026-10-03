@@ -52,6 +52,46 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("closure review counts eager workflow operators only under current policy", () => {
+    for (const [name, expected] of [["flatMapEager", [0, 1]], ["zipRight", [1, 0]]] as const) {
+      for (const [index, version] of [3, 4].entries()) {
+        const reports = runRuleSequence("no-workflow-in-behavior-pipe", [
+          { visitorName: "ImportDeclaration", node: importFrom("effect") },
+          { visitorName: "CallExpression", node: pipeCall(identifier("program"), effectCall(name, identifier("step")), effectCall(name, identifier("next")), effectCall("withSpan", stringLiteral("workflow"))) },
+        ], { options: [{ effectVersion: version }] });
+        expect(reports).toHaveLength(expected[index]!);
+      }
+    }
+  });
+  it("closure review checks both current eager callback operators without changing legacy policy", () => {
+    for (const name of ["mapEager", "flatMapEager"]) {
+      for (const [rule, statement, async] of [
+        ["no-throw-in-effect-logic", { type: "ThrowStatement", argument: identifier("error") }, false],
+        ["no-try-catch-in-effect-logic", { type: "TryStatement", block: { type: "BlockStatement", body: [] } }, false],
+        ["no-promise-api-in-effect-logic", { type: "ExpressionStatement", expression: callExpression(memberExpression("Promise", "resolve")) }, false],
+        ["no-async-effect-combinator-callback", { type: "ReturnStatement", argument: identifier("value") }, true],
+      ] as const) {
+        const callback = { type: "ArrowFunctionExpression", async, params: [], body: { type: "BlockStatement", body: [statement] } };
+        for (const version of [3, 4]) {
+          expect(runRuleSequence(rule, [
+            { visitorName: "ImportDeclaration", node: importFrom("effect") },
+            { visitorName: "CallExpression", node: effectCall(name, identifier("pending"), callback) },
+          ], { options: [{ effectVersion: version }] })).toHaveLength(version === 4 ? 1 : 0);
+        }
+      }
+    }
+  });
+  it("closure review gives delegating rather than nested-Effect throw repair advice", () => {
+    for (const version of [3, 4]) {
+      const callback = { type: "ArrowFunctionExpression", params: [], body: { type: "BlockStatement", body: [{ type: "ThrowStatement", argument: identifier("error") }] } };
+      const reports = runRuleSequence("no-throw-in-effect-logic", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall("map", identifier("source"), callback) },
+      ], { options: [{ effectVersion: version }] });
+      expect(reports[0]!.message).toContain("yield* Effect.fail");
+      expect(reports[0]!.message).toContain("keep map pure");
+    }
+  });
   it("Effect qualification Q52 supplies packed state and envelope evidence", async () => {
     for (const major of [3, 4]) {
       const cases = await Bun.file(`examples/effect${major}-consumer/qualification-cases.json`).json();
