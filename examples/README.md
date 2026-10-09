@@ -1,5 +1,19 @@
 # linteffect QA Examples
 
+## Choose An Example
+
+- **Published 2.x / Effect 4:** [npm consumer](npm-effect4-consumer/README.md), a
+  small standalone DDD failure/repair demo with exact warning checks.
+- **Current full qualification:** [packed Effect 4 consumer](effect4-consumer/README.md),
+  all applicable rules and groups against the local tarball.
+- **Legacy:** [npm 1.x consumer](npm-consumer/README.md) and
+  [packed Effect 3 consumer](effect3-consumer/README.md).
+- **Type-aware opt-in:** [engine QA](type-aware-consumer/README.md).
+
+The reference application and skill walkthroughs below are **legacy Effect 3**.
+Use the [current skill corpus](../skills/oxlint-effect/SKILL.md#choose-the-matching-corpus)
+for Effect 4. All annotated anti-patterns are intentional; do not fix them.
+
 The companion agent skill has paired [DDD failures](../skills/oxlint-effect/assets/domain.bad.ts)
 and [passing repairs](../skills/oxlint-effect/assets/domain.good.ts). They cover
 branded IDs, notification modes, and structured errors.

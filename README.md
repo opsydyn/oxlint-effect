@@ -1,25 +1,72 @@
-# linteffect Oxlint plugin
+# @opsydyn/oxlint-effect
 
 Oxlint plugin rules for Effect TypeScript code-shape constraints.
 
-### Effect Version Status
+## Quick Start
 
-The unreleased `2.0.0` migration makes default exports Effect 4 policy and adds
-`effect3` for legacy projects. All 146 registered rules and 18 groups are
+Requires Node.js 22 or newer. Version 2.x targets **Effect 4** by default.
+
+```bash
+bun add -d oxlint @opsydyn/oxlint-effect
+```
+
+With npm, use `npm install -D oxlint @opsydyn/oxlint-effect` instead.
+
+Create `oxlint.config.ts` at your project root:
+
+```ts
+import { defineConfig } from "oxlint";
+import { recommended } from "@opsydyn/oxlint-effect";
+
+export default defineConfig({
+  plugins: ["typescript"],
+  jsPlugins: [...recommended.jsPlugins],
+  rules: recommended.rules,
+});
+```
+
+Run against your source directory:
+
+```bash
+bunx oxlint --config oxlint.config.ts src
+```
+
+With npm, use `npx oxlint --config oxlint.config.ts src`.
+`recommended.jsPlugins` is readonly; spreading it produces the mutable array
+Oxlint expects. When adopting this in an existing config, preserve its plugins,
+rules, ignores and overrides, and register `linteffect` only once.
+
+Start with `recommended` for broad policy, or choose a focused group such as
+`ddd` below. The [published 2.0.0 example](examples/npm-effect4-consumer/README.md)
+installs from npm and checks annotated failures alongside clean repairs.
+
+- [Effect 3 migration](#configure-legacy-effect-3)
+- [Individual groups and composition](#configure-one-rule-group)
+- [Type-aware opt-in](#configure-type-aware-linting)
+- [Agent skill](#agent-skill)
+- [Editor setup and missing diagnostics](#editor-setup-and-missing-diagnostics)
+- [Rule catalogue](#rule-groups)
+
+## Effect Versions
+
+Published `2.0.0` makes default exports Effect 4 policy and adds `effect3` for
+legacy projects. All 146 registered rules and 18 groups are
 locally qualified for their documented forms against the pinned majors:
 146 legacy Effect 3 cases and 141 current Effect 4 cases, with five legacy-only policies.
 Published 1.x packages retain their original Effect 3 behaviour and do not
 provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
-and [per-rule audit](docs/effect-version-inventory.json) before using this checkout.
-The staged major changeset and outstanding publication gates are tracked in the
-[2.0.0 release checklist](docs/superpowers/reports/2026-10-01-effect4-release-preparation.md).
+and [per-rule audit](docs/effect-version-inventory.json) for detection scope.
+The [2.0.0 release](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.0.0)
+includes migration notes. Older 1.x packages do not export `effect3`; upgrade
+the plugin to 2.x to use the explicit legacy presets without upgrading Effect.
 
 `bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
 All Q01-Q52 now have behavioural evidence in the matching packed consumers.
 The complete rule/group gate and unchanged 30 KB bundle-size gate pass locally.
-Accepting a version option alone is not proof of adaptation. `release` and
-`prepublishOnly` remain blocked at version 1.2.0 until the major changeset is applied.
+Accepting a version option alone is not proof of adaptation. The rule/group
+publication guard passes at 2.0.0; release and registry verification are recorded
+in the [release checklist](docs/superpowers/reports/2026-10-01-effect4-release-preparation.md).
 
 Additional group-by-group evidence is tracked in the
 [wider qualification report](docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md)
@@ -35,33 +82,10 @@ current [versioned guidance](skills/oxlint-effect/references/versioned-rules.md)
 and paired Effect 4 assets, with legacy assets retained. This is lint/type/runtime
 contract QA, not a launched application or browser/React adapter acceptance.
 
-## Install
-
-```bash
-bun add -d oxlint @opsydyn/oxlint-effect
-```
-
-## Configure
-
-```ts
-import { defineConfig } from "oxlint";
-import { recommended } from "@opsydyn/oxlint-effect";
-
-export default defineConfig({
-  plugins: ["typescript"],
-  jsPlugins: [...recommended.jsPlugins],
-  rules: recommended.rules,
-});
-```
-
-`recommended.jsPlugins` is exported as a readonly tuple. Spreading it creates
-the mutable array shape expected by Oxlint's `ExternalPluginEntry[]` config
-type.
-
 ### Configure Legacy Effect 3
 
 Every group and its rules-only companion is available under `effect3` in the
-unreleased 2.0 configuration. Default `ddd` targets Effect 4; legacy projects use:
+published 2.x configuration. Default `ddd` targets Effect 4; legacy projects use:
 
 ```ts
 import { defineConfig } from "oxlint";
@@ -109,7 +133,7 @@ The audit may identify further restrictions.
 
 ### Recovery And Runtime Across Majors
 
-In the unreleased 2.0 checkout, the plain-recovery rules recognise `Effect.catch`
+In 2.x, the plain-recovery rules recognise `Effect.catch`
 for Effect 4 and `Effect.catchAll` under `effectVersion: 3`. IDs retain `catchall`
 for configuration stability. Both direct and piped operators, expression
 callbacks and block returns are covered. Original structured errors and explicit
@@ -142,6 +166,19 @@ of missing Layer provision; syntax cannot prove context completeness.
 See annotated [Effect 4 failures](examples/effect4-consumer/src/recovery-runtime/runners.ts),
 [legacy recovery failures](examples/effect3-consumer/src/recovery-runtime/rethrow.ts)
 and the [qualification report](docs/superpowers/reports/2026-10-01-effect4-recovery-runtime-qualification.md).
+
+### Editor Setup And Missing Diagnostics
+
+Use the official Oxc extension (`oxc.oxc-vscode`) in VS Code and install Oxlint
+locally in the workspace. See the [official editor setup](https://oxc.rs/docs/guide/usage/linter/editors).
+
+If a warning is missing, first run the CLI against the same file with an explicit
+config path. Check the selected group, rule overrides, ignores and configured
+boundary paths. Custom Effect rules are syntax-only; an unrecognised import or
+alias is not proof that the code is safe. If the CLI warns but the editor does
+not, check the extension's workspace/config resolution and restart its language
+server after dependency changes. Intentional `EXPECT`/`QA` examples must retain
+their warnings; use the example's `qa` command rather than fixing the failures.
 
 ### Configure Type-Aware Linting
 
@@ -288,8 +325,9 @@ export default defineConfig({
 The companion `oxlint-effect` skill helps coding agents configure the npm
 plugin, diagnose DDD warnings, and repair domain models when requested.
 
-Its existing assets currently target Effect 3. They are legacy controls during
-the v4 migration, not qualified v4 repairs; select `effect3` for their lint QA.
+Effect 4 assets are primary; labelled Effect 3 assets are retained for legacy
+consumers. The [versioned guide](./skills/oxlint-effect/references/versioned-rules.md)
+selects matching APIs, failure examples and repairs for every group.
 
 ```bash
 npx skills add opsydyn/oxlint-effect --skill oxlint-effect
@@ -301,39 +339,40 @@ and uses the installed package's APIs and rules. Type-aware linting is opt-in.
 Intentional `EXPECT`/`QA` failures are retained as diagnostic controls.
 
 The [skill](./skills/oxlint-effect/SKILL.md), its focused references, and
-paired [failures](./skills/oxlint-effect/assets/domain.bad.ts) and
-[repairs](./skills/oxlint-effect/assets/domain.good.ts) are also included in the
+paired [Effect 4 failures](./skills/oxlint-effect/assets/effect4/domain.bad.ts) and
+[repairs](./skills/oxlint-effect/assets/effect4/domain.good.ts) are also included in the
 npm package under `skills/oxlint-effect`. Skill installation is separate from
 npm installation; installing the plugin alone does not activate agent guidance.
 
 The initial examples cover branded IDs, explicit notification modes, and
-structured transfer errors. Additional paired [domain shape failures](./skills/oxlint-effect/assets/domain-shapes.bad.ts)
-and [repairs](./skills/oxlint-effect/assets/domain-shapes.good.ts) cover typed
+structured transfer errors. Additional paired [domain shape failures](./skills/oxlint-effect/assets/effect4/domain-shapes.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/effect4/domain-shapes.good.ts) cover typed
 commands, epoch-millisecond time values, and schema-backed options. Their tests
 check wire roundtrips, optional fields, invalid inputs, and rejected type misuse.
-Paired [domain decision failures](./skills/oxlint-effect/assets/domain-decisions.bad.ts)
-and [repairs](./skills/oxlint-effect/assets/domain-decisions.good.ts) cover status
+Paired [domain decision failures](./skills/oxlint-effect/assets/effect4/domain-decisions.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/effect4/domain-decisions.good.ts) cover status
 variants, business predicates, and explicit lifecycle states. Their tests check
 the original decision results, legacy flag roundtrips, and valid/invalid
 transitions. The [decision guide](./skills/oxlint-effect/references/domain-decisions.md)
 documents the example's boundary and lifecycle policies.
-Paired [domain context failures](./skills/oxlint-effect/assets/domain-context.bad.ts)
-and [repairs](./skills/oxlint-effect/assets/domain-context.good.ts) cover explicit
+Paired [domain context failures](./skills/oxlint-effect/assets/effect4/domain-context.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/effect4/domain-context.good.ts) cover explicit
 policy requirements, modelled time inputs, and meaningful error payloads. The
 [context guide](./skills/oxlint-effect/references/domain-context.md) distinguishes
 typed identity from authority and time conversion from clock reads.
-Paired [public error failures](./skills/oxlint-effect/assets/public-errors.bad.ts)
-and [repairs](./skills/oxlint-effect/assets/public-errors.good.ts) cover generic,
+Paired [public error failures](./skills/oxlint-effect/assets/effect4/public-errors.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/effect4/public-errors.good.ts) cover generic,
 unknown, and mixed public error channels. The
 [public error guide](./skills/oxlint-effect/references/public-errors.md) explains
 cause preservation, selective recovery, caller migration and defect ownership.
-Paired [error preservation failures](./skills/oxlint-effect/assets/error-preservation.bad.ts)
-and [repairs](./skills/oxlint-effect/assets/error-preservation.good.ts) cover
+Paired [error preservation failures](./skills/oxlint-effect/assets/effect4/error-preservation.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/effect4/error-preservation.good.ts) cover
 message-only failures, generic rethrows and log-only handlers. The
 [preservation guide](./skills/oxlint-effect/references/error-preservation.md)
-explains recovery ownership and the `catchAll`/`tapError` distinction.
-Paired [expected-state failures](./skills/oxlint-effect/assets/expected-state.bad.ts)
-and [repairs](./skills/oxlint-effect/assets/expected-state.good.ts) cover ordinary
+explains recovery ownership; use the versioned guide for current `catch` versus
+legacy `catchAll` APIs. Topic guides retain labelled legacy walkthroughs.
+Paired [expected-state failures](./skills/oxlint-effect/assets/effect4/expected-state.bad.ts)
+and [repairs](./skills/oxlint-effect/assets/effect4/expected-state.good.ts) cover ordinary
 absence, broad null recovery and thrown expected rejection. Their
 [guide](./skills/oxlint-effect/references/expected-state.md) explains the required
 caller changes. The corpus now covers all 21 exported DDD rules with representative

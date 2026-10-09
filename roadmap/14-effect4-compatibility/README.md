@@ -1,12 +1,14 @@
 # 14 Effect 4 First-Class Compatibility
 
-Status: all 52 batches, 146 registered rules and 18 groups locally qualified; fresh review completed and findings fixed. Versioning and publication remain separate.
+Status: all 52 batches, 146 registered rules and 18 groups qualified; fresh review completed and findings fixed. Version 2.0.0 was published and verified on npm and GitHub on 2026-10-08.
 
 Current gate (2026-10-03): 586 tests / 5418 expectations, both packed majors in
 complete mode, types, packed typeAware, publint, API docs, package inspection
 and size pass. Build is 29,860 compressed bytes under the unchanged 30,000-byte
 cap. All applicable rule/group statuses qualify; five policies remain legacy-only.
-No version bump, push or publication. The batch notes below retain historical
+Publication: [npm](https://www.npmjs.com/package/@opsydyn/oxlint-effect) and
+[GitHub 2.0.0](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.0.0).
+The batch notes below retain historical
 measurements and pending statuses; this current gate supersedes those snapshots.
 
 ## Historical Batch Snapshots
@@ -140,7 +142,7 @@ unchanged size cap, group release guard, whole-campaign review and final gates.
 
 ## Policy And Scope
 
-Effect 4 is the default target for the planned plugin `2.0.0`. Legacy users
+Effect 4 is the default target for published plugin `2.0.0`. Legacy users
 select `effect3` presets. Existing rule IDs and plugin registration remain stable.
 See the [design](../../docs/superpowers/specs/2026-10-01-effect4-first-class-design.md).
 Start with the [foundation implementation plan](../../docs/superpowers/plans/2026-10-01-effect4-compatibility-foundation.md).
@@ -163,7 +165,7 @@ configuration isolation with common runner syntax, not all v4 runner variants.
 All 146 registered rules now have scoped qualification for every applicable
 major. Presets accepting `effectVersion` alone do not prove adaptation; their
 documented failures, controls and contracts are covered in the complete matrix.
-The release/prepublish guard still blocks this checkout until a major bump.
+The rule/group release guard passes at 2.0.0 after the qualified major bump.
 See the [foundation qualification report](../../docs/superpowers/reports/2026-10-01-effect4-foundation-qualification.md)
 for local evidence, review fixes and limits.
 
@@ -250,6 +252,6 @@ remaining cross-cutting corpus and guidance coverage rather than postponing QA.
 - [x] Audit inventory has no unexplained or unqualified applicable entries.
 - [x] Document upgrade to v4 defaults and effect3 migration for legacy users.
 - [x] Add reviewed major changeset and release notes for `2.0.0`.
-- [ ] Verify publishing access, push and confirm registry/GitHub publication.
+- [x] Verify publishing access, push and confirm registry/GitHub publication (2026-10-08).
 
 No Effect 4 compatibility claim or default-policy release precedes this gate.

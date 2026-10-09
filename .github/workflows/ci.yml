@@ -12,6 +12,38 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  published-effect4:
+    name: Published Effect 4 consumer QA
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/npm-effect4-consumer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install published dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck config and examples
+        run: bun run typecheck
+
+      - name: Verify annotated warnings and clean repairs
+        run: bun run qa
+
+      - name: Verify Effect 4 domain contracts
+        run: bun run test
+
   build:
     name: Build and Test
     runs-on: ubuntu-latest

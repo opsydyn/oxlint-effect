@@ -1,6 +1,9 @@
 # Effect 4 First-Class Compatibility
 
-Status: approved by the user on 2026-10-01; all 52 behavioural batches and group/skill composition locally qualified. The unchanged 30 KB size cap and final complete packed gate pass. Fresh review completed and four findings were fixed and verified; version application and publication remain separate, unauthorised actions.
+Status: approved on 2026-10-01; all 52 behavioural batches and group/skill
+composition qualified, with the unchanged 30 KB cap, complete packed gates and
+four verified review fixes. Versioning and publication were separately authorised
+and completed for 2.0.0; npm and GitHub publication were verified on 2026-10-08.
 
 ## Intent
 

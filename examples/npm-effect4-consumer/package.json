@@ -1,0 +1,21 @@
+{
+  "name": "oxlint-effect-npm-effect4-consumer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --config oxlint.config.ts src/domain.bad.ts",
+    "lint:valid": "oxlint --config oxlint.config.ts src/domain.good.ts",
+    "qa": "bun scripts/verify.ts",
+    "test": "bun test test"
+  },
+  "dependencies": {
+    "effect": "4.0.0"
+  },
+  "devDependencies": {
+    "@opsydyn/oxlint-effect": "2.0.0",
+    "oxlint": "1.71.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,9 +1,17 @@
 # Effect 4 Release Preparation
 
-Target: **2.0.0**, staged by `.changeset/effect4-first-class.md`.
-Status: **locally qualified and reviewed; ready for separately authorised versioning, not published**.
-Package version remains 1.2.0 until the major changeset is applied. No tag, push or
-publication is part of this preparation.
+Released: **2.0.0**. Changeset consumed by
+[release PR #17](https://github.com/opsydyn/oxlint-effect/pull/17), merged as `0ec5f86`.
+Status: **published and independently verified on 2026-10-08**.
+
+The corrected-token workflow passed. Public npm metadata confirms 2.0.0 and
+`latest: 2.0.0`; the non-draft
+[GitHub release](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.0.0)
+is live. Main and release-branch CI passed all four jobs. The initial E404
+upload failure and a successful-run/public-registry visibility discrepancy were
+resolved before reporting publication. No additional version bump was needed.
+
+## Qualification Snapshot (2026-10-03)
 
 Latest local gate (2026-10-03): all 52 behavioural batches and group/skill
 composition pass. 586 tests / 5418 expectations, root types, both packed majors
@@ -81,9 +89,9 @@ Configuration examples and limitations are in the [README](../../../README.md).
 - [x] Obtain the fresh whole-campaign review required by the approved plan.
 - [x] Pass the complete Effect version gate, unit tests, typecheck, packed
   consumers, type-aware consumer, publint, API docs, size and package inspection.
-- [ ] Apply Changesets versioning, confirm 2.0.0 and generated changelog, then
+- [x] Apply Changesets versioning, confirm 2.0.0 and generated changelog, then
   rerun the real publication guard against the resulting package version.
-- [ ] Push only when authorised and release-ready; merge the generated release
+- [x] Push only when authorised and release-ready; merge the generated release
   PR, then verify npm publication and GitHub release independently.
 
 ## Verification Commands
@@ -92,9 +100,10 @@ Fresh closure checks passed: 586 unit tests / 5418 expectations, root typecheck,
 both packed Effect consumers in complete mode, packed typeAware, publint, API
 docs, dry-run package inspection and size. Earlier size failures are retained in
 the historical campaign report. Prospective-major inventory guards pass;
-the current-version publication guard still rejects version 1.2.0 as intended.
+the historical 1.2.0 guard rejected the unapplied major as intended. The real
+publication guard passed at 2.0.0 after versioning.
 
-Run from the repository root when separately authorised to apply the release:
+Qualification commands (do not reapply versioning for the already published release):
 
 ```sh
 bun run test
@@ -105,10 +114,9 @@ bun run lint
 bun run docs:api:check
 bun run size
 bun run pack:dry-run
-bun run version
 bun scripts/verify-effect-version-release.ts
 ```
 
-The current 1.2.0 publication guard correctly rejects the breaking default
-change. Testing the same inventory with prospective version 2.0.0 also rejects
-publication: a version bump alone does not qualify the remaining rules.
+Before closure, the guard correctly rejected unqualified inventories even with
+a prospective 2.0.0 version. After all applicable rule/group entries qualified
+and the major changeset was applied, the same guard passed at the real 2.0.0.

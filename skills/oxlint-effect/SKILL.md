@@ -17,7 +17,9 @@ overrides, and lint/typecheck commands. Match guidance to those installed
 versions. A skill obtained from GitHub may describe exports newer than the
 consumer package; verify exports before adding them.
 
-This unreleased 2.0 checkout defaults to Effect 4. Published 1.x remains Effect 3.
+Published 2.x defaults to Effect 4. Published 1.x remains Effect 3 and does not
+export the `effect3` namespace; that namespace is available after upgrading the
+plugin to 2.x, without upgrading the consumer's Effect dependency.
 For every group, consult [versioned rule guidance](references/versioned-rules.md)
 and the matching pinned consumer's annotated failures, repairs and scope notes.
 Legacy uses `effect3`; manual sensitive rules default to 4. Do not mix a legacy
@@ -49,6 +51,10 @@ requested policy, register this plugin once, and validate the resolved config.
 Do not enable every group merely because it is available.
 
 ## Diagnose Or Repair Domain Code
+
+Use the Effect 4 pairs above for current consumers. The links in the following
+legacy walkthrough target Effect 3; substitute their `assets/effect4/`
+counterparts for Effect 4 and consult the versioned guide before adapting APIs.
 
 Read [domain modeling](references/domain-modeling.md) for DDD warnings. Identify
 the exact rule ID, source span, enabled policy, and surrounding domain contract.

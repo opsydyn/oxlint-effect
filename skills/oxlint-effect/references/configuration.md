@@ -2,8 +2,9 @@
 
 ## Effect Major
 
-In this unreleased 2.0 checkout default groups target Effect 4; published 1.x
-remains legacy. Every preset and rules-only companion is available under
+Published 2.x default groups target Effect 4; published 1.x remains legacy and
+does not export `effect3`. Upgrade the plugin to 2.x to select legacy presets
+without upgrading Effect. Every preset and rules-only companion is available under
 `effect3` for Effect 3. See [all versioned groups](versioned-rules.md) for the
 matching failure/repair corpus. Verify the installed package before selecting it.
 

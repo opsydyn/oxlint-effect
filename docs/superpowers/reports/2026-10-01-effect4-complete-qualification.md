@@ -1,6 +1,8 @@
 # Wider Effect Qualification Progress
 
-Status: documented rule/group forms locally qualified; fresh review completed and findings fixed, not published.
+Status: qualification completed and reviewed on 2026-10-03; 2.0.0 subsequently
+published and verified on 2026-10-08. The gates below are historical snapshots;
+see the [release record](2026-10-01-effect4-release-preparation.md) for publication.
 Baseline: b159eb8. Approved inline execution on main; no push or publish.
 
 ## Current Gate (2026-10-03)

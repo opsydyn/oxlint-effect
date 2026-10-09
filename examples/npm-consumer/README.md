@@ -1,7 +1,11 @@
-# npm Consumer Example
+# Legacy Effect 3 npm Consumer Example
 
 This example verifies the published 1.x `@opsydyn/oxlint-effect` package from
 npm instead of the local source plugin.
+
+This remains a legacy regression fixture, not the 2.x quick start. For the
+published 2.0.0 plugin with Effect 4, use the
+[current npm example](../npm-effect4-consumer/README.md).
 
 It also documents the user-land fix for Oxlint's mutable `jsPlugins` config type:
 
