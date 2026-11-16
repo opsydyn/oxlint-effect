@@ -289,6 +289,19 @@ const exportedPresets = {
 } as const;
 
 describe("linteffect config exports", () => {
+  it("keeps inference-only style restrictions opt in for both supported majors", () => {
+    for (const config of [recommended, effect3.recommended]) {
+      for (const name of ["no-effect-fn-generator", "no-manual-effect-channels", "no-effect-type-alias"]) {
+        expect(config.rules).not.toHaveProperty(`linteffect/${name}`);
+      }
+    }
+    for (const config of [effectComposition, effect3.effectComposition]) {
+      for (const name of ["no-effect-fn-generator", "no-manual-effect-channels", "no-effect-type-alias"]) {
+        expect(config.rules).toHaveProperty(`linteffect/${name}`);
+        expect(plugin.rules).toHaveProperty(name);
+      }
+    }
+  });
   it("default maps select four and legacy maps select three", () => {
     expect(recommended.rules["linteffect/no-catchall-generic-rethrow"]).toEqual(["error", { effectVersion: 4 }]);
     expect(effect3.recommended.rules["linteffect/no-catchall-generic-rethrow"]).toEqual(["error", { effectVersion: 3 }]);
@@ -379,7 +392,6 @@ describe("linteffect config exports", () => {
       "linteffect/no-iife-wrapper": "error",
       "linteffect/no-return-in-arrow": "error",
       "linteffect/no-return-in-callback": "error",
-      "linteffect/no-effect-fn-generator": "error",
       "linteffect/no-effect-sync-console": "error",
       "linteffect/no-console-in-effect-flow": "error",
       "linteffect/no-effect-log-without-structured-context": "error",
@@ -396,7 +408,6 @@ describe("linteffect config exports", () => {
       "linteffect/no-effect-fail-error-message": "error",
       "linteffect/no-catchall-generic-rethrow": "error",
       "linteffect/no-log-only-error-handling": "error",
-      "linteffect/no-manual-effect-channels": "error",
       "linteffect/no-wrapgraphql-catchall": "error",
       "linteffect/no-render-side-effects": "error",
       "linteffect/no-atom-registry-effect-sync": "error",
@@ -404,7 +415,6 @@ describe("linteffect config exports", () => {
       "linteffect/no-inline-runtime-provide": "error",
       "linteffect/no-naked-object-state-update": "error",
       "linteffect/no-effect-succeed-variable": "error",
-      "linteffect/no-effect-type-alias": "error",
       "linteffect/no-model-overlay-cast": "error",
       "linteffect/no-unknown-boolean-coercion-helper": "error",
       "linteffect/no-fromnullable-nullish-coalesce": "error",

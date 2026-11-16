@@ -9,8 +9,8 @@ export const piped = <E>(work: (value: number) => Effect.Effect<number, E>) => E
 
 const options = { concurrency: 2 };
 export const opaque = <E>(work: (value: number) => Effect.Effect<number, E>) => Effect.forEach(items, value => Effect.retry(work(value), { times: 1 }), { concurrency: options.concurrency });
-// Clean limits: option presence is not validation of concurrency or retry bounds.
-export const explicitUnbounded = Effect.forEach(items, value => Effect.retry(Effect.succeed(value), { times: 1 }), { concurrency: "unbounded" });
+// Clean controls: omission is sequential; named work remains opaque, not proved safe.
+export const sequential = Effect.forEach(items, value => Effect.retry(Effect.succeed(value), { times: 1 }));
 export const noRetry = Effect.forEach(items, value => Effect.succeed(value));
 const stored = items.map(value => Effect.retry(Effect.succeed(value), { times: 1 }));
 export const storedInput = Effect.all(stored);

@@ -49,6 +49,34 @@ installs from npm and checks annotated failures alongside clean repairs.
 
 ## Effect Versions
 
+### Traced Functions And Explicit Contracts
+
+**Version scope:** these changes apply to plugin **2.1.0 and later**. Version
+**2.0.x** retains the previous recommended bans and option-presence concurrency
+checks. This checkout carries the minor changeset; publication is separate.
+
+`recommended` and `effect3.recommended` allow generator-based `Effect.fn`,
+explicit `Effect.Effect`/`Layer.Layer` annotations and named Effect type aliases.
+Named `Effect.fn` supplies tracing and stack-frame context; public service
+contracts may deliberately specify success, error and requirement channels.
+Prefer inference within implementations without erasing meaningful interfaces.
+See [Effect.fn](https://effect.website/docs/v4/api/effect/Effect#fn) and the
+[official service guide](https://effect.website/docs/v4/requirements-management/services).
+
+The registered `no-effect-fn-generator`, `no-manual-effect-channels` and
+`no-effect-type-alias` rules are now **opt-in style restrictions**, excluded from
+both recommended maps and their `typeAware` companions. `effectComposition` and
+`allRules` deliberately retain them; disable those three entries when composing
+that full group and allowing these patterns. No rule ID was removed. Other
+opinionated defaults are unchanged by this bounded recalibration.
+
+Both packed consumers include annotated
+[current failures](examples/effect4-consumer/src/policy-contracts.bad.ts) and
+[valid traced service contracts](examples/effect4-consumer/src/policy-contracts.good.ts),
+plus matching legacy files. Their runtime checks verify service values and the
+automatic span name. Throwing inside Effect.fn remains a typed-failure warning;
+supporting the function form does not permit unsafe bodies.
+
 Published `2.0.0` makes default exports Effect 4 policy and adds `effect3` for
 legacy projects. All 146 registered rules and 18 groups are
 locally qualified for their documented forms against the pinned majors:
@@ -411,7 +439,7 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-effect-async` | `Effect.async(...)`. | Manual callback bridges are easy to leak or resume incorrectly. |
 | `linteffect/no-effect-ignore` | `Effect.ignore(...)` and pipe arguments such as `Effect.ignore`. | Makes ignored failures explicit at boundaries instead of burying failure ownership. |
 | `linteffect/no-effect-never` | `Effect.never`. | Infinite effects should have explicit lifecycle and teardown ownership. |
-| `linteffect/no-effect-fn-generator` | `Effect.fn(function* ...)`; v4 also covers named `Effect.fn("name")(function* ...)`. | Returns one explicit `Effect.gen` from a plain function; non-generator `Effect.fn` bodies stay clean. |
+| `linteffect/no-effect-fn-generator` | Opt-in style restriction on `Effect.fn(function* ...)`; v4 also covers the named factory form. | Excluded from both recommended presets. Traced generators are supported Effect APIs; full group/all-rule users must disable this ban to retain them. |
 | `linteffect/no-nested-effect-gen` | `Effect.gen` nested inside another `Effect.gen`; v4 includes `{ self }` forms. | Keeps generator-based effects linear; v4 excludes separately defined nested functions. |
 | `linteffect/no-yield-without-star-in-effect-gen` | Plain `yield` inside `Effect.gen`; v4 includes `{ self }` forms. | Uses `yield*` for resumed-value typing and consistent workflow style. Plain yield can execute in v4; the rule is a delegation-style policy, not an interpreter-failure claim. |
 | `linteffect/no-async-effect-combinator-callback` | `async` callbacks passed to supported Effect combinators; v4 includes `mapEager`, `flatMapEager`, recovery families and handler maps. | Adapts Promise APIs with `Effect.tryPromise` in gen/flatMap; map callbacks stay pure. Some legacy overloads accept Promises; the rule still requires explicit ownership. |
@@ -419,8 +447,8 @@ Effect flow, domain meaning, or runtime boundaries.
 | `linteffect/no-try-catch-in-effect-logic` | `try/catch` inside gen or supported callbacks; v4 includes eager mapping/sequencing, `{ self }` and recovery maps. | Adapts throwing APIs with `Effect.try` and recovers with `catch` (v4), `catchAll` (v3), or `catchTag`. |
 | `linteffect/no-promise-api-in-effect-logic` | Static Promise APIs and visible chains inside Effect logic; v4 includes eager mapping/sequencing, self-bound gen and recovery maps. | Adapts Promise APIs at a boundary. V4 excludes `Effect.catch`/unrelated receivers and cannot resolve stored aliases; v3 retains broad chain-name recognition. |
 | `linteffect/no-swallowed-catch-all` | Plain `catch`/`catchEager` expression/block recovery (v4), piped `catchAll` expressions (v3), returning succeed/void/ignore or visibly successful asVoid. | Retains failure or uses an explicit typed domain branch. V4 `asVoid(Effect.fail(error))` stays clean because it preserves failure; legacy asVoid policy is unchanged. |
-| `linteffect/no-manual-effect-channels` | Manual `Effect.Effect<...>` and `Layer.Layer<...>` channel types. | Lets Effect infer channels from real composition. |
-| `linteffect/no-effect-type-alias` | Type aliases around `Effect.Effect<...>`. | Keeps service surfaces concrete and discoverable. |
+| `linteffect/no-manual-effect-channels` | Opt-in inference-only restriction on explicit Effect/Layer annotations. | Excluded from both recommended presets; explicit service, public and polymorphic contracts are valid. |
+| `linteffect/no-effect-type-alias` | Opt-in restriction on aliases around `Effect.Effect<...>`. | Excluded from both recommended presets; named public Effect contracts remain supported. |
 | `linteffect/no-public-generic-effect-error` | Exported APIs returning `Effect.Effect<_, Error, _>`. | Public Effect APIs should expose tagged, recoverable domain errors instead of generic `Error`. |
 
 ### Effect Flow
@@ -607,12 +635,12 @@ export default defineConfig({
 
 | Rule | Catches | Why |
 | --- | --- | --- |
-| `linteffect/no-unbounded-effect-all` | `Effect.all(items.map(...))` without an inline `concurrency` option. | Requires explicit scheduling policy; omission actually defaults to sequential execution. This option-presence heuristic does not validate bounds: even `"unbounded"` stays clean. Stored inputs and named options are not resolved. |
+| `linteffect/no-unbounded-effect-all` | Visible `"unbounded"` or `Infinity` concurrency on `Effect.all`, including stored/tuple inputs. | Omitted options are sequential and clean. Last explicit properties win; later opaque spreads/computed keys and named options are not resolved. Unknown budgets are not proof of safety. |
 | `linteffect/no-fire-and-forget-fork` | V4: discarded direct/curried `forkChild` / `forkDetach` constructors, yielded handles and terminal pipe operators, including startup options. Legacy: bare `Effect.fork` statements only. | Bare construction is lazy, not a launched fiber. Retain and join/await/interrupt executed handles; children follow parent lifetime, detached fibers do not. `forkScoped` / `forkIn` are excluded; stored aliases and nonterminal pipes are not inferred. |
 | `linteffect/no-fork-in-loop` | V4: `forkChild` / `forkDetach` in the own body of `for`, `for...of`, `for...in`, `while`, or `do...while`, including direct/curried/terminal-pipe startup forms. Legacy: broad nested `Effect.fork` traversal. | Retaining handles does not impose a collection budget; prefer bounded `Effect.all` / `Effect.forEach`. Scoped APIs remain excluded, which is not proof of bounded work. V4 skips nested function definitions. |
 | `linteffect/no-race-without-cleanup` | V4: direct/curried/terminal-pipe `race`, `raceAll`, `raceFirst` and `raceAllFirst` without visible cleanup markers in arguments or local enclosing wrappers, including recognised generators and `acquireUseRelease` use callbacks. Legacy: `race` / `raceAll` arguments only. | Races already interrupt losers; owned resources still need finalizers/scopes. Markers do not prove every branch releases. Preserve first-success versus first-completion semantics; named task/cleanup aliases are not resolved. |
 | `linteffect/no-unobserved-fiber` | V4: yielded `forkChild` / `forkDetach` handles without a same-binding `Fiber.join`, `await`, `interrupt`, reference pipe or direct return. Legacy: direct `Effect.fork` initializers matched by file-wide name. | V4 lexical references keep same-name/shadowed observations separate; lazy Effects and scoped APIs stay clean. Return transfers ownership, not a guarantee of later observation. Aliases/aggregate observers and arbitrary wrapped initializers are not inferred; reference presence does not prove execution. |
-| `linteffect/no-unbounded-concurrent-retry` | Visible `Effect.retry` calls inside immediate mapped `Effect.all` / `Effect.forEach` arguments without an inline concurrency option. | Makes scheduling policy explicit; omission defaults to sequential work. Option presence does not validate concurrency or retry bounds, and even explicit `"unbounded"` stays clean. Bound both job concurrency and retry/backoff policy. |
+| `linteffect/no-unbounded-concurrent-retry` | Visible `Effect.retry` inside `Effect.all` / `Effect.forEach` arguments with an explicit unbounded budget. | Prevents visible retry fan-out; sequential and finite budgets stay clean. Retry duration/count and opaque helpers are not inferred. Bound both concurrency and retry/backoff policy. |
 | `linteffect/no-blocking-call-in-effect` | Identifier calls ending in `Sync`, or literal `fs` / `crypto` / `zlib` members ending in `Sync`, inside `Effect.sync` / `gen`; v4 also recognises self-bound `gen` and direct/named generator `fn`. | Sync suffixes are a heuristic, not import/performance analysis. Use genuinely asynchronous APIs via v4 `callback` (legacy `async`) / `tryPromise`, or a worker for blocking work. A Promise wrapper does not offload it. V4 skips nested function definitions; legacy traversal is broad. |
 | `linteffect/no-promise-concurrency-in-effect` | Literal `Promise.all`, `allSettled`, `race`, or `any` inside `sync` / `gen` or recognised major-specific logic callbacks; v4 adds self-bound `gen` and direct/named generator `fn`. | Prefer bounded `Effect.all` / `forEach`, legacy `either` / v4 `result` for typed outcomes, `raceFirst` for first completion and `race` for first success. Underlying operations must observe cancellation signals. Defects/interruption and `AggregateError` require explicit semantics, not a mechanical swap. V4 skips nested definitions; aliases/computed calls are not inferred. |
 | `linteffect/no-shared-mutable-state-across-fibers` | Outer `let` / `var` scalar writes or known collection mutations in inline direct `all` / `forEach` work; v4 also checks direct/curried/terminal-pipe child/detached forks, using lexical binding identity. Legacy checks `fork` with file-wide name sets. | Use atomic `Ref.update` or immutable result aggregation. Worker-local/shadow parameters stay clean in v4. Syntax is not execution/data-race proof: constructors are lazy and default collections sequential. Stored task bodies, const containers and property writes are not inferred; the separate global-state rule has its own scope. |

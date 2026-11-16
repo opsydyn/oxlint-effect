@@ -12,6 +12,19 @@ A passing control labelled as a gap is not a recommended repair.
 
 ## API Selection
 
+In plugin 2.1+, both recommended presets allow Effect.fn generators, explicit Effect/Layer
+contracts and named Effect aliases. Their three historical bans remain opt-in
+in effectComposition/allRules; they are style preferences, not correctness rules.
+Preserve meaningful public contracts and use named Effect.fn for tracing. A
+throwing body still needs Effect.fail/try/tryPromise rather than a suppressed rule.
+
+Collection concurrency is sequential when omitted. no-unbounded-effect-all and
+no-unbounded-concurrent-retry now require visible unbounded/Infinity budgets,
+not merely missing options. Plugin 2.0.x retains its older bans and option-presence
+policy; check the installed version before prescribing these changes.
+An unresolved budget or later opaque spread remains
+unknown, not proved bounded. Do not add ceremonial options to safe sequential work.
+
 Current Context.Service replaces legacy Context.Tag/Effect.Service construction
 where the actual consumer contract supports it. Current broad recovery uses
 Effect.catch/catchEager; legacy catchAll remains legacy policy. Legacy Effect.catch

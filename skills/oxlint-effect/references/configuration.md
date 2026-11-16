@@ -40,6 +40,13 @@ vendor plugin source or copy this repository's development dependencies.
 
 ## Select Policy
 
+In plugin 2.1+, recommended and effect3.recommended no longer enable no-effect-fn-generator,
+no-manual-effect-channels or no-effect-type-alias. The full effectComposition
+group and allRules retain those explicit style opt-ins. Disable them when using
+the full group with traced functions or deliberate public service contracts.
+Plugin 2.0.x retains the previous defaults; upgrading is a deliberate policy
+migration, not merely changing the consuming project's Effect major.
+
 `recommended` selects the package's broad default policy. `ddd` combines Domain
 Modeling and Error Modeling; `domainModeling` selects just Domain Modeling.
 They are alternative starting policies, not escalating installation steps.

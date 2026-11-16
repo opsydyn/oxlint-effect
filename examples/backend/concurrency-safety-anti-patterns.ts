@@ -16,9 +16,10 @@ declare const createClient: () => Effect.Effect<unknown, never, never>;
 declare const releaseClient: (client: unknown) => Effect.Effect<void, never, never>;
 
 // EXPECT: linteffect/no-unbounded-effect-all
-// QA: Mapping a whole collection into Effect.all should declare a concurrency limit.
+// QA: Explicit unbounded concurrency admits the whole collection at once.
 export const unboundedNotifications = Effect.all(
   userIds.map((userId) => sendNotification(userId)),
+  { concurrency: "unbounded" },
 );
 
 // EXPECT: linteffect/no-fire-and-forget-fork
@@ -43,6 +44,7 @@ export const unobservedWorker = Effect.fork(auditProgram);
 // QA: Retry inside unbounded parallel collection work can amplify load.
 export const retryStorm = Effect.all(
   userIds.map((userId) => Effect.retry(sendNotification(userId))),
+  { concurrency: "unbounded" },
 );
 
 // EXPECT: linteffect/no-blocking-call-in-effect

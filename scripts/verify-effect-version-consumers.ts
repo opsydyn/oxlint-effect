@@ -86,6 +86,12 @@ try {
     await cp(packedSkill, join(root, "src/skill-assets"), { recursive: true, filter: path => major === 4 || basename(path) !== "effect4" });
     assertCommandSuccess(run("bun", ["run", "typecheck"], root), `Effect ${major} typecheck`);
     assertCommandSuccess(run("bun", ["-e", 'await import("./src/composition.contracts.ts"); console.log("Packed composition completed")'], root), `Effect ${major} group composition`, "Packed composition completed");
+    const policy = major === 3 ? (await import("../src/index.ts")).effect3 : await import("../src/index.ts");
+    const policyConfig = "oxlint.policy.generated.json";
+    await writeFile(join(root, policyConfig), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [...policy.jsPlugins], rules: policy.recommendedRules }));
+    verifyLint(root, policyConfig, ["src/policy-contracts.good.ts"], {}, 0);
+    verifyLint(root, policyConfig, ["src/policy-contracts.bad.ts"], { "linteffect/no-throw-in-effect-logic": 1 }, 1);
+    assertCommandSuccess(run("bun", ["src/policy-contracts.ts"], root), `Effect ${major} traced service contracts`);
     const skillConfig = "oxlint.skill.generated.json";
     await writeFile(join(root, skillConfig), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: major === 3 ? (await import("../src/index.ts")).effect3.dddRules : (await import("../src/index.ts")).dddRules }));
     for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation", "expected-state"]) {

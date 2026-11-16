@@ -46,6 +46,9 @@ const expectedDdd = [
   "no-log-only-error-handling"
 ].map(id => `linteffect/${id}`).sort();
 const excluded = [
+  "no-effect-fn-generator",
+  "no-manual-effect-channels",
+  "no-effect-type-alias",
   "no-runpromise-in-non-async-test-body",
   "require-effect-flip-for-error-test",
   "no-test-mock-layer-when-default-available",

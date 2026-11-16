@@ -194,6 +194,7 @@ export function loadPublicUser(): Effect.Effect<{ readonly id: string }, Error, 
 
 const unboundedParallelism = Effect.all(
   [1, 2, 3].map((value) => Effect.succeed(value)),
+  { concurrency: "unbounded" },
 );
 
 Effect.fork(program);
@@ -211,6 +212,7 @@ const unobservedFiber = Effect.fork(program);
 
 const retryStorm = Effect.all(
   [1, 2, 3].map((value) => Effect.retry(Effect.succeed(value))),
+  { concurrency: "unbounded" },
 );
 
 declare const fs: { readonly readFileSync: (path: string) => string };

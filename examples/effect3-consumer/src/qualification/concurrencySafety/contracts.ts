@@ -8,7 +8,7 @@ import * as loopGood from "./no-fork-in-loop.good";
 for (const program of [allBad.mapped, allGood.mapped]) {
   if ((await Effect.runPromise(program)).join(",") !== "2,4,6") throw new Error("Scheduling repair changed ordered results");
 }
-for (const program of [allBad.opaque, allGood.opaque, allGood.quoted, allGood.storedInput, allGood.explicitUnbounded]) {
+for (const program of [allBad.opaque, allGood.opaque, allGood.quoted, allGood.storedInput, allGood.explicitSequential]) {
   if ((await Effect.runPromise(program)).join(",") !== "1,2,3") throw new Error("Collection control changed values");
 }
 await Effect.runPromise(allBad.discarded);
@@ -31,8 +31,8 @@ for (const cases of [loopBad, loopGood]) {
     if ((await Effect.runPromise(program)).join(",") !== "1,2,3") throw new Error("Loop repair lost results");
   }
 }
-// Deterministic coordination: two workers enter, then the owner opens the gate.
-await Effect.runPromise(Effect.gen(function* () {
+// Deterministic coordination contrasts a budget of two with all three workers.
+for (const [collect, budget] of [[allGood.collect, 2], [allBad.collect, 3]] as const) await Effect.runPromise(Effect.gen(function* () {
   const reached = yield* Deferred.make<void>();
   const release = yield* Deferred.make<void>();
   let active = 0;
@@ -40,23 +40,23 @@ await Effect.runPromise(Effect.gen(function* () {
   const work = (value: number) => Effect.gen(function* () {
     active++;
     peak = Math.max(peak, active);
-    if (active === 2) yield* Deferred.succeed(reached, undefined);
+    if (active === budget) yield* Deferred.succeed(reached, undefined);
     yield* Deferred.await(release);
     return value;
   }).pipe(Effect.ensuring(Effect.sync(() => { active--; })));
-  const fiber = yield* Effect.fork(allGood.collect(work));
+  const fiber = yield* Effect.fork(collect(work));
   yield* Deferred.await(reached);
   const activeCount = () => active;
-  if (activeCount() !== 2) throw new Error("Bounded collection did not reach its budget");
+  if (activeCount() !== budget) throw new Error("Collection did not reach its expected budget");
   yield* Deferred.succeed(release, undefined);
   const values = yield* Fiber.join(fiber);
-  if (peak !== 2 || active !== 0 || values.join(",") !== "1,2,3") throw new Error("Collection budget or teardown changed");
+  if (peak !== budget || active !== 0 || values.join(",") !== "1,2,3") throw new Error("Collection budget or teardown changed");
 }));
-// Omitted options are sequential, despite the explicit-policy diagnostic.
+// Omitted options are sequential and must remain clean under the detector.
 await Effect.runPromise(Effect.gen(function* () {
   let active = 0;
   let peak = 0;
-  const values = yield* allBad.collect(value => Effect.gen(function* () {
+  const values = yield* allGood.collectSequential(value => Effect.gen(function* () {
     active++;
     peak = Math.max(peak, active);
     yield* Effect.yieldNow();

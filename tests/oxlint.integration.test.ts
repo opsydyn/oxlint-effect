@@ -27,6 +27,26 @@ function runOxlint(fileName: string, configFileName = "oxlint.config.ts") {
 }
 
 describe("linteffect oxlint integration", () => {
+  it("retains exact explicitly opted-in style diagnostics", () => {
+    const result = runOxlint("policy-recalibration.ts", "oxlint.policy-style.config.ts");
+    expect(result.status).toBe(1);
+    expect([...result.output.matchAll(/linteffect\(([^)]+)\)/g)].map(match => match[1]).sort()).toEqual([
+      "no-effect-fn-generator", "no-effect-type-alias",
+      "no-manual-effect-channels", "no-manual-effect-channels", "no-manual-effect-channels",
+    ]);
+  });
+  it("reports explicit unbounded budgets but not sequential or opaque controls", () => {
+    const result = runOxlint("concurrency-policy.ts", "oxlint.concurrency-policy.config.ts");
+    expect(result.status).toBe(1);
+    expect([...result.output.matchAll(/linteffect\(([^)]+)\)/g)].map(match => match[1]).sort()).toEqual([
+      "no-unbounded-concurrent-retry", "no-unbounded-effect-all", "no-unbounded-effect-all",
+    ]);
+  });
+  it("accepts traced generator functions and explicit service contracts under recommended", () => {
+    const result = runOxlint("policy-recalibration.ts", "oxlint.policy-recalibration.config.ts");
+    expect(result.output).not.toContain("linteffect(");
+    expect(result.status).toBe(0);
+  });
   it("reports exactly the Resource Lifetime Slice 1 diagnostics", () => {
     const result = runOxlint(
       "resource-lifetime-slice-1.ts",

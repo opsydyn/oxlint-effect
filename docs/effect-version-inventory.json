@@ -192,7 +192,8 @@
     "evidence": [
       "Q06: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-fn-generator.{bad,good}.ts; generators.contracts.ts.",
       "One preserved legacy and two adapted v4 parsed forms. V4 named fn/self-bound gen recognised; unused nested functions excluded. Typed flat/delegated repairs preserve returned values. V4 runtime confirms plain yield executes; diagnostic describes result typing/style. Legacy compiler-negative YieldWrap control retained.",
-      "Direct Effect receiver and inline generators only; legacy direct-first-generator recognition retained. Shared generator helper defaults to legacy shape unless owner explicitly selects its version."
+      "Direct Effect receiver and inline generators only; legacy direct-first-generator recognition retained. Shared generator helper defaults to legacy shape unless owner explicitly selects its version.",
+      "2026-11-16 policy: preserved explicit effectComposition/allRules opt-in; excluded from both recommended/typeAware maps. src/policy-contracts.good.ts and composition.contracts.ts in both packed consumers verify explicit typed service contracts and traced Effect.fn operations; policy-contracts.ts checks values and automatic span names."
     ]
   },
   "no-effect-sync-console": {
@@ -873,7 +874,8 @@
     "evidence": [
       "Q07: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-throw-in-effect-logic.{bad,good}.ts; callbacks.contracts.ts.",
       "3 legacy and 15 v4 parsed warnings including self-bound gen and recovery maps. Own-callback traversal excludes nested unrelated functions. Effect.try/fail repairs preserve payload and original source identity at runtime.",
-      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only."
+      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only.",
+      "2026-11-16 Effect.fn owner regression: anonymous and named generator bodies are inspected for both majors without visiting unexecuted nested functions. Packed policy-contracts.bad.ts verifies the throw diagnostic through recommended after removing the blanket fn ban."
     ]
   },
   "no-or-die-outside-boundary": {
@@ -935,7 +937,8 @@
     "evidence": [
       "Q07: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-try-catch-in-effect-logic.{bad,good}.ts; callbacks.contracts.ts.",
       "3 legacy and 15 v4 parsed warnings including self-bound gen and recovery maps. Own-callback traversal excludes nested unrelated functions. Effect.try/fail repairs preserve payload and original source identity at runtime.",
-      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only."
+      "Shared traversal defaults preserve legacy recursion; v4 policy explicitly selects own callback scope. Literal Effect receiver and inline handlers only.",
+      "2026-11-16 Effect.fn owner regression: anonymous and named generator bodies are inspected for both majors without visiting unexecuted nested functions. Packed policy-contracts.bad.ts verifies the throw diagnostic through recommended after removing the blanket fn ban."
     ]
   },
   "no-promise-api-in-effect-logic": {
@@ -951,7 +954,8 @@
     "evidence": [
       "Q08: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-promise-api-in-effect-logic.{bad,good}.ts; interop.contracts.ts.",
       "13 legacy/25 v4 parsed warnings: inline generator/recovery callbacks, six static APIs, visible then/catch/finally and constructed Promise chains. V4 Effect.catch/unrelated receivers/unused functions clean; v4 unknown receiver aliases are deliberately outside syntax-local chain scope. Legacy chain-name policy retained.",
-      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases."
+      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases.",
+      "2026-11-16 Effect.fn owner regression: anonymous and named generator bodies are inspected for both majors without visiting unexecuted nested functions. Packed policy-contracts.bad.ts verifies the throw diagnostic through recommended after removing the blanket fn ban."
     ]
   },
   "no-try-catch": {
@@ -997,7 +1001,8 @@
     "evidence": [
       "Q08: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-manual-effect-channels.{bad,good}.ts; interop.contracts.ts.",
       "Effect and Layer channel tuple warnings in both majors; inferred repairs typecheck and retain returned value. Exact qualified type-reference syntax, not arbitrary inferred channel checks.",
-      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases."
+      "Typed runtime interop controls preserve values, ordered bounded collection results, tagged recovery payload and original failure identity. Shared callback visitor composition retains per-context import/version isolation, checked by full suite and all earlier packed cases.",
+      "2026-11-16 policy: preserved explicit effectComposition/allRules opt-in; excluded from both recommended/typeAware maps. src/policy-contracts.good.ts and composition.contracts.ts in both packed consumers verify explicit typed service contracts and traced Effect.fn operations; policy-contracts.ts checks values and automatic span names."
     ]
   },
   "no-wrapgraphql-catchall": {
@@ -1118,7 +1123,8 @@
     "evidence": [
       "Q09: examples/effect{3,4}-consumer/qualification-cases.json; src/qualification/effectComposition/no-effect-type-alias.{bad,good}.ts; type-surfaces.contracts.ts.",
       "Direct and nested alias warnings per major; inferred aliases and interface method Effect contracts stay clean. Exact report-node assertion retained.",
-      "Installed Effect channel parameter contracts are unchanged. No detector change needed; inferred value and tagged error payloads retained at runtime."
+      "Installed Effect channel parameter contracts are unchanged. No detector change needed; inferred value and tagged error payloads retained at runtime.",
+      "2026-11-16 policy: preserved explicit effectComposition/allRules opt-in; excluded from both recommended/typeAware maps. src/policy-contracts.good.ts and composition.contracts.ts in both packed consumers verify explicit typed service contracts and traced Effect.fn operations; policy-contracts.ts checks values and automatic span names."
     ]
   },
   "no-public-generic-effect-error": {
@@ -1826,8 +1832,9 @@
       "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noUnboundedEffectAll; transitive helpers: noUnboundedEffectAll, getImportSource, isEffectEcosystemImport, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption",
-      "Q16: unchanged immediate .map input / option-presence contract; five parsed warnings per major (omitted, unrelated, opaque named options, failure and reusable collection). Explicit numeric/quoted options, stored inputs, tuples and explicit unbounded values remain clean by existing scope, not safety proof. Installed defaults and runtime prove serial omission, deterministic Deferred coordination proves repaired budget two, ordered results and failure identity are retained."
+      "src/index.ts: noUnboundedEffectAll; transitive helpers: noUnboundedEffectAll, getImportSource, isEffectEcosystemImport, isUnboundedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, hasUnboundedConcurrencyOption",
+      "Historical Q16 (superseded): unchanged immediate .map input / option-presence contract; five parsed warnings per major (omitted, unrelated, opaque named options, failure and reusable collection). Explicit numeric/quoted options, stored inputs, tuples and explicit unbounded values remain clean by existing scope, not safety proof. Installed defaults and runtime prove serial omission, deterministic Deferred coordination proves repaired budget two, ordered results and failure identity are retained.",
+      "2026-11-16 recalibration: literal unbounded/global Infinity options replace the historical presence check; defaults and finite budgets are clean, property order and shadowed Infinity are covered. Matching packed bad/clean files and runtime contracts preserve values, failure identity, retry attempts and worker budgets."
     ]
   },
   "no-fire-and-forget-fork": {
@@ -1901,8 +1908,9 @@
       "4": "qualified"
     },
     "evidence": [
-      "src/index.ts: noUnboundedConcurrentRetry; transitive helpers: noUnboundedConcurrentRetry, getImportSource, isEffectEcosystemImport, isUnboundedConcurrentRetry, isUnboundedMappedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, isCollectionMapCall, firstArgument, hasConcurrencyOption, isUnboundedEffectForEach, containsEffectMemberCallInSet, retryCalls; Q17: unchanged recognition",
-      "Q17: unchanged immediate mapped-all/forEach inline retry plus option-presence contract; four parsed warnings per pinned major cover direct and piped retry, absent and opaque named options. Explicit options, stored inputs and explicit unbounded values stay clean by existing scope, not boundedness proof. Installed/runtime defaults are sequential; corrected message does not claim absent options launch unlimited work. Repairs retain ordered results, original exhausted failure and two attempts per job. Deferred handshake proves at most two active retry jobs with teardown at zero."
+      "src/index.ts: noUnboundedConcurrentRetry; transitive helpers: noUnboundedConcurrentRetry, getImportSource, isEffectEcosystemImport, isUnboundedConcurrentRetry, isUnboundedEffectAll, isEffectMemberCallNamed, isEffectMemberCall, isIdentifier, hasUnboundedConcurrencyOption, isUnboundedEffectForEach, containsEffectMemberCallInSet, retryCalls; Q17: unchanged recognition",
+      "Historical Q17 (superseded): unchanged immediate mapped-all/forEach inline retry plus option-presence contract; four parsed warnings per pinned major cover direct and piped retry, absent and opaque named options. Explicit options, stored inputs and explicit unbounded values stay clean by existing scope, not boundedness proof. Installed/runtime defaults are sequential; corrected message does not claim absent options launch unlimited work. Repairs retain ordered results, original exhausted failure and two attempts per job. Deferred handshake proves at most two active retry jobs with teardown at zero.",
+      "2026-11-16 recalibration: literal unbounded/global Infinity options replace the historical presence check; defaults and finite budgets are clean, property order and shadowed Infinity are covered. Matching packed bad/clean files and runtime contracts preserve values, failure identity, retry attempts and worker budgets."
     ]
   },
   "no-blocking-call-in-effect": {

@@ -14,7 +14,7 @@ Primary reference:
 
 | Status | Proposed Rule | Reference ID | Default | Risk | Detection |
 | --- | --- | --- | --- | --- | --- |
-| [x] | `linteffect/no-unbounded-effect-all` | `unbounded-parallelism-effect-all` | recommended | low | `Effect.all(items.map(...))` without options containing `concurrency` |
+| [x] | `linteffect/no-unbounded-effect-all` | `unbounded-parallelism-effect-all` | recommended | low | Explicit unbounded/Infinity concurrency on `Effect.all`; sequential omission is clean |
 | [x] | `linteffect/no-fire-and-forget-fork` | `fire-and-forget-forks` | recommended | medium | `Effect.fork(...)` result unused or not joined/awaited/scoped |
 | [x] | `linteffect/no-fork-in-loop` | `forking-inside-loops` | recommended | low | `Effect.fork` inside `for`, `for...of`, `while`, `do` |
 | [x] | `linteffect/no-race-without-cleanup` | `racing-without-handling-losers` | strict | medium | `Effect.race` / `raceAll` operands without `Effect.ensuring` or scoped resource handling |

@@ -3,7 +3,7 @@ import { effectVersionFor, legacyOnlyRules, versionSensitiveRules, withEffectVer
 import type { EffectVersion } from "./effect-version.ts";
 export type { EffectVersion } from "./effect-version.ts";
 import type { RuleOptionsSchema } from "@oxlint/plugins";
-import type { Context as OxlintContext, ESTree } from "@oxlint/plugins";
+import type { Context as OxlintContext, ESTree, Scope } from "@oxlint/plugins";
 
 type Node = {
   type?: string;
@@ -1292,6 +1292,9 @@ function findEffectLogicNode(node: unknown, version: EffectVersion, predicate: (
   const search = version === 3 ? findNode : findOwnCallbackNode;
   const generator = getEffectGeneratorArgument(node, "gen", version);
   if (generator) return search(generator.body, predicate);
+  // Named Effect.fn exists in both majors; retain the legacy gen shape above.
+  const operation = getEffectGeneratorArgument(node, "fn", 4);
+  if (operation) return findOwnCallbackNode(operation.body, predicate);
   for (const callback of effectLogicCallbacks(node, version)) {
     const match = search(callbackBody(callback), predicate);
     if (match) return match;
@@ -1822,7 +1825,7 @@ function hasConcurrencyOne(node: unknown): boolean {
   });
 }
 
-function hasConcurrencyOption(node: unknown): boolean {
+function hasUnboundedConcurrencyOption(node: unknown, context?: OxlintContext): boolean {
   if (!isObjectValue(node)) {
     return false;
   }
@@ -1832,40 +1835,28 @@ function hasConcurrencyOption(node: unknown): boolean {
     return false;
   }
 
-  return object.properties.some((entry) => {
-    if (!isObjectValue(entry)) {
-      return false;
+  // Later properties win; an opaque spread/computed key may replace the budget.
+  for (let index = object.properties.length - 1; index >= 0; index--) {
+    const entry = object.properties[index] as Node;
+    const key = entry.key as Node | undefined;
+    if (entry.type === "SpreadElement" || (entry.computed && typeof key?.value !== "string")) return false;
+    if (!isIdentifier(key, "concurrency") && key?.value !== "concurrency") continue;
+    const value = entry.value as Node | undefined;
+    if (isIdentifier(value, "Infinity") && context?.sourceCode?.getScope) {
+      for (let scope: Scope | null = context.sourceCode.getScope(value as unknown as ESTree.Node); scope; scope = scope.upper) {
+        const binding = scope.set.get("Infinity");
+        if (binding) return binding.defs.length === 0;
+      }
     }
-
-    const key = (entry as Node).key;
-    return (
-      isIdentifier(key, "concurrency") ||
-      (isObjectValue(key) && (key as Node).value === "concurrency")
-    );
-  });
-}
-
-function isCollectionMapCall(node: unknown): boolean {
-  if (!isObjectValue(node)) {
-    return false;
+    return isIdentifier(value, "Infinity") || value?.value === "unbounded" || value?.value === Infinity;
   }
-
-  const call = node as Node;
-  return (
-    call.type === "CallExpression" &&
-    typeof call.callee === "object" &&
-    call.callee !== null &&
-    (call.callee as Node).type === "MemberExpression" &&
-    (call.callee as Node).computed !== true &&
-    isIdentifier((call.callee as Node).property, "map")
-  );
+  return false;
 }
 
-function isUnboundedMappedEffectAll(node: unknown): boolean {
+function isUnboundedEffectAll(node: unknown, context?: OxlintContext): boolean {
   return (
     isEffectMemberCallNamed(node, "all") &&
-    isCollectionMapCall(firstArgument(node)) &&
-    !hasConcurrencyOption((node as Node & { arguments: unknown[] }).arguments[1])
+    hasUnboundedConcurrencyOption((node as Node & { arguments: unknown[] }).arguments[1], context)
   );
 }
 
@@ -2181,18 +2172,18 @@ function isEffectRaceWithoutCleanup(node: unknown, version: EffectVersion = 3): 
   return !containsEffectMemberCallInSet((node as Node & { arguments: unknown[] }).arguments, raceCleanupCalls);
 }
 
-function isUnboundedEffectForEach(node: unknown): boolean {
+function isUnboundedEffectForEach(node: unknown, context?: OxlintContext): boolean {
   return (
     isEffectMemberCallNamed(node, "forEach") &&
-    !hasConcurrencyOption((node as Node & { arguments: unknown[] }).arguments[2])
+    hasUnboundedConcurrencyOption((node as Node & { arguments: unknown[] }).arguments.at(-1), context)
   );
 }
 
 const retryCalls = new Set(["retry"]);
 
-function isUnboundedConcurrentRetry(node: unknown): boolean {
+function isUnboundedConcurrentRetry(node: unknown, context?: OxlintContext): boolean {
   return (
-    (isUnboundedMappedEffectAll(node) || isUnboundedEffectForEach(node)) &&
+    (isUnboundedEffectAll(node, context) || isUnboundedEffectForEach(node, context)) &&
     containsEffectMemberCallInSet((node as Node & { arguments: unknown[] }).arguments, retryCalls)
   );
 }
@@ -4714,7 +4705,7 @@ const noReturnInCallback = defineRule({
 
 const noEffectFnGenerator = createVersionedEffectCallbackRule(
   (node, version) => isEffectGeneratorCall(node, "fn", version) ? node : undefined,
-  () => "Rule: avoid Effect.fn generator wrappers. Why: they hide sequencing and dodge ladder rules. Fix: keep a single flat pipeline or use one Effect.gen.",
+  () => "Rule: avoid Effect.fn generator wrappers under this opt-in style policy. Fix: disable this rule for traced operations, or use Effect.gen.",
 );
 
 const noEffectSyncConsole = createVersionedEffectCallbackRule(
@@ -5543,7 +5534,7 @@ const noManualEffectChannels = defineRule({
           report(
             context,
             node,
-            "Rule: avoid manual Effect channel tuples (`Effect.Effect<...>` / `Layer.Layer<...>`). Why: channels compose through the Effect pipeline and services; hand-written tuples desync from the real flow. Fix: drop the generic and let the return type infer from the Effect/Layer you return, or expose a service method that returns the effect directly.",
+            "Rule: avoid manual Effect channel tuples under this opt-in inference-only policy. Explicit Effect/Layer types are valid contracts; disable this rule to retain them.",
           );
         }
       },
@@ -5656,7 +5647,7 @@ const noEffectTypeAlias = defineRule({
           report(
             context,
             node.typeAnnotation,
-            "Rule: avoid Effect.Effect type aliases. Why: they hide the service surface and make types opaque. Fix: keep Effect types on service methods or inline at the call site.",
+            "Rule: avoid Effect.Effect type aliases under this opt-in style policy. Explicit aliases are valid; disable this rule to retain public contracts.",
           );
         }
       },
@@ -6643,8 +6634,8 @@ const noEffectOrElseLadder = defineRule({
 });
 
 const noUnboundedEffectAll = createVersionedEffectCallbackRule(
-  (node) => isUnboundedMappedEffectAll(node) ? node : undefined,
-  (version) => "Rule: avoid unbounded Effect.all policies over mapped collections. Why: an explicit concurrency option makes scheduling policy visible; omission defaults to sequential execution, not unlimited parallelism. Fix: pass an explicit `{ concurrency: n }` option or use a bounded batching strategy.",
+  (node, _version, context) => isUnboundedEffectAll(node, context) ? node : undefined,
+  () => "Rule: avoid unbounded Effect.all concurrency. Fix: use a finite concurrency budget or omit the option for sequential execution.",
 );
 
 const noFireAndForgetFork = defineRule({
@@ -6802,8 +6793,8 @@ const noUnobservedFiber = defineRule({
 });
 
 const noUnboundedConcurrentRetry = createVersionedEffectCallbackRule(
-  node => isUnboundedConcurrentRetry(node) ? node : undefined,
-  () => "Rule: avoid unbounded concurrent retry policies. Why: inline retries need an explicit collection scheduling policy; omitted concurrency defaults to sequential execution, not unlimited parallelism. Fix: add an explicit concurrency limit and a bounded retry/backoff policy. This heuristic checks option presence, not its bound or retry count.",
+  (node, _version, context) => isUnboundedConcurrentRetry(node, context) ? node : undefined,
+  () => "Rule: avoid unbounded concurrent retry policies. Fix: use finite collection concurrency and bound retry/backoff separately.",
 );
 const noBlockingCallInEffect = createVersionedEffectCallbackRule(
   findBlockingSyncCallInEffectLogic,
@@ -7808,12 +7799,19 @@ const strictResourceLifetimeRuleNames = [
   "no-missing-layer-provision-at-run",
 ] as const satisfies readonly RuleName[];
 
+const strictEffectCompositionRuleNames = [
+  "no-effect-fn-generator",
+  "no-manual-effect-channels",
+  "no-effect-type-alias",
+] as const satisfies readonly RuleName[];
+
 type StrictRuleName = StrictTestingObservabilityAndQaRuleName |
   typeof strictConcurrencySafetyRuleNames[number] |
   typeof strictErrorModelingRuleNames[number] |
   typeof strictEffectFlowRuleNames[number] |
   typeof strictPureTransformationRuleNames[number] |
-  typeof strictResourceLifetimeRuleNames[number];
+  typeof strictResourceLifetimeRuleNames[number] |
+  typeof strictEffectCompositionRuleNames[number];
 
 export type EffectRuleOptions = {
   effectVersion?: EffectVersion;
@@ -8059,6 +8057,7 @@ function createVersionedConfigurations<const V extends EffectVersion>(version: V
     ...strictEffectFlowRuleNames,
     ...strictPureTransformationRuleNames,
     ...strictResourceLifetimeRuleNames,
+    ...strictEffectCompositionRuleNames,
     ...dddErrorModelingRuleNames,
     "no-resource-succeed-escape",
   ] as readonly RuleName[];

@@ -1090,13 +1090,12 @@
     "version": 4,
     "classification": "unchanged",
     "variants": [
-      "absent options",
-      "unrelated options",
-      "named options limit",
-      "mapped failures",
-      "explicit budget",
-      "stored inputs and tuple scope",
-      "option-presence limit"
+      "mapped input with literal unbounded budget",
+      "global Infinity and discard",
+      "stored input with unbounded budget",
+      "ordered values and original failure identity",
+      "sequential 1, bounded 2 and unbounded 3 runtime peaks",
+      "opaque overrides and locally shadowed Infinity clean"
     ],
     "bad": [
       "src/qualification/concurrencySafety/no-unbounded-effect-all.bad.ts"
@@ -1227,12 +1226,11 @@
     "version": 4,
     "classification": "unchanged",
     "variants": [
-      "mapped all",
-      "forEach",
-      "piped retry",
-      "named options limit",
-      "explicit collection and retry budgets",
-      "option-presence and stored input limits"
+      "explicit unbounded all and forEach",
+      "piped retry with global Infinity",
+      "sequential and finite budgets clean",
+      "opaque budget scope limit",
+      "ordered values, original failure identity and retry attempts"
     ],
     "bad": [
       "src/qualification/concurrencySafety/no-unbounded-concurrent-retry.bad.ts"

@@ -52,6 +52,59 @@ function runRuleSequence(
 const identifier = (name: string) => ({ type: "Identifier", name });
 
 describe("versioned runners", () => {
+  it("checks unsafe bodies of supported Effect.fn generators without banning the function form", () => {
+    for (const major of [3, 4]) {
+      for (const [rule, statement] of [
+        ["no-throw-in-effect-logic", { type: "ThrowStatement", argument: identifier("error") }],
+        ["no-try-catch-in-effect-logic", { type: "TryStatement", block: blockStatement(), handler: { type: "CatchClause", body: blockStatement() } }],
+        ["no-promise-api-in-effect-logic", expressionStatement(callExpression(memberExpression("Promise", "resolve"), numericLiteral(42)))],
+      ] as const) {
+        const body = generatorCallback(blockStatement(statement));
+        for (const node of [effectCall("fn", body), callExpression(effectCall("fn", stringLiteral("operation")), body)]) {
+          const reports = runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
+          expect(reports).toHaveLength(1);
+        }
+        const nested = effectCall("fn", generatorCallback(blockStatement(expressionStatement(arrowCallback(blockStatement(statement))))));
+        expect(runRuleSequence(rule, [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node: nested }], { options: [{ effectVersion: major }] })).toHaveLength(0);
+      }
+    }
+  });
+  it("distinguishes explicit unbounded scheduling from the sequential default", () => {
+    const mapped = callExpression(memberExpression("items", "map"), identifier("work"));
+    for (const major of [3, 4]) {
+      const inspect = (node: unknown) => runRuleSequence("no-unbounded-effect-all", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node },
+      ], { options: [{ effectVersion: major }] });
+      expect(inspect(effectCall("all", mapped))).toHaveLength(0);
+      for (const value of [stringLiteral("unbounded"), identifier("Infinity"), numericLiteral(Infinity)]) {
+        const call = effectCall("all", mapped, objectLiteral(property("concurrency", value)));
+        expect(inspect(call)[0]?.node).toBe(call);
+      }
+      for (const value of [numericLiteral(1), numericLiteral(4), identifier("budget")]) {
+        expect(inspect(effectCall("all", mapped, objectLiteral(property("concurrency", value))))).toHaveLength(0);
+      }
+      expect(inspect(effectCall("all", mapped, identifier("options")))).toHaveLength(0);
+      expect(inspect(effectCall("all", mapped, objectLiteral(property("concurrency", stringLiteral("unbounded")), { type: "Property", computed: true, key: { type: "BinaryExpression" }, value: numericLiteral(2) })))).toHaveLength(0);
+      expect(inspect(effectCall("all", mapped, objectLiteral(property("concurrency", stringLiteral("unbounded")), { type: "SpreadElement", argument: identifier("overrides") })))).toHaveLength(0);
+      expect(inspect(effectCall("all", mapped, objectLiteral(property("concurrency", stringLiteral("unbounded")), property("concurrency", numericLiteral(2)))))).toHaveLength(0);
+      const last = effectCall("all", mapped, objectLiteral({ type: "SpreadElement", argument: identifier("defaults") }, property("concurrency", stringLiteral("unbounded"))));
+      expect(inspect(last)[0]?.node).toBe(last);
+    }
+  });
+  it("only flags retry amplification with a visibly unbounded collection budget", () => {
+    const work = arrowCallback(effectCall("retry", identifier("task")));
+    for (const rule of ["all", "forEach"]) {
+      const args = rule === "all" ? [callExpression(memberExpression("items", "map"), work)] : [identifier("items"), work];
+      const inspect = (options?: unknown) => runRuleSequence("no-unbounded-concurrent-retry", [
+        { visitorName: "ImportDeclaration", node: importFrom("effect") },
+        { visitorName: "CallExpression", node: effectCall(rule, ...args, ...(options ? [options] : [])) },
+      ]);
+      expect(inspect()).toHaveLength(0);
+      expect(inspect(objectLiteral(property("concurrency", numericLiteral(2))))).toHaveLength(0);
+      expect(inspect(objectLiteral(property("concurrency", stringLiteral("unbounded"))))).toHaveLength(1);
+    }
+  });
   it("closure review counts eager workflow operators only under current policy", () => {
     for (const [name, expected] of [["flatMapEager", [0, 1]], ["zipRight", [1, 0]]] as const) {
       for (const [index, version] of [3, 4].entries()) {
@@ -6457,7 +6510,7 @@ describe("linteffect Oxlint plugin", () => {
     });
   });
 
-  it("catches unbounded Effect.all over mapped collections", () => {
+  it("catches explicit unbounded Effect.all over mapped collections", () => {
     const reports = runRuleSequence("no-unbounded-effect-all", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       {
@@ -6465,6 +6518,7 @@ describe("linteffect Oxlint plugin", () => {
         node: effectCall(
           "all",
           callExpression(memberExpression("items", "map"), arrowCallback(effectCall("succeed", identifier("value")))),
+          objectLiteral(property("concurrency", stringLiteral("unbounded"))),
         ),
       },
     ]);
@@ -7645,6 +7699,7 @@ describe("linteffect Oxlint plugin", () => {
             memberExpression("items", "map"),
             arrowCallback(effectCall("retry", effectCall("succeed", identifier("value")))),
           ),
+          objectLiteral(property("concurrency", stringLiteral("unbounded"))),
         ),
       },
     ]);
