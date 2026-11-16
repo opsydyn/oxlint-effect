@@ -2131,47 +2131,6 @@ const raceCleanupCalls = new Set([
 
 const v4RaceMembers = new Set(["race", "raceAll", "raceFirst", "raceAllFirst"]);
 
-function isV4RaceMember(node: unknown): boolean {
-  return [...v4RaceMembers].some(name => isEffectMemberCallNamed(node, name) || isEffectMemberExpressionNamed(node, name));
-}
-
-function v4RaceConstruction(node: unknown): boolean {
-  if (!isObjectValue(node) || (node as Node).type !== "CallExpression") return false;
-  return isV4RaceMember(node) || isV4RaceMember((node as Node).callee) ||
-    (isPipeCall(node) && isV4RaceMember(((node as Node).arguments as unknown[] | undefined)?.at(-1)));
-}
-
-function isEffectRaceWithoutCleanup(node: unknown, version: EffectVersion = 3): boolean {
-  if (version === 4) {
-    if (!v4RaceConstruction(node)) return false;
-    const parent = (node as Node).parent;
-    if (isObjectValue(parent) && v4RaceConstruction(parent) &&
-      ((parent as Node).callee === node || (isPipeCall(parent) && ((parent as Node).arguments as unknown[] | undefined)?.at(-1) === node))) return false;
-    const hasCleanup = (value: unknown) => findNode(value, candidate => [...raceCleanupCalls].some(name =>
-      isEffectMemberCallNamed(candidate, name) || isEffectMemberExpressionNamed(candidate, name))) !== undefined;
-    if (hasCleanup((node as Node).arguments) || hasCleanup(((node as Node).callee as Node | undefined)?.arguments)) return false;
-    let current = parent;
-    const seen = new WeakSet<object>();
-    while (isObjectValue(current) && !seen.has(current)) {
-      seen.add(current);
-      if (isFunctionLike(current) &&
-        getEffectGeneratorArgument((current as Node).parent, "gen", 4) !== current &&
-        getEffectGeneratorArgument((current as Node).parent, "fn", 4) !== current &&
-        !(isEffectMemberCallNamed((current as Node).parent, "acquireUseRelease") &&
-          (((current as Node).parent as Node).arguments as unknown[] | undefined)?.[1] === current)) break;
-      if (isEffectMemberCall(current) && raceCleanupCalls.has(((current.callee as Node).property as Node).name as string)) return false;
-      if (isPipeCall(current) && hasCleanup((current as Node).arguments)) return false;
-      current = (current as Node).parent;
-    }
-    return true;
-  }
-  if (!isEffectMemberCallNamed(node, "race") && !isEffectMemberCallNamed(node, "raceAll")) {
-    return false;
-  }
-
-  return !containsEffectMemberCallInSet((node as Node & { arguments: unknown[] }).arguments, raceCleanupCalls);
-}
-
 function isUnboundedEffectForEach(node: unknown, context?: OxlintContext): boolean {
   return (
     isEffectMemberCallNamed(node, "forEach") &&
@@ -2208,42 +2167,6 @@ function variableDeclarationIdentifierNames(node: unknown): string[] {
   });
 }
 
-function collectDeclaredIdentifierNames(
-  node: unknown,
-  names = new Set<string>(),
-  seen = new WeakSet<object>(),
-): Set<string> {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      collectDeclaredIdentifierNames(child, names, seen);
-    }
-    return names;
-  }
-
-  if (!isObjectValue(node)) {
-    return names;
-  }
-
-  if (seen.has(node)) {
-    return names;
-  }
-  seen.add(node);
-
-  if ((node as Node).type === "VariableDeclaration") {
-    for (const name of variableDeclarationIdentifierNames(node)) {
-      names.add(name);
-    }
-  }
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key !== "parent") {
-      collectDeclaredIdentifierNames(child, names, seen);
-    }
-  }
-
-  return names;
-}
-
 const mutatingCollectionMethods = new Set([
   "add",
   "clear",
@@ -2257,106 +2180,6 @@ const mutatingCollectionMethods = new Set([
   "splice",
   "unshift",
 ]);
-
-function mutatedIdentifierName(node: unknown): string | undefined {
-  if (!isObjectValue(node)) {
-    return undefined;
-  }
-
-  const candidate = node as Node;
-  if (
-    candidate.type === "AssignmentExpression" &&
-    isIdentifier(candidate.left)
-  ) {
-    return candidate.left.name;
-  }
-
-  if (
-    candidate.type === "UpdateExpression" &&
-    isIdentifier(candidate.argument)
-  ) {
-    return candidate.argument.name;
-  }
-
-  if (
-    candidate.type === "CallExpression" &&
-    typeof candidate.callee === "object" &&
-    candidate.callee !== null &&
-    (candidate.callee as Node).type === "MemberExpression" &&
-    (candidate.callee as Node).computed !== true &&
-    isIdentifier((candidate.callee as Node).object) &&
-    isIdentifier((candidate.callee as Node).property) &&
-    mutatingCollectionMethods.has(((candidate.callee as Node).property as { name: string }).name)
-  ) {
-    return ((candidate.callee as Node).object as { name: string }).name;
-  }
-
-  return undefined;
-}
-
-function findSharedMutableStateMutation(
-  node: unknown,
-  mutableNames: ReadonlySet<string>,
-  localNames = collectDeclaredIdentifierNames(node),
-  seen = new WeakSet<object>(),
-): unknown | undefined {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      const match = findSharedMutableStateMutation(child, mutableNames, localNames, seen);
-      if (match) {
-        return match;
-      }
-    }
-    return undefined;
-  }
-
-  if (!isObjectValue(node)) {
-    return undefined;
-  }
-
-  if (seen.has(node)) {
-    return undefined;
-  }
-  seen.add(node);
-
-  const mutatedName = mutatedIdentifierName(node);
-  if (mutatedName && mutableNames.has(mutatedName) && !localNames.has(mutatedName)) {
-    return node;
-  }
-
-  for (const [key, child] of Object.entries(node)) {
-    if (key === "parent") {
-      continue;
-    }
-
-    const match = findSharedMutableStateMutation(child, mutableNames, localNames, seen);
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-}
-
-function concurrentEffectWorkNode(node: unknown): unknown | undefined {
-  if (
-    isEffectMemberCallNamed(node, "fork") ||
-    isEffectMemberCallNamed(node, "all") ||
-    isEffectMemberCallNamed(node, "forEach")
-  ) {
-    return (node as Node & { arguments: unknown[] }).arguments;
-  }
-
-  return undefined;
-}
-
-function v4SharedStateWork(node: unknown): unknown | undefined {
-  if (isEffectMemberCallNamed(node, "all") || isEffectMemberCallNamed(node, "forEach")) return (node as Node).arguments;
-  if (!v4ForkConstruction(node)) return undefined;
-  if (!isPipeCall(node)) return firstArgument(node as Node & { arguments: unknown[] });
-  const receiver = ((node as Node).callee as Node).object;
-  return isIdentifier((node as Node).callee, "pipe") ? firstArgument(node as Node & { arguments: unknown[] }) : receiver;
-}
 
 function nodeWithin(node: unknown, owner: unknown): boolean {
   if (Array.isArray(owner)) return owner.some(entry => nodeWithin(node, entry));
@@ -2379,10 +2202,17 @@ function mutationAtReference(reference: unknown): unknown | undefined {
   return undefined;
 }
 
-function lexicalWorkMutation(work: unknown, variables: ReturnType<OxlintContext["sourceCode"]["getDeclaredVariables"]>): unknown | undefined {
+function lexicalWorkMutation(work: unknown, variables: ReturnType<OxlintContext["sourceCode"]["getDeclaredVariables"]>, context: OxlintContext): unknown | undefined {
   for (const variable of variables) {
     if (variable.identifiers.some(identifier => nodeWithin(identifier, work))) continue;
-    const mutation = variable.references.map(reference => mutationAtReference(reference.identifier)).find(node => node && nodeWithin(node, work));
+    const mutation = variable.references.map(reference => mutationAtReference(reference.identifier)).find(node => {
+      if (!node || !nodeWithin(node, work)) return false;
+      for (let current = node as Node | undefined; current; current = current.parent as Node | undefined) {
+        if (Array.isArray(work) ? work.includes(current) : current === work) return true;
+        if (isFunctionLike(current) && !inlineConcurrencyCallback(current, context)) return false;
+      }
+      return false;
+    });
     if (mutation) return mutation;
   }
   return undefined;
@@ -6705,26 +6535,129 @@ const noForkInLoop = defineRule({
   },
 });
 
+// Resolve only actual value imports. Other rules retain their existing syntax policy.
+function concurrencyApi(node: unknown, context: OxlintContext): string | undefined {
+  if (!isObjectValue(node)) return undefined;
+  if (node.type === "MemberExpression" && node.computed !== true && isIdentifier(node.property)) {
+    const owner = concurrencyApi(node.object, context);
+    return owner === "Effect" ? node.property.name : owner === "package" && node.property.name === "Effect" ? "Effect" : undefined;
+  }
+  if (!isIdentifier(node)) return undefined;
+  if (!context.sourceCode?.getScope) return node.name === "Effect" || node.name === "pipe" ? node.name : undefined;
+  for (let scope: Scope | null = context.sourceCode.getScope(node as unknown as ESTree.Node); scope; scope = scope.upper) {
+    const variable = scope.set.get(node.name);
+    if (!variable) continue;
+    const definition = variable.defs[0];
+    if (variable.defs.length !== 1 || definition?.type !== "ImportBinding") return undefined;
+    const specifier = definition.node as unknown as Node;
+    const declaration = definition.parent as unknown as Node;
+    if (specifier.importKind === "type" || declaration.importKind === "type") return undefined;
+    const source = getImportSource(declaration);
+    if (source !== "effect" && source !== "effect/Effect") return undefined;
+    if (specifier.type === "ImportNamespaceSpecifier") return source === "effect" ? "package" : "Effect";
+    if (specifier.type !== "ImportSpecifier") return undefined;
+    const imported = specifier.imported as Node;
+    const name = imported.name ?? imported.value;
+    return typeof name === "string" && (source === "effect/Effect" || name === "Effect" || name === "pipe") ? name : undefined;
+  }
+  return undefined;
+}
+
+function concurrencyPipe(node: Node, context: OxlintContext): boolean {
+  const callee = node.callee as Node | undefined;
+  return node.type === "CallExpression" && (concurrencyApi(callee, context) === "pipe" ||
+    (callee?.type === "MemberExpression" && callee.computed !== true && isIdentifier(callee.property, "pipe")));
+}
+
+function concurrencyConstruction(node: unknown, context: OxlintContext): { name: string; args: unknown[] } | undefined {
+  if (!isObjectValue(node) || node.type !== "CallExpression") return undefined;
+  const callee = node.callee as Node;
+  const args = node.arguments as unknown[];
+  const direct = concurrencyApi(callee, context);
+  if (direct && direct !== "pipe") return { name: direct, args };
+  if (concurrencyPipe(node, context)) {
+    const operator = args.at(-1) as Node | undefined;
+    const name = concurrencyApi(operator?.type === "CallExpression" ? operator.callee : operator, context);
+    if (!name) return undefined;
+    const source = concurrencyApi(callee, context) === "pipe" ? args[0] : callee.object;
+    return { name, args: [source, ...((operator?.arguments as unknown[] | undefined) ?? [])] };
+  }
+  if (callee?.type === "CallExpression") {
+    const name = concurrencyApi(callee.callee, context);
+    if (name) return { name, args: [...args, ...(callee.arguments as unknown[])] };
+  }
+  return undefined;
+}
+
+function consumedConcurrencyOperator(node: Node, context: OxlintContext): boolean {
+  const parent = node.parent as Node | undefined;
+  return parent?.type === "CallExpression" &&
+    (parent.callee === node || (concurrencyPipe(parent, context) && (parent.arguments as unknown[]).at(-1) === node));
+}
+
+function visibleParallelCollection(options: unknown, context: OxlintContext): boolean {
+  if (hasUnboundedConcurrencyOption(options, context)) return true;
+  if (!isObjectValue(options) || options.type !== "ObjectExpression") return false;
+  const properties = options.properties as Node[];
+  for (let index = properties.length - 1; index >= 0; index--) {
+    const property = properties[index];
+    const key = property.key as Node | undefined;
+    if (property.type === "SpreadElement" || (property.computed && typeof key?.value !== "string")) return false;
+    if (!isIdentifier(key, "concurrency") && key?.value !== "concurrency") continue;
+    const value = property.value as Node | undefined;
+    return typeof value?.value === "number" && value.value > 1;
+  }
+  return false;
+}
+
+function inlineConcurrencyCallback(node: Node, context: OxlintContext): boolean {
+  const owner = node.parent as Node | undefined;
+  const name = concurrencyApi(owner?.callee, context);
+  return owner?.type === "CallExpression" && (
+    ["sync", "suspend", "gen", "fn", "flatMap", "flatMapEager", "map", "try", "tryPromise", "promise", "forEach", "acquireUseRelease"].includes(name ?? "") ||
+    (owner.callee as Node)?.type === "CallExpression" && concurrencyApi(((owner.callee as Node).callee), context) === "fn" ||
+    isMemberExpressionNode(owner.callee) && isIdentifier((owner.callee as Node).property, "map")
+  );
+}
+
+function concurrencyResourceUnowned(acquisition: Node, race: Node, context: OxlintContext): boolean {
+  for (let current: Node | undefined = acquisition; current; current = current.parent as Node | undefined) {
+    if (isFunctionLike(current) && !inlineConcurrencyCallback(current, context)) return false;
+    const construction = concurrencyConstruction(current, context);
+    if (construction && raceCleanupCalls.has(construction.name)) return false;
+    // A sibling branch's finalizer is not ownership for this acquisition.
+    if (current === race) {
+      for (let owner = race.parent as Node | undefined; owner; owner = owner.parent as Node | undefined) {
+        if (isFunctionLike(owner) && !inlineConcurrencyCallback(owner, context)) break;
+        const wrapper = concurrencyConstruction(owner, context);
+        if (wrapper && raceCleanupCalls.has(wrapper.name)) return false;
+      }
+      return true;
+    }
+  }
+  return true;
+}
+
 const noRaceWithoutCleanup = defineRule({
   create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-
     return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
       CallExpression(node: any) {
         const version = effectVersionFor(context.options);
-        if (hasEffectEcosystemImport && isEffectRaceWithoutCleanup(node, version)) {
+        const race = concurrencyConstruction(node, context);
+        if (race && (v4RaceMembers.has(race.name) && (version === 4 || race.name !== "raceAllFirst")) &&
+          !consumedConcurrencyOperator(node, context) &&
+          findNodes(race.args.slice(0, race.name === "raceAll" || race.name === "raceAllFirst" ? 1 : 2), candidate => {
+            if (resourceAcquisitionCall(candidate)) return true;
+            if (!isResourceLikeConstruction(candidate)) return false;
+            const callee = (candidate as Node).callee as Node;
+            const name = isIdentifier(callee) ? callee.name : ((callee.property as Node).name as string);
+            return !/(?:Error|Exception)$/.test(name);
+          })
+            .some(acquisition => concurrencyResourceUnowned(acquisition as Node, node, context))) {
           report(
             context,
             node,
-            version === 3
-              ? "Rule: avoid Effect.race without loser cleanup. Why: racing effects without ensuring/scoped cleanup can leak losing work or resources. Fix: wrap raced effects with Effect.ensuring/acquireRelease or use a scoped race boundary."
-              : "Rule: require visible cleanup ownership around Effect races. Why: race operators interrupt losers, but resource release still needs a finalizer or scope. Fix: expose ensuring/acquireRelease or a scoped race boundary; race/raceAll select success, raceFirst/raceAllFirst select first completion.",
+            "Rule: require cleanup for visible race acquisitions. Why: interruption cannot release a manually acquired resource. Fix: use acquireRelease/acquireUseRelease or ensuring on its branch. Pure/opaque tasks need no dummy finalizer; syntax is not proof of release.",
           );
         }
       },
@@ -6806,70 +6739,40 @@ const noPromiseConcurrencyInEffect = createVersionedEffectCallbackRule(
   version => `Rule: avoid Promise concurrency APIs inside Effect logic. Why: raw Promise aggregation does not own interruption of its underlying operations. Fix: use bounded Effect.all/forEach, Effect.${version === 4 ? "result" : "either"} for settled outcomes, raceFirst for first completion or race for first success, with signal-aware boundary adapters. Preserve application error semantics explicitly.`,
 );
 
-const noSharedMutableStateAcrossFibers = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const mutableNames = new Set<string>();
-    const declarations: any[] = [];
-    const workNodes: unknown[] = [];
+function createConcurrentMutationRule(globalOnly: boolean) {
+  return defineRule({
+    create(context: OxlintContext) {
+      const declarations: any[] = [];
+      const workNodes: unknown[] = [];
+      return {
+        VariableDeclaration(node: any) {
+          if (mutableGlobalDeclarationNames(node).length) declarations.push(node);
+        },
+        CallExpression(node: any) {
+          const work = concurrencyConstruction(node, context);
+          if (!work || consumedConcurrencyOperator(node, context)) return;
+          if (work.name === "all" || work.name === "forEach") {
+            const offset = work.name === "all" ? 1 : 2;
+            if (visibleParallelCollection(work.args[offset], context)) workNodes.push(work.args.slice(0, offset));
+          } else if ((effectVersionFor(context.options) === 3 ? ["fork"] : ["forkChild", "forkDetach"]).includes(work.name)) {
+            workNodes.push(work.args[0]);
+          }
+        },
+        "Program:exit"() {
+          const variables = declarations.flatMap(node => context.sourceCode.getDeclaredVariables(node).filter(variable =>
+            mutableGlobalDeclarationNames(node).includes(variable.name) &&
+            (!globalOnly || variable.scope.type === "module" || variable.scope.type === "global")));
+          for (const work of workNodes) {
+            const mutation = lexicalWorkMutation(work, variables, context);
+            if (mutation) report(context, mutation, `Rule: avoid ${globalOnly ? "global mutable concurrency state" : "mutating shared state across fibers"}. Why: shared writes couple parallel workers. Fix: use atomic Ref updates or immutable results. Sequential collections stay clean; unknown budgets are not safety proof.`);
+          }
+        },
+      };
+    },
+  });
+}
 
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      VariableDeclaration(node: any) {
-        if (node.kind !== "let" && node.kind !== "var") {
-          return;
-        }
-
-        if (effectVersionFor(context.options) === 4) {
-          declarations.push(node);
-          return;
-        }
-
-        for (const name of variableDeclarationIdentifierNames(node)) {
-          mutableNames.add(name);
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        if (effectVersionFor(context.options) === 4) {
-          const work = v4SharedStateWork(node);
-          if (work) workNodes.push(work);
-          return;
-        }
-
-        const workNode = concurrentEffectWorkNode(node);
-        if (!workNode) {
-          return;
-        }
-
-        const mutationNode = findSharedMutableStateMutation(workNode, mutableNames);
-        if (mutationNode) {
-          report(
-            context,
-            mutationNode,
-            "Rule: avoid mutating shared state across fibers. Why: outer let/var state mutated from forked or parallel work creates nondeterministic races. Fix: model shared state with Ref/SynchronizedRef/Queue or aggregate immutable results with bounded Effect.all/forEach.",
-          );
-        }
-      },
-      "Program:exit"() {
-        if (!hasEffectEcosystemImport || effectVersionFor(context.options) !== 4) return;
-        const variables = declarations.flatMap(node => context.sourceCode.getDeclaredVariables(node));
-        for (const work of workNodes) {
-          const mutation = lexicalWorkMutation(work, variables);
-          if (mutation) report(context, mutation, "Rule: avoid mutating shared state across fibers. Why: outer let/var writes in child/detached or collection work couple workers through mutable state. Fix: use Ref updates or aggregate immutable results. This checks lexical inline work, not execution or a proven data race; collections default to sequential execution.");
-        }
-      },
-    };
-  },
-});
+const noSharedMutableStateAcrossFibers = createConcurrentMutationRule(false);
 
 const noTimeoutWithNoninterruptiblePromise = createVersionedEffectCallbackRule(
   noninterruptiblePromiseTimeoutNode,
@@ -6884,62 +6787,7 @@ const noUnboundedQueueOrPubSub = createVersionedEffectCallbackRule(
   () => "Rule: avoid unbounded Queue or PubSub constructors. Why: unbounded buffers hide backpressure and can fail under load. Fix: use Queue.bounded / PubSub.bounded with an explicit capacity at the owning boundary.",
 );
 
-const noGlobalMutableConcurrencyState = defineRule({
-  create(context: OxlintContext) {
-    let hasEffectEcosystemImport = false;
-    const globalMutableNames = new Set<string>();
-    const declarations: any[] = [];
-    const workNodes: unknown[] = [];
-
-    return {
-      ImportDeclaration(node: any) {
-        const source = getImportSource(node);
-        if (source && isEffectEcosystemImport(source)) {
-          hasEffectEcosystemImport = true;
-        }
-      },
-      VariableDeclaration(node: any) {
-        if (effectVersionFor(context.options) === 4) { declarations.push(node); return; }
-        for (const name of mutableGlobalDeclarationNames(node)) {
-          globalMutableNames.add(name);
-        }
-      },
-      CallExpression(node: any) {
-        if (!hasEffectEcosystemImport) {
-          return;
-        }
-
-        if (effectVersionFor(context.options) === 4) {
-          const work = v4SharedStateWork(node);
-          if (work) workNodes.push(work);
-          return;
-        }
-        const workNode = concurrentEffectWorkNode(node);
-        if (!workNode) {
-          return;
-        }
-
-        const mutationNode = findSharedMutableStateMutation(workNode, globalMutableNames);
-        if (mutationNode) {
-          report(
-            context,
-            mutationNode,
-            "Rule: avoid global mutable concurrency state. Why: module-scope mutable state touched from concurrent Effect work behaves like shared mutable global state. Fix: move ownership into Ref/SynchronizedRef/Queue/Layer state or pass immutable values through bounded effects.",
-          );
-        }
-      },
-      "Program:exit"() {
-        if (!hasEffectEcosystemImport || effectVersionFor(context.options) !== 4) return;
-        const variables = declarations.flatMap(node => context.sourceCode.getDeclaredVariables(node).filter(variable =>
-          (variable.scope.type === "module" || variable.scope.type === "global") && mutableGlobalDeclarationNames(node).includes(variable.name)));
-        for (const work of workNodes) {
-          const mutation = lexicalWorkMutation(work, variables);
-          if (mutation) report(context, mutation, "Rule: avoid global mutable concurrency state. Why: module-owned let/var or mutable containers couple inline workers. Fix: own Ref or immutable results in a service/layer. Lexical syntax does not prove execution or a data race; default collections are sequential.");
-        }
-      },
-    };
-  },
-});
+const noGlobalMutableConcurrencyState = createConcurrentMutationRule(true);
 
 const noManualDeferredCoordination = defineRule({
   create(context: OxlintContext) {

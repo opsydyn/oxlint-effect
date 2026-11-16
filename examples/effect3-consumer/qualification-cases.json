@@ -1232,7 +1232,7 @@
     "variants": [
       "fork and inline collection work",
       "let scalar and collection mutation",
-      "default sequential collection heuristic",
+      "sequential omission is a clean control",
       "deterministic lost-update counterexample"
     ],
     "bad": [
@@ -1243,7 +1243,7 @@
     ],
     "expectedByFile": {
       "src/qualification/concurrencySafety/no-shared-mutable-state-across-fibers.bad.ts": {
-        "linteffect/no-shared-mutable-state-across-fibers": 5
+        "linteffect/no-shared-mutable-state-across-fibers": 4
       }
     },
     "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"
@@ -1321,7 +1321,7 @@
     "variants": [
       "scalar/array/Map/Set",
       "immutable/per-owner Ref repair",
-      "legacy local-name warning retained"
+      "function-local state is not global"
     ],
     "bad": [
       "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.bad.ts"
@@ -1331,7 +1331,7 @@
     ],
     "expectedByFile": {
       "src/qualification/concurrencySafety/no-global-mutable-concurrency-state.bad.ts": {
-        "linteffect/no-global-mutable-concurrency-state": 7
+        "linteffect/no-global-mutable-concurrency-state": 6
       }
     },
     "runtime": "src/qualification/concurrencySafety/ownership-coordination.contracts.ts"

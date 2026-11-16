@@ -33,8 +33,14 @@ for (const userId of userIds) {
 }
 
 // EXPECT: linteffect/no-race-without-cleanup
-// QA: Racing effects should make loser cleanup or scoped ownership explicit.
-export const raceWithoutCleanup = Effect.race(fastProgram, slowProgram);
+// QA: This branch visibly acquires a connection but registers no release.
+export const raceWithoutCleanup = Effect.race(fastProgram, Effect.gen(function* () {
+  yield* openConnection();
+  return yield* slowProgram;
+}));
+
+// Clean control: opaque task parameters do not justify a redundant finalizer.
+export const raceWithoutVisibleAcquisition = Effect.race(fastProgram, slowProgram);
 
 // EXPECT: linteffect/no-unobserved-fiber
 // QA: Forked fibers should be joined, awaited, interrupted, or scoped.

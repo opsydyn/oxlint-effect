@@ -11,8 +11,7 @@ export const fork = Effect.forkChild(Effect.sync(() => { completed++; return com
 export const all = Effect.all([1, 2].map(() => Effect.sync(() => ++completed)), { concurrency: 2 });
 // @lint-expect linteffect/no-shared-mutable-state-across-fibers
 export const forEach = Effect.forEach([1, 2], value => Effect.sync(() => { values.push(value); return value; }), { concurrency: 2 });
-// Still diagnosed by collection syntax, even though omitted concurrency is sequential.
-// @lint-expect linteffect/no-shared-mutable-state-across-fibers
+// Clean control: omitted concurrency is sequential, so this is not a parallel-write warning.
 export const sequential = Effect.forEach([1, 2], () => Effect.sync(() => completed++));
 // @lint-expect linteffect/no-shared-mutable-state-across-fibers
 export const detached = Effect.forkDetach(Effect.sync(() => ++completed));

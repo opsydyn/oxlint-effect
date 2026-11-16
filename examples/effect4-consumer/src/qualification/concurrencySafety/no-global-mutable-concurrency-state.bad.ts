@@ -12,11 +12,11 @@ export const fork = Effect.forkChild(Effect.sync(() => ++completed));
 // @lint-expect linteffect/no-global-mutable-concurrency-state
 export const all = Effect.all([1, 2].map(() => Effect.sync(() => ++completed)), { concurrency: 2 });
 // @lint-expect linteffect/no-global-mutable-concurrency-state
-export const append = Effect.forEach([1, 2], value => Effect.sync(() => { values.push(value); return value; }));
+export const append = Effect.forEach([1, 2], value => Effect.sync(() => { values.push(value); return value; }), { concurrency: 2 });
 // @lint-expect linteffect/no-global-mutable-concurrency-state
-export const map = Effect.forEach([1, 2], value => Effect.sync(() => { cache.set(value, value); return value; }));
+export const map = Effect.forEach([1, 2], value => Effect.sync(() => { cache.set(value, value); return value; }), { concurrency: 2 });
 // @lint-expect linteffect/no-global-mutable-concurrency-state
-export const set = Effect.forEach([1, 2], value => Effect.sync(() => { members.add(value); return value; }));
+export const set = Effect.forEach([1, 2], value => Effect.sync(() => { members.add(value); return value; }), { concurrency: 2 });
 // @lint-expect linteffect/no-global-mutable-concurrency-state
 export const detached = Effect.forkDetach(Effect.sync(() => ++completed));
 // @lint-expect linteffect/no-global-mutable-concurrency-state

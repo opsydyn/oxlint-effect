@@ -205,7 +205,7 @@ for (const value of [1, 2, 3]) {
 
 const raceWithoutCleanup = Effect.race(
   Effect.succeed("fast"),
-  Effect.succeed("slow"),
+  Effect.sync(() => openFile()),
 );
 
 const unobservedFiber = Effect.fork(program);

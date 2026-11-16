@@ -1,6 +1,26 @@
 # Beyond Parity Roadmap
 
-Last updated: 2026-10-01
+Last updated: 2026-11-16
+
+## Current Status
+
+The original actionable rule campaign and all 52 Effect 4 compatibility batches
+are complete. Version 2.1.0 shipped the Effect.fn, explicit service-contract and
+unbounded-concurrency policy corrections. The legacy consumer's platform advisory
+was subsequently patched and GitHub marked it fixed; no package release was needed.
+
+The active follow-up is the [Concurrency Accuracy slice](02-concurrency-safety/README.md#concurrency-accuracy-follow-up):
+race ownership, sequential versus parallel mutation, and binding-aware API
+recognition in those three rules. It adds no rule IDs or presets. The slice is
+complete locally: 611 tests, both complete packed consumers, packed type-aware
+checks, docs/types/package checks and the unchanged size gate pass. See the
+[completion report](../docs/superpowers/reports/2026-11-16-concurrency-accuracy.md).
+Publication remains separate; the minor changeset is pending.
+
+After this slice, assess cause-preserving error narrowing, redundant ambient
+service re-provision and tests that cannot meaningfully fail, inspired by
+[K-Mistele/anti-slop](https://github.com/K-Mistele/anti-slop). These are candidates,
+not implemented rules or permission to port its entire policy.
 
 This roadmap starts after Biome rule parity. The existing top-level `ROADMAP.md`
 remains the parity record. This directory tracks new linting rules inspired by
@@ -31,6 +51,10 @@ grouped by the engineering outcome each group protects.
   cancellation, backpressure, and scoped resource lifetime discipline.
 
 ## Preset Strategy
+
+The following is the original campaign strategy, not a list of exported preset
+names. Use the current [README configuration](../README.md) for actual groups and
+versioned exports; correctness and opt-in style policies must stay distinguishable.
 
 - `recommended`: high-confidence, low-noise rules that catch correctness or
   production reliability issues.
@@ -83,10 +107,11 @@ reference IDs as aliases.
 ## Version Compatibility
 
 [14 Effect 4 First-Class Compatibility](./14-effect4-compatibility/README.md)
-tracks the planned breaking `2.0.0` transition: default presets target Effect 4,
-with an explicit `effect3` namespace for legacy consumers. The written design
-is approved; the configuration foundation is implemented. Detector adaptation
-and complete dual-version qualification remain outstanding.
+records the completed `2.0.0` transition: default presets target Effect 4,
+with an explicit `effect3` namespace for legacy consumers. All 52 batches and
+all 146 registered rules / 18 groups were qualified for that release. Current
+packed consumers pin Effect 3.22.1 and 4.0.0; qualification against newer Effect 4
+releases remains separate work, not implied by completion of the pinned matrix.
 This migration does not add to the original candidate-rule count.
 
 ## Update Protocol

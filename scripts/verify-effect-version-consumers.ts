@@ -93,6 +93,15 @@ try {
     verifyLint(root, policyConfig, ["src/policy-contracts.good.ts"], {}, 0);
     verifyLint(root, policyConfig, ["src/policy-contracts.bad.ts"], { "linteffect/no-throw-in-effect-logic": 1 }, 1);
     assertCommandSuccess(run("bun", ["src/policy-contracts.ts"], root), `Effect ${major} traced service contracts`);
+    const accuracyConfig = "oxlint.concurrency-accuracy.generated.json";
+    await writeFile(join(root, accuracyConfig), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [...policy.jsPlugins], rules: Object.fromEntries(["no-race-without-cleanup", "no-shared-mutable-state-across-fibers", "no-global-mutable-concurrency-state"].map(name => [`linteffect/${name}`, ["error", { effectVersion: major }]])) }));
+    verifyLint(root, accuracyConfig, ["src/concurrency-accuracy.bad.ts"], {
+      "linteffect/no-race-without-cleanup": 2,
+      "linteffect/no-shared-mutable-state-across-fibers": 3,
+      "linteffect/no-global-mutable-concurrency-state": 3,
+    }, 1);
+    verifyLint(root, accuracyConfig, ["src/concurrency-accuracy.good.ts"], {}, 0);
+    assertCommandSuccess(run("bun", ["src/concurrency-accuracy.contracts.ts"], root), `Effect ${major} concurrency accuracy`, "Concurrency accuracy contracts completed");
     const skillConfig = "oxlint.skill.generated.json";
     await writeFile(join(root, skillConfig), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: major === 3 ? (await import("../src/index.ts")).effect3.dddRules : (await import("../src/index.ts")).dddRules }));
     for (const pair of ["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation", "expected-state"]) {
@@ -135,7 +144,7 @@ try {
       assertCommandSuccess(run("bun", ["-e", script], root, 60_000), `Effect ${major} runtime contract ${path}`, marker);
     }
     // Common syntax stays active; foreign generator/recovery/fork forms do not.
-    for (const [rule, count] of [["no-blocking-call-in-effect", 3], ["no-promise-concurrency-in-effect", 5], ["no-shared-mutable-state-across-fibers", 4], ["no-timeout-with-noninterruptible-promise", 3], ["no-uninterruptible-concurrent-region", 4], ["no-unbounded-queue-or-pubsub", 2]] as const) {
+    for (const [rule, count] of [["no-blocking-call-in-effect", 3], ["no-promise-concurrency-in-effect", 5], ["no-shared-mutable-state-across-fibers", 3], ["no-timeout-with-noninterruptible-promise", 3], ["no-uninterruptible-concurrent-region", 4], ["no-unbounded-queue-or-pubsub", 2]] as const) {
       const config = "oxlint.qualification.opposite.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { [`linteffect/${rule}`]: ["error", { effectVersion: major === 3 ? 4 : 3 }] } }));
       const path = `src/qualification/concurrencySafety/${rule}.bad.ts`;
@@ -336,8 +345,9 @@ try {
     const testFixtures = cases.filter(entry => ["no-runpromise-in-non-async-test-body", "require-effect-flip-for-error-test", "no-test-mock-layer-when-default-available"].includes(entry.rule)).flatMap(entry => [...entry.bad, ...entry.good]);
     if (testFixtures.length) assertCommandSuccess(run("bun", ["test", ...[...new Set(testFixtures)].map(path => `./${path}`)], root, 60_000), `Effect ${major} actual test fixtures`);
     verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-fire-and-forget-fork.bad.ts", "src/qualification/concurrencySafety/no-fork-in-loop.bad.ts"], {}, 0);
-    verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": 2 }, 1, {
-      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": 2 },
+    const oppositeRaceCount = major === 4 ? 5 : 2;
+    verifyLint(root, "oxlint.fork-opposite.config.ts", ["src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts", "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts"], { "linteffect/no-race-without-cleanup": oppositeRaceCount }, 1, {
+      "src/qualification/concurrencySafety/no-race-without-cleanup.bad.ts": { "linteffect/no-race-without-cleanup": oppositeRaceCount },
       "src/qualification/concurrencySafety/no-unobserved-fiber.bad.ts": {},
     });
     if (major === 4) {

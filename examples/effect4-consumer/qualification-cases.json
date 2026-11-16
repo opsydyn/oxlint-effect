@@ -1300,7 +1300,7 @@
     "variants": [
       "fork and inline collection work",
       "let scalar and collection mutation",
-      "default sequential collection heuristic",
+      "sequential omission is a clean control",
       "deterministic lost-update counterexample",
       "child/detached, curried and terminal pipe forks",
       "lexical shadowing and parameter controls"
@@ -1313,7 +1313,7 @@
     ],
     "expectedByFile": {
       "src/qualification/concurrencySafety/no-shared-mutable-state-across-fibers.bad.ts": {
-        "linteffect/no-shared-mutable-state-across-fibers": 9
+        "linteffect/no-shared-mutable-state-across-fibers": 8
       }
     },
     "runtime": "src/qualification/concurrencySafety/async-state.contracts.ts"

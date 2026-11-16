@@ -682,13 +682,13 @@ describe("versioned runners", () => {
     Object.assign(mutation, { parent: body });
     Object.assign(body, { parent: callback });
     Object.assign(callback, { parent: task });
-    const declaration = { type: "VariableDeclaration", kind: "let", declarations: [] };
+    const declaration = { type: "VariableDeclaration", kind: "let", declarations: [{ type: "VariableDeclarator", id: outer }] };
     const inspect = (node: unknown, binding: unknown) => runRuleSequence("no-shared-mutable-state-across-fibers", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       { visitorName: "VariableDeclaration", node: declaration },
       { visitorName: "CallExpression", node },
       { visitorName: "Program:exit", node: { type: "Program" } },
-    ], { options: [{ effectVersion: 4 }], sourceCode: { getDeclaredVariables: () => [{ identifiers: [binding], references: [{ identifier: reference }] }] } });
+    ], { options: [{ effectVersion: 4 }], sourceCode: { getDeclaredVariables: () => [{ name: "completed", identifiers: [binding], references: [{ identifier: reference }] }] } });
     for (const node of [effectCall("forkChild", task), effectCall("forkDetach", task), callExpression(effectCall("forkChild", objectLiteral()), task), methodPipeCall(task, memberExpression("Effect", "forkChild")), pipeCall(task, memberExpression("Effect", "forkDetach"))]) expect(inspect(node, outer)[0]?.node).toBe(mutation);
     // The same spelling in a different binding is not shared state.
     expect(inspect(effectCall("forkChild", task), reference)).toHaveLength(0);
@@ -716,9 +716,15 @@ describe("versioned runners", () => {
   });
   it("Effect qualification Q17 recognises first-completion races and enclosing cleanup", () => {
     const inspect = (node: unknown, major: 3 | 4) => runRuleSequence("no-race-without-cleanup", [{ visitorName: "ImportDeclaration", node: importFrom("effect") }, { visitorName: "CallExpression", node }], { options: [{ effectVersion: major }] });
+    const acquisition = callExpression(identifier("openClient"));
+    const resourceRace = effectCall("race", acquisition, identifier("right"));
+    Object.assign(acquisition, { parent: resourceRace });
+    for (const major of [3, 4] as const) expect(inspect(resourceRace, major)[0]?.node).toBe(resourceRace);
+    Object.assign(resourceRace, { parent: effectCall("scoped", resourceRace) });
+    for (const major of [3, 4] as const) expect(inspect(resourceRace, major)).toHaveLength(0);
     for (const name of ["race", "raceAll", "raceFirst", "raceAllFirst"]) {
       const node = effectCall(name, identifier("left"), identifier("right"));
-      expect(inspect(node, 4)[0]?.node).toBe(node);
+      expect(inspect(node, 4)).toHaveLength(0);
       const enclosing = effectCall("scoped", node);
       Object.assign(node, { parent: enclosing });
       expect(inspect(node, 4)).toHaveLength(0);
@@ -728,11 +734,11 @@ describe("versioned runners", () => {
     const outer = callExpression(inner, identifier("left"));
     Object.assign(inner, { parent: outer });
     expect(inspect(inner, 4)).toHaveLength(0);
-    expect(inspect(outer, 4)[0]?.node).toBe(outer);
+    expect(inspect(outer, 4)).toHaveLength(0);
     const cleanedInner = effectCall("raceFirst", effectCall("ensuring", identifier("right"), identifier("release")));
     expect(inspect(callExpression(cleanedInner, identifier("left")), 4)).toHaveLength(0);
     const operator = memberExpression("Effect", "raceAllFirst");
-    expect(inspect(pipeCall(identifier("effects"), operator), 4)).toHaveLength(1);
+    expect(inspect(pipeCall(identifier("effects"), operator), 4)).toHaveLength(0);
     const nested = effectCall("raceFirst", identifier("left"), identifier("right"));
     const generator = generatorCallback(blockStatement());
     const gen = effectCall("gen", generator);
@@ -7628,7 +7634,7 @@ describe("linteffect Oxlint plugin", () => {
     expect(reports).toHaveLength(0);
   });
 
-  it("catches Effect.race calls without loser cleanup", () => {
+  it("allows opaque Effect.race operands without redundant cleanup", () => {
     const reports = runRuleSequence("no-race-without-cleanup", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       {
@@ -7637,8 +7643,7 @@ describe("linteffect Oxlint plugin", () => {
       },
     ]);
 
-    expect(reports).toHaveLength(1);
-    expect(reports[0].message).toContain("avoid Effect.race without loser cleanup");
+    expect(reports).toHaveLength(0);
   });
 
   it("allows Effect.race calls with explicit ensuring cleanup", () => {
@@ -7786,6 +7791,11 @@ describe("linteffect Oxlint plugin", () => {
   });
 
   it("catches shared mutable state mutations inside forked work", () => {
+    const reference = identifier("completed");
+    const mutation = updateExpression(reference);
+    const task = effectCall("sync", arrowCallback(mutation));
+    Object.assign(reference, { parent: mutation });
+    Object.assign(mutation, { parent: task });
     const reports = runRuleSequence("no-shared-mutable-state-across-fibers", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       {
@@ -7800,10 +7810,11 @@ describe("linteffect Oxlint plugin", () => {
         visitorName: "CallExpression",
         node: effectCall(
           "fork",
-          effectCall("sync", arrowCallback(blockStatement(expressionStatement(updateExpression(identifier("completed")))))),
+          task,
         ),
       },
-    ]);
+      { visitorName: "Program:exit", node: { type: "Program" } },
+    ], { sourceCode: { getDeclaredVariables: () => [{ name: "completed", identifiers: [identifier("completed")], references: [{ identifier: reference }] }] } });
 
     expect(reports).toHaveLength(1);
     expect(reports[0].message).toContain("avoid mutating shared state across fibers");
@@ -7922,6 +7933,15 @@ describe("linteffect Oxlint plugin", () => {
   });
 
   it("catches global mutable state touched from concurrent Effect work", () => {
+    const reference = identifier("cache");
+    const callee = { type: "MemberExpression", object: reference, property: identifier("set"), computed: false };
+    const mutation = callExpression(callee, identifier("value"), identifier("value"));
+    const task = effectCall("sync", arrowCallback(mutation));
+    Object.assign(reference, { parent: callee });
+    Object.assign(callee, { parent: mutation });
+    Object.assign(mutation, { parent: task });
+    const work = arrayLiteral(task);
+    Object.assign(task, { parent: work });
     const reports = runRuleSequence("no-global-mutable-concurrency-state", [
       { visitorName: "ImportDeclaration", node: importFrom("effect") },
       {
@@ -7936,17 +7956,12 @@ describe("linteffect Oxlint plugin", () => {
         visitorName: "CallExpression",
         node: effectCall(
           "all",
-          callExpression(
-            memberExpression("items", "map"),
-            arrowCallback(effectCall(
-              "sync",
-              arrowCallback(callExpression(memberExpression("cache", "set"), identifier("value"), identifier("value"))),
-            )),
-          ),
+          work,
           objectLiteral(property("concurrency", numericLiteral(4))),
         ),
       },
-    ]);
+      { visitorName: "Program:exit", node: { type: "Program" } },
+    ], { sourceCode: { getDeclaredVariables: () => [{ name: "cache", scope: { type: "module" }, identifiers: [identifier("cache")], references: [{ identifier: reference }] }] } });
 
     expect(reports).toHaveLength(1);
     expect(reports[0].message).toContain("avoid global mutable concurrency state");

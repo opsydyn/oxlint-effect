@@ -84,7 +84,41 @@ individual default preset remains `strict` or `runtime`.
 - [x] `no-manual-deferred-coordination`
 - [x] `no-acquire-without-scoped-release`
 
-## Safe Variants
+## Concurrency Accuracy Follow-up
+
+Unreleased next-minor policy after 2.1.x, applied to both supported Effect majors.
+The original tables above are historical implementation milestones; this section
+supersedes their broader race, collection and legacy name-matching descriptions.
+
+- [x] Race ownership: require visible unowned acquisition; keep pure/opaque races
+  clean and do not accept another branch's finalizer as ownership.
+- [x] Shared-state accuracy: require literal parallel collection budgets or
+  supported inline forks; use lexical state identity and true module/global scope
+  in both majors. Sequential controls and worker-local writes stay clean.
+- [x] API binding recognition for these three rules: value import aliases,
+  namespace/subpath imports and direct/curried/terminal pipes; exclude shadowed
+  and type-only bindings. Other concurrency detectors are unchanged.
+- [x] Real Oxlint regression tests and paired per-major annotated examples.
+- [x] Complete packed runtime, type/config, docs, package and size gates.
+
+Local verification: 611 tests / 5725 expectations; complete pinned Effect 3.22.1
+and 4.0.0 packed consumers, packed type-aware checks and the unchanged 30 KB cap
+pass. The [completion report](../../docs/superpowers/reports/2026-11-16-concurrency-accuracy.md)
+records scope and evidence. A minor changeset is pending; this is not a published
+behaviour change yet.
+
+Examples: [current failures](../../examples/effect4-consumer/src/concurrency-accuracy.bad.ts)
+and [clean controls](../../examples/effect4-consumer/src/concurrency-accuracy.good.ts);
+[legacy failures](../../examples/effect3-consumer/src/concurrency-accuracy.bad.ts)
+and [controls](../../examples/effect3-consumer/src/concurrency-accuracy.good.ts).
+
+Limits: opaque tasks/budgets, re-exported/stored aliases, computed members,
+CommonJS and object property writes are not inferred. Resource-shaped names and
+cleanup wrappers are heuristics, not resource-type or release proof. Positive
+syntax is not proof that a constructor executes or a data race occurs. A finite
+budget above one still permits conflicting writes.
+
+## Safe Controls
 
 Do not flag:
 

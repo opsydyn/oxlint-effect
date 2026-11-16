@@ -1,5 +1,12 @@
 # Effect 3 Packed Consumer QA
 
+The unreleased concurrency accuracy slice adds annotated
+[failures](src/concurrency-accuracy.bad.ts), [clean controls](src/concurrency-accuracy.good.ts)
+and [runtime contracts](src/concurrency-accuracy.contracts.ts). The harness checks
+exact alias/namespace/subpath diagnostics, sequential versus parallel scheduling,
+lexical ownership and pure versus resource-owning races. These controls target
+the locally packed plugin, not the published 2.1.0 policy.
+
 This isolated consumer targets Effect 3.22.1 and @effect/platform 0.97.1. From the repository root,
 run `bun run test:effect-versions`. The harness installs frozen dependencies and
 the locally packed plugin in a temporary copy; the plugin is intentionally not

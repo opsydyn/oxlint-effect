@@ -24,7 +24,7 @@ for (const pair of [[raceBad.two, raceGood.two], [raceBad.many, raceGood.many], 
     });
     const winner = Effect.gen(function* () { yield* Deferred.await(started); return 42; });
     const cleanup = Effect.sync(() => { if (!open) throw new Error("Double release"); open = false; releases++; });
-    const program = repaired ? pair[1](winner, loser, cleanup) : pair[0](winner, loser);
+    const program = repaired ? pair[1](winner, loser, cleanup) : pair[0](winner, () => loser);
     if (await Effect.runPromise(program) !== 42) throw new Error("Race repair changed winner");
     if (repaired) {
       if (open || releases !== 1) throw new Error("Interrupted loser was not released once");

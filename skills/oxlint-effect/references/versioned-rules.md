@@ -12,6 +12,29 @@ A passing control labelled as a gap is not a recommended repair.
 
 ## API Selection
 
+### Unreleased Concurrency Accuracy
+
+The next minor changeset after 2.1.x recalibrates no-race-without-cleanup and the
+two shared/global mutation rules in both majors. Do not prescribe this behaviour
+to an installed 2.1.0 consumer. Race warnings require a visible resource-shaped
+acquisition without ownership on its branch, not simply missing finalizers on
+pure/opaque tasks. Sibling cleanup does not establish ownership.
+
+Collection writes require visible parallel scheduling (literal concurrency > 1,
+global Infinity or unbounded); omission/one are clean and opaque budgets remain
+unknown. Both majors use lexical state ownership, including const containers;
+function-local state is not global. Unexecuted callback writes are excluded.
+
+Only these three rules add value-import binding resolution: named Effect aliases,
+package/subpath namespace imports and named subpath operations, including direct,
+curried and terminal pipe forms. Shadowed/type-only bindings are excluded.
+CommonJS, computed members, re-exports and stored aliases/bodies are not resolved.
+Preserve race success/failure semantics and resource ownership; do not manufacture
+dummy finalizers or suppress an unrelated warning. See each major's
+`src/concurrency-accuracy.bad.ts`, `.good.ts` and `.contracts.ts` consumer files.
+
+### Published 2.1 Policy
+
 In plugin 2.1+, both recommended presets allow Effect.fn generators, explicit Effect/Layer
 contracts and named Effect aliases. Their three historical bans remain opt-in
 in effectComposition/allRules; they are style preferences, not correctness rules.
