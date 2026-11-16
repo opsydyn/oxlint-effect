@@ -42,6 +42,7 @@ const skillFiles = [
   `${skillRoot}/references/domain-context.md`,
   `${skillRoot}/references/public-errors.md`,
   `${skillRoot}/references/error-preservation.md`,
+  `${skillRoot}/references/cause-narrowing.md`,
   `${skillRoot}/references/expected-state.md`,
   `${skillRoot}/assets/domain.bad.ts`,
   `${skillRoot}/assets/domain.good.ts`,
@@ -59,6 +60,8 @@ const skillFiles = [
   `${skillRoot}/assets/expected-state.good.ts`,
   `${skillRoot}/references/versioned-rules.md`,
   `${skillRoot}/assets/contracts.ts`,
+  ...["bad", "good", "contracts", "types"].map(kind => `${skillRoot}/assets/cause-narrowing.${kind}.ts`),
+  ...["bad", "good", "contracts", "types"].map(kind => `${skillRoot}/assets/effect4/cause-narrowing.${kind}.ts`),
   `${skillRoot}/assets/effect4/contracts.ts`,
   ...["domain", "domain-shapes", "domain-decisions", "domain-context", "public-errors", "error-preservation", "expected-state"].flatMap(pair => ["bad", "good"].map(kind => `${skillRoot}/assets/effect4/${pair}.${kind}.ts`)),
 ];
@@ -121,6 +124,17 @@ describe("agent skill contract", () => {
         expect(result.status).toBe(file === badPath ? 1 : 0);
         expect(observed).toEqual(file === badPath ? expected : []);
       }
+    }
+  });
+
+  it("keeps review-only cause loss distinct from implemented lint diagnostics", () => {
+    for (const kind of ["bad", "good"]) {
+      const result = spawnSync(path.join(root, "node_modules/.bin/oxlint"), [
+        "--config", "tests/fixtures/oxlint/oxlint.agent-skill.config.ts",
+        `${skillRoot}/assets/cause-narrowing.${kind}.ts`,
+      ], { cwd: root, encoding: "utf8" });
+      expect(`${result.stdout}${result.stderr}`).not.toContain("linteffect(");
+      expect(result.status).toBe(0);
     }
   });
 

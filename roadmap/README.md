@@ -9,7 +9,7 @@ are complete. Version 2.1.0 shipped the Effect.fn, explicit service-contract and
 unbounded-concurrency policy corrections. The legacy consumer's platform advisory
 was subsequently patched and GitHub marked it fixed; no package release was needed.
 
-The active follow-up is the [Concurrency Accuracy slice](02-concurrency-safety/README.md#concurrency-accuracy-follow-up):
+The completed [Concurrency Accuracy slice](02-concurrency-safety/README.md#concurrency-accuracy-follow-up) covers
 race ownership, sequential versus parallel mutation, and binding-aware API
 recognition in those three rules. It adds no rule IDs or presets. The slice is
 complete locally: 611 tests, both complete packed consumers, packed type-aware
@@ -18,10 +18,14 @@ checks, docs/types/package checks and the unchanged size gate pass. See the
 Version scope: plugin 2.2.0 and later. Publication and hosted verification are
 separate from this local evidence; see the [release notes](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.2.0).
 
-After this slice, assess cause-preserving error narrowing, redundant ambient
-service re-provision and tests that cannot meaningfully fail, inspired by
-[K-Mistele/anti-slop](https://github.com/K-Mistele/anti-slop). These are candidates,
-not implemented rules or permission to port its entire policy.
+The active follow-up is [15 Selective Anti-Slop Adoption](15-anti-slop-adoption/README.md).
+The overlap review covers cause-preserving error narrowing, ambient service
+re-provision and test quality. Slice 1 adds cause-narrowing agent guidance and
+executable review/repair pairs for both majors. Local verification passes: 615
+tests, both complete packed consumers, type-aware and package checks. See its
+[completion record](../docs/superpowers/reports/2026-11-16-anti-slop-cause-guidance.md).
+These review-only gaps are not new lint rules. Ambient service and general test
+detectors remain separate candidates, not permission to port an entire policy.
 
 This roadmap starts after Biome rule parity. The existing top-level `ROADMAP.md`
 remains the parity record. This directory tracks new linting rules inspired by

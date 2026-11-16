@@ -113,6 +113,8 @@ try {
       verifyLint(root, skillConfig, [`src/skill-assets/${pair}.good.ts`], {}, 0);
     }
     assertCommandSuccess(run("bun", ["-e", 'await import("./src/skill-assets/contracts.ts"); console.log("Packed skill repairs completed")'], root), `Effect ${major} skill runtime`, "Packed skill repairs completed");
+    // Review-only gaps stay separate from rules with EXPECT annotations.
+    for (const kind of ["bad", "good"]) verifyLint(root, skillConfig, [`src/skill-assets/cause-narrowing.${kind}.ts`], {}, 0);
     for (const [version, count] of [[undefined, major === 4 ? 7 : 0], [3, major === 3 ? 5 : 0], [4, major === 4 ? 7 : 0]] as const) {
       const config = "oxlint.manual.generated.json";
       await writeFile(join(root, config), JSON.stringify({ categories: { correctness: "off" }, jsPlugins: [{ name: "linteffect", specifier: "@opsydyn/oxlint-effect" }], rules: { "linteffect/no-wrapgraphql-catchall": version === undefined ? "error" : ["error", { effectVersion: version }] } }));

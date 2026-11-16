@@ -1,4 +1,5 @@
 // Effect 4 first-class packaged repair runtime contract.
+import "./cause-narrowing.contracts";
 import { Effect, Logger } from "effect";
 import { decodeUserId, decodeInvoiceId, settleInvoice, rejectTransfer, TransferRejected } from "./domain.good";
 import { decodeTransferCommand, encodeTransferCommand, transferFunds, decodeSessionLease, encodeSessionLease, decodePaymentIntent, encodePaymentIntent, createPaymentIntent } from "./domain-shapes.good";

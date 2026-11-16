@@ -366,6 +366,13 @@ or repair a domain-modeling issue. The skill preserves existing configuration
 and uses the installed package's APIs and rules. Type-aware linting is opt-in.
 Intentional `EXPECT`/`QA` failures are retained as diagnostic controls.
 
+This checkout also adds [cause-narrowing review guidance](./skills/oxlint-effect/references/cause-narrowing.md),
+with paired current/legacy counterexamples, repairs and executable contracts.
+It checks original cause identity, observer sequencing, error/environment types
+and an explicit public projection. `REVIEW-ONLY` examples deliberately document
+gaps beyond existing lint rules; they do not produce new warnings. This is agent
+guidance, not a port of anti-slop's complete lint policy or an LLM judging service.
+
 The [skill](./skills/oxlint-effect/SKILL.md), its focused references, and
 paired [Effect 4 failures](./skills/oxlint-effect/assets/effect4/domain.bad.ts) and
 [repairs](./skills/oxlint-effect/assets/effect4/domain.good.ts) are also included in the

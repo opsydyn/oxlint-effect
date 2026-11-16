@@ -97,6 +97,11 @@ keep defects and interruptions distinct from typed failures.
 For message-only failures, generic rethrows, or log-only handlers, read
 [error preservation](references/error-preservation.md). Establish recovery
 ownership and distinguish `catchAll` from `tapError` before changing semantics.
+When mapping a rich failure into a new boundary error, also read
+[cause narrowing](references/cause-narrowing.md). Its versioned bad/repair pairs
+demonstrate cause identity, observer sequencing, public disclosure and assertions
+that miss erasure. These cases are review-only gaps, not new lint diagnostics;
+do not claim that a clean lint result proves preservation or telemetry delivery.
 For current Effect use the versioned guide: broad `catch`/`catchEager` differs
 from failure-preserving observers, and legacy `catch` is discriminator-specific.
 

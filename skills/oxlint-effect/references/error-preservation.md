@@ -49,8 +49,9 @@ business requirements. Never replace successful recovery with failure solely
 to clear a diagnostic.
 
 `tapError(error => Effect.logError(error))` is different: a successful observer
-already preserves the original typed failure. The current heuristic also flags
-that log-only callback; the diagnostic does not prove the error was swallowed.
+already preserves the original typed failure. The legacy Effect 3 policy also
+flags that log-only callback; the Effect 4 policy keeps such observers clean.
+The legacy diagnostic does not prove the error was swallowed.
 Report that detector/policy mismatch when this is legitimate observation. Do not
 put `Effect.fail(error)` inside `tapError` just to satisfy the rule: a failing
 observer can alter the resulting cause. Do not add wrappers, casts or suppression
@@ -74,3 +75,8 @@ and test it when adapting real boundaries.
 Keep `EXPECT`/`QA` examples intentionally failing. Run both the focused DDD
 policy and the consumer's complete lint configuration on repairs. A clean
 heuristic result is not proof that an observer or recovery handler is correct.
+
+For tagged mappings beyond those three lint patterns, read
+[cause narrowing](cause-narrowing.md). It provides current and legacy review-only
+counterexamples and repairs, and distinguishes internal retention, actually
+sequenced capture and public disclosure. No new detector is implied.
