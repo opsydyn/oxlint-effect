@@ -1,6 +1,6 @@
 # Effect 3 Packed Consumer QA
 
-The unreleased concurrency accuracy slice adds annotated
+The 2.2.0 concurrency accuracy slice adds annotated
 [failures](src/concurrency-accuracy.bad.ts), [clean controls](src/concurrency-accuracy.good.ts)
 and [runtime contracts](src/concurrency-accuracy.contracts.ts). The harness checks
 exact alias/namespace/subpath diagnostics, sequential versus parallel scheduling,

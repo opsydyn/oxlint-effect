@@ -12,11 +12,11 @@ A passing control labelled as a gap is not a recommended repair.
 
 ## API Selection
 
-### Unreleased Concurrency Accuracy
+### Concurrency Accuracy In 2.2+
 
-The next minor changeset after 2.1.x recalibrates no-race-without-cleanup and the
+Plugin 2.2.0 and later recalibrates no-race-without-cleanup and the
 two shared/global mutation rules in both majors. Do not prescribe this behaviour
-to an installed 2.1.0 consumer. Race warnings require a visible resource-shaped
+to an installed 2.1.x consumer. Race warnings require a visible resource-shaped
 acquisition without ownership on its branch, not simply missing finalizers on
 pure/opaque tasks. Sibling cleanup does not establish ownership.
 

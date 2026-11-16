@@ -15,7 +15,8 @@ recognition in those three rules. It adds no rule IDs or presets. The slice is
 complete locally: 611 tests, both complete packed consumers, packed type-aware
 checks, docs/types/package checks and the unchanged size gate pass. See the
 [completion report](../docs/superpowers/reports/2026-11-16-concurrency-accuracy.md).
-Publication remains separate; the minor changeset is pending.
+Version scope: plugin 2.2.0 and later. Publication and hosted verification are
+separate from this local evidence; see the [release notes](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.2.0).
 
 After this slice, assess cause-preserving error narrowing, redundant ambient
 service re-provision and tests that cannot meaningfully fail, inspired by

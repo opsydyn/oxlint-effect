@@ -633,8 +633,8 @@ export default defineConfig({
 
 ### Concurrency Safety
 
-**Unreleased accuracy update:** the next minor changeset after 2.1.x changes the
-three race/shared-state rules below for both majors. Published 2.1.0 retains the
+**Version scope:** plugin **2.2.0 and later** changes the three race/shared-state
+rules below for both majors. Published 2.1.x retains the
 previous policy. Rule IDs, group selection and preset membership are unchanged.
 These three rules now resolve actual value imports: `Effect as Fx`, namespace
 imports from `effect` / `effect/Effect`, and named subpath operations. Direct,

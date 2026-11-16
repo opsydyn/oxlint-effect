@@ -86,7 +86,7 @@ individual default preset remains `strict` or `runtime`.
 
 ## Concurrency Accuracy Follow-up
 
-Unreleased next-minor policy after 2.1.x, applied to both supported Effect majors.
+Version scope: plugin 2.2.0 and later, applied to both supported Effect majors.
 The original tables above are historical implementation milestones; this section
 supersedes their broader race, collection and legacy name-matching descriptions.
 
@@ -104,8 +104,8 @@ supersedes their broader race, collection and legacy name-matching descriptions.
 Local verification: 611 tests / 5725 expectations; complete pinned Effect 3.22.1
 and 4.0.0 packed consumers, packed type-aware checks and the unchanged 30 KB cap
 pass. The [completion report](../../docs/superpowers/reports/2026-11-16-concurrency-accuracy.md)
-records scope and evidence. A minor changeset is pending; this is not a published
-behaviour change yet.
+records scope and evidence. Publication and hosted verification are separate
+from this local evidence; see the [release notes](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.2.0).
 
 Examples: [current failures](../../examples/effect4-consumer/src/concurrency-accuracy.bad.ts)
 and [clean controls](../../examples/effect4-consumer/src/concurrency-accuracy.good.ts);
