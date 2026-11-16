@@ -85,6 +85,7 @@ try {
     const packedSkill = join(root, "node_modules/@opsydyn/oxlint-effect/skills/oxlint-effect/assets", ...(major === 4 ? ["effect4"] : []));
     await cp(packedSkill, join(root, "src/skill-assets"), { recursive: true, filter: path => major === 4 || basename(path) !== "effect4" });
     assertCommandSuccess(run("bun", ["run", "typecheck"], root), `Effect ${major} typecheck`);
+    if (major === 3) assertCommandSuccess(run("bun", ["run", "test:security"], root), "Effect 3 cookie security regression");
     assertCommandSuccess(run("bun", ["-e", 'await import("./src/composition.contracts.ts"); console.log("Packed composition completed")'], root), `Effect ${major} group composition`, "Packed composition completed");
     const policy = major === 3 ? (await import("../src/index.ts")).effect3 : await import("../src/index.ts");
     const policyConfig = "oxlint.policy.generated.json";

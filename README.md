@@ -88,7 +88,7 @@ The [2.0.0 release](https://github.com/opsydyn/oxlint-effect/releases/tag/v2.0.0
 includes migration notes. Older 1.x packages do not export `effect3`; upgrade
 the plugin to 2.x to use the explicit legacy presets without upgrading Effect.
 
-`bun run test:effect-versions` verifies pinned packed Effect 3.21.4 and 4.0.0
+`bun run test:effect-versions` verifies pinned packed Effect 3.22.1 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
 All Q01-Q52 now have behavioural evidence in the matching packed consumers.
 The complete rule/group gate and unchanged 30 KB bundle-size gate pass locally.
