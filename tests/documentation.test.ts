@@ -9,7 +9,8 @@ describe("published v2 documentation", () => {
     expect(readme.indexOf("## Quick Start")).toBeLessThan(readme.indexOf("## Effect Versions"));
     expect(readme).toContain("oxlint.config.ts");
     expect(readme).toContain("bunx oxlint --config oxlint.config.ts src");
-    expect(readme).not.toMatch(/unreleased|remain blocked at version 1\.2\.0/);
+    const quickStart = readme.slice(0, readme.indexOf("## Effect Versions"));
+    expect(quickStart).not.toMatch(/unreleased|remain blocked at version 1\.2\.0/);
     expect(readme).toContain("examples/npm-effect4-consumer/README.md");
     const snippet = readme.match(/```ts\n([\s\S]*?)```/)?.[1];
     expect(snippet?.trim()).toBe((await Bun.file("examples/npm-effect4-consumer/oxlint.recommended.config.ts").text()).trim());
@@ -18,12 +19,24 @@ describe("published v2 documentation", () => {
   it("makes packaged current-major skill examples primary", async () => {
     for (const file of ["skills/oxlint-effect/SKILL.md", "skills/oxlint-effect/references/configuration.md"]) {
       const text = await Bun.file(file).text();
-      expect(text).not.toContain("unreleased");
+      expect(text.split("\n## ")[0]).not.toContain("unreleased");
     }
     const readme = await Bun.file("README.md").text();
     const skillSection = readme.slice(readme.indexOf("## Agent Skill"), readme.indexOf("## Rule Groups"));
     expect(skillSection).toContain("assets/effect4/domain.bad.ts");
     expect(skillSection).not.toContain("assets currently target Effect 3");
+  });
+
+  it("distinguishes the pending opt-in cause rule from published defaults", async () => {
+    const readme = await Bun.file("README.md").text();
+    const section = readme.slice(readme.indexOf("### Error Modeling"));
+    expect(section).toContain("Published 2.2.0 does not export this new rule");
+    expect(section).toContain("not** enabled by `recommended` or");
+    expect(section).toContain("`typeAware`");
+    expect(section).toContain("errorModeling");
+    expect(readme).toContain("explicitly reviewed 31 KB cap");
+    const skill = await Bun.file("skills/oxlint-effect/SKILL.md").text();
+    expect(skill).toContain("published 2.2.0 does not");
   });
 
   it("retains legacy QA and pins a real registry-backed v2 example", async () => {

@@ -114,7 +114,7 @@ describe("agent skill contract", () => {
       const bad = await Bun.file(badPath).text();
       const expected = [...bad.matchAll(/EXPECT: linteffect\/([a-z0-9-]+)/g)]
         .map((match) => match[1]!).sort();
-      expect(expected).toHaveLength(pair === "expected-state" ? 4 : 3);
+      expect(expected).toHaveLength(pair === "expected-state" || pair === "error-preservation" ? 4 : 3);
       for (const file of [badPath, `${skillRoot}/assets/${pair}.good.ts`]) {
         const result = spawnSync(path.join(root, "node_modules/.bin/oxlint"), [
           "--config", "tests/fixtures/oxlint/oxlint.agent-skill.config.ts", file,
@@ -127,14 +127,15 @@ describe("agent skill contract", () => {
     }
   });
 
-  it("keeps review-only cause loss distinct from implemented lint diagnostics", () => {
+  it("diagnoses the cause-loss corpus only in the opted-in DDD policy", () => {
     for (const kind of ["bad", "good"]) {
       const result = spawnSync(path.join(root, "node_modules/.bin/oxlint"), [
         "--config", "tests/fixtures/oxlint/oxlint.agent-skill.config.ts",
         `${skillRoot}/assets/cause-narrowing.${kind}.ts`,
       ], { cwd: root, encoding: "utf8" });
-      expect(`${result.stdout}${result.stderr}`).not.toContain("linteffect(");
-      expect(result.status).toBe(0);
+      const diagnostics = [...`${result.stdout}${result.stderr}`.matchAll(/linteffect\(([^)]+)\)/g)].map(match => match[1]);
+      expect(diagnostics).toEqual(kind === "bad" ? ["no-error-cause-loss", "no-error-cause-loss", "no-error-cause-loss"] : []);
+      expect(result.status).toBe(kind === "bad" ? 1 : 0);
     }
   });
 

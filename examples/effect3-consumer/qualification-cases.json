@@ -3524,5 +3524,29 @@
       }
     },
     "runtime": "src/qualification/atomStateAndPlatformBoundaries/state-envelope.contracts.ts"
+  },
+  {
+    "rule": "no-error-cause-loss",
+    "version": 3,
+    "classification": "adapted",
+    "variants": [
+      "inline mapError constructor erasure and original message-only usage",
+      "own-major typed and Cause recovery spellings",
+      "direct/subpath/aliased imports with lexical shadow controls in real CLI",
+      "effective object keys, passed original, and opaque retention limits",
+      "packed declared error/environment channels and preserved value/cause identity"
+    ],
+    "bad": [
+      "src/skill-assets/cause-narrowing.bad.ts"
+    ],
+    "good": [
+      "src/skill-assets/cause-narrowing.good.ts"
+    ],
+    "expectedByFile": {
+      "src/skill-assets/cause-narrowing.bad.ts": {
+        "linteffect/no-error-cause-loss": 3
+      }
+    },
+    "runtime": "src/skill-assets/cause-narrowing.contracts.ts"
   }
 ]

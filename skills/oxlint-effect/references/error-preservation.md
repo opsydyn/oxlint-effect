@@ -8,7 +8,8 @@ not legacy API spelling; matching packed consumers verify both corpora.
 Read the paired [failures](../assets/error-preservation.bad.ts) and
 [repairs](../assets/error-preservation.good.ts). These wrap a supplied profile
 Effect; they do not implement persistence or choose a production recovery policy.
-The bad file has three intentional diagnostics. The good file is full-DDD clean.
+The bad file has four intentional diagnostics with the unreleased opt-in cause
+rule (three under published 2.2.0). The good file is full-DDD clean.
 
 | Rule | Question before repair | Example direction |
 | --- | --- | --- |
@@ -79,4 +80,5 @@ heuristic result is not proof that an observer or recovery handler is correct.
 For tagged mappings beyond those three lint patterns, read
 [cause narrowing](cause-narrowing.md). It provides current and legacy review-only
 counterexamples and repairs, and distinguishes internal retention, actually
-sequenced capture and public disclosure. No new detector is implied.
+sequenced capture and public disclosure. The unreleased opt-in cause-loss rule
+addresses the visible constructor-input subset, not every review question.

@@ -11,6 +11,7 @@
   "no-branch-in-object": "legacy/parity",
   "no-call-tower": "legacy/parity",
   "no-catchall-generic-rethrow": "roadmap/04-error-modeling/README.md",
+  "no-error-cause-loss": "roadmap/15-anti-slop-adoption/README.md",
   "no-clever-effect-expression": "roadmap/12-style-separation/README.md",
   "no-console-in-effect-flow": "roadmap/08-testing-observability-and-qa/README.md",
   "no-date-now-in-effect": "roadmap/07-platform-and-boundary-hygiene/README.md",

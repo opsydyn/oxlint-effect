@@ -1,10 +1,14 @@
 # Cause-Preserving Error Narrowing
 
 Use this when a boundary maps rich internal failures into a caller-facing error.
-It is agent review guidance, **not a new runtime lint rule**. The paired bad
-examples are labelled `REVIEW-ONLY`, not `EXPECT`: a clean lint result currently
-does not diagnose the tagged cause loss shown here. Do not invent a rule ID or
-claim that an existing preset enforces this guide.
+The unreleased `linteffect/no-error-cause-loss` rule now diagnoses the matched
+bad examples under explicit `errorModeling`, `ddd` or `allRules` policy. It stays
+out of recommended and type-aware recommended in both majors. Published 2.2.0
+does not contain this rule; verify the installed exports before enabling it.
+
+The three bad cases now carry `EXPECT` annotations. Broader review questions
+remain outside deterministic lint coverage. Unknown code is not proof of safety,
+and a clean lint result does not establish telemetry delivery or error semantics.
 
 ## Choose The Matching Corpus
 
@@ -28,7 +32,8 @@ message or a reconstructed approximation. An established field other than
 
 The existing message-only and generic-rethrow rules cover specific erasure
 patterns. A new tagged error can still discard the original without triggering
-either rule. Conversely, narrowing a fully understood expected domain state can
+either older rule. The opt-in cause-loss rule addresses visible constructor
+inputs, not every possible erasure. Conversely, narrowing a fully understood expected domain state can
 be intentional. Do not add causes, logging or failure channels without an owned
 requirement, and do not rewrite an intentional recovery merely to satisfy style.
 
@@ -85,5 +90,14 @@ skill in a new repository or that production telemetry delivers an event.
 
 Inspired by [anti-slop's cause-narrowing rule](https://github.com/K-Mistele/anti-slop/blob/b7c1619b4d51b4815e89ba3700a975a6ec54b8c3/src/effect/rules/require-cause-when-narrowing.ts),
 not copied wholesale. Retain the consumer's version, contracts and policy.
+The cause-loss rule examines direct constructors in synchronous inline mapError
+and broad typed/Cause recovery handlers, including current eager map/typed catch
+forms. It checks direct/data-last calls and block/conditional returns with actual
+value-import and handler bindings. Passing the original inside a literal input
+is evidence only that the constructor receives it, not that it stores it.
+It respects later keys; opaque spreads/keys, aliases/helpers, destructured or
+reassigned parameters, async/generator handlers, named handlers, `.make` factories
+and cross-file storage remain outside that inference. These are gaps, not fixes.
+
 Ambient service re-provision and general test-quality detection remain separate
-follow-ups; this guide adds no new warnings or automatic fixes.
+follow-ups. No automatic fix or universal preservation contract is imposed.

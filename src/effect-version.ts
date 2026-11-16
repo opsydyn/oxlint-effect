@@ -60,6 +60,7 @@ export const versionSensitiveRules = [
   "no-exception-domain-error",
   "no-expected-state-as-error",
   "no-catchall-generic-rethrow",
+  "no-error-cause-loss",
   "no-log-only-error-handling",
   "no-fromnullable-nullish-coalesce",
   "no-model-overlay-cast",

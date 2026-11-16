@@ -1240,6 +1240,21 @@
       "Q03: catchEager data-first/piped regression added to v4 packed fixtures; v3 catchEager remains outside its operator policy."
     ]
   },
+  "no-error-cause-loss": {
+    "sensitive": true,
+    "applicability": {
+      "3": true,
+      "4": true
+    },
+    "qualification": {
+      "3": "qualified",
+      "4": "qualified"
+    },
+    "evidence": [
+      "src/index.ts: noErrorCauseLoss, causeRetention, causeConstructors and concurrencyApi; native import/parameter bindings.",
+      "tests/cause-loss.test.ts; matched skill cause-narrowing bad/good/runtime/types assets; complete packed consumers verify the copied corpus and first-class/legacy declarations. Unknown inputs are not proof of retention."
+    ]
+  },
   "no-log-only-error-handling": {
     "sensitive": true,
     "applicability": {

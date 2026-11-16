@@ -100,8 +100,10 @@ ownership and distinguish `catchAll` from `tapError` before changing semantics.
 When mapping a rich failure into a new boundary error, also read
 [cause narrowing](references/cause-narrowing.md). Its versioned bad/repair pairs
 demonstrate cause identity, observer sequencing, public disclosure and assertions
-that miss erasure. These cases are review-only gaps, not new lint diagnostics;
-do not claim that a clean lint result proves preservation or telemetry delivery.
+that miss erasure. The unreleased opt-in `linteffect/no-error-cause-loss` rule
+diagnoses the matched cases; published 2.2.0 does not. Check installed exports and
+the owner's retention policy first. Other review questions remain gaps; a clean
+lint result does not prove preservation, constructor storage or telemetry delivery.
 For current Effect use the versioned guide: broad `catch`/`catchEager` differs
 from failure-preserving observers, and legacy `catch` is discriminator-specific.
 

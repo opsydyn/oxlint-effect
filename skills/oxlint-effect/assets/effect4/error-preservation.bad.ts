@@ -9,6 +9,7 @@ export function rejectProfile(error: ProfileUnavailable) {
 }
 
 // EXPECT: linteffect/no-catchall-generic-rethrow
+// EXPECT: linteffect/no-error-cause-loss
 // QA: Replacing every typed failure with a generic error erases the original.
 export function rethrowProfile(operation: Effect.Effect<string, ProfileUnavailable>) {
   return Effect.catch(operation, () => Effect.fail(new Error("profile failed")));

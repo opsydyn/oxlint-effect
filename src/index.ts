@@ -3922,6 +3922,88 @@ function catchAllGenericRethrow(node: unknown, version: EffectVersion): unknown 
   return undefined;
 }
 
+function causeExpression(node: unknown): unknown {
+  while (isObjectValue(node) && ["ParenthesizedExpression", "TSAsExpression", "TSTypeAssertion", "TSSatisfiesExpression", "TSNonNullExpression"].includes(String(node.type))) node = node.expression;
+  return node;
+}
+
+type CauseRetention = "retained" | "erased" | "unknown";
+
+function causeRetention(node: unknown, originals: ReadonlySet<unknown>, context: OxlintContext): CauseRetention {
+  node = causeExpression(node);
+  if (!isObjectValue(node)) return "erased";
+  if (originals.has(node)) return "retained";
+  if (isIdentifier(node, "undefined")) {
+    for (let scope: Scope | null = context.sourceCode.getScope(node as unknown as ESTree.Node); scope; scope = scope.upper) {
+      const binding = scope.set.get("undefined");
+      if (binding) return binding.defs.length ? "unknown" : "erased";
+    }
+    return "erased";
+  }
+  if (node.type === "Literal" || node.type === "UnaryExpression") return "erased";
+  if (node.type === "MemberExpression") {
+    let owner: unknown = node;
+    while (isObjectValue(owner) && owner.type === "MemberExpression") owner = causeExpression(owner.object);
+    return originals.has(owner) ? "erased" : "unknown";
+  }
+  const states: CauseRetention[] = [];
+  if (node.type === "ArrayExpression") {
+    states.push(...(node.elements as unknown[]).map(value => causeRetention(value, originals, context)));
+  } else if (node.type === "ObjectExpression") {
+    const keys = new Set<string>();
+    for (const property of [...node.properties as Node[]].reverse()) {
+      const key = property.key as Node | undefined;
+      const name = property.computed !== true && isIdentifier(key) ? key.name : key?.value;
+      if (property.type === "SpreadElement" || name === undefined) { states.push("unknown"); break; }
+      if (keys.has(String(name))) continue;
+      keys.add(String(name));
+      states.push(property.method || property.kind && property.kind !== "init" ? "unknown" : causeRetention(property.value, originals, context));
+      if (states.at(-1) === "retained") return "retained";
+    }
+  } else return "unknown";
+  return states.includes("retained") ? "retained" : states.includes("unknown") ? "unknown" : "erased";
+}
+
+function causeConstructors(node: unknown, value: boolean, context: OxlintContext): Node[] {
+  node = causeExpression(node);
+  if (!isObjectValue(node)) return [];
+  if (node.type === "ConditionalExpression") return [...causeConstructors(node.consequent, value, context), ...causeConstructors(node.alternate, value, context)];
+  if (value && node.type === "NewExpression") return [node];
+  if (!value && node.type === "CallExpression" && concurrencyApi(node.callee, context) === "fail") return causeConstructors((node.arguments as unknown[])[0], true, context);
+  return [];
+}
+
+const noErrorCauseLoss = defineRule({
+  create(context: OxlintContext) {
+    const operators = new Set(effectVersionFor(context.options) === 3
+      ? ["mapError", "catchAll", "catchAllCause"]
+      : ["mapError", "mapErrorEager", "catch", "catchEager", "catchCause"]);
+    const reported = new WeakSet<object>();
+    return {
+      CallExpression(node: any) {
+        const name = concurrencyApi(node.callee, context);
+        if (!name || !operators.has(name)) return;
+        const callback = node.arguments.at(-1);
+        if (!isFunctionLike(callback) || (callback as Node).async || (callback as Node).generator) return;
+        const parameter = ((callback as Node).params as unknown[])[0];
+        if (parameter && !isIdentifier(parameter)) return;
+        const variable = context.sourceCode.getDeclaredVariables(callback as ESTree.Node).find(variable => variable.identifiers.some(identifier => identifier === parameter));
+        if (parameter && (!variable || variable.references.some(reference => reference.isWrite()))) return;
+        const originals = new Set(variable?.references.map(reference => reference.identifier) ?? []);
+        const body = (callback as Node).body as Node;
+        const outputs = body.type === "BlockStatement" ? handlerReturnStatements(body).map(statement => (statement as Node).argument) : [body];
+        for (const output of outputs) for (const construction of causeConstructors(output, name.startsWith("mapError"), context)) {
+          if (reported.has(construction)) continue;
+          const args = construction.arguments as unknown[];
+          if (args.some(value => causeRetention(value, originals, context) !== "erased")) continue;
+          reported.add(construction);
+          report(context, construction, "Rule: preserve the original error when wrapping it. Why: no constructor input visibly retains it. Fix: pass the original as cause or another owned field. Logging is not retention; opaque inputs remain unknown.");
+        }
+      },
+    };
+  },
+});
+
 const modeledErrorOperators = new Set([
   "catchSome",
   "catchTag",
@@ -7534,6 +7616,7 @@ const rules = {
   "no-exception-domain-error": noExceptionDomainError,
   "no-effect-fail-error-message": noEffectFailErrorMessage,
   "no-catchall-generic-rethrow": noCatchallGenericRethrow,
+  "no-error-cause-loss": noErrorCauseLoss,
   "no-log-only-error-handling": noLogOnlyErrorHandling,
   "no-error-as-public-effect-error": noErrorAsPublicEffectError,
   "no-unknown-public-error-channel": noUnknownPublicErrorChannel,
@@ -7628,6 +7711,7 @@ const strictConcurrencySafetyRuleNames = [
 ] as const satisfies readonly RuleName[];
 
 const strictErrorModelingRuleNames = [
+  "no-error-cause-loss",
   "no-early-catchall-null",
   "no-empty-error-tag",
 ] as const satisfies readonly RuleName[];
@@ -7823,6 +7907,7 @@ function createVersionedConfigurations<const V extends EffectVersion>(version: V
   type DddErrorModelingRuleName = typeof dddErrorModelingRuleNames[number];
 
   const errorModelingRuleNames = [
+    "no-error-cause-loss",
     ...dddErrorModelingRuleNames,
     "no-early-catchall-null",
     "no-empty-error-tag",

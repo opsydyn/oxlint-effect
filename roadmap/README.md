@@ -24,8 +24,14 @@ re-provision and test quality. Slice 1 adds cause-narrowing agent guidance and
 executable review/repair pairs for both majors. Local verification passes: 615
 tests, both complete packed consumers, type-aware and package checks. See its
 [completion record](../docs/superpowers/reports/2026-11-16-anti-slop-cause-guidance.md).
-These review-only gaps are not new lint rules. Ambient service and general test
-detectors remain separate candidates, not permission to port an entire policy.
+The completed second slice adds `no-error-cause-loss` as an explicit errorModeling/ddd
+policy, not a recommended default. It promotes the matched review corpus to
+actual diagnostics and explicitly revises the measured runtime cap to 31 KB.
+Local qualification passes: 632 tests, both complete packed-major suites and
+the packed type-aware consumer. See the
+[completion record](../docs/superpowers/reports/2026-11-16-opt-in-cause-loss.md).
+Ambient service and general test detectors
+remain separate candidates, not permission to port an entire policy.
 
 This roadmap starts after Biome rule parity. The existing top-level `ROADMAP.md`
 remains the parity record. This directory tracks new linting rules inspired by
