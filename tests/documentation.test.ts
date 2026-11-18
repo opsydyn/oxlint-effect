@@ -39,6 +39,23 @@ describe("published v2 documentation", () => {
     expect(skill).toContain("published 2.2.0 does not");
   });
 
+  it("documents tsrs as a consumer opt-in without enabling it in the default fixture", async () => {
+    const readme = await Bun.file("README.md").text();
+    const optional = readme.slice(readme.indexOf("#### Optional tsrs Backend"), readme.indexOf("### Configure One Rule Group"));
+    expect(optional).toContain("bun add -d -E oxlint@1.94.0 tsrs@0.25.0-ts7.1.0-beta");
+    expect(optional).toContain("bun remove tsrs");
+    expect(optional).toContain("standalone typecheck");
+    const pkg = await Bun.file("package.json").json();
+    const fixture = await Bun.file("examples/type-aware-consumer/package.json").json();
+    expect(pkg.scripts["test:type-aware:tsrs"]).toContain("verify-type-aware-consumer.ts --tsrs");
+    expect(pkg.scripts["test:type-aware"]).not.toContain("--tsrs");
+    for (const manifest of [pkg, fixture]) {
+      for (const field of ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]) {
+        expect(manifest[field] ?? {}).not.toHaveProperty("tsrs");
+      }
+    }
+  });
+
   it("retains legacy QA and pins a real registry-backed v2 example", async () => {
     const current = await Bun.file("examples/npm-effect4-consumer/package.json").json();
     expect(current.devDependencies["@opsydyn/oxlint-effect"]).toBe("2.0.0");

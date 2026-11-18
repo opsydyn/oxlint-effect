@@ -90,9 +90,15 @@ does not silently override the consumer's policy. Preserve file overrides too.
 ## Type-Aware Opt-In
 
 Only enable type-aware linting when requested and supported by the installed
-Oxlint. Consult that version's requirements for `oxlint-tsgolint`, TypeScript,
+Oxlint. Consult that version's requirements for the selected backend, TypeScript,
 project resolution, and editor integration. The consumer owns the engine
 dependency and must build workspace dependencies whose declarations are needed.
+
+`oxlint-tsgolint` is the standard path. Do not add the optional `tsrs` preview
+without explicit consumer opt-in: Oxlint 1.92+ can prefer it automatically when
+installed. Keep the same preset and standalone compiler check, and verify lint
+diagnostics on the target platform. See the
+[Oxc backend announcement](https://oxc.rs/blog/2026-11-17-faster-type-aware-linting-with-tsrs).
 
 ```ts
 import { defineConfig } from "oxlint";

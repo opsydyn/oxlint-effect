@@ -19,6 +19,15 @@ bun add -d oxlint oxlint-tsgolint @opsydyn/oxlint-effect
 
 Keep the consumer's Oxlint and `oxlint-tsgolint` releases aligned.
 
+## Optional tsrs Not Selected
+
+Oxlint needs a release that discovers `tsrs-lint`, and the consumer must
+install a compatible `tsrs` package on a supported platform. Look for an
+existing `OXLINT_TSGOLINT_PATH` override or a launcher resolved from another
+workspace. The [optional verifier](../README.md#optional-tsrs-verification)
+selects its own launcher explicitly. A clean fallback to Go does not prove
+that tsrs ran.
+
 ## Invalid TypeScript Project
 
 **Class:** malformed or TypeScript-incompatible `tsconfig.json`.
@@ -28,7 +37,7 @@ project, or reports configuration diagnostics instead of the intended rule
 IDs.
 
 **Remediation:** correct the project configuration for the consumer's installed
-TypeScript version. The current engine requires TypeScript 7; keep module and
+TypeScript version and chosen backend. Keep module and
 module-resolution settings compatible, and include only the intended consumer
 sources.
 

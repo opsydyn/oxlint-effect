@@ -219,13 +219,13 @@ the package's recommended syntax-only `linteffect/*` rules and enables Oxc's
 type-aware engine, but it does not select any `typescript/*` rules or enable
 `typeCheck` compiler diagnostics.
 
-Install the type-aware engine in the consuming project:
+Install the standard `tsgolint` backend in the consuming project:
 
 ```bash
 bun add -d oxlint oxlint-tsgolint @opsydyn/oxlint-effect
 ```
 
-The current engine requires TypeScript 7. Keep `oxlint`, `oxlint-tsgolint`,
+The current `oxlint-tsgolint` releases use TypeScript 7. Keep `oxlint`, `oxlint-tsgolint`,
 TypeScript, and the consumer's project configuration compatible. In a
 monorepo, build dependent packages so their declarations can be resolved
 before type-aware linting runs.
@@ -272,6 +272,31 @@ The package's custom Effect rules remain syntax-only. Oxc's [JavaScript plugin
 API](https://oxc.rs/docs/guide/usage/linter/js-plugins.html) does not support
 custom type-aware rules, so semantic Effect rules remain deferred until Oxc
 provides supported typed-plugin access.
+
+#### Optional tsrs Backend
+
+[Oxlint 1.92.0 or newer](https://github.com/oxc-project/oxc/releases/tag/oxlint_v1.92.0)
+can discover `tsrs-lint` as an [alternative backend](https://oxc.rs/blog/2026-11-17-faster-type-aware-linting-with-tsrs)
+for its built-in type-aware rules.
+In a consumer that already uses the plugin, install the pinned preview pair:
+
+```bash
+bun add -d -E oxlint@1.94.0 tsrs@0.25.0-ts7.1.0-beta
+bunx --no-install oxlint --type-aware src
+```
+
+Keep the same `typeAware` preset (or `effect3.typeAware` for Effect 3), rule
+options, and standalone typecheck. There is no new preset or plugin dependency.
+Oxlint prefers the discoverable `tsrs-lint` launcher, even when
+`oxlint-tsgolint` is also installed locally. To roll back, run `bun remove tsrs`
+and retain or restore a compatible `oxlint-tsgolint`; check for a remaining
+`tsrs-lint` on `PATH` or an explicit `OXLINT_TSGOLINT_PATH` override.
+
+Use this preview for linting, not to replace a whole-project compiler check.
+The macOS arm64 trial matched Effect 3 and 4 lint diagnostics, but the two
+backends did not report identical compiler diagnostics with `--type-check`.
+Linux and editor integration have not been verified by this project.
+See the [optional packed-consumer check](examples/type-aware-consumer/README.md#optional-tsrs-verification).
 
 ### Configure One Rule Group
 
