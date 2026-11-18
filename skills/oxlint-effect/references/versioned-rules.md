@@ -12,9 +12,9 @@ A passing control labelled as a gap is not a recommended repair.
 
 ## API Selection
 
-### Unreleased Opt-In Cause Loss
+### Opt-In Cause Loss In 2.3+
 
-`linteffect/no-error-cause-loss` is new after published 2.2.0. Explicit errorModeling,
+`linteffect/no-error-cause-loss` was introduced in 2.3.0. Explicit errorModeling,
 ddd and allRules selections enable it; recommended/typeAware remain unchanged.
 It checks actual value imports and inline synchronous map/recovery handlers for
 returned constructors that do not visibly receive the original. Read

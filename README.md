@@ -53,7 +53,7 @@ installs from npm and checks annotated failures alongside clean repairs.
 
 **Version scope:** these changes apply to plugin **2.1.0 and later**. Version
 **2.0.x** retains the previous recommended bans and option-presence concurrency
-checks. This checkout carries the minor changeset; publication is separate.
+checks.
 
 `recommended` and `effect3.recommended` allow generator-based `Effect.fn`,
 explicit `Effect.Effect`/`Layer.Layer` annotations and named Effect type aliases.
@@ -78,8 +78,8 @@ automatic span name. Throwing inside Effect.fn remains a typed-failure warning;
 supporting the function form does not permit unsafe bodies.
 
 Published `2.0.0` makes default exports Effect 4 policy and adds `effect3` for
-legacy projects. This checkout adds one opt-in rule, for 147 registered rules and 18 groups,
-locally qualified for their documented forms against the pinned majors:
+legacy projects. Version `2.3.0` adds one opt-in rule, for 147 registered rules
+and 18 groups, qualified for their documented forms against the pinned majors:
 147 legacy Effect 3 cases and 142 current Effect 4 cases, with five legacy-only policies.
 Published 1.x packages retain their original Effect 3 behaviour and do not
 provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
@@ -91,8 +91,8 @@ the plugin to 2.x to use the explicit legacy presets without upgrading Effect.
 `bun run test:effect-versions` verifies pinned packed Effect 3.22.1 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
 All Q01-Q52 now have behavioural evidence in the matching packed consumers.
-The original compatibility release used a 30 KB runtime cap. The unreleased
-cause-loss addition uses an explicitly reviewed 31 KB cap; see
+The original compatibility release used a 30 KB runtime cap. Version 2.3.0
+uses an explicitly reviewed 31 KB cap for the cause-loss addition; see
 [ADR 0004](docs/adr/0004-opt-in-cause-loss-policy.md) and the
 [final qualification record](docs/superpowers/reports/2026-11-16-opt-in-cause-loss.md).
 Accepting a version option alone is not proof of adaptation. The rule/group
@@ -394,10 +394,10 @@ or repair a domain-modeling issue. The skill preserves existing configuration
 and uses the installed package's APIs and rules. Type-aware linting is opt-in.
 Intentional `EXPECT`/`QA` failures are retained as diagnostic controls.
 
-This checkout also adds [cause-narrowing review guidance](./skills/oxlint-effect/references/cause-narrowing.md),
+Version 2.3.0 adds [cause-narrowing review guidance](./skills/oxlint-effect/references/cause-narrowing.md),
 with paired current/legacy counterexamples, repairs and executable contracts.
 It checks original cause identity, observer sequencing, error/environment types
-and an explicit public projection. The unreleased `no-error-cause-loss` rule now
+and an explicit public projection. The opt-in `no-error-cause-loss` rule
 diagnoses the three matched cause-erasure examples when explicitly enabled.
 Other `REVIEW-ONLY` cases still document gaps rather than implemented warnings. This is agent
 guidance, not a port of anti-slop's complete lint policy or an LLM judging service.
@@ -895,10 +895,10 @@ not currently expose it; it is not part of the v1 export surface.
 
 ### Error Modeling
 
-**Unreleased opt-in addition:** `no-error-cause-loss` is included in `errorModeling`,
+**Since 2.3.0:** `no-error-cause-loss` is included in `errorModeling`,
 `ddd` and `allRules` for both majors. It is **not** enabled by `recommended` or
-`typeAware`. Published 2.2.0 does not export this new rule. Existing explicit
-error/DDD group users will receive its diagnostics in the next minor release.
+`typeAware`. Version 2.2.0 does not export this rule. Users upgrading with an
+explicit error/DDD group selection may see new diagnostics.
 
 Enable it only where the owner requires retaining the original error when
 wrapping it. It checks direct `new` constructor returns in synchronous inline

@@ -1,10 +1,10 @@
 # Cause-Preserving Error Narrowing
 
 Use this when a boundary maps rich internal failures into a caller-facing error.
-The unreleased `linteffect/no-error-cause-loss` rule now diagnoses the matched
-bad examples under explicit `errorModeling`, `ddd` or `allRules` policy. It stays
-out of recommended and type-aware recommended in both majors. Published 2.2.0
-does not contain this rule; verify the installed exports before enabling it.
+Since plugin 2.3.0, `linteffect/no-error-cause-loss` diagnoses the matched bad
+examples under explicit `errorModeling`, `ddd` or `allRules` policy. It stays
+out of recommended and type-aware recommended in both majors. Verify the
+installed exports before enabling it.
 
 The three bad cases now carry `EXPECT` annotations. Broader review questions
 remain outside deterministic lint coverage. Unknown code is not proof of safety,

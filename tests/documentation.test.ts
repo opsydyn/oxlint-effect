@@ -27,16 +27,17 @@ describe("published v2 documentation", () => {
     expect(skillSection).not.toContain("assets currently target Effect 3");
   });
 
-  it("distinguishes the pending opt-in cause rule from published defaults", async () => {
+  it("documents the opt-in cause rule's version and leaves defaults unchanged", async () => {
     const readme = await Bun.file("README.md").text();
     const section = readme.slice(readme.indexOf("### Error Modeling"));
-    expect(section).toContain("Published 2.2.0 does not export this new rule");
+    expect(section).toContain("**Since 2.3.0:** `no-error-cause-loss`");
+    expect(section).toContain("Version 2.2.0 does not export this rule");
     expect(section).toContain("not** enabled by `recommended` or");
     expect(section).toContain("`typeAware`");
     expect(section).toContain("errorModeling");
     expect(readme).toContain("explicitly reviewed 31 KB cap");
     const skill = await Bun.file("skills/oxlint-effect/SKILL.md").text();
-    expect(skill).toContain("published 2.2.0 does not");
+    expect(skill).toContain("plugin 2.3.0, diagnoses the matched cases");
   });
 
   it("documents tsrs as a consumer opt-in without enabling it in the default fixture", async () => {
