@@ -1,5 +1,40 @@
 # @opsydyn/oxlint-effect
 
+## 2.3.0
+
+### Minor Changes
+
+- f3da996: Add no-error-cause-loss for inline error mappings that do not visibly pass the
+  original into a returned constructor. The rule uses real import/parameter
+  bindings, respects overwritten object properties and treats opaque inputs as
+  unknown. Support current and legacy map/recovery APIs with annotated failures,
+  clean controls, type checks and packed runtime contracts.
+
+  Enable this retention policy in errorModeling, ddd and allRules only; recommended
+  and its typeAware companion remain unchanged. Deliberate capture-and-erase
+  boundaries should not opt into a retention contract they do not own.
+
+  Document the measured runtime budget revision from 30 KB to 31 KB for this new
+  detector, without adding dependencies or hiding secondary output. The existing
+  agent corpus now demonstrates three actual opt-in diagnostics instead of a
+  review-only gap.
+
+### Patch Changes
+
+- 9e6142b: Add anti-slop-inspired cause-narrowing guidance to the companion agent skill,
+  with matched Effect 4 and legacy Effect 3 review counterexamples, repairs,
+  runtime contracts and negative-type controls. Clarify cause identity, actually
+  sequenced observation, typed failure boundaries and public disclosure.
+
+  Review-only examples explicitly document gaps in existing lint coverage; this
+  does not add runtime rules or change preset policy. Correct the observer guide's
+  distinction between legacy tapError warnings and the current Effect 4 policy.
+
+- 69a7f3a: Document the consumer-owned tsrs preview for built-in type-aware linting,
+  including rollback and why standalone compiler checks should stay in place.
+  The typeAware presets, default backend guidance, and package dependencies
+  are unchanged.
+
 ## 2.2.0
 
 ### Minor Changes
