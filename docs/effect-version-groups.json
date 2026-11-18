@@ -2623,6 +2623,28 @@
           ]
         }
       },
+      "no-error-cause-loss": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "adapted",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-error-cause-loss"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-error-cause-loss"
+          ]
+        }
+      },
       "no-log-only-error-handling": {
         "applicability": {
           "3": true,
@@ -3114,6 +3136,28 @@
           ],
           "4": [
             "examples/effect4-consumer/qualification-cases.json: no-catchall-generic-rethrow"
+          ]
+        }
+      },
+      "no-error-cause-loss": {
+        "applicability": {
+          "3": true,
+          "4": true
+        },
+        "qualification": {
+          "3": "qualified",
+          "4": "qualified"
+        },
+        "classification": {
+          "3": "adapted",
+          "4": "adapted"
+        },
+        "evidence": {
+          "3": [
+            "examples/effect3-consumer/qualification-cases.json: no-error-cause-loss"
+          ],
+          "4": [
+            "examples/effect4-consumer/qualification-cases.json: no-error-cause-loss"
           ]
         }
       },

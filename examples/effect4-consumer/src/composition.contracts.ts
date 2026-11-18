@@ -23,6 +23,7 @@ const groupNames = [
   "testingObservabilityAndQa"
 ] as const;
 const expectedDdd = [
+  "no-error-cause-loss",
   "no-raw-domain-id-alias",
   "no-boolean-domain-flag",
   "no-magic-domain-string",
@@ -46,6 +47,7 @@ const expectedDdd = [
   "no-log-only-error-handling"
 ].map(id => `linteffect/${id}`).sort();
 const excluded = [
+  "no-error-cause-loss",
   "no-effect-fn-generator",
   "no-manual-effect-channels",
   "no-effect-type-alias",
@@ -84,7 +86,7 @@ export const presetConfigs = Object.entries(policy.presets).map(([name, preset])
 });
 export const allConfig = defineConfig({ jsPlugins: [...policy.jsPlugins], rules: policy.allRules });
 export const recommendedOnly = defineConfig({ jsPlugins: [...policy.jsPlugins], rules: policy.recommendedRules });
-if (expectedDdd.length !== 21 || !same(keys(policy.dddRules), expectedDdd) || !same(keys(policy.dddRules), keys({ ...policy.domainModelingRules, ...policy.errorModelingRules }))) throw new Error("DDD must be the exact 21-member union");
+if (expectedDdd.length !== 22 || !same(keys(policy.dddRules), expectedDdd) || !same(keys(policy.dddRules), keys({ ...policy.domainModelingRules, ...policy.errorModelingRules }))) throw new Error("DDD must be the exact 22-member union");
 for (const [id, entry] of Object.entries(policy.allRules)) {
   if (Array.isArray(entry) && entry[1].effectVersion !== 4) throw new Error(`Wrong major in ${id}`);
   if (excluded.includes(id) === Object.hasOwn(policy.recommendedRules, id)) throw new Error(`Recommended exclusion mismatch: ${id}`);

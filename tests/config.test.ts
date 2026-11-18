@@ -182,6 +182,7 @@ const groupExpectations = {
     "no-new-date-in-domain-logic",
   ],
   errorModeling: [
+    "no-error-cause-loss",
     "no-error-as-public-effect-error",
     "no-unknown-public-error-channel",
     "no-mixed-effect-error-shapes",

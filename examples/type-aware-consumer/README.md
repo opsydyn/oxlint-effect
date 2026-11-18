@@ -4,7 +4,7 @@ This isolated TypeScript 7 consumer proves that the opt-in `typeAware` preset
 can combine the package's syntax-only Effect rules with Oxc's built-in
 type-aware TypeScript rules. The failure files are intentionally invalid.
 
-The fixture owns `oxlint-tsgolint` and TypeScript 7. The published package
+The default fixture owns `oxlint-tsgolint` and TypeScript 7. The published package
 remains a syntax-only JavaScript plugin; it does not install the engine or add
 custom semantic Effect rules.
 
@@ -29,7 +29,8 @@ bun run lint:valid
 `typescript/no-misused-promises` diagnostics. `typecheck` and `lint:valid`
 must exit zero.
 
-Task 3 replaces the local dependency with the generated package tarball, then
+`bun run test:type-aware` from the repository root replaces the local
+dependency with the generated package tarball, then
 installs the temporary consumer. For example, use the packed artifact path in
 the temporary consumer's manifest:
 
@@ -42,8 +43,29 @@ the temporary consumer's manifest:
 ```
 
 Replace `<version>` with the package version in the generated tarball. The
-tarball path is owned by the Task 3 harness; do not commit that temporary
+tarball path is owned by the verification script; do not commit that temporary
 dependency change to this fixture.
+
+## Optional tsrs Verification
+
+From the repository root:
+
+```bash
+bun run test:type-aware:tsrs
+```
+
+This checks the same packed plugin with Effect 3.22.1 and 4.0.0 in temporary
+consumers on macOS or Linux. It installs Oxlint 1.94.0 and the preview
+`tsrs@0.25.0-ts7.1.0-beta` there only, and selects that local launcher
+explicitly so the test cannot fall back to Go. Each consumer must pass
+standalone TypeScript checks, report exactly the five annotated lint findings,
+and emit zero diagnostics for the clean control. The Effect 4 consumer uses
+the current preset and includes `ESNext.Disposable` for Effect's declarations.
+
+The standard fixture, lockfile and CI job still use `tsgolint`. The optional
+check has been run on macOS arm64; run it on the deployment platform before
+adopting the preview. [Consumer installation and rollback](../../README.md#optional-tsrs-backend)
+do not require changes to the plugin configuration.
 
 ## Configuration Variants
 

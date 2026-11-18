@@ -1864,6 +1864,23 @@ const updateExpression = (argument: unknown) => ({
 });
 
 describe("linteffect Oxlint plugin", () => {
+  it("checks new error constructors but retains the same lexical handler input", () => {
+    for (const major of [3, 4] as const) {
+      const reference = identifier("value");
+      const erased = { type: "NewExpression", callee: identifier("BoundaryFailure"), arguments: [stringLiteral("lost")] };
+      const retained = { type: "NewExpression", callee: identifier("BoundaryFailure"), arguments: [objectLiteral(property("original", reference))] };
+      for (const [construction, count] of [[erased, 1], [retained, 0]] as const) {
+        const callback = arrowCallback(construction);
+        const parameter = callback.params[0];
+        const reports = runRule("no-error-cause-loss", "CallExpression", effectCall("mapError", identifier("task"), callback), {
+          options: [{ effectVersion: major }],
+          sourceCode: { getDeclaredVariables: () => [{ identifiers: [parameter], references: [{ identifier: reference, isWrite: () => false }] }] },
+        });
+        expect(reports).toHaveLength(count);
+        if (count) expect(reports[0]?.node).toBe(erased);
+      }
+    }
+  });
   describe("no-process-env-direct-read", () => {
     it("reports direct environment reads outside allowed paths", () => {
       const reports = runRule(

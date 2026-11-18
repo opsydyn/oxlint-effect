@@ -12,6 +12,17 @@ A passing control labelled as a gap is not a recommended repair.
 
 ## API Selection
 
+### Opt-In Cause Loss In 2.3+
+
+`linteffect/no-error-cause-loss` was introduced in 2.3.0. Explicit errorModeling,
+ddd and allRules selections enable it; recommended/typeAware remain unchanged.
+It checks actual value imports and inline synchronous map/recovery handlers for
+returned constructors that do not visibly receive the original. Read
+[cause narrowing](cause-narrowing.md) for precise forms and unknown-input limits.
+Legacy uses catchAll/catchAllCause; current uses catch/catchEager/catchCause and
+also mapErrorEager. This retention policy is not a mandate to attach internal
+causes to public payloads or change intentional domain recovery.
+
 ### Concurrency Accuracy In 2.2+
 
 Plugin 2.2.0 and later recalibrates no-race-without-cleanup and the

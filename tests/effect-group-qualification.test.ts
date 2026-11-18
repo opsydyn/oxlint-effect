@@ -9,7 +9,8 @@ describe("packed group qualification evidence", () => {
       for (const name of Object.keys(ruleGroups)) expect(source).toContain(`"${name}"`);
       expect(source).toContain("Rules");
       expect(source).toContain("defineConfig");
-      expect(source).toContain("21");
+      const count = Object.keys(major === 3 ? effect3.ruleGroups.ddd : ruleGroups.ddd).length;
+      expect(source).toContain(`expectedDdd.length !== ${count}`);
     }
   });
   it("ships current and explicitly legacy paired skill assets", async () => {

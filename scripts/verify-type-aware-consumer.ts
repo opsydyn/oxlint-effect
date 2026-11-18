@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { cp, mkdtemp, readFile, readdir, rm, unlink, writeFile } from "node:fs/promises";
+import { access, cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -11,15 +11,15 @@ type CommandResult = {
 };
 
 const expectationPattern = /\/\/ EXPECT: (linteffect|typescript)\/([a-z]+(?:-[a-z]+)*)/g;
-const observedRulePattern = /(linteffect|typescript)\(([a-z]+(?:-[a-z]+)*)\)/g;
+const observedRulePattern = /^(linteffect|typescript)\(([a-z]+(?:-[a-z]+)*)\)$/;
 
-function run(command: string, args: string[], cwd: string): CommandResult {
+function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env): CommandResult {
   const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
     env: command === "npm"
-      ? { ...process.env, npm_config_cache: npmCacheRoot, npm_config_ignore_scripts: "true" }
-      : process.env,
+      ? { ...env, npm_config_cache: npmCacheRoot, npm_config_ignore_scripts: "true" }
+      : env,
     stdio: ["ignore", "pipe", "pipe"],
   });
 
@@ -56,38 +56,41 @@ async function sourceFiles(root: string): Promise<string[]> {
   return paths.flat();
 }
 
-async function expectedRuleIds(root: string): Promise<Set<string>> {
-  const expected = new Set<string>();
+async function expectedRuleIds(root: string): Promise<string[]> {
+  const expected: string[] = [];
   const files = await sourceFiles(root);
 
   for (const file of files) {
     const source = await readFile(file, "utf8");
     for (const match of source.matchAll(expectationPattern)) {
-      expected.add(`${match[1]}/${match[2]}`);
+      expected.push(`${match[1]}/${match[2]}`);
     }
   }
 
-  return expected;
+  return expected.sort();
 }
 
-function observedRuleIds(output: string): Set<string> {
-  return new Set(
-    [...output.matchAll(observedRulePattern)].map((match) => `${match[1]}/${match[2]}`),
-  );
-}
-
-function assertExpectedDiagnostics(result: CommandResult, expected: Set<string>): void {
-  if (result.status !== 1) {
-    throw new Error(`Expected lint to exit 1, received ${result.status}:\n${result.output}`);
+function observedRuleIds(result: CommandResult): string[] {
+  try {
+    const { diagnostics } = JSON.parse(result.stdout) as { diagnostics: Array<{ code?: string; message: string }> };
+    return diagnostics.map(({ code, message }) => {
+      const match = code?.match(observedRulePattern);
+      return match ? `${match[1]}/${match[2]}` : code ?? message;
+    }).sort();
+  } catch (error) {
+    throw new Error(`Expected Oxlint JSON diagnostics:\n${result.output}`, { cause: error });
   }
+}
 
-  const observed = observedRuleIds(result.output);
-  const missing = [...expected].filter((ruleId) => !observed.has(ruleId)).sort();
-  const unexpected = [...observed].filter((ruleId) => !expected.has(ruleId)).sort();
-
-  if (missing.length > 0 || unexpected.length > 0) {
+function assertExpectedDiagnostics(result: CommandResult, expected: string[]): void {
+  const status = expected.length ? 1 : 0;
+  if (result.status !== status) {
+    throw new Error(`Expected lint to exit ${status}, received ${result.status}:\n${result.output}`);
+  }
+  const observed = observedRuleIds(result);
+  if (JSON.stringify(observed) !== JSON.stringify(expected)) {
     throw new Error(
-      `Unexpected lint diagnostics:\nmissing: ${missing.join(", ") || "none"}\nunexpected: ${unexpected.join(", ") || "none"}\n${result.output}`,
+      `Unexpected lint diagnostics:\nexpected: ${expected.join(", ")}\nobserved: ${observed.join(", ")}\n${result.output}`,
     );
   }
 }
@@ -99,15 +102,70 @@ function assertSuccess(result: CommandResult, command: string): void {
 }
 
 const repoRoot = resolve(import.meta.dir, "..");
+const args = process.argv.slice(2);
+const useTsrs = args[0] === "--tsrs";
+if (args.length > 1 || (args.length === 1 && !useTsrs)) {
+  throw new Error("Usage: bun scripts/verify-type-aware-consumer.ts [--tsrs]");
+}
+if (useTsrs && process.platform !== "darwin" && process.platform !== "linux") {
+  throw new Error("The optional tsrs verifier targets macOS and Linux.");
+}
+
 let packRoot: string | undefined;
 let npmCacheRoot: string | undefined;
 let consumerTempRoot: string | undefined;
+
+async function verifyConsumer(root: string, tarball: string, major: 3 | 4): Promise<void> {
+  const fixture = join(repoRoot, "examples/type-aware-consumer");
+  const config = major === 4 ? "oxlint.effect4.config.ts" : "oxlint.config.ts";
+  for (const file of new Set(["src", "tsconfig.json", "oxlint.config.ts", config])) {
+    await cp(join(fixture, file), join(root, file), { recursive: true });
+  }
+
+  const manifest = JSON.parse(await readFile(join(fixture, "package.json"), "utf8")) as {
+    dependencies: Record<string, string>;
+    devDependencies: Record<string, string>;
+  };
+  manifest.dependencies["@opsydyn/oxlint-effect"] = `file:${tarball}`;
+  if (useTsrs) {
+    delete manifest.devDependencies["oxlint-tsgolint"];
+    manifest.devDependencies.oxlint = "1.94.0";
+    manifest.devDependencies.tsrs = "0.25.0-ts7.1.0-beta";
+    manifest.devDependencies.typescript = "7.0.2";
+    manifest.dependencies.effect = major === 4 ? "4.0.0" : "3.22.1";
+  }
+  await writeFile(join(root, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+
+  if (major === 4) {
+    const configPath = join(root, "tsconfig.json");
+    const tsconfig = JSON.parse(await readFile(configPath, "utf8"));
+    tsconfig.include.push(config);
+    tsconfig.compilerOptions.allowImportingTsExtensions = true;
+    tsconfig.compilerOptions.lib = ["ES2022", "DOM", "DOM.Iterable", "ESNext.Disposable"];
+    await writeFile(configPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
+  }
+
+  assertSuccess(run("bun", ["install", "--ignore-scripts"], root), "bun install");
+  assertSuccess(run("bun", ["run", "typecheck"], root), "bun run typecheck");
+
+  // An explicit local launcher keeps an opted-in test from silently using Go.
+  const env = { ...process.env };
+  if (process.platform !== "win32") {
+    const launcher = join(root, "node_modules", ".bin", useTsrs ? "tsrs-lint" : "tsgolint");
+    await access(launcher);
+    env.OXLINT_TSGOLINT_PATH = launcher;
+  }
+  const lint = (target: string) => run("bun", ["run", "oxlint", "--config", config, "--format", "json", target], root, env);
+  const expected = await expectedRuleIds(join(root, "src"));
+  assertExpectedDiagnostics(lint("src"), expected);
+  assertExpectedDiagnostics(lint("src/valid-controls.ts"), []);
+  console.log(`Effect ${major} with ${useTsrs ? "tsrs" : "tsgolint"}: typecheck, ${expected.length} expected lint diagnostics, and clean control passed`);
+}
 
 try {
   packRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-pack-"));
   npmCacheRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-npm-cache-"));
   consumerTempRoot = await mkdtemp(join(tmpdir(), "oxlint-effect-type-aware-consumer-"));
-  const consumerRoot = join(consumerTempRoot, "consumer");
 
   const packResult = run(
     "npm",
@@ -128,26 +186,9 @@ try {
   }
   const tarball = join(packRoot, filename);
 
-  await cp(join(repoRoot, "examples/type-aware-consumer"), consumerRoot, { recursive: true });
-  await unlink(join(consumerRoot, "bun.lock"));
-
-  const packagePath = join(consumerRoot, "package.json");
-  const consumerPackage = JSON.parse(await readFile(packagePath, "utf8")) as {
-    dependencies: Record<string, string>;
-  };
-  consumerPackage.dependencies["@opsydyn/oxlint-effect"] = `file:${tarball}`;
-  await writeFile(packagePath, `${JSON.stringify(consumerPackage, null, 2)}\n`);
-
-  assertSuccess(run("bun", ["install"], consumerRoot), "bun install");
-  assertSuccess(run("bun", ["run", "typecheck"], consumerRoot), "bun run typecheck");
-
-  const expected = await expectedRuleIds(join(consumerRoot, "src"));
-  assertExpectedDiagnostics(run("bun", ["run", "lint"], consumerRoot), expected);
-
-  const validControl = run("bun", ["run", "lint:valid"], consumerRoot);
-  assertSuccess(validControl, "bun run lint:valid");
-  if (validControl.output.includes("linteffect(") || validControl.output.includes("typescript(")) {
-    throw new Error(`Valid control reported a type-aware diagnostic:\n${validControl.output}`);
+  const majors = useTsrs ? [3, 4] as const : [3] as const;
+  for (const major of majors) {
+    await verifyConsumer(join(consumerTempRoot, `effect${major}`), tarball, major);
   }
 } finally {
   await Promise.all(

@@ -8,7 +8,8 @@ not legacy API spelling; matching packed consumers verify both corpora.
 Read the paired [failures](../assets/error-preservation.bad.ts) and
 [repairs](../assets/error-preservation.good.ts). These wrap a supplied profile
 Effect; they do not implement persistence or choose a production recovery policy.
-The bad file has three intentional diagnostics. The good file is full-DDD clean.
+The bad file has four intentional diagnostics under the 2.3.0 DDD preset
+(three under 2.2.0). The good file is full-DDD clean.
 
 | Rule | Question before repair | Example direction |
 | --- | --- | --- |
@@ -49,8 +50,9 @@ business requirements. Never replace successful recovery with failure solely
 to clear a diagnostic.
 
 `tapError(error => Effect.logError(error))` is different: a successful observer
-already preserves the original typed failure. The current heuristic also flags
-that log-only callback; the diagnostic does not prove the error was swallowed.
+already preserves the original typed failure. The legacy Effect 3 policy also
+flags that log-only callback; the Effect 4 policy keeps such observers clean.
+The legacy diagnostic does not prove the error was swallowed.
 Report that detector/policy mismatch when this is legitimate observation. Do not
 put `Effect.fail(error)` inside `tapError` just to satisfy the rule: a failing
 observer can alter the resulting cause. Do not add wrappers, casts or suppression
@@ -74,3 +76,9 @@ and test it when adapting real boundaries.
 Keep `EXPECT`/`QA` examples intentionally failing. Run both the focused DDD
 policy and the consumer's complete lint configuration on repairs. A clean
 heuristic result is not proof that an observer or recovery handler is correct.
+
+For tagged mappings beyond those three lint patterns, read
+[cause narrowing](cause-narrowing.md). It provides current and legacy
+counterexamples and repairs, and distinguishes internal retention, actually
+sequenced capture and public disclosure. The opt-in cause-loss rule, introduced
+in 2.3.0, addresses the visible constructor-input subset, not every review question.

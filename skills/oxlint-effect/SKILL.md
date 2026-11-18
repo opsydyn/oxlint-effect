@@ -97,6 +97,13 @@ keep defects and interruptions distinct from typed failures.
 For message-only failures, generic rethrows, or log-only handlers, read
 [error preservation](references/error-preservation.md). Establish recovery
 ownership and distinguish `catchAll` from `tapError` before changing semantics.
+When mapping a rich failure into a new boundary error, also read
+[cause narrowing](references/cause-narrowing.md). Its versioned bad/repair pairs
+demonstrate cause identity, observer sequencing, public disclosure and assertions
+that miss erasure. The opt-in `linteffect/no-error-cause-loss` rule, introduced in
+plugin 2.3.0, diagnoses the matched cases. Check installed exports and
+the owner's retention policy first. Other review questions remain gaps; a clean
+lint result does not prove preservation, constructor storage or telemetry delivery.
 For current Effect use the versioned guide: broad `catch`/`catchEager` differs
 from failure-preserving observers, and legacy `catch` is discriminator-specific.
 

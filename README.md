@@ -53,7 +53,7 @@ installs from npm and checks annotated failures alongside clean repairs.
 
 **Version scope:** these changes apply to plugin **2.1.0 and later**. Version
 **2.0.x** retains the previous recommended bans and option-presence concurrency
-checks. This checkout carries the minor changeset; publication is separate.
+checks.
 
 `recommended` and `effect3.recommended` allow generator-based `Effect.fn`,
 explicit `Effect.Effect`/`Layer.Layer` annotations and named Effect type aliases.
@@ -78,9 +78,9 @@ automatic span name. Throwing inside Effect.fn remains a typed-failure warning;
 supporting the function form does not permit unsafe bodies.
 
 Published `2.0.0` makes default exports Effect 4 policy and adds `effect3` for
-legacy projects. All 146 registered rules and 18 groups are
-locally qualified for their documented forms against the pinned majors:
-146 legacy Effect 3 cases and 141 current Effect 4 cases, with five legacy-only policies.
+legacy projects. Version `2.3.0` adds one opt-in rule, for 147 registered rules
+and 18 groups, qualified for their documented forms against the pinned majors:
+147 legacy Effect 3 cases and 142 current Effect 4 cases, with five legacy-only policies.
 Published 1.x packages retain their original Effect 3 behaviour and do not
 provide the new namespace. See the [compatibility roadmap](roadmap/14-effect4-compatibility/README.md)
 and [per-rule audit](docs/effect-version-inventory.json) for detection scope.
@@ -91,7 +91,10 @@ the plugin to 2.x to use the explicit legacy presets without upgrading Effect.
 `bun run test:effect-versions` verifies pinned packed Effect 3.22.1 and 4.0.0
 consumers, with exact warning counts, clean controls and config typechecks.
 All Q01-Q52 now have behavioural evidence in the matching packed consumers.
-The complete rule/group gate and unchanged 30 KB bundle-size gate pass locally.
+The original compatibility release used a 30 KB runtime cap. Version 2.3.0
+uses an explicitly reviewed 31 KB cap for the cause-loss addition; see
+[ADR 0004](docs/adr/0004-opt-in-cause-loss-policy.md) and the
+[final qualification record](docs/superpowers/reports/2026-11-16-opt-in-cause-loss.md).
 Accepting a version option alone is not proof of adaptation. The rule/group
 publication guard passes at 2.0.0; release and registry verification are recorded
 in the [release checklist](docs/superpowers/reports/2026-10-01-effect4-release-preparation.md).
@@ -216,13 +219,13 @@ the package's recommended syntax-only `linteffect/*` rules and enables Oxc's
 type-aware engine, but it does not select any `typescript/*` rules or enable
 `typeCheck` compiler diagnostics.
 
-Install the type-aware engine in the consuming project:
+Install the standard `tsgolint` backend in the consuming project:
 
 ```bash
 bun add -d oxlint oxlint-tsgolint @opsydyn/oxlint-effect
 ```
 
-The current engine requires TypeScript 7. Keep `oxlint`, `oxlint-tsgolint`,
+The current `oxlint-tsgolint` releases use TypeScript 7. Keep `oxlint`, `oxlint-tsgolint`,
 TypeScript, and the consumer's project configuration compatible. In a
 monorepo, build dependent packages so their declarations can be resolved
 before type-aware linting runs.
@@ -269,6 +272,31 @@ The package's custom Effect rules remain syntax-only. Oxc's [JavaScript plugin
 API](https://oxc.rs/docs/guide/usage/linter/js-plugins.html) does not support
 custom type-aware rules, so semantic Effect rules remain deferred until Oxc
 provides supported typed-plugin access.
+
+#### Optional tsrs Backend
+
+[Oxlint 1.92.0 or newer](https://github.com/oxc-project/oxc/releases/tag/oxlint_v1.92.0)
+can discover `tsrs-lint` as an [alternative backend](https://oxc.rs/blog/2026-11-17-faster-type-aware-linting-with-tsrs)
+for its built-in type-aware rules.
+In a consumer that already uses the plugin, install the pinned preview pair:
+
+```bash
+bun add -d -E oxlint@1.94.0 tsrs@0.25.0-ts7.1.0-beta
+bunx --no-install oxlint --type-aware src
+```
+
+Keep the same `typeAware` preset (or `effect3.typeAware` for Effect 3), rule
+options, and standalone typecheck. There is no new preset or plugin dependency.
+Oxlint prefers the discoverable `tsrs-lint` launcher, even when
+`oxlint-tsgolint` is also installed locally. To roll back, run `bun remove tsrs`
+and retain or restore a compatible `oxlint-tsgolint`; check for a remaining
+`tsrs-lint` on `PATH` or an explicit `OXLINT_TSGOLINT_PATH` override.
+
+Use this preview for linting, not to replace a whole-project compiler check.
+The macOS arm64 trial matched Effect 3 and 4 lint diagnostics, but the two
+backends did not report identical compiler diagnostics with `--type-check`.
+Linux and editor integration have not been verified by this project.
+See the [optional packed-consumer check](examples/type-aware-consumer/README.md#optional-tsrs-verification).
 
 ### Configure One Rule Group
 
@@ -366,6 +394,14 @@ or repair a domain-modeling issue. The skill preserves existing configuration
 and uses the installed package's APIs and rules. Type-aware linting is opt-in.
 Intentional `EXPECT`/`QA` failures are retained as diagnostic controls.
 
+Version 2.3.0 adds [cause-narrowing review guidance](./skills/oxlint-effect/references/cause-narrowing.md),
+with paired current/legacy counterexamples, repairs and executable contracts.
+It checks original cause identity, observer sequencing, error/environment types
+and an explicit public projection. The opt-in `no-error-cause-loss` rule
+diagnoses the three matched cause-erasure examples when explicitly enabled.
+Other `REVIEW-ONLY` cases still document gaps rather than implemented warnings. This is agent
+guidance, not a port of anti-slop's complete lint policy or an LLM judging service.
+
 The [skill](./skills/oxlint-effect/SKILL.md), its focused references, and
 paired [Effect 4 failures](./skills/oxlint-effect/assets/effect4/domain.bad.ts) and
 [repairs](./skills/oxlint-effect/assets/effect4/domain.good.ts) are also included in the
@@ -403,7 +439,7 @@ Paired [expected-state failures](./skills/oxlint-effect/assets/effect4/expected-
 and [repairs](./skills/oxlint-effect/assets/effect4/expected-state.good.ts) cover ordinary
 absence, broad null recovery and thrown expected rejection. Their
 [guide](./skills/oxlint-effect/references/expected-state.md) explains the required
-caller changes. The corpus now covers all 21 exported DDD rules with representative
+caller changes. The corpus now covers all 22 exported DDD rules with representative
 annotated failures, full-DDD clean controls and tested contracts.
 CI checks referenced rules and presets, relative
 links, npm inclusion, TypeScript contracts, intentional diagnostics, and clean
@@ -739,7 +775,7 @@ support the same `boundaryPaths` option as the other lifecycle rules.
 Q22's cleanup, scope and success-value examples use pinned Effect 3.21.4/4.0.0
 consumers. Behavioural qualification is recorded in the
 [campaign report](docs/superpowers/reports/2026-10-01-effect4-complete-qualification.md#q22-cleanup-manual-scopes-and-resource-success-values);
-Q22-Q24 batch closure and the unchanged 30 KB size gate now pass locally.
+Historical Q22-Q24 closure passed the then-current 30 KB size gate.
 
 Prefer the supplied `Effect.scope` inside `Effect.scoped`, or acquire a manual
 `Scope.make()` with `Effect.acquireUseRelease` and release it using
@@ -859,6 +895,33 @@ not currently expose it; it is not part of the v1 export surface.
 
 ### Error Modeling
 
+**Since 2.3.0:** `no-error-cause-loss` is included in `errorModeling`,
+`ddd` and `allRules` for both majors. It is **not** enabled by `recommended` or
+`typeAware`. Version 2.2.0 does not export this rule. Users upgrading with an
+explicit error/DDD group selection may see new diagnostics.
+
+Enable it only where the owner requires retaining the original error when
+wrapping it. It checks direct `new` constructor returns in synchronous inline
+`mapError` handlers and `Effect.fail(new ...)` in broad recovery. Legacy recovery
+is `catchAll`/`catchAllCause`; current is `catch`/`catchEager`/`catchCause`, with
+`mapErrorEager` also supported. Direct/data-last calls, block and conditional
+returns, value-import aliases and subpath imports are recognised by binding.
+
+Passing the original as an argument, or inside a literal object/array, avoids a
+warning without mandating a field name. Later keys win; a later opaque spread,
+dynamic computed field, helper result, alias, destructured/reassigned parameter, async
+handler or generator stays unknown, **not proven safe**. Named handlers, factory
+`.make`, specialised recovery tables and cross-file constructor storage are not
+inferred. A constructor can still ignore a passed input. Logging is not a bypass.
+
+For a single manual Effect 4 rule, use
+`"linteffect/no-error-cause-loss": ["error", { effectVersion: 4 }]`; use `3` for
+legacy consumers. Register the plugin once using the existing configuration.
+See the [cause guide](skills/oxlint-effect/references/cause-narrowing.md) and
+[annotated app example](examples/backend/cause-narrowing-review.ts). There is no
+automatic fix: intentional captured-and-erased public translations may be valid,
+and internal causes must not be exposed in public payloads merely to clear lint.
+
 Public Effect operations should expose one structured, recoverable error
 channel. The `ddd` preset includes the complete Domain Modeling and Error
 Modeling groups; DDD-only rules remain opt-in to keep `recommended` compatible
@@ -871,6 +934,7 @@ with existing projects.
 | `linteffect/no-mixed-effect-error-shapes` | Public error unions mixing `Error`, `unknown`, string, number, or boolean shapes. | A single tagged error union keeps recovery and observability predictable. |
 | `linteffect/no-effect-fail-error-message` | `Effect.fail(error.message)`, string concatenation, or templates that stringify an error. | Preserves the original error tag, cause, and context instead of collapsing it into a string. |
 | `linteffect/no-catchall-generic-rethrow` | Plain `catch`/`catchEager` (v4) or `catchAll` (v3) handlers returning `Effect.fail(new Error(...))`. | Preserve the original error or explicitly map to a structured tagged error with its cause. |
+| `linteffect/no-error-cause-loss` | Opt-in inline map/recovery constructors whose visible inputs omit or project away the original handler error. | Pass the original through an owned field or argument where retention is required. Uses lexical identity and effective object keys; opaque inputs stay unknown. Does not prove constructor storage, telemetry delivery or valid public disclosure. |
 | `linteffect/no-log-only-error-handling` | V4 catch/eager/Cause/defect/filter/tag/reason handlers and maps that log without modelling or retaining failure. Legacy v3 also reports `tapError`. | Re-fail typed errors, retain causes with `failCause`, or retain defects with `die`. V4 observers (`tapError`, `tapCause`, `tapDefect`) stay clean because they preserve failure. |
 | `linteffect/no-early-catchall-null` | Non-boundary `catch`/`catchEager` (v4) or `catchAll` (v3) recovery with `Effect.succeed(null)`, `undefined`, or an identifier containing fallback/default. | Propagate typed failures or recover at a configured boundary instead of leaking untyped absence. |
 | `linteffect/no-expected-state-as-error` | `Effect.fail("NotFound")`, `"Missing"`, `"Empty"`, or `"None"`. | Models expected states as `Option`, `Result` (v4), `Either` (v3), or tagged data instead of overloading failure. |

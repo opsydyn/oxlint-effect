@@ -9,7 +9,8 @@ describe("published v2 documentation", () => {
     expect(readme.indexOf("## Quick Start")).toBeLessThan(readme.indexOf("## Effect Versions"));
     expect(readme).toContain("oxlint.config.ts");
     expect(readme).toContain("bunx oxlint --config oxlint.config.ts src");
-    expect(readme).not.toMatch(/unreleased|remain blocked at version 1\.2\.0/);
+    const quickStart = readme.slice(0, readme.indexOf("## Effect Versions"));
+    expect(quickStart).not.toMatch(/unreleased|remain blocked at version 1\.2\.0/);
     expect(readme).toContain("examples/npm-effect4-consumer/README.md");
     const snippet = readme.match(/```ts\n([\s\S]*?)```/)?.[1];
     expect(snippet?.trim()).toBe((await Bun.file("examples/npm-effect4-consumer/oxlint.recommended.config.ts").text()).trim());
@@ -18,12 +19,42 @@ describe("published v2 documentation", () => {
   it("makes packaged current-major skill examples primary", async () => {
     for (const file of ["skills/oxlint-effect/SKILL.md", "skills/oxlint-effect/references/configuration.md"]) {
       const text = await Bun.file(file).text();
-      expect(text).not.toContain("unreleased");
+      expect(text.split("\n## ")[0]).not.toContain("unreleased");
     }
     const readme = await Bun.file("README.md").text();
     const skillSection = readme.slice(readme.indexOf("## Agent Skill"), readme.indexOf("## Rule Groups"));
     expect(skillSection).toContain("assets/effect4/domain.bad.ts");
     expect(skillSection).not.toContain("assets currently target Effect 3");
+  });
+
+  it("documents the opt-in cause rule's version and leaves defaults unchanged", async () => {
+    const readme = await Bun.file("README.md").text();
+    const section = readme.slice(readme.indexOf("### Error Modeling"));
+    expect(section).toContain("**Since 2.3.0:** `no-error-cause-loss`");
+    expect(section).toContain("Version 2.2.0 does not export this rule");
+    expect(section).toContain("not** enabled by `recommended` or");
+    expect(section).toContain("`typeAware`");
+    expect(section).toContain("errorModeling");
+    expect(readme).toContain("explicitly reviewed 31 KB cap");
+    const skill = await Bun.file("skills/oxlint-effect/SKILL.md").text();
+    expect(skill).toContain("plugin 2.3.0, diagnoses the matched cases");
+  });
+
+  it("documents tsrs as a consumer opt-in without enabling it in the default fixture", async () => {
+    const readme = await Bun.file("README.md").text();
+    const optional = readme.slice(readme.indexOf("#### Optional tsrs Backend"), readme.indexOf("### Configure One Rule Group"));
+    expect(optional).toContain("bun add -d -E oxlint@1.94.0 tsrs@0.25.0-ts7.1.0-beta");
+    expect(optional).toContain("bun remove tsrs");
+    expect(optional).toContain("standalone typecheck");
+    const pkg = await Bun.file("package.json").json();
+    const fixture = await Bun.file("examples/type-aware-consumer/package.json").json();
+    expect(pkg.scripts["test:type-aware:tsrs"]).toContain("verify-type-aware-consumer.ts --tsrs");
+    expect(pkg.scripts["test:type-aware"]).not.toContain("--tsrs");
+    for (const manifest of [pkg, fixture]) {
+      for (const field of ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]) {
+        expect(manifest[field] ?? {}).not.toHaveProperty("tsrs");
+      }
+    }
   });
 
   it("retains legacy QA and pins a real registry-backed v2 example", async () => {
